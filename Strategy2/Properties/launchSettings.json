@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "Strategy2": {
+      "commandName": "Project",
+      "commandLineArgs": "--port 7259",
+      "launchBrowser": false
+    }
+  }
+}
