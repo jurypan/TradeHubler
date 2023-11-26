@@ -19,6 +19,7 @@ namespace JustCallTheGuy
         public int ClientID { get; set; }
         public TradingviewAlert? TradingviewAlert { get; set; }
         public int TradingviewAlertID { get; set; }
+        public StrategyType StrategyType { get; set; }
         public double Offset { get; set; }
         public required string Instrument { get; set; }
         public required string Comment { get; set; }

@@ -13,6 +13,7 @@ namespace JustCallTheGuy
         [Key]
         public int ID { get; set; }
         public DateTime DateCreated { get; set; }
+        public StrategyType StrategyType { get; set; }
         public Account Account { get; set; }
         public int AccountID { get; set; }
         public string OrderType { get; set; }

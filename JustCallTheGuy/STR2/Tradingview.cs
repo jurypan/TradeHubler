@@ -37,6 +37,7 @@ namespace JustCallTheGuy.STR2
                 _logger.LogInformation($"Strategy2_Tradingview || Parse obejct to TradingviewAlert : AccountID={order.AccountID}, Type={order.OrderType}, Instrument={order.Instrument}, Price={order.Price}, SL={order.StopLoss}, TP={order.TakeProfit}, Comment={order.Comment}", order);
 
                 // Save into the database
+                order.StrategyType = StrategyType.Strategy2;
                 await _dbContext.TradingviewAlert.AddAsync(order);
                 await _dbContext.SaveChangesAsync();
 

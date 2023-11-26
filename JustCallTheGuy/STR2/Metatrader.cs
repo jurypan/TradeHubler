@@ -40,7 +40,7 @@ namespace JustCallTheGuy.STR2
                 _logger.LogDebug($"Strategy2_Metatrader || Parsed Metatrader object : AccountID={mt.AccountID}, Instrument={mt.Instrument}, ClientID={mt.ClientID}, Price={mt.Price}, TradingviewTicker={mt.TradingviewTicker},",requestBody);
 
                 // Get TradingviewAlert from the database
-                var tvAlert = await _dbContext.TradingviewAlert.Include(f => f.Trades).FirstOrDefaultAsync(f => f.AccountID == mt.AccountID && f.Instrument.Equals(mt.TradingviewTicker) && (f.Trades.Count == 0 || f.Trades.Any(g => g.ClientID == mt.ClientID && g.Executed == false)));
+                var tvAlert = await _dbContext.TradingviewAlert.Include(f => f.Trades).FirstOrDefaultAsync(f => f.AccountID == mt.AccountID && f.Instrument.Equals(mt.TradingviewTicker) && (f.Trades.Count == 0 || f.Trades.Any(g => g.ClientID == mt.ClientID && g.Executed == false)) && f.StrategyType == StrategyType.Strategy2);
 
                 // If ther eis not tradingview tvAlert in the db -> return OK
                 if (tvAlert == null)
@@ -65,6 +65,7 @@ namespace JustCallTheGuy.STR2
                          DateCreated = DateTime.UtcNow,
                          AccountID = mt.AccountID,
                          ClientID = mt.ClientID,
+                         StrategyType = tvAlert.StrategyType,
                          Instrument = mt.Instrument,
                          TradingviewAlertID = tvAlert.ID,
                          Executed = false,
