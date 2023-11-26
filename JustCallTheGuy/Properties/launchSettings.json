@@ -1,6 +1,6 @@
 {
   "profiles": {
-    "Strategy2": {
+    "JustCallTheGuy": {
       "commandName": "Project",
       "commandLineArgs": "--port 7259",
       "launchBrowser": false
