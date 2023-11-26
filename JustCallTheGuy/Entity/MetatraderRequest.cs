@@ -1,8 +1,8 @@
 ﻿namespace JustCallTheGuy
 {
-    public class Str2MetatraderRequest
+    public class MetatraderRequest
     {
-        public  Str2MetatraderRequest() 
+        public  MetatraderRequest() 
         {
             Instrument = string.Empty;
             TradingviewTicker = string.Empty;
@@ -14,7 +14,7 @@
         public double Price { get; set; }
         public string TradingviewTicker { get; set; }
 
-        public static Str2MetatraderRequest Parse(string input)
+        public static MetatraderRequest Parse(string input)
         {
             var parts = input.Split(',');
 
@@ -23,7 +23,7 @@
                 throw new ArgumentException("Input string does not have the correct format.");
             }
 
-            var mtRequest = new Str2MetatraderRequest();
+            var mtRequest = new MetatraderRequest();
 
             // Parsing Account ID
             if (!int.TryParse(parts[0], out int accountId))

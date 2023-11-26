@@ -28,7 +28,7 @@ namespace JustCallTheGuy
         {
             var parts = input.Split(',');
 
-            if (parts.Length != 7)
+            if (parts.Length != 8)
             {
                 throw new ArgumentException("Input string does not have the correct format.");
             }
@@ -79,6 +79,14 @@ namespace JustCallTheGuy
                 throw new ArgumentException("Invalid Comment format.");
             }
             order.Comment = commentPars[1].Replace("\"", "");
+
+            // Parse strategy type
+            var strParts = parts[7].Split('=');
+            if (strParts.Length != 2 || !StrategyType.TryParse(strParts[1], out StrategyType strategy))
+            {
+                throw new ArgumentException("Invalid strategytype format.");
+            }
+            order.StrategyType = strategy;
 
             return order;
         }
