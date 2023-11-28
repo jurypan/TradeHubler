@@ -34,7 +34,7 @@ namespace JustCallTheGuy.STR2
                 var order = TradingviewAlert.Parse(requestBody);
 
                 // Log item
-                _logger.LogInformation($"Tradingview || Parse obejct to TradingviewAlert : AccountID={order.AccountID}, Type={order.OrderType}, Instrument={order.Instrument}, Price={order.Price}, SL={order.StopLoss}, TP={order.TakeProfit}, Comment={order.Comment}", order);
+                _logger.LogInformation($"Tradingview || Parse obejct to TradingviewAlert : AccountID={order.AccountID}, Type={order.OrderType}, Instrument={order.Instrument}, CurrentPrice={order.CurrentPrice}, SL={order.StopLoss}, TP={order.TakeProfit}, Comment={order.Comment}", order);
 
                 // Save into the database
                 order.StrategyType = StrategyType.Strategy2;
