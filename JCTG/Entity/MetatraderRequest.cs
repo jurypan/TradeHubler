@@ -1,4 +1,4 @@
-﻿namespace JustCallTheGuy
+﻿namespace JCTG
 {
     public class MetatraderRequest
     {

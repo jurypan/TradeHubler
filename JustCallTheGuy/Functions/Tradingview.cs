@@ -3,7 +3,7 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
 
-namespace JustCallTheGuy.STR2
+namespace JCTG.AzureFunction
 {
     public class Tradingview
     {
@@ -37,7 +37,6 @@ namespace JustCallTheGuy.STR2
                 _logger.LogInformation($"Tradingview || Parse obejct to TradingviewAlert : AccountID={order.AccountID}, Type={order.OrderType}, Instrument={order.Instrument}, CurrentPrice={order.CurrentPrice}, SL={order.StopLoss}, TP={order.TakeProfit}, Comment={order.Comment}", order);
 
                 // Save into the database
-                order.StrategyType = StrategyType.Strategy2;
                 await _dbContext.TradingviewAlert.AddAsync(order);
                 await _dbContext.SaveChangesAsync();
 

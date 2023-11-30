@@ -1,9 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
 
-namespace JustCallTheGuy
+namespace JCTG
 {
     public class JCTGDbContext : DbContext
     {
+
+
         public JCTGDbContext(DbContextOptions<JCTGDbContext> options)
             : base(options)
         {

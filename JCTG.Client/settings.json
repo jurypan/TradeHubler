@@ -1,0 +1,179 @@
+{
+  "AccountId": 692803787,
+  "ClientId": 2089100683,
+  "PairsToWatch": [
+    {
+      "TickerInTradingView": "NKD1!",
+      "TickerInMetatrader": "NI225",
+      "Timeframe": "H1",
+      "StrategyNr": 2,
+      "Risk": 0.01
+    },
+    {
+      "TickerInTradingView": "XJO",
+      "TickerInMetatrader": "AUS200",
+      "Timeframe": "H1",
+      "StrategyNr": 2,
+      "Risk": 0.01
+    },
+    {
+      "TickerInTradingView": "SX5E",
+      "TickerInMetatrader": "STOXX50E",
+      "Timeframe": "H1",
+      "StrategyNr": 2,
+      "Risk": 0.01
+    },
+    {
+      "TickerInTradingView": "DAX",
+      "TickerInMetatrader": "GDAXI",
+      "Timeframe": "H1",
+      "StrategyNr": 2,
+      "Risk": 0.01
+    },
+    {
+      "TickerInTradingView": "PX1",
+      "TickerInMetatrader": "FCHI40",
+      "Timeframe": "H1",
+      "StrategyNr": 2,
+      "Risk": 0.01
+    },
+    {
+      "TickerInTradingView": "UKX",
+      "TickerInMetatrader": "UK100",
+      "Timeframe": "H1",
+      "StrategyNr": 2,
+      "Risk": 0.01
+    },
+    {
+      "TickerInTradingView": "SPX",
+      "TickerInMetatrader": "SP500",
+      "Timeframe": "H1",
+      "StrategyNr": 2,
+      "Risk": 0.01
+    },
+    {
+      "TickerInTradingView": "NDX",
+      "TickerInMetatrader": "NDX",
+      "Timeframe": "H1",
+      "StrategyNr": 2,
+      "Risk": 0.01
+    },
+    {
+      "TickerInTradingView": "NKD1!",
+      "TickerInMetatrader": "NI225",
+      "Timeframe": "H1",
+      "StrategyNr": 1,
+      "Risk": 0.01
+    },
+    {
+      "TickerInTradingView": "XJO",
+      "TickerInMetatrader": "AUS200",
+      "Timeframe": "H1",
+      "StrategyNr": 1,
+      "Risk": 0.01
+    },
+    {
+      "TickerInTradingView": "SPX",
+      "TickerInMetatrader": "SP500",
+      "Timeframe": "H1",
+      "StrategyNr": 1,
+      "Risk": 0.01
+    },
+    {
+      "TickerInTradingView": "NDX",
+      "TickerInMetatrader": "NDX",
+      "Timeframe": "H1",
+      "StrategyNr": 1,
+      "Risk": 0.01
+    },
+    {
+      "TickerInTradingView": "TSLA",
+      "TickerInMetatrader": "TSLA",
+      "Timeframe": "H4",
+      "StrategyNr": 1,
+      "Risk": 0.01
+    },
+    {
+      "TickerInTradingView": "NVDA",
+      "TickerInMetatrader": "NVDA",
+      "Timeframe": "H4",
+      "StrategyNr": 1,
+      "Risk": 0.01
+    },
+    {
+      "TickerInTradingView": "META",
+      "TickerInMetatrader": "META",
+      "Timeframe": "H4",
+      "StrategyNr": 1,
+      "Risk": 0.01
+    },
+    {
+      "TickerInTradingView": "MSFT",
+      "TickerInMetatrader": "MSFT",
+      "Timeframe": "H4",
+      "StrategyNr": 1,
+      "Risk": 0.01
+    },
+    {
+      "TickerInTradingView": "AMZN",
+      "TickerInMetatrader": "AMZN",
+      "Timeframe": "H4",
+      "StrategyNr": 1,
+      "Risk": 0.01
+    },
+    {
+      "TickerInTradingView": "NFLX",
+      "TickerInMetatrader": "NFLX",
+      "Timeframe": "H4",
+      "StrategyNr": 1,
+      "Risk": 0.01
+    },
+    {
+      "TickerInTradingView": "GOOGL",
+      "TickerInMetatrader": "GOOGL",
+      "Timeframe": "H4",
+      "StrategyNr": 1,
+      "Risk": 0.01
+    },
+    {
+      "TickerInTradingView": "ADBE",
+      "TickerInMetatrader": "ADBE",
+      "Timeframe": "H4",
+      "StrategyNr": 1,
+      "Risk": 0.01
+    },
+    {
+      "TickerInTradingView": "CRM",
+      "TickerInMetatrader": "CRM",
+      "Timeframe": "H4",
+      "StrategyNr": 1,
+      "Risk": 0.01
+    },
+    {
+      "TickerInTradingView": "NKE",
+      "TickerInMetatrader": "NKE",
+      "Timeframe": "H4",
+      "StrategyNr": 1,
+      "Risk": 0.01
+    },
+    {
+      "TickerInTradingView": "DIS",
+      "TickerInMetatrader": "DIS",
+      "Timeframe": "H4",
+      "StrategyNr": 1,
+      "Risk": 0.01
+    },
+    {
+      "TickerInTradingView": "CAT",
+      "TickerInMetatrader": "CAT",
+      "Timeframe": "H4",
+      "StrategyNr": 1,
+      "Risk": 0.01
+    }
+  ],
+  "MetaTraderDirPath": "C:\\Users\\joeri.pansaerts\\AppData\\Roaming\\MetaQuotes\\Terminal\\3B534B10135CFEDF8CD1AAB8BD994B13\\MQL4\\Files\\",
+  "SleepDelay": 5000,
+  "MaxRetryCommandSeconds": 10,
+  "LoadOrdersFromFile": true,
+  "Verbose": true
+}

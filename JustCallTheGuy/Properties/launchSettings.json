@@ -1,6 +1,6 @@
 {
   "profiles": {
-    "JustCallTheGuy": {
+    "JCTG.AzureFunction": {
       "commandName": "Project",
       "commandLineArgs": "--port 7259",
       "launchBrowser": false

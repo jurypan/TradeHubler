@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace JustCallTheGuy
+namespace JCTG
 {
     public class TradingviewAlert
     {
@@ -91,9 +91,9 @@ namespace JustCallTheGuy
 
             // Parse strategy type
             var strParts = parts[8].Split('=');
-            if (tpParts.Length != 2 || !int.TryParse(tpParts[1], out int strategy))
+            if (tpParts.Length != 2 || !int.TryParse(strParts[1], out int strategy))
             {
-                throw new ArgumentException("Invalid strategytype format.");
+                throw new ArgumentException("Invalid StrategyType format.");
             }
             order.StrategyType = (StrategyType)int.Parse(strParts[1]);
 

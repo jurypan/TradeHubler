@@ -1,11 +1,13 @@
-using System;
 using System.Net;
+using System.Net.Http.Headers;
+using System.Text;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
-namespace JustCallTheGuy.STR2
+namespace JCTG.AzureFunction
 {
     public class Metatrader
     {
@@ -27,9 +29,8 @@ namespace JustCallTheGuy.STR2
             // Log item
             _logger.LogInformation($"Request body : {requestBody}");
 
-            // Make response object
+            // Create response object
             var response = req.CreateResponse(HttpStatusCode.OK);
-            response.Headers.Add("Content-Type", "text/plain; charset=utf-8");
 
             try
             {
@@ -38,6 +39,11 @@ namespace JustCallTheGuy.STR2
 
                 // Log item
                 _logger.LogDebug($"Parsed Metatrader object : AccountID={mt.AccountID}, Instrument={mt.Instrument}, ClientID={mt.ClientID}, CurrentPrice={mt.Price}, TradingviewTicker={mt.TradingviewTicker},",requestBody);
+
+                if(mt.TradingviewTicker == "NKD1!")
+                {
+
+                }
 
                 // Get TradingviewAlert from the database
                 var tvAlert = await _dbContext.TradingviewAlert
@@ -56,7 +62,7 @@ namespace JustCallTheGuy.STR2
                     _logger.LogInformation("Tradingview Alert not found");
 
                     // Return repsonse
-                    response.WriteString("NONE,tp=0.0,sl=0.0,comment=''");
+                    await response.WriteAsJsonAsync(new MetatraderResponse() { Action = "NONE", Comment = string.Empty });
                     return response;
                 }
 
@@ -92,10 +98,7 @@ namespace JustCallTheGuy.STR2
                 if (tvAlert.OrderType == "BUY" || (tvAlert.OrderType == "BUYSTOP" && mt.Price + trade.Offset >= tvAlert.EntryPrice))
                 {
                     // Log item
-                    _logger.LogWarning($"BUY order is send to Metatrader : BUY,tp={tvAlert.TakeProfit - trade.Offset},sl={tvAlert.StopLoss - trade.Offset}", trade);
-
-                    // Make response
-                    await response.WriteStringAsync($"BUY,tp={tvAlert.TakeProfit - trade.Offset},sl={tvAlert.StopLoss - trade.Offset},comment='{tvAlert.Comment}'");
+                    _logger.LogWarning($"BUY order is send to Metatrader : BUY,instrument={mt.Instrument},price={mt.Price},tp={tvAlert.TakeProfit - trade.Offset},sl={tvAlert.StopLoss - trade.Offset}", trade);
 
                     // Update database
                     trade.Executed = true;
@@ -106,18 +109,13 @@ namespace JustCallTheGuy.STR2
                     await _dbContext.SaveChangesAsync();
 
                     // Return response
+                    await response.WriteAsJsonAsync(new MetatraderResponse() { Action = "BUY", TakeProfit = tvAlert.TakeProfit - trade.Offset, StopLoss = tvAlert.StopLoss - trade.Offset, Comment = tvAlert.Comment });
                     return response;
                 }
                 else
                 {
                     // Log item
                     _logger.LogInformation("NONE order is send to Metatrader : NONE,tp=0.0,sl=0.0,comment=''");
-
-                    // Make response
-                    await response.WriteStringAsync("NONE,tp=0.0,sl=0.0,comment=''");
-
-                    // Return response
-                    return response;
                 }
 
             }
@@ -125,13 +123,11 @@ namespace JustCallTheGuy.STR2
             {
                 // Log item
                 _logger.LogError($"Tradingview ||\nMessage: {ex.Message}\nInner exception message: {ex.InnerException?.Message}\n", ex);
-
-                // Make response
-                await response.WriteStringAsync("NONE,tp=0.0,sl=0.0,comment=''");
-
-                // Return response
-                return response;
             }
+
+            // Return repsonse
+            await response.WriteAsJsonAsync(new MetatraderResponse() { Action = "NONE", Comment = string.Empty });
+            return response;
         }
     }
 }
