@@ -34,7 +34,7 @@ namespace JCTG.AzureFunction
                 var order = TradingviewAlert.Parse(requestBody);
 
                 // Log item
-                _logger.LogInformation($"Tradingview || Parse obejct to TradingviewAlert : AccountID={order.AccountID}, Type={order.OrderType}, Instrument={order.Instrument}, CurrentPrice={order.CurrentPrice}, SL={order.StopLoss}, TP={order.TakeProfit}, Comment={order.Comment}", order);
+                _logger.LogInformation($"Tradingview || Parse obejct to TradingviewAlert : AccountID={order.AccountID}, Type={order.OrderType}, Instrument={order.Instrument}, CurrentPrice={order.CurrentPrice}, SL={order.StopLoss}, TP={order.TakeProfit}, Magic={order.Magic}", order);
 
                 // Save into the database
                 await _dbContext.TradingviewAlert.AddAsync(order);

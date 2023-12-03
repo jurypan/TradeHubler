@@ -10,14 +10,21 @@ namespace JCTG.Client
 
         public Metatrader(AppConfig appConfig)
         {
+            // Init APP Config + API
             _appConfig = appConfig;
             _apis = new List<MetatraderApi>();
-            foreach (var api in _appConfig.BrokersToWatch)
+
+            // Foreach broker, init the API
+            foreach (var api in _appConfig.Brokers)
             {
+                // Init API
                 var _api = new MetatraderApi(api.MetaTraderDirPath, api.ClientId, appConfig.SleepDelay, appConfig.MaxRetryCommandSeconds, appConfig.LoadOrdersFromFile, appConfig.Verbose);
+                
+                // Init the events
                 _api.OnOrderEvent += OnOrderEvent;
                 _api.OnLogEvent += OnLogEvent;
 
+                // Add to the list
                 _apis.Add(_api);
             }
         }
@@ -27,34 +34,51 @@ namespace JCTG.Client
         {
             // Do the API CAll
             var backend = Program.Service?.GetService<AzureFunctionApiClient>();
+
+            // Do null reference checks
             if (backend != null && _appConfig != null)
             {
+                // Loop through the api
                 foreach (var _api in _apis)
                 {
-                    if (_api != null &&  _api.AccountInfo != null && _api.MarketData != null && _api.MarketData.Any())
+                    // Do null reference checks
+                    if (_api != null && _api.AccountInfo != null && _api.MarketData != null && _api.MarketData.Any())
                     {
-                        foreach (var ticker in new List<PairsToWatch>(_appConfig.PairsToWatch.Where(f => f.ClientId == _api.ClientId)))
+                        // Loop through each pair
+                        foreach (var ticker in new List<Pairs>(_appConfig.Brokers.Where(f => f.ClientId == _api.ClientId).SelectMany(f => f.Pairs)))
                         {
-                            var marketDataTicker = _api.MarketData.FirstOrDefault(f => f.Key == ticker.TickerInMetatrader).Value;
+                            // Get the metadata tick
+                            var metadataTick = _api.MarketData.FirstOrDefault(f => f.Key == ticker.TickerInMetatrader).Value;
 
-                            if (marketDataTicker.Ask > 0)
+                            // Do null reference check
+                            if (metadataTick != null && metadataTick.Ask > 0)
                             {
-                                var response = await backend.GetMetatraderResponseAsync(_appConfig.AccountId, _api.ClientId, ticker.TickerInMetatrader, marketDataTicker.Ask, ticker.TickerInTradingView, ticker.StrategyNr);
+                                // Send the information to the backend
+                                var response = await backend.GetMetatraderResponseAsync(_appConfig.AccountId, _api.ClientId, ticker.TickerInMetatrader, metadataTick.Ask, ticker.TickerInTradingView, ticker.StrategyNr);
 
+                                // Do null reference check
                                 if (response != null)
                                 {
+                                    // If response from server is BUY -> BUY in metatrader
                                     if (response.Action == "BUY")
                                     {
                                         // Make buy order
-                                        var lotSize = CalculateLotSize(_api.AccountInfo.Balance, ticker.Risk, marketDataTicker.Ask - response.StopLoss, marketDataTicker.TickValue, marketDataTicker.MinLotSize, marketDataTicker.VolumeStep);
+                                        var lotSize = CalculateLotSize(_api.AccountInfo.Balance, ticker.Risk, metadataTick.Ask - response.StopLoss, metadataTick.TickValue, metadataTick.MinLotSize, metadataTick.VolumeStep);
 
-                                        // Console
+                                        // Print on the screen
+                                        Print(Environment.NewLine);
                                         Print("--------- SEND NEW ORDER TO METATRADER ---------");
-                                        Print($"ticker={ticker.TickerInMetatrader},order='buy',lz={lotSize},price=0,sl={response.StopLoss},tp={response.TakeProfit},magic=0,comment={response.Comment}");
+                                        Print("Broker      : " + _appConfig.Brokers.First(f => f.ClientId == _api.ClientId).Name);
+                                        Print("Ticker      : " + ticker.TickerInMetatrader, true);
+                                        Print("Order       : BUY MARKET ORDER");
+                                        Print("Stop Loss   : " + response.StopLoss);
+                                        Print("Take Profit : " + response.TakeProfit);
+                                        Print("Magic       : " + response.Magic);
                                         Print("------------------------------------------------");
 
+
                                         // Open order
-                                        _api.OpenOrder(ticker.TickerInMetatrader, OrderType.Buy, lotSize, 0, response.StopLoss, response.TakeProfit, 0, response.Comment);
+                                        _api.ExecuteOrder(ticker.TickerInMetatrader, OrderType.Buy, lotSize, 0, response.StopLoss, response.TakeProfit, response.Magic);
                                     }
                                 }
                             }
@@ -70,52 +94,29 @@ namespace JCTG.Client
 
         public async Task StartAsync()
         {
-            // Start the system
-            foreach (var _api in _apis)
+            // Check if app config is not null
+            if (_appConfig != null)
             {
-                if (_api != null && _appConfig != null && _appConfig?.PairsToWatch != null)
+                // Start the system
+                foreach (var _api in _apis)
                 {
-                    await _api.StartAsync();
-                    _api.SubscribeForTicks(_appConfig.PairsToWatch.Where(f => f.ClientId == _api.ClientId).Select(f => f.TickerInMetatrader).ToList());
+                    // Get the broker from the local database
+                    var broker = _appConfig?.Brokers.FirstOrDefault(f => f.ClientId == _api.ClientId);
 
-                    if(_api.ACTIVE)
+                    // do null reference checks
+                    if (_api != null && broker != null && broker.Pairs.Any())
                     {
-                        // Display account information
-                        Print("--------------- ACCOUNT INFO ------------------");
-                        Print("Account Info: " + _api.AccountInfo?.Name);
-                        Print("Number: " + _api.AccountInfo?.Number);
-                        Print("Balance: " + _api.AccountInfo?.Balance);
-                        Print("Currency: " + _api.AccountInfo?.Currency);
-                        Print("Equity: " + _api.AccountInfo?.Equity);
-                        Print("Free Margin: " + _api.AccountInfo?.FreeMargin);
-                        Print("Leverage: " + _api.AccountInfo?.Leverage);
-                        Print("-----------------------------------------------");
+                        // Start the API
+                        await _api.StartAsync();
 
-                        // Display open orders
-                        if(_api.OpenOrders != null)
-                        {
-                            foreach (var openOrder in _api.OpenOrders)
-                            {
-                                // Display account information
-                                Print("--------------- OPEN ORDER --------------------");
-                                Print("ID: " + openOrder.Key);
-                                Print("Type: " + openOrder.Value.Type);
-                                Print("Symbol: " + openOrder.Value.Symbol);
-                                Print("Lots: " + openOrder.Value.Lots);
-                                Print("Pnl: " + openOrder.Value.Pnl, true);
-                                Print("Commission: " + openOrder.Value.Commission);
-                                Print("Swap: " + openOrder.Value.Swap);
-                                Print("Magic: " + openOrder.Value.Magic);
-                                Print("Comment: " + openOrder.Value.Comment);
-                                Print("-----------------------------------------------");
-                            }
-                        }
+                        // Subscribe foreach pair
+                        _api.SubscribeForTicks(broker.Pairs.Select(f => f.TickerInMetatrader).ToList());
                     }
                 }
-            }
 
-            // Listen to the backend
-            await TimerTaskAsync();
+                // Listen to the backend
+                await TimerTaskAsync();
+            }
         }
 
         private double CalculateLotSize(double accountBalance, double riskAmount, double stopLossPriceInPips, double valuePerPip, double minLotSizeAllowed, double volumeStep)
@@ -137,25 +138,42 @@ namespace JCTG.Client
         }
 
 
-        private void OnLogEvent(long id, Log log)
+        private void OnLogEvent(int clientId, long id, Log log)
         {
-            Print("------------------- LOG ------------------------");
-            Print(log.Time + " | " + log.Type);
-            if (!string.IsNullOrEmpty(log.Message))
-                Print("Message: " + log.Message);
-            if (!string.IsNullOrEmpty(log.ErrorType))
-                Print("Error Type: " + log.ErrorType);
-            if (!string.IsNullOrEmpty(log.Description))
-                Print("Description: " + log.Description);
-            Print("------------------------------------------------");
+            // Do null reference check
+            if (_appConfig != null)
+            {
+                // Print on the screen
+                Print(Environment.NewLine);
+                Print("------------------- LOG ------------------------");
+                Print("Broker    : " + _appConfig.Brokers.First(f => f.ClientId == clientId).Name);
+                Print("Time      : " + log.Time);
+                Print("Type      : " + log.Type);
+                if (!string.IsNullOrEmpty(log.Message))
+                    Print("Message   : " + log.Message);
+                if (!string.IsNullOrEmpty(log.ErrorType))
+                    Print("Error Type : " + log.ErrorType);
+                if (!string.IsNullOrEmpty(log.Description))
+                   Print("Description: " + log.Description);
+                Print("------------------------------------------------");
+            }
         }
 
-        private void OnOrderEvent(Order order)
+        private void OnOrderEvent(int clientId, Order order)
         {
-            Print("------------- !! NEW ORDER !! ------------------");
-            Print("Open order: " + order.Symbol + " open orders");
-            Print(order.OpenTime + " | " + order.Type + " | " + order.Pnl);
-            Print("------------------------------------------------");
+            // Do null reference check
+            if (_appConfig != null)
+            {
+                // Print on the screen
+                Print(Environment.NewLine);
+                Print("------------------- ORDER ----------------------");
+                Print("Broker    : " + _appConfig.Brokers.First(f => f.ClientId == clientId).Name);
+                Print("Time      : " + DateTime.UtcNow);
+                Print("Symbol    : " + order.Symbol);
+                Print("Type      : " + order.Type);
+                Print("Magic     : " + order.Magic);
+                Print("------------------------------------------------");
+            }
         }
     }
 }

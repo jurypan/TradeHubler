@@ -22,7 +22,7 @@ namespace JCTG
         public double EntryPrice { get; set; }
         public double StopLoss { get; set; }
         public double TakeProfit { get; set; }
-        public string Comment { get; set; }
+        public int Magic { get; set; }
         public List<Trade> Trades { get; set; }
 
         public static TradingviewAlert Parse(string input)
@@ -81,13 +81,13 @@ namespace JCTG
             }
             order.TakeProfit = tp;
 
-            // Parsing comment
-            var commentPars = parts[7].Split('=');
-            if (commentPars.Length != 2)
+            // Parsing magic
+            var magicPars = parts[7].Split('=');
+            if (magicPars.Length != 2 || !int.TryParse(magicPars[1], out int magic))
             {
-                throw new ArgumentException("Invalid Comment format.");
+                throw new ArgumentException("Invalid Magic format.");
             }
-            order.Comment = commentPars[1].Replace("\"", "");
+            order.Magic = magic;
 
             // Parse strategy type
             var strParts = parts[8].Split('=');

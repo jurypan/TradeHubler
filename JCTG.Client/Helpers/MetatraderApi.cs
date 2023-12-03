@@ -53,22 +53,22 @@ namespace JCTG.Client
         private Thread? historicDataThread;
 
         // Define the delegate for the event
-        public delegate void OnOrderEventHandler(Order order);
+        public delegate void OnOrderEventHandler(int clientId, Order order);
         public event OnOrderEventHandler? OnOrderEvent;
 
-        public delegate void OnLogEventHandler(long id, Log log);
+        public delegate void OnLogEventHandler(int clientId, long id, Log log);
         public event OnLogEventHandler? OnLogEvent;
 
-        public delegate void OnTickEventHandler(string symbol, double bid, double ask, double tickValue);
+        public delegate void OnTickEventHandler(int clientId, string symbol, double bid, double ask, double tickValue);
         public event OnTickEventHandler? OnTickEvent;
 
-        public delegate void OnBarDataEventHandler(string symbol, string timeFrame, DateTime time, double open, double high, double low, double close, int tickVolume);
+        public delegate void OnBarDataEventHandler(int clientId, string symbol, string timeFrame, DateTime time, double open, double high, double low, double close, int tickVolume);
         public event OnBarDataEventHandler? OnBarDataEvent;
 
-        public delegate void OnHistoricDataEventHandler(string symbol, string timeFrame, JObject data);
+        public delegate void OnHistoricDataEventHandler(int clientId, string symbol, string timeFrame, JObject data);
         public event OnHistoricDataEventHandler? OnHistoricDataEvent;
 
-        public delegate void OnHistoricTradeEventHandler();
+        public delegate void OnHistoricTradeEventHandler(int clientId);
         public event OnHistoricTradeEventHandler? OnHistoricTradeEvent;
 
 
@@ -212,14 +212,14 @@ namespace JCTG.Client
                                         OpenOrders[orderId] = newOrder;
 
                                         // Invoke the event
-                                        OnOrderEvent?.Invoke(newOrder);
+                                        OnOrderEvent?.Invoke(ClientId, newOrder);
                                     }
                                 }
                                 else
                                 {
                                     // If it's a new order, add it to the dictionary and invoke the event
                                     OpenOrders.Add(orderId, newOrder);
-                                    OnOrderEvent?.Invoke(newOrder);
+                                    OnOrderEvent?.Invoke(ClientId, newOrder);
                                 }
                             }
                         }
@@ -282,7 +282,7 @@ namespace JCTG.Client
                         if (item.Key > lastMessageId)
                         {
                             lastMessageId = item.Key;
-                            OnLogEvent?.Invoke(item.Key, item.Value);
+                            OnLogEvent?.Invoke(ClientId, item.Key, item.Value);
                         }
                     }
                 }
@@ -364,14 +364,14 @@ namespace JCTG.Client
                                 MarketData[property.Name] = new MarketData { Bid = newMarketData.Bid, Ask = newMarketData.Ask, TickValue = newMarketData.TickValue };
 
                                 // Invoke the event
-                                OnTickEvent?.Invoke(property.Name, newMarketData.Bid, newMarketData.Ask, newMarketData.TickValue);
+                                OnTickEvent?.Invoke(ClientId, property.Name, newMarketData.Bid, newMarketData.Ask, newMarketData.TickValue);
                             }
                         }
                         else
                         {
                             // If it's a new ticker, add it to the dictionary and invoke the event
                             MarketData.Add(property.Name, new MarketData { Bid = newMarketData.Bid, Ask = newMarketData.Ask, TickValue = newMarketData.TickValue });
-                            OnTickEvent?.Invoke(property.Name, newMarketData.Bid, newMarketData.Ask, newMarketData.TickValue);
+                            OnTickEvent?.Invoke(ClientId, property.Name, newMarketData.Bid, newMarketData.Ask, newMarketData.TickValue);
                         }
                     }
                 }
@@ -453,7 +453,7 @@ namespace JCTG.Client
                                 };
 
                                 // Invoke the event
-                                OnBarDataEvent?.Invoke(property.Name, newBarData.Timeframe, newBarData.Time, newBarData.Open, newBarData.High, newBarData.Low, newBarData.Close, newBarData.TickVolume);
+                                OnBarDataEvent?.Invoke(ClientId, property.Name, newBarData.Timeframe, newBarData.Time, newBarData.Open, newBarData.High, newBarData.Low, newBarData.Close, newBarData.TickVolume);
                             }
                         }
                         else
@@ -471,7 +471,7 @@ namespace JCTG.Client
                             });
 
                             // Invoke the event
-                            OnBarDataEvent?.Invoke(property.Name, newBarData.Timeframe, newBarData.Time, newBarData.Open, newBarData.High, newBarData.Low, newBarData.Close, newBarData.TickVolume);
+                            OnBarDataEvent?.Invoke(ClientId, property.Name, newBarData.Timeframe, newBarData.Time, newBarData.Open, newBarData.High, newBarData.Low, newBarData.Close, newBarData.TickVolume);
                         }
                     }
                 }
@@ -527,7 +527,7 @@ namespace JCTG.Client
                                 if (stSplit.Length != 2)
                                     continue;
                                 // JObject jo = (JObject)BarData[symbol];
-                                OnHistoricDataEvent?.Invoke(stSplit[0], stSplit[1], (JObject)data[x.Key]);
+                                OnHistoricDataEvent?.Invoke(ClientId, stSplit[0], stSplit[1], (JObject)data[x.Key]);
                             }
                         }
                     }
@@ -559,7 +559,7 @@ namespace JCTG.Client
 
                         TryDeleteFile(pathHistoricTrades);
 
-                        OnHistoricTradeEvent?.Invoke();
+                        OnHistoricTradeEvent?.Invoke(ClientId);
                     }
                 }
             }
@@ -700,11 +700,11 @@ namespace JCTG.Client
         /// <param name="magic">Magic number</param>
         /// <param name="comment">Order comment</param>
         /// <param name="expiration"> Expiration time given as timestamp in seconds. Can be zero if the order should not have an expiration time.  </param>
-        public void OpenOrder(string symbol, OrderType orderType, double lots, double price, double stopLoss, double takeProfit, int magic, string comment, long expiration = 0)
+        public void ExecuteOrder(string symbol, OrderType orderType, double lots, double price, double stopLoss, double takeProfit, int magic = 0, string? comment = null, long expiration = 0)
         {
             string orderT = GetDescription(orderType);
 
-            string content = symbol + "," + orderT + "," + Format(lots) + "," + Format(price) + "," + Format(stopLoss) + "," + Format(takeProfit) + "," + magic + "," + comment + "," + expiration;
+            string content = symbol + "," + orderT + "," + Format(lots) + "," + Format(price) + "," + Format(stopLoss) + "," + Format(takeProfit) + "," + magic + "," + comment == null ? string.Empty : comment + "," + expiration;
             SendCommand("OPEN_ORDER", content);
         }
 

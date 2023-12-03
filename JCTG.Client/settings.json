@@ -1,406 +1,404 @@
 {
   "AccountId": 692803787,
-  "PairsToWatch": [
-    {
-      "ClientId": 2089100683,
-      "TickerInTradingView": "NKD1!",
-      "TickerInMetatrader": "NI225",
-      "Timeframe": "H1",
-      "StrategyNr": 2,
-      "Risk": 0.002
-    },
-    {
-      "ClientId": 2089100683,
-      "TickerInTradingView": "XJO",
-      "TickerInMetatrader": "AUS200",
-      "Timeframe": "H1",
-      "StrategyNr": 2,
-      "Risk": 0.002
-    },
-    {
-      "ClientId": 2089100683,
-      "TickerInTradingView": "SX5E",
-      "TickerInMetatrader": "STOXX50E",
-      "Timeframe": "H1",
-      "StrategyNr": 2,
-      "Risk": 0.002
-    },
-    {
-      "ClientId": 2089100683,
-      "TickerInTradingView": "DAX",
-      "TickerInMetatrader": "GDAXI",
-      "Timeframe": "H1",
-      "StrategyNr": 2,
-      "Risk": 0.001
-    },
-    {
-      "ClientId": 2089100683,
-      "TickerInTradingView": "PX1",
-      "TickerInMetatrader": "FCHI40",
-      "Timeframe": "H1",
-      "StrategyNr": 2,
-      "Risk": 0.002
-    },
-    {
-      "ClientId": 2089100683,
-      "TickerInTradingView": "UKX",
-      "TickerInMetatrader": "UK100",
-      "Timeframe": "H1",
-      "StrategyNr": 2,
-      "Risk": 0.002
-    },
-    {
-      "ClientId": 2089100683,
-      "TickerInTradingView": "SPX",
-      "TickerInMetatrader": "SP500",
-      "Timeframe": "H1",
-      "StrategyNr": 2,
-      "Risk": 0.002
-    },
-    {
-      "ClientId": 2089100683,
-      "TickerInTradingView": "NDX",
-      "TickerInMetatrader": "NDX",
-      "Timeframe": "H1",
-      "StrategyNr": 2,
-      "Risk": 0.002
-    },
-    {
-      "ClientId": 2089100683,
-      "TickerInTradingView": "NKD1!",
-      "TickerInMetatrader": "NI225",
-      "Timeframe": "H1",
-      "StrategyNr": 2,
-      "Risk": 0.002
-    },
-    {
-      "ClientId": 2089100683,
-      "TickerInTradingView": "XJO",
-      "TickerInMetatrader": "AUS200",
-      "Timeframe": "H1",
-      "StrategyNr": 1,
-      "Risk": 0.001
-    },
-    {
-      "ClientId": 2089100683,
-      "TickerInTradingView": "SPX",
-      "TickerInMetatrader": "SP500",
-      "Timeframe": "H1",
-      "StrategyNr": 1,
-      "Risk": 0.001
-    },
-    {
-      "ClientId": 2089100683,
-      "TickerInTradingView": "NDX",
-      "TickerInMetatrader": "NDX",
-      "Timeframe": "H1",
-      "StrategyNr": 1,
-      "Risk": 0.001
-    },
-    {
-      "ClientId": 2089100683,
-      "TickerInTradingView": "TSLA",
-      "TickerInMetatrader": "TSLA",
-      "Timeframe": "H4",
-      "StrategyNr": 1,
-      "Risk": 0.002
-    },
-    {
-      "ClientId": 2089100683,
-      "TickerInTradingView": "NVDA",
-      "TickerInMetatrader": "NVDA",
-      "Timeframe": "H4",
-      "StrategyNr": 1,
-      "Risk": 0.002
-    },
-    {
-      "ClientId": 2089100683,
-      "TickerInTradingView": "META",
-      "TickerInMetatrader": "META",
-      "Timeframe": "H4",
-      "StrategyNr": 1,
-      "Risk": 0.002
-    },
-    {
-      "ClientId": 2089100683,
-      "TickerInTradingView": "MSFT",
-      "TickerInMetatrader": "MSFT",
-      "Timeframe": "H4",
-      "StrategyNr": 1,
-      "Risk": 0.002
-    },
-    {
-      "ClientId": 2089100683,
-      "TickerInTradingView": "AMZN",
-      "TickerInMetatrader": "AMZN",
-      "Timeframe": "H4",
-      "StrategyNr": 1,
-      "Risk": 0.002
-    },
-    {
-      "ClientId": 2089100683,
-      "TickerInTradingView": "NFLX",
-      "TickerInMetatrader": "NFLX",
-      "Timeframe": "H4",
-      "StrategyNr": 1,
-      "Risk": 0.002
-    },
-    {
-      "ClientId": 2089100683,
-      "TickerInTradingView": "GOOGL",
-      "TickerInMetatrader": "GOOGL",
-      "Timeframe": "H4",
-      "StrategyNr": 1,
-      "Risk": 0.002
-    },
-    {
-      "ClientId": 2089100683,
-      "TickerInTradingView": "ADBE",
-      "TickerInMetatrader": "ADBE",
-      "Timeframe": "H4",
-      "StrategyNr": 1,
-      "Risk": 0.002
-    },
-    {
-      "ClientId": 2089100683,
-      "TickerInTradingView": "CRM",
-      "TickerInMetatrader": "CRM",
-      "Timeframe": "H4",
-      "StrategyNr": 1,
-      "Risk": 0.002
-    },
-    {
-      "ClientId": 2089100683,
-      "TickerInTradingView": "NKE",
-      "TickerInMetatrader": "NKE",
-      "Timeframe": "H4",
-      "StrategyNr": 1,
-      "Risk": 0.002
-    },
-    {
-      "ClientId": 2089100683,
-      "TickerInTradingView": "DIS",
-      "TickerInMetatrader": "DIS",
-      "Timeframe": "H4",
-      "StrategyNr": 1,
-      "Risk": 0.002
-    },
-    {
-      "ClientId": 2089100683,
-      "TickerInTradingView": "CAT",
-      "TickerInMetatrader": "CAT",
-      "Timeframe": "H4",
-      "StrategyNr": 1,
-      "Risk": 0.002
-    },
-    {
-      "ClientId": 2671050,
-      "TickerInTradingView": "NKD1!",
-      "TickerInMetatrader": "JP225USD",
-      "Timeframe": "H1",
-      "StrategyNr": 2,
-      "Risk": 0.002
-    },
-    {
-      "ClientId": 2671050,
-      "TickerInTradingView": "XJO",
-      "TickerInMetatrader": "AU200AUD",
-      "Timeframe": "H1",
-      "StrategyNr": 2,
-      "Risk": 0.002
-    },
-    {
-      "ClientId": 2671050,
-      "TickerInTradingView": "SX5E",
-      "TickerInMetatrader": "EU50EUR",
-      "Timeframe": "H1",
-      "StrategyNr": 2,
-      "Risk": 0.002
-    },
-    {
-      "ClientId": 2671050,
-      "TickerInTradingView": "DAX",
-      "TickerInMetatrader": "DE30EUR",
-      "Timeframe": "H1",
-      "StrategyNr": 2,
-      "Risk": 0.001
-    },
-    {
-      "ClientId": 2671050,
-      "TickerInTradingView": "PX1",
-      "TickerInMetatrader": "FR40EUR",
-      "Timeframe": "H1",
-      "StrategyNr": 2,
-      "Risk": 0.002
-    },
-    {
-      "ClientId": 2671050,
-      "TickerInTradingView": "UKX",
-      "TickerInMetatrader": "UK100GBP",
-      "Timeframe": "H1",
-      "StrategyNr": 2,
-      "Risk": 0.002
-    },
-    {
-      "ClientId": 2671050,
-      "TickerInTradingView": "SPX",
-      "TickerInMetatrader": "SPX500USD",
-      "Timeframe": "H1",
-      "StrategyNr": 2,
-      "Risk": 0.002
-    },
-    {
-      "ClientId": 2671050,
-      "TickerInTradingView": "NDX",
-      "TickerInMetatrader": "NAS100USD",
-      "Timeframe": "H1",
-      "StrategyNr": 2,
-      "Risk": 0.002
-    },
-    {
-      "ClientId": 2671050,
-      "TickerInTradingView": "NKD1!",
-      "TickerInMetatrader": "JP225USD",
-      "Timeframe": "H1",
-      "StrategyNr": 1,
-      "Risk": 0.001
-    },
-    {
-      "ClientId": 2671050,
-      "TickerInTradingView": "XJO",
-      "TickerInMetatrader": "AU200AUD",
-      "Timeframe": "H1",
-      "StrategyNr": 1,
-      "Risk": 0.001
-    },
-    {
-      "ClientId": 2671050,
-      "TickerInTradingView": "SPX",
-      "TickerInMetatrader": "SPX500USD",
-      "Timeframe": "H1",
-      "StrategyNr": 1,
-      "Risk": 0.001
-    },
-    {
-      "ClientId": 2671050,
-      "TickerInTradingView": "NDX",
-      "TickerInMetatrader": "NAS100USD",
-      "Timeframe": "H1",
-      "StrategyNr": 1,
-      "Risk": 0.001
-    },
-    {
-      "ClientId": 1300587646,
-      "TickerInTradingView": "NKD1!",
-      "TickerInMetatrader": "JP225.cash",
-      "Timeframe": "H1",
-      "StrategyNr": 2,
-      "Risk": 0.002
-    },
-    {
-      "ClientId": 1300587646,
-      "TickerInTradingView": "XJO",
-      "TickerInMetatrader": "AUS200.cash",
-      "Timeframe": "H1",
-      "StrategyNr": 2,
-      "Risk": 0.002
-    },
-    {
-      "ClientId": 1300587646,
-      "TickerInTradingView": "SX5E",
-      "TickerInMetatrader": "EU50.cash",
-      "Timeframe": "H1",
-      "StrategyNr": 2,
-      "Risk": 0.002
-    },
-    {
-      "ClientId": 1300587646,
-      "TickerInTradingView": "DAX",
-      "TickerInMetatrader": "GER40.cash",
-      "Timeframe": "H1",
-      "StrategyNr": 2,
-      "Risk": 0.001
-    },
-    {
-      "ClientId": 1300587646,
-      "TickerInTradingView": "PX1",
-      "TickerInMetatrader": "FRA40.cash",
-      "Timeframe": "H1",
-      "StrategyNr": 2,
-      "Risk": 0.002
-    },
-    {
-      "ClientId": 1300587646,
-      "TickerInTradingView": "UKX",
-      "TickerInMetatrader": "UK100.cash",
-      "Timeframe": "H1",
-      "StrategyNr": 2,
-      "Risk": 0.002
-    },
-    {
-      "ClientId": 1300587646,
-      "TickerInTradingView": "SPX",
-      "TickerInMetatrader": "US500.cash",
-      "Timeframe": "H1",
-      "StrategyNr": 2,
-      "Risk": 0.002
-    },
-    {
-      "ClientId": 1300587646,
-      "TickerInTradingView": "NDX",
-      "TickerInMetatrader": "US100.cash",
-      "Timeframe": "H1",
-      "StrategyNr": 2,
-      "Risk": 0.002
-    },
-    {
-      "ClientId": 1300587646,
-      "TickerInTradingView": "NKD1!",
-      "TickerInMetatrader": "JP225.cash",
-      "Timeframe": "H1",
-      "StrategyNr": 1,
-      "Risk": 0.001
-    },
-    {
-      "ClientId": 1300587646,
-      "TickerInTradingView": "XJO",
-      "TickerInMetatrader": "AUS200.cash",
-      "Timeframe": "H1",
-      "StrategyNr": 1,
-      "Risk": 0.001
-    },
-    {
-      "ClientId": 1300587646,
-      "TickerInTradingView": "SPX",
-      "TickerInMetatrader": "US500.cash",
-      "Timeframe": "H1",
-      "StrategyNr": 1,
-      "Risk": 0.001
-    },
-    {
-      "ClientId": 1300587646,
-      "TickerInTradingView": "NDX",
-      "TickerInMetatrader": "US100.cash",
-      "Timeframe": "H1",
-      "StrategyNr": 1,
-      "Risk": 0.001
-    }
-  ],
-  "BrokersToWatch": [
+  "Brokers": [
     {
       "Name": "Darwinex - MT4",
       "MetaTraderDirPath": "C:\\Users\\joeri.pansaerts\\AppData\\Roaming\\MetaQuotes\\Terminal\\3B534B10135CFEDF8CD1AAB8BD994B13\\MQL4\\Files\\",
-      "ClientId": 2089100683
+      "ClientId": 2089100683,
+      "Pairs": [
+        {
+          "TickerInTradingView": "NKD1!",
+          "TickerInMetatrader": "NI225",
+          "Timeframe": "H1",
+          "StrategyNr": 2,
+          "Risk": 0.002
+        },
+        {
+          "TickerInTradingView": "XJO",
+          "TickerInMetatrader": "AUS200",
+          "Timeframe": "H1",
+          "StrategyNr": 2,
+          "Risk": 0.002
+        },
+        {
+          "TickerInTradingView": "SX5E",
+          "TickerInMetatrader": "STOXX50E",
+          "Timeframe": "H1",
+          "StrategyNr": 2,
+          "Risk": 0.002
+        },
+        {
+          "TickerInTradingView": "DAX",
+          "TickerInMetatrader": "GDAXI",
+          "Timeframe": "H1",
+          "StrategyNr": 2,
+          "Risk": 0.001
+        },
+        {
+          "TickerInTradingView": "PX1",
+          "TickerInMetatrader": "FCHI40",
+          "Timeframe": "H1",
+          "StrategyNr": 2,
+          "Risk": 0.002
+        },
+        {
+          "TickerInTradingView": "UKX",
+          "TickerInMetatrader": "UK100",
+          "Timeframe": "H1",
+          "StrategyNr": 2,
+          "Risk": 0.002
+        },
+        {
+          "TickerInTradingView": "SPX",
+          "TickerInMetatrader": "SP500",
+          "Timeframe": "H1",
+          "StrategyNr": 2,
+          "Risk": 0.002
+        },
+        {
+          "TickerInTradingView": "NDX",
+          "TickerInMetatrader": "NDX",
+          "Timeframe": "H1",
+          "StrategyNr": 2,
+          "Risk": 0.002
+        },
+        {
+          "TickerInTradingView": "NKD1!",
+          "TickerInMetatrader": "NI225",
+          "Timeframe": "H1",
+          "StrategyNr": 2,
+          "Risk": 0.002
+        },
+        {
+          "TickerInTradingView": "XJO",
+          "TickerInMetatrader": "AUS200",
+          "Timeframe": "H1",
+          "StrategyNr": 1,
+          "Risk": 0.001
+        },
+        {
+          "TickerInTradingView": "SPX",
+          "TickerInMetatrader": "SP500",
+          "Timeframe": "H1",
+          "StrategyNr": 1,
+          "Risk": 0.001
+        },
+        {
+          "TickerInTradingView": "NDX",
+          "TickerInMetatrader": "NDX",
+          "Timeframe": "H1",
+          "StrategyNr": 1,
+          "Risk": 0.001
+        },
+        {
+          "TickerInTradingView": "TSLA",
+          "TickerInMetatrader": "TSLA",
+          "Timeframe": "H4",
+          "StrategyNr": 1,
+          "Risk": 0.002
+        },
+        {
+          "TickerInTradingView": "NVDA",
+          "TickerInMetatrader": "NVDA",
+          "Timeframe": "H4",
+          "StrategyNr": 1,
+          "Risk": 0.002
+        },
+        {
+          "TickerInTradingView": "META",
+          "TickerInMetatrader": "META",
+          "Timeframe": "H4",
+          "StrategyNr": 1,
+          "Risk": 0.002
+        },
+        {
+          "TickerInTradingView": "MSFT",
+          "TickerInMetatrader": "MSFT",
+          "Timeframe": "H4",
+          "StrategyNr": 1,
+          "Risk": 0.002
+        },
+        {
+          "TickerInTradingView": "AMZN",
+          "TickerInMetatrader": "AMZN",
+          "Timeframe": "H4",
+          "StrategyNr": 1,
+          "Risk": 0.002
+        },
+        {
+          "TickerInTradingView": "NFLX",
+          "TickerInMetatrader": "NFLX",
+          "Timeframe": "H4",
+          "StrategyNr": 1,
+          "Risk": 0.002
+        },
+        {
+          "TickerInTradingView": "GOOGL",
+          "TickerInMetatrader": "GOOGL",
+          "Timeframe": "H4",
+          "StrategyNr": 1,
+          "Risk": 0.002
+        },
+        {
+          "TickerInTradingView": "ADBE",
+          "TickerInMetatrader": "ADBE",
+          "Timeframe": "H4",
+          "StrategyNr": 1,
+          "Risk": 0.002
+        },
+        {
+          "TickerInTradingView": "CRM",
+          "TickerInMetatrader": "CRM",
+          "Timeframe": "H4",
+          "StrategyNr": 1,
+          "Risk": 0.002
+        },
+        {
+          "TickerInTradingView": "NKE",
+          "TickerInMetatrader": "NKE",
+          "Timeframe": "H4",
+          "StrategyNr": 1,
+          "Risk": 0.002
+        },
+        {
+          "TickerInTradingView": "DIS",
+          "TickerInMetatrader": "DIS",
+          "Timeframe": "H4",
+          "StrategyNr": 1,
+          "Risk": 0.002
+        },
+        {
+          "TickerInTradingView": "CAT",
+          "TickerInMetatrader": "CAT",
+          "Timeframe": "H4",
+          "StrategyNr": 1,
+          "Risk": 0.002
+        }
+      ]
     },
     {
       "Name": "OANDA - MT4 - Paper",
       "MetaTraderDirPath": "C:\\Users\\joeri.pansaerts\\AppData\\Roaming\\MetaQuotes\\Terminal\\3212703ED955F10C7534BE8497B221F4\\MQL4\\Files\\",
-      "ClientId": 2671050
+      "ClientId": 2671050,
+      "Pairs": [
+        {
+          "TickerInTradingView": "NKD1!",
+          "TickerInMetatrader": "JP225USD",
+          "Timeframe": "H1",
+          "StrategyNr": 2,
+          "Risk": 0.002
+        },
+        {
+          "TickerInTradingView": "XJO",
+          "TickerInMetatrader": "AU200AUD",
+          "Timeframe": "H1",
+          "StrategyNr": 2,
+          "Risk": 0.002
+        },
+        {
+          "TickerInTradingView": "SX5E",
+          "TickerInMetatrader": "EU50EUR",
+          "Timeframe": "H1",
+          "StrategyNr": 2,
+          "Risk": 0.002
+        },
+        {
+          "TickerInTradingView": "DAX",
+          "TickerInMetatrader": "DE30EUR",
+          "Timeframe": "H1",
+          "StrategyNr": 2,
+          "Risk": 0.001
+        },
+        {
+          "TickerInTradingView": "PX1",
+          "TickerInMetatrader": "FR40EUR",
+          "Timeframe": "H1",
+          "StrategyNr": 2,
+          "Risk": 0.002
+        },
+        {
+          "TickerInTradingView": "UKX",
+          "TickerInMetatrader": "UK100GBP",
+          "Timeframe": "H1",
+          "StrategyNr": 2,
+          "Risk": 0.002
+        },
+        {
+          "TickerInTradingView": "SPX",
+          "TickerInMetatrader": "SPX500USD",
+          "Timeframe": "H1",
+          "StrategyNr": 2,
+          "Risk": 0.002
+        },
+        {
+          "TickerInTradingView": "NDX",
+          "TickerInMetatrader": "NAS100USD",
+          "Timeframe": "H1",
+          "StrategyNr": 2,
+          "Risk": 0.002
+        },
+        {
+          "TickerInTradingView": "NKD1!",
+          "TickerInMetatrader": "JP225USD",
+          "Timeframe": "H1",
+          "StrategyNr": 1,
+          "Risk": 0.001
+        },
+        {
+          "TickerInTradingView": "XJO",
+          "TickerInMetatrader": "AU200AUD",
+          "Timeframe": "H1",
+          "StrategyNr": 1,
+          "Risk": 0.001
+        },
+        {
+          "TickerInTradingView": "SPX",
+          "TickerInMetatrader": "SPX500USD",
+          "Timeframe": "H1",
+          "StrategyNr": 1,
+          "Risk": 0.001
+        },
+        {
+          "TickerInTradingView": "NDX",
+          "TickerInMetatrader": "NAS100USD",
+          "Timeframe": "H1",
+          "StrategyNr": 1,
+          "Risk": 0.001
+        }
+      ]
     },
     {
       "Name": "FTMO - MT4",
       "MetaTraderDirPath": "C:\\Users\\joeri.pansaerts\\AppData\\Roaming\\MetaQuotes\\Terminal\\2C68BEE3A904BDCEE3EEF5A5A77EC162\\MQL4\\Files\\",
-      "ClientId": 1300587646
+      "ClientId": 1300587646,
+      "Pairs": [
+        {
+          "TickerInTradingView": "NKD1!",
+          "TickerInMetatrader": "JP225.cash",
+          "Timeframe": "H1",
+          "StrategyNr": 2,
+          "Risk": 0.002
+        },
+        {
+          "TickerInTradingView": "XJO",
+          "TickerInMetatrader": "AUS200.cash",
+          "Timeframe": "H1",
+          "StrategyNr": 2,
+          "Risk": 0.002
+        },
+        {
+          "TickerInTradingView": "SX5E",
+          "TickerInMetatrader": "EU50.cash",
+          "Timeframe": "H1",
+          "StrategyNr": 2,
+          "Risk": 0.002
+        },
+        {
+          "TickerInTradingView": "DAX",
+          "TickerInMetatrader": "GER40.cash",
+          "Timeframe": "H1",
+          "StrategyNr": 2,
+          "Risk": 0.001
+        },
+        {
+          "TickerInTradingView": "PX1",
+          "TickerInMetatrader": "FRA40.cash",
+          "Timeframe": "H1",
+          "StrategyNr": 2,
+          "Risk": 0.002
+        },
+        {
+          "TickerInTradingView": "UKX",
+          "TickerInMetatrader": "UK100.cash",
+          "Timeframe": "H1",
+          "StrategyNr": 2,
+          "Risk": 0.002
+        },
+        {
+          "TickerInTradingView": "SPX",
+          "TickerInMetatrader": "US500.cash",
+          "Timeframe": "H1",
+          "StrategyNr": 2,
+          "Risk": 0.002
+        },
+        {
+          "TickerInTradingView": "NDX",
+          "TickerInMetatrader": "US100.cash",
+          "Timeframe": "H1",
+          "StrategyNr": 2,
+          "Risk": 0.002
+        },
+        {
+          "TickerInTradingView": "NKD1!",
+          "TickerInMetatrader": "JP225.cash",
+          "Timeframe": "H1",
+          "StrategyNr": 1,
+          "Risk": 0.001
+        },
+        {
+          "TickerInTradingView": "XJO",
+          "TickerInMetatrader": "AUS200.cash",
+          "Timeframe": "H1",
+          "StrategyNr": 1,
+          "Risk": 0.001
+        },
+        {
+          "TickerInTradingView": "SPX",
+          "TickerInMetatrader": "US500.cash",
+          "Timeframe": "H1",
+          "StrategyNr": 1,
+          "Risk": 0.001
+        },
+        {
+          "TickerInTradingView": "NDX",
+          "TickerInMetatrader": "US100.cash",
+          "Timeframe": "H1",
+          "StrategyNr": 1,
+          "Risk": 0.001
+        },
+        {
+          "TickerInTradingView": "TSLA",
+          "TickerInMetatrader": "TSLA",
+          "Timeframe": "H4",
+          "StrategyNr": 1,
+          "Risk": 0.002
+        },
+        {
+          "TickerInTradingView": "NVDA",
+          "TickerInMetatrader": "NVDA",
+          "Timeframe": "H4",
+          "StrategyNr": 1,
+          "Risk": 0.002
+        },
+        {
+          "TickerInTradingView": "META",
+          "TickerInMetatrader": "META",
+          "Timeframe": "H4",
+          "StrategyNr": 1,
+          "Risk": 0.002
+        },
+        {
+          "TickerInTradingView": "MSFT",
+          "TickerInMetatrader": "MSFT",
+          "Timeframe": "H4",
+          "StrategyNr": 1,
+          "Risk": 0.002
+        },
+        {
+          "TickerInTradingView": "AMZN",
+          "TickerInMetatrader": "AMZN",
+          "Timeframe": "H4",
+          "StrategyNr": 1,
+          "Risk": 0.002
+        },
+        {
+          "TickerInTradingView": "NFLX",
+          "TickerInMetatrader": "NFLX",
+          "Timeframe": "H4",
+          "StrategyNr": 1,
+          "Risk": 0.002
+        }
+      ]
     }
   ],
   "SleepDelay": 5000,

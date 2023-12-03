@@ -58,7 +58,7 @@ namespace JCTG.AzureFunction
                     _logger.LogInformation("Tradingview Alert not found");
 
                     // Return repsonse
-                    await response.WriteAsJsonAsync(new MetatraderResponse() { Action = "NONE", Comment = string.Empty });
+                    await response.WriteAsJsonAsync(new MetatraderResponse() { Action = "NONE" });
                     return response;
                 }
 
@@ -82,7 +82,7 @@ namespace JCTG.AzureFunction
                          TradingviewAlertID = tvAlert.ID,
                          Executed = false,
                          Offset = Math.Round(tvAlert.CurrentPrice - mt.Price, 4, MidpointRounding.AwayFromZero),
-                         Comment = tvAlert.Comment,
+                         Magic = tvAlert.Magic,
                     })).Entity;
                     await _dbContext.SaveChangesAsync();
 
@@ -105,7 +105,7 @@ namespace JCTG.AzureFunction
                     await _dbContext.SaveChangesAsync();
 
                     // Return response
-                    await response.WriteAsJsonAsync(new MetatraderResponse() { Action = "BUY", TakeProfit = tvAlert.TakeProfit - trade.Offset, StopLoss = tvAlert.StopLoss - trade.Offset, Comment = tvAlert.Comment });
+                    await response.WriteAsJsonAsync(new MetatraderResponse() { Action = "BUY", TakeProfit = tvAlert.TakeProfit - trade.Offset, StopLoss = tvAlert.StopLoss - trade.Offset, Magic = tvAlert.Magic });
                     return response;
                 }
                 else
@@ -122,7 +122,7 @@ namespace JCTG.AzureFunction
             }
 
             // Return repsonse
-            await response.WriteAsJsonAsync(new MetatraderResponse() { Action = "NONE", Comment = string.Empty });
+            await response.WriteAsJsonAsync(new MetatraderResponse() { Action = "NONE" });
             return response;
         }
     }

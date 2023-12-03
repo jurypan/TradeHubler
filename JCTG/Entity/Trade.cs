@@ -22,7 +22,7 @@ namespace JCTG
         public StrategyType StrategyType { get; set; }
         public double Offset { get; set; }
         public required string Instrument { get; set; }
-        public required string Comment { get; set; }
+        public int Magic { get; set; }
         public bool Executed { get; set; }
         public DateTime? DateExecuted { get; set; }
         public double? ExecutedPrice { get; set; }
