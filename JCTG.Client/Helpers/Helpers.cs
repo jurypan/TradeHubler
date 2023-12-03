@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using System.Drawing;
 using System.Globalization;
 
 namespace JCTG.Client
@@ -115,6 +116,5 @@ namespace JCTG.Client
 
             throw new ArgumentException("Not found.", nameof(description));
         }
-
     }
 }

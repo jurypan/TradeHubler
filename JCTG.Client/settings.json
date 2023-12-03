@@ -2,7 +2,7 @@
   "AccountId": 692803787,
   "Brokers": [
     {
-      "Name": "Darwinex - MT4",
+      "Name": "Darwinex - MT4 - Demo",
       "MetaTraderDirPath": "C:\\Users\\joeri.pansaerts\\AppData\\Roaming\\MetaQuotes\\Terminal\\3B534B10135CFEDF8CD1AAB8BD994B13\\MQL4\\Files\\",
       "ClientId": 2089100683,
       "Pairs": [
@@ -268,7 +268,7 @@
       ]
     },
     {
-      "Name": "FTMO - MT4",
+      "Name": "FTMO - MT4 - Challenge",
       "MetaTraderDirPath": "C:\\Users\\joeri.pansaerts\\AppData\\Roaming\\MetaQuotes\\Terminal\\2C68BEE3A904BDCEE3EEF5A5A77EC162\\MQL4\\Files\\",
       "ClientId": 1300587646,
       "Pairs": [
@@ -396,6 +396,20 @@
           "TickerInMetatrader": "NFLX",
           "Timeframe": "H4",
           "StrategyNr": 1,
+          "Risk": 0.002
+        },
+        {
+          "TickerInTradingView": "BTC1!",
+          "TickerInMetatrader": "BTCUSD",
+          "Timeframe": "H1",
+          "StrategyNr": 2,
+          "Risk": 0.002
+        },
+        {
+          "TickerInTradingView": "ETH1!",
+          "TickerInMetatrader": "ETHUSD",
+          "Timeframe": "H1",
+          "StrategyNr": 2,
           "Risk": 0.002
         }
       ]

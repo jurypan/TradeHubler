@@ -668,7 +668,7 @@ namespace JCTG.Client
         /// </summary>
         /// <param name="symbol"> Symbol to get historic data</param>
         /// <param name="timeFrame">Time frame for the requested data</param>
-        /// <param name="start">StartAsync timestamp (seconds since epoch) of the requested data</param>
+        /// <param name="start">ListToTheClientsAsync timestamp (seconds since epoch) of the requested data</param>
         /// <param name="end">End timestamp of the requested data</param>
         public void GetHistoricData(string symbol, string timeFrame, long start, long end)
 		{

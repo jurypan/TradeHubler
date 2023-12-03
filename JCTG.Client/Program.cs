@@ -10,7 +10,7 @@ namespace JCTG.Client
 
         static async Task Main(string[] args)
         {
-            Console.WriteLine("Init Metatrader sync");
+            Console.WriteLine("Starting the application ... ");
 
             Service = ConfigureServices();
 
@@ -18,8 +18,11 @@ namespace JCTG.Client
             if(Service != null)
             {
                 var metatrader = Service.GetService<Metatrader>();
-                if(metatrader != null) 
-                    await metatrader.StartAsync();
+                if(metatrader != null)
+                {
+                    await metatrader.ListToTheClientsAsync();
+                    await metatrader.ListenToTheServerAsync();
+                }
             }
            
             Console.ReadLine();

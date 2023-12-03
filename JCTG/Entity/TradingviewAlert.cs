@@ -46,7 +46,7 @@ namespace JCTG
             // Parsing OrderType
             order.OrderType = parts[1].ToUpper();
 
-            // Parsing Instrument
+            // Parsing TickerInMetatrader
             order.Instrument = parts[2].ToUpper();
 
             // Parsing EntryPrice
