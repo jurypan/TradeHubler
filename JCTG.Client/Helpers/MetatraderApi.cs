@@ -1,4 +1,5 @@
-using System.Collections;
+using System.Globalization;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using static JCTG.Client.Helpers;
 
@@ -25,7 +26,7 @@ namespace JCTG.Client
 
         private int maxCommandFiles = 20;
         private int commandID = 0;
-        private long lastMessagesMillis = 0;
+        private long lastMessageId = 0;
         private string lastOpenOrdersStr = "";
         private string lastMessagesStr = "";
         private string lastMarketDataStr = "";
@@ -33,14 +34,14 @@ namespace JCTG.Client
         private string lastHistoricDataStr = "";
         private string lastHistoricTradesStr = "";
 
-        public JObject OpenOrders = new JObject();
-        public JObject AccountInfo = new JObject();
-        public JObject MarketData = new JObject();
-        public JObject BarData = new JObject();
+        //public JObject OpenOrders = new JObject();
+        public Dictionary<long, Order> OpenOrders { get; set; }
+        public AccountInfo? AccountInfo { get; set; }
+        public Dictionary<string, MarketData> MarketData { get; set; }
+        public Dictionary<string, BarData> BarData { get; set; }
         public JObject HistoricData = new JObject();
         public JObject HistoricTrades = new JObject();
-        public JObject lastBarData = new JObject();
-        public JObject lastMarketData = new JObject();
+        public int ClientId { get; set; }
 
         public bool ACTIVE = true;
         private bool START = false;
@@ -50,19 +51,18 @@ namespace JCTG.Client
         private Thread? marketDataThread;
         private Thread? barDataThread;
         private Thread? historicDataThread;
-        private Thread? timerThread;
 
         // Define the delegate for the event
-        public delegate void OnOrderEventHandler();
+        public delegate void OnOrderEventHandler(Order order);
         public event OnOrderEventHandler? OnOrderEvent;
 
-        public delegate void OnMessageEventHandler(JObject message);
-        public event OnMessageEventHandler? OnMessageEvent;
+        public delegate void OnLogEventHandler(long id, Log log);
+        public event OnLogEventHandler? OnLogEvent;
 
-        public delegate void OnTickEventHandler(string symbol, double bid, double ask);
+        public delegate void OnTickEventHandler(string symbol, double bid, double ask, double tickValue);
         public event OnTickEventHandler? OnTickEvent;
 
-        public delegate void OnBarDataEventHandler(string symbol, string timeFrame, string time, double open, double high, double low, double close, int tickVolume);
+        public delegate void OnBarDataEventHandler(string symbol, string timeFrame, DateTime time, double open, double high, double low, double close, int tickVolume);
         public event OnBarDataEventHandler? OnBarDataEvent;
 
         public delegate void OnHistoricDataEventHandler(string symbol, string timeFrame, JObject data);
@@ -71,12 +71,11 @@ namespace JCTG.Client
         public delegate void OnHistoricTradeEventHandler();
         public event OnHistoricTradeEventHandler? OnHistoricTradeEvent;
 
-        public delegate void OnTimerEventHandler();
-        public event OnTimerEventHandler? OnTimerEvent;
 
-        public MetatraderApi(string MetaTraderDirPath, int sleepDelay, int maxRetryCommandSeconds, bool loadOrdersFromFile, bool verbose)
+        public MetatraderApi(string MetaTraderDirPath, int clientId, int sleepDelay, int maxRetryCommandSeconds, bool loadOrdersFromFile, bool verbose)
         {
             this.MetaTraderDirPath = MetaTraderDirPath;
+            this.ClientId = clientId;
             this.sleepDelay = sleepDelay;
             this.maxRetryCommandSeconds = maxRetryCommandSeconds;
             this.loadOrdersFromFile = loadOrdersFromFile;
@@ -105,10 +104,10 @@ namespace JCTG.Client
         /// </summary>
         public async Task StartAsync()
         {
-            await LoadMessagesAsync();
+            await LoadLogsAsync();
 
             if (loadOrdersFromFile)
-                await LoadOrdersAsync();
+                await LoadDataAsync();
 
             // Start the thread to run the asynchronous method
             this.openOrdersThread = new Thread(async () => await CheckOpenOrdersAsync());
@@ -125,9 +124,6 @@ namespace JCTG.Client
 
             this.historicDataThread = new Thread(async () => await CheckHistoricDataAsync());
             this.historicDataThread?.Start();
-
-            this.timerThread = new Thread(() => Timer());
-            this.timerThread?.Start();
 
             await ResetCommandIDsAsync();
 
@@ -168,43 +164,74 @@ namespace JCTG.Client
 
                 if (data == null)
                     continue;
-                
-				JObject dataOrders = (JObject)data["orders"];
-				
-                bool newEvent = false;
-                foreach (var x in OpenOrders)
+
+
+                // Assuming 'data' is the JObject that contains your JSON data
+                JObject ordersData = (JObject)data["orders"];
+
+                // If market data is null -> create new instance
+                if (OpenOrders == null)
+                    OpenOrders = new Dictionary<long, Order>();
+
+                // Iterate over each order in the JSON
+                if(ordersData != null) 
                 {
-                    // JToken value = x.Value;
-                    if (dataOrders[x.Key] == null)
+                    foreach (var orderEntry in ordersData)
                     {
-                        newEvent = true;
-                        if (verbose)
-                            Print("Order removed: " + OpenOrders[x.Key].ToString());
+                        long orderId = long.Parse(orderEntry.Key);
+
+                        if(orderEntry.Value != null)
+                        {
+                            JObject value = (JObject)orderEntry.Value;
+
+                            if(value != null)
+                            {
+                                var newOrder = new Order
+                                {
+                                    Symbol = value["symbol"].ToObject<string>(),
+                                    Lots = value["lots"].ToObject<double>(),
+                                    Type = value["type"].ToObject<string>(),
+                                    OpenPrice = value["open_price"].ToObject<double>(),
+                                    OpenTime = DateTime.ParseExact(value["open_time"].ToString(), "yyyy.MM.dd HH:mm:ss", CultureInfo.InvariantCulture),
+                                    StopLoss = value["SL"].ToObject<double>(),
+                                    TakeProfit = value["TP"].ToObject<double>(),
+                                    Pnl = value["pnl"].ToObject<double>(),
+                                    Commission = value["commission"].ToObject<double>(),
+                                    Swap = value["swap"].ToObject<double>(),
+                                    Comment = value["comment"].ToObject<string>(),
+                                    Magic = value["magic"].ToObject<int>(),
+                                };
+
+                                // Check if the order already exists
+                                if (OpenOrders.TryGetValue(orderId, out var previousData))
+                                {
+                                    // Check if the values have changed
+                                    if (newOrder.OpenTime != previousData.OpenTime)
+                                    {
+                                        // Update the previous values
+                                        OpenOrders[orderId] = newOrder;
+
+                                        // Invoke the event
+                                        OnOrderEvent?.Invoke(newOrder);
+                                    }
+                                }
+                                else
+                                {
+                                    // If it's a new order, add it to the dictionary and invoke the event
+                                    OpenOrders.Add(orderId, newOrder);
+                                    OnOrderEvent?.Invoke(newOrder);
+                                }
+                            }
+                        }
                     }
                 }
-                foreach (var x in dataOrders)
-                {
-                    // JToken value = x.Value;
-                    if (OpenOrders[x.Key] == null)
-                    {
-                        newEvent = true;
-                        if (verbose)
-                            Print("New order: " + dataOrders[x.Key].ToString());
-                    }
-                }
-				
-                OpenOrders = dataOrders;
-				AccountInfo = (JObject)data["account_info"];
+
+
+                // Cast account info
+                AccountInfo = data["account_info"]?.ToObject<AccountInfo>();
 
                 if (loadOrdersFromFile)
                     await TryWriteToFileAsync(pathOrdersStored, data.ToString());
-
-                // Check if there are any subscribers
-                if (OnOrderEvent != null && newEvent)
-                {
-                    // Raise the event
-                    OnOrderEvent();
-                }
             }
         }
 
@@ -242,35 +269,27 @@ namespace JCTG.Client
                 if (data == null)
                     continue;
 
-                // var sortedObj = new JObject(data.Properties().OrderByDescending(p => (int)p.Value));
+                // Convert JObject to a list of Log objects
+                var logs = JsonConvert.DeserializeObject<Dictionary<long, Log>>(text);
 
-                // make sure that the message are sorted so that we don't miss messages because of (millis > lastMessagesMillis).
-                ArrayList millisList = new ArrayList();
+                // Sort the logs by Time
+                var sortedLogs = logs?.OrderBy(f => f.Key).ToList();
 
-                foreach (var x in data)
+                if(sortedLogs != null) 
                 {
-                    if (data[x.Key] != null)
+                    foreach (var item in sortedLogs)
                     {
-                        millisList.Add(x.Key);
-                    }
-                }
-                millisList.Sort();
-                foreach (string millisStr in millisList)
-                {
-                    if (data[millisStr] != null) 
-                    {
-                        long millis = Int64.Parse(millisStr);
-                        if (millis > lastMessagesMillis)
+                        if (item.Key > lastMessageId)
                         {
-                            lastMessagesMillis = millis;
-
-                            // Check if there are any subscribers
-                            // Raise the event
-                            OnMessageEvent?.Invoke((JObject)data[millisStr]);
+                            lastMessageId = item.Key;
+                            OnLogEvent?.Invoke(item.Key, item.Value);
                         }
                     }
                 }
-                await TryWriteToFileAsync(pathMessagesStored, data.ToString());
+
+
+                // Assuming TryWriteToFileAsync is a method that takes a path and a string
+                await TryWriteToFileAsync(pathMessagesStored, JsonConvert.SerializeObject(data));
             }
         }
 
@@ -281,19 +300,24 @@ namespace JCTG.Client
         {
             while (ACTIVE)
             {
-
+                // Sleep
                 Thread.Sleep(sleepDelay);
 
+                // If not started -> Skip
                 if (!START)
                     continue;
 
+                // Parse MT4 text file
                 string text = await TryReadFileAsync(pathMarketData);
 
+                // Check if the file is changed in regards to the previous version
                 if (text.Length == 0 || text.Equals(lastMarketDataStr))
                     continue;
 
+                // Save file
                 lastMarketDataStr = text;
 
+                // Cast to JObject
                 JObject data;
 
                 try
@@ -305,23 +329,52 @@ namespace JCTG.Client
                     continue;
                 }
 
+                // If cast was null -> continue
                 if (data == null)
                     continue;
 
-                MarketData = data;
+                // If market data is null -> create new instance
+                if (MarketData == null)
+                    MarketData = new Dictionary<string, MarketData>();
 
-                if (OnTickEvent != null)
+                // Foreach property of the data
+                foreach (var property in data.Properties())
                 {
-                    foreach (var x in MarketData)
+                    var value = property.Value as JObject;
+                    if (value != null && value["bid"] != null && value["ask"] != null && value["tick_value"] != null)
                     {
-                        string symbol = x.Key;
-                        if (lastMarketData[symbol] == null || !MarketData[symbol].Equals(lastMarketData[symbol]))
+                        var newMarketData = new MarketData
                         {
-                            OnTickEvent?.Invoke(symbol,  (double)MarketData[symbol]["bid"], (double)MarketData[symbol]["ask"]);
+                            Bid = value["bid"].ToObject<double>(),
+                            Ask = value["ask"].ToObject<double>(),
+                            TickValue = value["tick_value"].ToObject<double>(),
+                            MinLotSize = value["min_lot_size"].ToObject<double>(),
+                            MaxLotSize = value["max_lot_size"].ToObject<double>(),
+                            ContractSize = value["contract_size"].ToObject<double>(),
+                            VolumeStep = value["volume_step"].ToObject<double>(),
+                        };
+
+                        // Check if the ticker already has previous values
+                        if (MarketData.TryGetValue(property.Name, out var previousData))
+                        {
+                            // Check if the values have changed
+                            if (newMarketData.Bid != previousData.Bid || newMarketData.Ask != previousData.Ask || newMarketData.TickValue != previousData.TickValue)
+                            {
+                                // Update the previous values
+                                MarketData[property.Name] = new MarketData { Bid = newMarketData.Bid, Ask = newMarketData.Ask, TickValue = newMarketData.TickValue };
+
+                                // Invoke the event
+                                OnTickEvent?.Invoke(property.Name, newMarketData.Bid, newMarketData.Ask, newMarketData.TickValue);
+                            }
+                        }
+                        else
+                        {
+                            // If it's a new ticker, add it to the dictionary and invoke the event
+                            MarketData.Add(property.Name, new MarketData { Bid = newMarketData.Bid, Ask = newMarketData.Ask, TickValue = newMarketData.TickValue });
+                            OnTickEvent?.Invoke(property.Name, newMarketData.Bid, newMarketData.Ask, newMarketData.TickValue);
                         }
                     }
                 }
-                lastMarketData = data;
             }
         }
 
@@ -358,30 +411,70 @@ namespace JCTG.Client
                 if (data == null)
                     continue;
 
-                BarData = data;
+                if (BarData == null)
+                    BarData = new Dictionary<string, BarData>();
 
-                if (OnBarDataEvent != null)
+                foreach (var property in data.Properties())
                 {
-                    foreach (var x in BarData)
+                    var value = property.Value as JObject;
+                    if (value != null && value["time"] != null && value["open"] != null && value["high"] != null && value["low"] != null && value["close"] != null && value["tick_volume"] != null)
                     {
-                        string st = x.Key;
-                        if (lastBarData[st] == null || !BarData[st].Equals(lastBarData[st]))
+                        string[] stSplit = property.Name.Split("_");
+                        if (stSplit.Length != 2)
+                            continue;
+
+                        var newBarData = new BarData
                         {
-                            string[] stSplit = st.Split("_");
-                            if (stSplit.Length != 2)
-                                continue;
-                            // JObject jo = (JObject)BarData[symbol];
-                            OnBarDataEvent?.Invoke(stSplit[0], stSplit[1], 
-                                                   (string)BarData[st]["time"], 
-                                                   (double)BarData[st]["open"], 
-                                                   (double)BarData[st]["high"], 
-                                                   (double)BarData[st]["low"], 
-                                                   (double)BarData[st]["close"], 
-                                                   (int)BarData[st]["tick_volume"]);
+                            Timeframe = stSplit[1],
+                            Time = value["time"].ToObject<DateTime>(),
+                            Open = value["open"].ToObject<double>(),
+                            High = value["high"].ToObject<double>(),
+                            Low = value["low"].ToObject<double>(),
+                            Close = value["close"].ToObject<double>(),
+                            TickVolume = value["tick_volume"].ToObject<int>()
+                        };
+
+                        // Check if the ticker already has previous values
+                        if (BarData.TryGetValue(property.Name, out var previousData))
+                        {
+                            // Check if the values have changed
+                            if (newBarData.Timeframe != previousData.Timeframe || newBarData.Time != previousData.Time || newBarData.Open != previousData.Open || newBarData.High != previousData.High || newBarData.Low != previousData.Low || newBarData.Close != previousData.Close)
+                            {
+                                // Update the previous values
+                                BarData[property.Name] = new BarData 
+                                { 
+                                    Timeframe = newBarData.Timeframe, 
+                                    Time = newBarData.Time, 
+                                    Open = newBarData.Open,
+                                    High = newBarData.High,
+                                    Low = newBarData.Low,
+                                    Close = newBarData.Close,
+                                    TickVolume = newBarData.TickVolume,
+                                };
+
+                                // Invoke the event
+                                OnBarDataEvent?.Invoke(property.Name, newBarData.Timeframe, newBarData.Time, newBarData.Open, newBarData.High, newBarData.Low, newBarData.Close, newBarData.TickVolume);
+                            }
+                        }
+                        else
+                        {
+                            // If it's a new ticker, add it to the dictionary and invoke the event
+                            BarData.Add(property.Name, new BarData
+                            {
+                                Timeframe = newBarData.Timeframe,
+                                Time = newBarData.Time,
+                                Open = newBarData.Open,
+                                High = newBarData.High,
+                                Low = newBarData.Low,
+                                Close = newBarData.Close,
+                                TickVolume = newBarData.TickVolume,
+                            });
+
+                            // Invoke the event
+                            OnBarDataEvent?.Invoke(property.Name, newBarData.Timeframe, newBarData.Time, newBarData.Open, newBarData.High, newBarData.Low, newBarData.Close, newBarData.TickVolume);
                         }
                     }
                 }
-                lastBarData = data;
             }
         }
 
@@ -475,26 +568,9 @@ namespace JCTG.Client
 
 
         /// <summary>
-        /// Regularly invokes this event
-        /// </summary>
-        private void Timer()
-        {
-            while (ACTIVE)
-            {
-
-                Thread.Sleep(sleepDelay);
-
-                if (!START)
-                    continue;
-
-                OnTimerEvent?.Invoke();
-            }
-        }
-
-        /// <summary>
         /// Loads stored orders from file (in case of a restart). 
         /// </summary>
-        private async Task LoadOrdersAsync()
+        private async Task LoadDataAsync()
         {
 
             string text = await TryReadFileAsync(pathOrdersStored);
@@ -517,15 +593,17 @@ namespace JCTG.Client
                 return;
 
             lastOpenOrdersStr = text;
-			OpenOrders = (JObject)data["orders"];
-			AccountInfo = (JObject)data["account_info"];
+            OpenOrders = data["orders"]?.ToObject<Dictionary<long, Order>>();
+            if (OpenOrders == null)
+                OpenOrders = new Dictionary<long, Order>();
+            AccountInfo = data["account_info"]?.ToObject<AccountInfo>();
         }
 
 
         /// <summary>
         /// Loads stored messages from file (in case of a restart).
         /// </summary>
-        private async Task LoadMessagesAsync()
+        private async Task LoadLogsAsync()
         {
 
             string text = await TryReadFileAsync(pathMessagesStored);
@@ -550,12 +628,12 @@ namespace JCTG.Client
 			
             lastMessagesStr = text;
 
-            // here we don't have to sort because we just need the latest millis value. 
+            //here we don't have to sort because we just need the latest millis value. 
             foreach (var x in data)
             {
                 long millis = Int64.Parse(x.Key);
-                if (millis > lastMessagesMillis)
-                    lastMessagesMillis = millis;
+                if (millis > lastMessageId)
+                    lastMessageId = millis;
             }
         }
 
@@ -564,22 +642,22 @@ namespace JCTG.Client
         /// Sends a SUBSCRIBE_SYMBOLS command to subscribe to market (tick) data.
         /// </summary>
         /// <param name="symbols"> List of symbols to subscribe to.</param>
-        public void SubscribeSymbols(string[] symbols)
+        public void SubscribeForTicks(List<string> symbols)
         {
-            SendCommand("SUBSCRIBE_SYMBOLS", string.Join(",", symbols));
+            SendCommand("SUBSCRIBE_SYMBOLS", string.Join(",", symbols.Distinct().ToList()));
         }
 
         /// <summary>
         /// Sends a SUBSCRIBE_SYMBOLS_BAR_DATA command to subscribe to bar data.
         /// </summary>
-        /// <param name="symbols"> List of lists containing symbol/time frame combinations to subscribe to.For example: string[,] symbols = new string[,] { { "EURUSD", "M1" }, { "USDJPY", "H1" } };</param>
-        public void SubscribeSymbolsBarData(string[,] symbols)
+        /// <param name="symbols"> List of lists containing symbol/time frame combinations to subscribe to.For example: { "EURUSD", "M1" }, { "USDJPY", "H1" } };</param>
+        public void SubscribeForBarData(List<KeyValuePair<string, string>> symbols)
         {
             string content = "";
-            for (int i = 0; i < symbols.GetLength(0); i++)
+            for (int i = 0; i < symbols.Count; i++)
             {
                 if (i != 0) content += ",";
-                content += symbols[i, 0] + "," + symbols[i, 1];
+                content += symbols[i].Key + "," + symbols[i].Value;
             }
             SendCommand("SUBSCRIBE_SYMBOLS_BAR_DATA", content);
         }
@@ -622,9 +700,11 @@ namespace JCTG.Client
         /// <param name="magic">Magic number</param>
         /// <param name="comment">Order comment</param>
         /// <param name="expiration"> Expiration time given as timestamp in seconds. Can be zero if the order should not have an expiration time.  </param>
-        public void OpenOrder(string symbol, string orderType, double lots, double price, double stopLoss, double takeProfit, int magic, string comment, long expiration)
+        public void OpenOrder(string symbol, OrderType orderType, double lots, double price, double stopLoss, double takeProfit, int magic, string comment, long expiration = 0)
         {
-            string content = symbol + "," + orderType + "," + Format(lots) + "," + Format(price) + "," + Format(stopLoss) + "," + Format(takeProfit) + "," + magic + "," + comment + "," + expiration;
+            string orderT = GetDescription(orderType);
+
+            string content = symbol + "," + orderT + "," + Format(lots) + "," + Format(price) + "," + Format(stopLoss) + "," + Format(takeProfit) + "," + magic + "," + comment + "," + expiration;
             SendCommand("OPEN_ORDER", content);
         }
 

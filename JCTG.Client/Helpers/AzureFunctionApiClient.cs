@@ -20,7 +20,6 @@ namespace JCTG.Client
             var content = new StringContent(postData, Encoding.UTF8, "application/text");
             _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/text"));
             var response = await _httpClient.PostAsync("https://justcalltheguy.azurewebsites.net/api/Metatrader?code=6CUPL6bDM0q_AQaqZpJnpRQNQko-WFuw-I9nlxu0UvxUAzFuDRTNtw==", content);
-            //var response = await _httpClient.PostAsync("http://localhost:7259/api/Metatrader", content);
             response.EnsureSuccessStatusCode();
             var jsonString = await response.Content.ReadAsStringAsync();
             var entity = JsonConvert.DeserializeObject<MetatraderResponse>(jsonString);

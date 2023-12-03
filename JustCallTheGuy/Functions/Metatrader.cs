@@ -40,18 +40,14 @@ namespace JCTG.AzureFunction
                 // Log item
                 _logger.LogDebug($"Parsed Metatrader object : AccountID={mt.AccountID}, Instrument={mt.Instrument}, ClientID={mt.ClientID}, CurrentPrice={mt.Price}, TradingviewTicker={mt.TradingviewTicker},",requestBody);
 
-                if(mt.TradingviewTicker == "NKD1!")
-                {
-
-                }
-
                 // Get TradingviewAlert from the database
                 var tvAlert = await _dbContext.TradingviewAlert
                                                      .Include(f => f.Trades)
                                                      .Where(f => f.AccountID == mt.AccountID
                                                                  && f.Instrument.Equals(mt.TradingviewTicker)
                                                                  && (f.Trades.Count == 0 || f.Trades.Any(g => g.ClientID == mt.ClientID && g.Executed == false))
-                                                                 && f.StrategyType == mt.StrategyType)
+                                                                 && f.StrategyType == mt.StrategyType
+                                                                 )
                                                      .OrderBy(f => Math.Abs(f.EntryPrice - mt.Price))
                                                      .FirstOrDefaultAsync();
 

@@ -1,20 +1,26 @@
+using System.ComponentModel;
 using System.Globalization;
-using System.IO;
-
-
-/*Helpers class
-
-This class includes helper functions for printing, formatting and file operations. 
-
-*/
 
 namespace JCTG.Client
 {
     public class Helpers
     {
-		public static void Print(object obj)
+		public static void Print(object obj, bool color = false)
         {
-            Console.WriteLine(obj);
+            if(color == true) 
+            {
+                // Set both foreground (text) color and background color
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.BackgroundColor = ConsoleColor.Yellow;
+
+                // Write a line of text in yellow with blue background
+                Console.WriteLine(obj);
+
+                // Reset the colors to their default values
+                Console.ResetColor();
+            }
+            else
+                Console.WriteLine(obj);
         }
 
         public static async Task<bool> TryWriteToFileAsync(string filePath, string text)
@@ -82,5 +88,33 @@ namespace JCTG.Client
                 return string.Empty;
             }
         }
+
+        public static string GetDescription(Enum value)
+        {
+            var field = value.GetType().GetField(value.ToString());
+            var attribute = Attribute.GetCustomAttribute(field, typeof(DescriptionAttribute)) as DescriptionAttribute;
+
+            return attribute == null ? value.ToString() : attribute.Description;
+        }
+
+        public static T GetValueFromDescription<T>(string description) where T : Enum
+        {
+            foreach (var field in typeof(T).GetFields())
+            {
+                if (Attribute.GetCustomAttribute(field, typeof(DescriptionAttribute)) is DescriptionAttribute attribute)
+                {
+                    if (attribute.Description == description)
+                        return (T)field.GetValue(null);
+                }
+                else
+                {
+                    if (field.Name == description)
+                        return (T)field.GetValue(null);
+                }
+            }
+
+            throw new ArgumentException("Not found.", nameof(description));
+        }
+
     }
 }
