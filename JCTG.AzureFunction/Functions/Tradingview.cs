@@ -5,16 +5,10 @@ using Microsoft.Extensions.Logging;
 
 namespace JCTG.AzureFunction
 {
-    public class Tradingview
+    public class Tradingview(ILoggerFactory loggerFactory, JCTGDbContext dbContext)
     {
-        private readonly ILogger _logger;
-        private readonly JCTGDbContext _dbContext;
-
-        public Tradingview(ILoggerFactory loggerFactory, JCTGDbContext dbContext)
-        {
-            _logger = loggerFactory.CreateLogger<Tradingview>();
-            _dbContext = dbContext;
-        }
+        private readonly ILogger _logger = loggerFactory.CreateLogger<Tradingview>();
+        private readonly JCTGDbContext _dbContext = dbContext;
 
         [Function("Tradingview")]
         public async Task<HttpResponseData> Run([HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req)

@@ -2,15 +2,8 @@
 
 namespace JCTG
 {
-    public class JCTGDbContext : DbContext
+    public class JCTGDbContext(DbContextOptions<JCTGDbContext> options) : DbContext(options)
     {
-
-
-        public JCTGDbContext(DbContextOptions<JCTGDbContext> options)
-            : base(options)
-        {
-        }
-
         public DbSet<Account> Account { get; set; }
 
         public DbSet<Client> Client { get; set; }

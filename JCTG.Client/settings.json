@@ -173,6 +173,48 @@
           "Timeframe": "H4",
           "StrategyNr": 1,
           "Risk": 0.002
+        },
+        {
+          "TickerInTradingView": "ADSK",
+          "TickerInMetatrader": "ADSK",
+          "Timeframe": "H4",
+          "StrategyNr": 1,
+          "Risk": 0.002
+        },
+        {
+          "TickerInTradingView": "GS",
+          "TickerInMetatrader": "GS",
+          "Timeframe": "H4",
+          "StrategyNr": 1,
+          "Risk": 0.002
+        },
+        {
+          "TickerInTradingView": "FDX",
+          "TickerInMetatrader": "FDX",
+          "Timeframe": "H4",
+          "StrategyNr": 1,
+          "Risk": 0.002
+        },
+        {
+          "TickerInTradingView": "SPGI",
+          "TickerInMetatrader": "SPGI",
+          "Timeframe": "H4",
+          "StrategyNr": 1,
+          "Risk": 0.002
+        },
+        {
+          "TickerInTradingView": "PEP",
+          "TickerInMetatrader": "PEP",
+          "Timeframe": "H4",
+          "StrategyNr": 1,
+          "Risk": 0.001
+        },
+        {
+          "TickerInTradingView": "HD",
+          "TickerInMetatrader": "HD",
+          "Timeframe": "H4",
+          "StrategyNr": 1,
+          "Risk": 0.002
         }
       ]
     },
@@ -411,6 +453,188 @@
           "Timeframe": "H1",
           "StrategyNr": 2,
           "Risk": 0.002
+        }
+      ]
+    },
+    {
+      "Name": "OANDA - MT5",
+      "MetaTraderDirPath": "C:\\Users\\joeri.pansaerts\\AppData\\Roaming\\MetaQuotes\\Terminal\\47AEB69EDDAD4D73097816C71FB25856\\MQL5\\Files\\",
+      "ClientId": 188038,
+      "Pairs": [
+        {
+          "TickerInTradingView": "NKD1!",
+          "TickerInMetatrader": "JP225.pro",
+          "Timeframe": "H1",
+          "StrategyNr": 2,
+          "Risk": 0.002
+        },
+        {
+          "TickerInTradingView": "XJO",
+          "TickerInMetatrader": "AU200.pro",
+          "Timeframe": "H1",
+          "StrategyNr": 2,
+          "Risk": 0.002
+        },
+        {
+          "TickerInTradingView": "SX5E",
+          "TickerInMetatrader": "EU50.pro",
+          "Timeframe": "H1",
+          "StrategyNr": 2,
+          "Risk": 0.002
+        },
+        {
+          "TickerInTradingView": "DAX",
+          "TickerInMetatrader": "DE30.pro",
+          "Timeframe": "H1",
+          "StrategyNr": 2,
+          "Risk": 0.001
+        },
+        {
+          "TickerInTradingView": "PX1",
+          "TickerInMetatrader": "FR40.pro",
+          "Timeframe": "H1",
+          "StrategyNr": 2,
+          "Risk": 0.002
+        },
+        {
+          "TickerInTradingView": "UKX",
+          "TickerInMetatrader": "GB100.pro",
+          "Timeframe": "H1",
+          "StrategyNr": 2,
+          "Risk": 0.002
+        },
+        {
+          "TickerInTradingView": "SPX",
+          "TickerInMetatrader": "US500.pro",
+          "Timeframe": "H1",
+          "StrategyNr": 2,
+          "Risk": 0.002
+        },
+        {
+          "TickerInTradingView": "NDX",
+          "TickerInMetatrader": "US100.pro",
+          "Timeframe": "H1",
+          "StrategyNr": 2,
+          "Risk": 0.002
+        },
+        {
+          "TickerInTradingView": "NKD1!",
+          "TickerInMetatrader": "JP225.pro",
+          "Timeframe": "H1",
+          "StrategyNr": 1,
+          "Risk": 0.001
+        },
+        {
+          "TickerInTradingView": "XJO",
+          "TickerInMetatrader": "AU200.pro",
+          "Timeframe": "H1",
+          "StrategyNr": 1,
+          "Risk": 0.001
+        },
+        {
+          "TickerInTradingView": "SPX",
+          "TickerInMetatrader": "US500.pro",
+          "Timeframe": "H1",
+          "StrategyNr": 1,
+          "Risk": 0.001
+        },
+        {
+          "TickerInTradingView": "NDX",
+          "TickerInMetatrader": "US100.pro",
+          "Timeframe": "H1",
+          "StrategyNr": 1,
+          "Risk": 0.001
+        }
+      ]
+    },
+    {
+      "Name": "LUX - MT5",
+      "MetaTraderDirPath": "C:\\Users\\joeri.pansaerts\\AppData\\Roaming\\MetaQuotes\\Terminal\\E46BFC7165B351C46E7FD4997F5A8EFB\\MQL5\\Files\\",
+      "ClientId": 54031,
+      "Pairs": [
+        {
+          "TickerInTradingView": "NKD1!",
+          "TickerInMetatrader": "NIKJPY",
+          "Timeframe": "H1",
+          "StrategyNr": 2,
+          "Risk": 0.002
+        },
+        {
+          "TickerInTradingView": "XJO",
+          "TickerInMetatrader": "ASXAUD",
+          "Timeframe": "H1",
+          "StrategyNr": 2,
+          "Risk": 0.002
+        },
+        {
+          "TickerInTradingView": "SX5E",
+          "TickerInMetatrader": "ESXEUR",
+          "Timeframe": "H1",
+          "StrategyNr": 2,
+          "Risk": 0.002
+        },
+        {
+          "TickerInTradingView": "DAX",
+          "TickerInMetatrader": "DAXEUR",
+          "Timeframe": "H1",
+          "StrategyNr": 2,
+          "Risk": 0.001
+        },
+        {
+          "TickerInTradingView": "PX1",
+          "TickerInMetatrader": "F40EUR",
+          "Timeframe": "H1",
+          "StrategyNr": 2,
+          "Risk": 0.002
+        },
+        {
+          "TickerInTradingView": "UKX",
+          "TickerInMetatrader": "FTSGBP",
+          "Timeframe": "H1",
+          "StrategyNr": 2,
+          "Risk": 0.002
+        },
+        {
+          "TickerInTradingView": "SPX",
+          "TickerInMetatrader": "SPXUSD",
+          "Timeframe": "H1",
+          "StrategyNr": 2,
+          "Risk": 0.002
+        },
+        {
+          "TickerInTradingView": "NDX",
+          "TickerInMetatrader": "NDXUSD",
+          "Timeframe": "H1",
+          "StrategyNr": 2,
+          "Risk": 0.002
+        },
+        {
+          "TickerInTradingView": "NKD1!",
+          "TickerInMetatrader": "NIKJPY",
+          "Timeframe": "H1",
+          "StrategyNr": 1,
+          "Risk": 0.001
+        },
+        {
+          "TickerInTradingView": "XJO",
+          "TickerInMetatrader": "ASXAUD",
+          "Timeframe": "H1",
+          "StrategyNr": 1,
+          "Risk": 0.001
+        },
+        {
+          "TickerInTradingView": "SPX",
+          "TickerInMetatrader": "SPXUSD",
+          "Timeframe": "H1",
+          "StrategyNr": 1,
+          "Risk": 0.001
+        },
+        {
+          "TickerInTradingView": "NDX",
+          "TickerInMetatrader": "NDXUSD",
+          "Timeframe": "H1",
+          "StrategyNr": 1,
+          "Risk": 0.001
         }
       ]
     }

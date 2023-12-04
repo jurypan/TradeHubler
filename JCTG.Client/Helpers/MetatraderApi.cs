@@ -8,23 +8,23 @@ namespace JCTG.Client
 {
     public class MetatraderApi
     {
-        private string MetaTraderDirPath;  // { get; private set; }
-        private int sleepDelay;
-        private int maxRetryCommandSeconds;
-        private bool loadOrdersFromFile;
-        private bool verbose;
+        private readonly string MetaTraderDirPath;  // { get; private set; }
+        private readonly int sleepDelay;
+        private readonly int maxRetryCommandSeconds;
+        private readonly bool loadOrdersFromFile;
+        private readonly bool verbose;
 
-        private string pathOrders;
-        private string pathMessages;
-        private string pathMarketData;
-        private string pathBarData;
-        private string pathHistoricData;
-        private string pathHistoricTrades;
-        private string pathOrdersStored;
-        private string pathMessagesStored;
-        private string pathCommandsPrefix;
+        private readonly string pathOrders;
+        private readonly string pathMessages;
+        private readonly string pathMarketData;
+        private readonly string pathBarData;
+        private readonly string pathHistoricData;
+        private readonly string pathHistoricTrades;
+        private readonly string pathOrdersStored;
+        private readonly string pathMessagesStored;
+        private readonly string pathCommandsPrefix;
 
-        private int maxCommandFiles = 20;
+        private readonly int maxCommandFiles = 20;
         private int commandID = 0;
         private long lastMessageId = 0;
         private string lastOpenOrdersStr = "";
@@ -196,7 +196,7 @@ namespace JCTG.Client
                                     StopLoss = value["SL"].ToObject<double>(),
                                     TakeProfit = value["TP"].ToObject<double>(),
                                     Pnl = value["pnl"].ToObject<double>(),
-                                    Commission = value["commission"].ToObject<double>(),
+                                    //Commission = value["commission"].ToObject<double>(),
                                     Swap = value["swap"].ToObject<double>(),
                                     Comment = value["comment"].ToObject<string>(),
                                     Magic = value["magic"].ToObject<int>(),

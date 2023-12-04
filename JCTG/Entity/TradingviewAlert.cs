@@ -95,7 +95,7 @@ namespace JCTG
             {
                 throw new ArgumentException("Invalid StrategyType format.");
             }
-            order.StrategyType = (StrategyType)int.Parse(strParts[1]);
+            order.StrategyType = (StrategyType)strategy;
 
             return order;
         }

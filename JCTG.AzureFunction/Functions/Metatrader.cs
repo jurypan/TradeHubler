@@ -1,7 +1,4 @@
 using System.Net;
-using System.Net.Http.Headers;
-using System.Text;
-using System.Text.Json.Serialization;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.EntityFrameworkCore;
@@ -11,16 +8,10 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace JCTG.AzureFunction
 {
-    public class Metatrader
+    public class Metatrader(ILoggerFactory loggerFactory, JCTGDbContext dbContext)
     {
-        private readonly ILogger _logger;
-        private readonly JCTGDbContext _dbContext;
-
-        public Metatrader(ILoggerFactory loggerFactory, JCTGDbContext dbContext)
-        {
-            _logger = loggerFactory.CreateLogger<Metatrader>();
-            _dbContext = dbContext;
-        }
+        private readonly ILogger _logger = loggerFactory.CreateLogger<Metatrader>();
+        private readonly JCTGDbContext _dbContext = dbContext;
 
         [Function("Metatrader")]
         public async Task<HttpResponseData> Run([HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req)
@@ -54,7 +45,7 @@ namespace JCTG.AzureFunction
                                                              .Include(f => f.Trades)
                                                              .Where(f => f.AccountID == mt.AccountID
                                                                          && f.Instrument.Equals(mt.TickerInTradingview)
-                                                                         && (f.Trades.Count == 0 || f.Trades.Any(g => g.ClientID == mt.ClientID && g.Executed == false))
+                                                                         && (f.Trades.Count(g => g.ClientID == mt.ClientID) == 0 || f.Trades.Any(g => g.ClientID == mt.ClientID && g.Executed == false))
                                                                          && f.StrategyType == mt.StrategyType
                                                                          )
                                                              .OrderBy(f => Math.Abs(f.EntryPrice - mt.Price))
