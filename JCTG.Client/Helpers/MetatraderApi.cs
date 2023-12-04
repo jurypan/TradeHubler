@@ -148,7 +148,7 @@ namespace JCTG.Client
 
                 if (text.Length == 0 || text.Equals(lastOpenOrdersStr))
                     continue;
-                
+
                 lastOpenOrdersStr = text;
 
                 JObject data;
@@ -174,17 +174,17 @@ namespace JCTG.Client
                     OpenOrders = new Dictionary<long, Order>();
 
                 // Iterate over each order in the JSON
-                if(ordersData != null) 
+                if (ordersData != null)
                 {
                     foreach (var orderEntry in ordersData)
                     {
                         long orderId = long.Parse(orderEntry.Key);
 
-                        if(orderEntry.Value != null)
+                        if (orderEntry.Value != null)
                         {
                             JObject value = (JObject)orderEntry.Value;
 
-                            if(value != null)
+                            if (value != null)
                             {
                                 var newOrder = new Order
                                 {
@@ -275,7 +275,7 @@ namespace JCTG.Client
                 // Sort the logs by Time
                 var sortedLogs = logs?.OrderBy(f => f.Key).ToList();
 
-                if(sortedLogs != null) 
+                if (sortedLogs != null)
                 {
                     foreach (var item in sortedLogs)
                     {
@@ -441,10 +441,10 @@ namespace JCTG.Client
                             if (newBarData.Timeframe != previousData.Timeframe || newBarData.Time != previousData.Time || newBarData.Open != previousData.Open || newBarData.High != previousData.High || newBarData.Low != previousData.Low || newBarData.Close != previousData.Close)
                             {
                                 // Update the previous values
-                                BarData[property.Name] = new BarData 
-                                { 
-                                    Timeframe = newBarData.Timeframe, 
-                                    Time = newBarData.Time, 
+                                BarData[property.Name] = new BarData
+                                {
+                                    Timeframe = newBarData.Timeframe,
+                                    Time = newBarData.Time,
                                     Open = newBarData.Open,
                                     High = newBarData.High,
                                     Low = newBarData.Low,
@@ -532,7 +532,7 @@ namespace JCTG.Client
                         }
                     }
 
-                    
+
                 }
 
                 // also check historic trades in the same thread. 
@@ -582,7 +582,7 @@ namespace JCTG.Client
 
             try
             {
-				data = JObject.Parse(text);
+                data = JObject.Parse(text);
             }
             catch
             {
@@ -610,7 +610,7 @@ namespace JCTG.Client
 
             if (text.Length == 0)
                 return;
-			
+
             JObject data;
 
             try
@@ -618,14 +618,14 @@ namespace JCTG.Client
                 data = JObject.Parse(text);
             }
             catch (Exception e)
-            {	
-				Print(e.ToString());
+            {
+                Print(e.ToString());
                 return;
             }
 
             if (data == null)
                 return;
-			
+
             lastMessagesStr = text;
 
             //here we don't have to sort because we just need the latest millis value. 
@@ -671,10 +671,10 @@ namespace JCTG.Client
         /// <param name="start">ListToTheClientsAsync timestamp (seconds since epoch) of the requested data</param>
         /// <param name="end">End timestamp of the requested data</param>
         public void GetHistoricData(string symbol, string timeFrame, long start, long end)
-		{
-			string content = symbol + "," + timeFrame + "," + start + "," + end;
+        {
+            string content = symbol + "," + timeFrame + "," + start + "," + end;
             SendCommand("GET_HISTORIC_DATA", content);
-		}
+        }
 
 
 
@@ -704,7 +704,7 @@ namespace JCTG.Client
         {
             string orderT = GetDescription(orderType);
 
-            string content = symbol + "," + orderT + "," + Format(lots) + "," + Format(price) + "," + Format(stopLoss) + "," + Format(takeProfit) + "," + magic + "," + comment == null ? string.Empty : comment + "," + expiration;
+            string content = $"{symbol},{orderT},{Format(lots)},{Format(price)},{Format(stopLoss)},{Format(takeProfit)},{magic},{comment ?? string.Empty},{expiration}";
             SendCommand("OPEN_ORDER", content);
         }
 
@@ -720,7 +720,7 @@ namespace JCTG.Client
         /// <param name="expiration">New expiration time given as timestamp in seconds. Can be zero if the order should not have an expiration time</param>
         public void ModifyOrder(int ticket, double lots, double price, double stopLoss, double takeProfit, long expiration)
         {
-            string content = ticket + "," + Format(lots) + "," + Format(price) + "," + Format(stopLoss) + "," + Format(takeProfit) + "," + expiration;
+            string content = $"{ticket},{Format(lots)},{Format(price)},{Format(stopLoss)},{Format(takeProfit)},{expiration}";
             SendCommand("MODIFY_ORDER", content);
         }
 
@@ -730,7 +730,7 @@ namespace JCTG.Client
         /// </summary>
         /// <param name="ticket">Ticket of the order that should be closed.</param>
         /// <param name="lots"> Volume in lots. If lots=0 it will try to close the complete position</param>
-        public void CloseOrder(int ticket, double lots=0)
+        public void CloseOrder(int ticket, double lots = 0)
         {
             string content = ticket + "," + Format(lots);
             SendCommand("CLOSE_ORDER", content);
@@ -773,10 +773,10 @@ namespace JCTG.Client
         /// <summary>
         /// Sends a RESET_COMMAND_IDS command to reset stored command IDs. This should be used when restarting the java side without restarting  the mql side.
         /// </summary>
-        public async Task ResetCommandIDsAsync() 
+        public async Task ResetCommandIDsAsync()
         {
             commandID = 0;
-            
+
             SendCommand("RESET_COMMAND_IDS", "");
 
             // sleep to make sure it is read before other commands.
@@ -791,7 +791,7 @@ namespace JCTG.Client
         {
             // Need lock so that different threads do not use the same 
             // commandID or write at the same time.
-            lock (this) 
+            lock (this)
             {
                 commandID = (commandID + 1) % 100000;
 
@@ -810,7 +810,7 @@ namespace JCTG.Client
                     for (int i = 0; i < maxCommandFiles; i++)
                     {
                         string filePath = pathCommandsPrefix + i + ".txt";
-                        if (!File.Exists(filePath) && TryWriteToFile(filePath, text)) 
+                        if (!File.Exists(filePath) && TryWriteToFile(filePath, text))
                         {
                             success = true;
                             break;
