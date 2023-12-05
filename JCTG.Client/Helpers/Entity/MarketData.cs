@@ -7,7 +7,7 @@
         public double TickValue { get; set; }
         public double MinLotSize { get; set; }
         public double MaxLotSize { get; set; }
-        public double ContractSize { get; set; }
-        public double VolumeStep { get; set; }
+        public double LotStep { get; set; }
+        public double PointSize { get; set; }
     }
 }

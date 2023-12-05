@@ -4,13 +4,13 @@
     {
         public AppConfig() 
         {
-            Brokers = [];
+            Brokers = new List<Brokers>();
         }
 
 
         public int AccountId { get; set; }
 
-        public required List<Brokers> Brokers { get; set; }
+        public List<Brokers> Brokers { get; set; }
        
         public int SleepDelay { get; set; }
         public int MaxRetryCommandSeconds { get; set; }
@@ -23,18 +23,20 @@
         public Brokers()
         {
             Pairs = [];
+            MetaTraderDirPath = string.Empty;
+            Name = string.Empty;
         }
 
         public int ClientId { get; set; }
         public string Name { get; set; }
-        public required string MetaTraderDirPath { get; set; }
-        public required List<Pairs> Pairs { get; set; }
+        public string MetaTraderDirPath { get; set; }
+        public List<Pairs> Pairs { get; set; }
     }
     public class Pairs
     {
-        public required string TickerInTradingView { get; set; }
-        public required string TickerInMetatrader { get; set; }
-        public required string Timeframe { get; set; }
+        public string TickerInTradingView { get; set; }
+        public string TickerInMetatrader { get; set; }
+        public string Timeframe { get; set; }
         public StrategyType StrategyNr { get; set; }
         public double Risk { get; set; }
     }

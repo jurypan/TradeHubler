@@ -341,7 +341,7 @@ namespace JCTG.Client
                 foreach (var property in data.Properties())
                 {
                     var value = property.Value as JObject;
-                    if (value != null && value["bid"] != null && value["ask"] != null && value["tick_value"] != null)
+                    if (value != null && value["bid"] != null && value["ask"] != null && value["tick_value"] != null && value["point_size"] != null)
                     {
                         var newMarketData = new MarketData
                         {
@@ -350,8 +350,8 @@ namespace JCTG.Client
                             TickValue = value["tick_value"].ToObject<double>(),
                             MinLotSize = value["min_lot_size"].ToObject<double>(),
                             MaxLotSize = value["max_lot_size"].ToObject<double>(),
-                            ContractSize = value["contract_size"].ToObject<double>(),
-                            VolumeStep = value["volume_step"].ToObject<double>(),
+                            LotStep = value["volume_step"].ToObject<double>(),
+                            PointSize = value["point_size"].ToObject<double>(),
                         };
 
                         // Check if the ticker already has previous values
@@ -361,7 +361,7 @@ namespace JCTG.Client
                             if (newMarketData.Bid != previousData.Bid || newMarketData.Ask != previousData.Ask || newMarketData.TickValue != previousData.TickValue)
                             {
                                 // Update the previous values
-                                MarketData[property.Name] = new MarketData { Bid = newMarketData.Bid, Ask = newMarketData.Ask, TickValue = newMarketData.TickValue };
+                                MarketData[property.Name] = newMarketData;
 
                                 // Invoke the event
                                 OnTickEvent?.Invoke(ClientId, property.Name, newMarketData.Bid, newMarketData.Ask, newMarketData.TickValue);
@@ -370,7 +370,7 @@ namespace JCTG.Client
                         else
                         {
                             // If it's a new ticker, add it to the dictionary and invoke the event
-                            MarketData.Add(property.Name, new MarketData { Bid = newMarketData.Bid, Ask = newMarketData.Ask, TickValue = newMarketData.TickValue });
+                            MarketData.Add(property.Name, newMarketData);
                             OnTickEvent?.Invoke(ClientId, property.Name, newMarketData.Bid, newMarketData.Ask, newMarketData.TickValue);
                         }
                     }

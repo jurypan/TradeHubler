@@ -113,16 +113,21 @@ namespace JCTG.Client
                                     if (ticker != null)
                                     {
                                         // Make buy order
-                                        var lotSize = CalculateLotSize(_api.AccountInfo.Balance, ticker.Risk, metadataTick.Ask - response.StopLoss, metadataTick.TickValue, metadataTick.MinLotSize, metadataTick.VolumeStep);
+                                        var lotSize = CalculateLotSize(_api.AccountInfo.Balance, ticker.Risk, metadataTick.Ask, response.StopLoss, metadataTick.TickValue, metadataTick.PointSize, metadataTick.LotStep, metadataTick.MinLotSize);
 
                                         // Print on the screen
                                         Print(Environment.NewLine);
                                         Print("--------- SEND NEW ORDER TO METATRADER ---------");
                                         Print("Broker      : " + _appConfig.Brokers.First(f => f.ClientId == _api.ClientId).Name);
-                                        Print("Ticker      : " + ticker.TickerInMetatrader, true);
+                                        Print("Ticker      : " + ticker.TickerInMetatrader);
                                         Print("Order       : BUY MARKET ORDER");
+                                        Print("Lot Size    : " + lotSize);
+                                        Print("Ask price   : " + metadataTick.Ask);
                                         Print("Stop Loss   : " + response.StopLoss);
                                         Print("Take Profit : " + response.TakeProfit);
+                                        Print("Tick value  : " + metadataTick.TickValue);
+                                        Print("Point size  : " + metadataTick.PointSize);
+                                        Print("Lot step    : " + metadataTick.LotStep);
                                         Print("Magic       : " + response.Magic);
                                         Print("Strategy    : " + ticker.StrategyNr);
                                         Print("------------------------------------------------");
@@ -154,16 +159,20 @@ namespace JCTG.Client
         }
 
 
-
-
-
-        private double CalculateLotSize(double accountBalance, double riskAmount, double stopLossPriceInPips, double valuePerPip, double minLotSizeAllowed, double volumeStep)
+        public double CalculateLotSize(double accountBalance, double riskPercent, double askPrice, double stopLossPrice, double tickValue, double pointSize, double lotStep, double minLotSizeAllowed)
         {
-            // Calculate the initial lot size
-            var initialLotSize = accountBalance * riskAmount / stopLossPriceInPips * valuePerPip;
+            // Throw exception when negative balance
+            if (accountBalance <= 0)
+                throw new ArgumentException("Account balance should be greater then 0", "accountBalance");
 
-            // Round down to the nearest multiple of volumeStep
-            var adjustedLotSize = Math.Floor(initialLotSize / volumeStep) * volumeStep;
+            // Calculate the initial lot size
+            double riskAmount = accountBalance * (riskPercent / 100.0);
+            double stopLossPriceInPips = Math.Abs(askPrice - stopLossPrice) / pointSize;
+            double initialLotSize = riskAmount / (stopLossPriceInPips * tickValue);
+
+            // Find the nearest multiple of lotStep
+            var remainder = initialLotSize % lotStep;
+            var adjustedLotSize = remainder == 0 ? initialLotSize : initialLotSize - remainder + (remainder >= lotStep / 2 ? lotStep : 0);
 
             // Round to 2 decimal places
             adjustedLotSize = Math.Round(adjustedLotSize, 2);
@@ -174,6 +183,7 @@ namespace JCTG.Client
             else
                 return adjustedLotSize;
         }
+
 
         private void OnLogEvent(int clientId, long id, Log log)
         {
@@ -207,6 +217,7 @@ namespace JCTG.Client
                 Print("Broker    : " + _appConfig.Brokers.First(f => f.ClientId == clientId).Name);
                 Print("Time      : " + DateTime.UtcNow);
                 Print("Symbol    : " + order.Symbol);
+                Print("Lot       : " + order.Lots);
                 Print("Type      : " + order.Type);
                 Print("Magic     : " + order.Magic);
                 Print("------------------------------------------------");
