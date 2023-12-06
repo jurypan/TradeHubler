@@ -256,5 +256,53 @@ namespace JCTG.Client.Tests
             Assert.That(result, Is.EqualTo(0.05));
         }
 
+        [Test]
+        public void CalculateLotSize_WithLotStepEqualToMinLotSize_ReturnsAdjustedLotSize2()
+        {
+            // Arrange
+            double accountBalance = 10000;
+            double riskPercent = 1;
+            double askPrice = 1.3000;
+            double stopLossPrice = 1.2900;
+            double tickValue = 20;
+            double pointSize = 0.0001;
+            double lotStep = 0.01; // Lot step equal to minLotSizeAllowed
+            double minLotSizeAllowed = 0.01;
+
+            // Act
+            var result = mt.CalculateLotSize(accountBalance, riskPercent, askPrice, stopLossPrice, tickValue, pointSize, lotStep, minLotSizeAllowed);
+
+            // Assert
+            Assert.That(result, Is.EqualTo(0.05));
+        }
+
+        [Test]
+        public void CalculateLotSize_WithSpecificParameters_ReturnsExpectedLotSize()
+        {
+            // Arrange
+            double accountBalance = 100000;
+            double riskPercent = 0.2;
+            double askPrice = 146.55;
+            double stopLossPrice = 143.17;
+            double tickValue = 1;
+            double pointSize = 1;
+            double lotStep = 1;
+            double minLotSizeAllowed = 1;
+
+            // Act
+            var result = mt.CalculateLotSize(accountBalance, riskPercent, askPrice, stopLossPrice, tickValue, pointSize, lotStep, minLotSizeAllowed);
+
+            // Calculate expected result
+            double riskAmount = accountBalance * (riskPercent / 100.0); // 200
+            double stopLossPriceInPips = Math.Abs(askPrice - stopLossPrice) / pointSize; // 3.38
+            double initialLotSize = riskAmount / (stopLossPriceInPips * tickValue); // 59.17
+            double remainder = initialLotSize % lotStep; // 0.17
+            double adjustedLotSize = remainder == 0 ? initialLotSize : initialLotSize - remainder; // 59
+            double expectedLotSize = Math.Max(adjustedLotSize, minLotSizeAllowed); // 59
+
+            // Assert
+            Assert.That(result, Is.EqualTo(expectedLotSize)); // Expecting the calculated lot size
+        }
+
     }
 }
