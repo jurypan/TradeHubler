@@ -11,210 +11,210 @@
           "TickerInMetatrader": "NI225",
           "Timeframe": "H1",
           "StrategyNr": 2,
-          "Risk": 0.002
+          "Risk": 0.2
         },
         {
           "TickerInTradingView": "XJO",
           "TickerInMetatrader": "AUS200",
           "Timeframe": "H1",
           "StrategyNr": 2,
-          "Risk": 0.002
+          "Risk": 0.2
         },
         {
           "TickerInTradingView": "SX5E",
           "TickerInMetatrader": "STOXX50E",
           "Timeframe": "H1",
           "StrategyNr": 2,
-          "Risk": 0.002
+          "Risk": 0.2
         },
         {
           "TickerInTradingView": "DAX",
           "TickerInMetatrader": "GDAXI",
           "Timeframe": "H1",
           "StrategyNr": 2,
-          "Risk": 0.001
+          "Risk": 0.1
         },
         {
           "TickerInTradingView": "PX1",
           "TickerInMetatrader": "FCHI40",
           "Timeframe": "H1",
           "StrategyNr": 2,
-          "Risk": 0.002
+          "Risk": 0.2
         },
         {
           "TickerInTradingView": "UKX",
           "TickerInMetatrader": "UK100",
           "Timeframe": "H1",
           "StrategyNr": 2,
-          "Risk": 0.002
+          "Risk": 0.2
         },
         {
           "TickerInTradingView": "SPX",
           "TickerInMetatrader": "SP500",
           "Timeframe": "H1",
           "StrategyNr": 2,
-          "Risk": 0.002
+          "Risk": 0.2
         },
         {
           "TickerInTradingView": "NDX",
           "TickerInMetatrader": "NDX",
           "Timeframe": "H1",
           "StrategyNr": 2,
-          "Risk": 0.002
+          "Risk": 0.2
         },
         {
           "TickerInTradingView": "NKD1!",
           "TickerInMetatrader": "NI225",
           "Timeframe": "H1",
           "StrategyNr": 2,
-          "Risk": 0.002
+          "Risk": 0.2
         },
         {
           "TickerInTradingView": "XJO",
           "TickerInMetatrader": "AUS200",
           "Timeframe": "H1",
           "StrategyNr": 1,
-          "Risk": 0.001
+          "Risk": 0.2
         },
         {
           "TickerInTradingView": "SPX",
           "TickerInMetatrader": "SP500",
           "Timeframe": "H1",
           "StrategyNr": 1,
-          "Risk": 0.001
+          "Risk": 0.2
         },
         {
           "TickerInTradingView": "NDX",
           "TickerInMetatrader": "NDX",
           "Timeframe": "H1",
           "StrategyNr": 1,
-          "Risk": 0.001
+          "Risk": 0.2
         },
         {
           "TickerInTradingView": "TSLA",
           "TickerInMetatrader": "TSLA",
           "Timeframe": "H4",
           "StrategyNr": 1,
-          "Risk": 0.002
+          "Risk": 0.2
         },
         {
           "TickerInTradingView": "NVDA",
           "TickerInMetatrader": "NVDA",
           "Timeframe": "H4",
           "StrategyNr": 1,
-          "Risk": 0.002
+          "Risk": 0.2
         },
         {
           "TickerInTradingView": "META",
           "TickerInMetatrader": "META",
           "Timeframe": "H4",
           "StrategyNr": 1,
-          "Risk": 0.002
+          "Risk": 0.2
         },
         {
           "TickerInTradingView": "MSFT",
           "TickerInMetatrader": "MSFT",
           "Timeframe": "H4",
           "StrategyNr": 1,
-          "Risk": 0.002
+          "Risk": 0.2
         },
         {
           "TickerInTradingView": "AMZN",
           "TickerInMetatrader": "AMZN",
           "Timeframe": "H4",
           "StrategyNr": 1,
-          "Risk": 0.002
+          "Risk": 0.2
         },
         {
           "TickerInTradingView": "NFLX",
           "TickerInMetatrader": "NFLX",
           "Timeframe": "H4",
           "StrategyNr": 1,
-          "Risk": 0.002
+          "Risk": 0.2
         },
         {
           "TickerInTradingView": "GOOGL",
           "TickerInMetatrader": "GOOGL",
           "Timeframe": "H4",
           "StrategyNr": 1,
-          "Risk": 0.002
+          "Risk": 0.2
         },
         {
           "TickerInTradingView": "ADBE",
           "TickerInMetatrader": "ADBE",
           "Timeframe": "H4",
           "StrategyNr": 1,
-          "Risk": 0.002
+          "Risk": 0.2
         },
         {
           "TickerInTradingView": "CRM",
           "TickerInMetatrader": "CRM",
           "Timeframe": "H4",
           "StrategyNr": 1,
-          "Risk": 0.002
+          "Risk": 0.2
         },
         {
           "TickerInTradingView": "NKE",
           "TickerInMetatrader": "NKE",
           "Timeframe": "H4",
           "StrategyNr": 1,
-          "Risk": 0.002
+          "Risk": 0.2
         },
         {
           "TickerInTradingView": "DIS",
           "TickerInMetatrader": "DIS",
           "Timeframe": "H4",
           "StrategyNr": 1,
-          "Risk": 0.002
+          "Risk": 0.2
         },
         {
           "TickerInTradingView": "CAT",
           "TickerInMetatrader": "CAT",
           "Timeframe": "H4",
           "StrategyNr": 1,
-          "Risk": 0.002
+          "Risk": 0.2
         },
         {
           "TickerInTradingView": "ADSK",
           "TickerInMetatrader": "ADSK",
           "Timeframe": "H4",
           "StrategyNr": 1,
-          "Risk": 0.002
+          "Risk": 0.2
         },
         {
           "TickerInTradingView": "GS",
           "TickerInMetatrader": "GS",
           "Timeframe": "H4",
           "StrategyNr": 1,
-          "Risk": 0.002
+          "Risk": 0.2
         },
         {
           "TickerInTradingView": "FDX",
           "TickerInMetatrader": "FDX",
           "Timeframe": "H4",
           "StrategyNr": 1,
-          "Risk": 0.002
+          "Risk": 0.2
         },
         {
           "TickerInTradingView": "SPGI",
           "TickerInMetatrader": "SPGI",
           "Timeframe": "H4",
           "StrategyNr": 1,
-          "Risk": 0.002
+          "Risk": 0.2
         },
         {
           "TickerInTradingView": "PEP",
           "TickerInMetatrader": "PEP",
           "Timeframe": "H4",
           "StrategyNr": 1,
-          "Risk": 0.001
+          "Risk": 0.1
         },
         {
           "TickerInTradingView": "HD",
           "TickerInMetatrader": "HD",
           "Timeframe": "H4",
           "StrategyNr": 1,
-          "Risk": 0.002
+          "Risk": 0.2
         }
       ]
     },
@@ -228,21 +228,21 @@
           "TickerInMetatrader": "JP225USD",
           "Timeframe": "H1",
           "StrategyNr": 2,
-          "Risk": 0.002
+          "Risk": 0.2
         },
         {
           "TickerInTradingView": "XJO",
           "TickerInMetatrader": "AU200AUD",
           "Timeframe": "H1",
           "StrategyNr": 2,
-          "Risk": 0.002
+          "Risk": 0.2
         },
         {
           "TickerInTradingView": "SX5E",
           "TickerInMetatrader": "EU50EUR",
           "Timeframe": "H1",
           "StrategyNr": 2,
-          "Risk": 0.002
+          "Risk": 0.2
         },
         {
           "TickerInTradingView": "DAX",
@@ -256,56 +256,56 @@
           "TickerInMetatrader": "FR40EUR",
           "Timeframe": "H1",
           "StrategyNr": 2,
-          "Risk": 0.002
+          "Risk": 0.2
         },
         {
           "TickerInTradingView": "UKX",
           "TickerInMetatrader": "UK100GBP",
           "Timeframe": "H1",
           "StrategyNr": 2,
-          "Risk": 0.002
+          "Risk": 0.2
         },
         {
           "TickerInTradingView": "SPX",
           "TickerInMetatrader": "SPX500USD",
           "Timeframe": "H1",
           "StrategyNr": 2,
-          "Risk": 0.002
+          "Risk": 0.2
         },
         {
           "TickerInTradingView": "NDX",
           "TickerInMetatrader": "NAS100USD",
           "Timeframe": "H1",
           "StrategyNr": 2,
-          "Risk": 0.002
+          "Risk": 0.2
         },
         {
           "TickerInTradingView": "NKD1!",
           "TickerInMetatrader": "JP225USD",
           "Timeframe": "H1",
           "StrategyNr": 1,
-          "Risk": 0.001
+          "Risk": 0.2
         },
         {
           "TickerInTradingView": "XJO",
           "TickerInMetatrader": "AU200AUD",
           "Timeframe": "H1",
           "StrategyNr": 1,
-          "Risk": 0.001
+          "Risk": 0.2
         },
         {
           "TickerInTradingView": "SPX",
           "TickerInMetatrader": "SPX500USD",
           "Timeframe": "H1",
           "StrategyNr": 1,
-          "Risk": 0.001
+          "Risk": 0.2
         },
         {
           "TickerInTradingView": "NDX",
           "TickerInMetatrader": "NAS100USD",
           "Timeframe": "H1",
           "StrategyNr": 1,
-          "Risk": 0.001
+          "Risk": 0.2
         }
       ]
     },
@@ -319,140 +319,140 @@
           "TickerInMetatrader": "JP225.cash",
           "Timeframe": "H1",
           "StrategyNr": 2,
-          "Risk": 0.002
+          "Risk": 0.2
         },
         {
           "TickerInTradingView": "XJO",
           "TickerInMetatrader": "AUS200.cash",
           "Timeframe": "H1",
           "StrategyNr": 2,
-          "Risk": 0.002
+          "Risk": 0.2
         },
         {
           "TickerInTradingView": "SX5E",
           "TickerInMetatrader": "EU50.cash",
           "Timeframe": "H1",
           "StrategyNr": 2,
-          "Risk": 0.002
+          "Risk": 0.2
         },
         {
           "TickerInTradingView": "DAX",
           "TickerInMetatrader": "GER40.cash",
           "Timeframe": "H1",
           "StrategyNr": 2,
-          "Risk": 0.001
+          "Risk": 0.1
         },
         {
           "TickerInTradingView": "PX1",
           "TickerInMetatrader": "FRA40.cash",
           "Timeframe": "H1",
           "StrategyNr": 2,
-          "Risk": 0.002
+          "Risk": 0.2
         },
         {
           "TickerInTradingView": "UKX",
           "TickerInMetatrader": "UK100.cash",
           "Timeframe": "H1",
           "StrategyNr": 2,
-          "Risk": 0.002
+          "Risk": 0.2
         },
         {
           "TickerInTradingView": "SPX",
           "TickerInMetatrader": "US500.cash",
           "Timeframe": "H1",
           "StrategyNr": 2,
-          "Risk": 0.002
+          "Risk": 0.2
         },
         {
           "TickerInTradingView": "NDX",
           "TickerInMetatrader": "US100.cash",
           "Timeframe": "H1",
           "StrategyNr": 2,
-          "Risk": 0.002
+          "Risk": 0.2
         },
         {
           "TickerInTradingView": "NKD1!",
           "TickerInMetatrader": "JP225.cash",
           "Timeframe": "H1",
           "StrategyNr": 1,
-          "Risk": 0.001
+          "Risk": 0.2
         },
         {
           "TickerInTradingView": "XJO",
           "TickerInMetatrader": "AUS200.cash",
           "Timeframe": "H1",
           "StrategyNr": 1,
-          "Risk": 0.001
+          "Risk": 0.2
         },
         {
           "TickerInTradingView": "SPX",
           "TickerInMetatrader": "US500.cash",
           "Timeframe": "H1",
           "StrategyNr": 1,
-          "Risk": 0.001
+          "Risk": 0.2
         },
         {
           "TickerInTradingView": "NDX",
           "TickerInMetatrader": "US100.cash",
           "Timeframe": "H1",
           "StrategyNr": 1,
-          "Risk": 0.001
+          "Risk": 0.2
         },
         {
           "TickerInTradingView": "TSLA",
           "TickerInMetatrader": "TSLA",
           "Timeframe": "H4",
           "StrategyNr": 1,
-          "Risk": 0.002
+          "Risk": 0.2
         },
         {
           "TickerInTradingView": "NVDA",
           "TickerInMetatrader": "NVDA",
           "Timeframe": "H4",
           "StrategyNr": 1,
-          "Risk": 0.002
+          "Risk": 0.2
         },
         {
           "TickerInTradingView": "META",
           "TickerInMetatrader": "META",
           "Timeframe": "H4",
           "StrategyNr": 1,
-          "Risk": 0.002
+          "Risk": 0.2
         },
         {
           "TickerInTradingView": "MSFT",
           "TickerInMetatrader": "MSFT",
           "Timeframe": "H4",
           "StrategyNr": 1,
-          "Risk": 0.002
+          "Risk": 0.2
         },
         {
           "TickerInTradingView": "AMZN",
           "TickerInMetatrader": "AMZN",
           "Timeframe": "H4",
           "StrategyNr": 1,
-          "Risk": 0.002
+          "Risk": 0.2
         },
         {
           "TickerInTradingView": "NFLX",
           "TickerInMetatrader": "NFLX",
           "Timeframe": "H4",
           "StrategyNr": 1,
-          "Risk": 0.002
+          "Risk": 0.2
         },
         {
           "TickerInTradingView": "BTC1!",
           "TickerInMetatrader": "BTCUSD",
           "Timeframe": "H1",
           "StrategyNr": 2,
-          "Risk": 0.002
+          "Risk": 0.2
         },
         {
           "TickerInTradingView": "ETH1!",
           "TickerInMetatrader": "ETHUSD",
           "Timeframe": "H1",
           "StrategyNr": 2,
-          "Risk": 0.002
+          "Risk": 0.2
         }
       ]
     },
@@ -466,84 +466,84 @@
           "TickerInMetatrader": "JP225.pro",
           "Timeframe": "H1",
           "StrategyNr": 2,
-          "Risk": 0.002
+          "Risk": 0.2
         },
         {
           "TickerInTradingView": "XJO",
           "TickerInMetatrader": "AU200.pro",
           "Timeframe": "H1",
           "StrategyNr": 2,
-          "Risk": 0.002
+          "Risk": 0.2
         },
         {
           "TickerInTradingView": "SX5E",
           "TickerInMetatrader": "EU50.pro",
           "Timeframe": "H1",
           "StrategyNr": 2,
-          "Risk": 0.002
+          "Risk": 0.2
         },
         {
           "TickerInTradingView": "DAX",
           "TickerInMetatrader": "DE30.pro",
           "Timeframe": "H1",
           "StrategyNr": 2,
-          "Risk": 0.001
+          "Risk": 0.1
         },
         {
           "TickerInTradingView": "PX1",
           "TickerInMetatrader": "FR40.pro",
           "Timeframe": "H1",
           "StrategyNr": 2,
-          "Risk": 0.002
+          "Risk": 0.2
         },
         {
           "TickerInTradingView": "UKX",
           "TickerInMetatrader": "GB100.pro",
           "Timeframe": "H1",
           "StrategyNr": 2,
-          "Risk": 0.002
+          "Risk": 0.2
         },
         {
           "TickerInTradingView": "SPX",
           "TickerInMetatrader": "US500.pro",
           "Timeframe": "H1",
           "StrategyNr": 2,
-          "Risk": 0.002
+          "Risk": 0.2
         },
         {
           "TickerInTradingView": "NDX",
           "TickerInMetatrader": "US100.pro",
           "Timeframe": "H1",
           "StrategyNr": 2,
-          "Risk": 0.002
+          "Risk": 0.2
         },
         {
           "TickerInTradingView": "NKD1!",
           "TickerInMetatrader": "JP225.pro",
           "Timeframe": "H1",
           "StrategyNr": 1,
-          "Risk": 0.001
+          "Risk": 0.2
         },
         {
           "TickerInTradingView": "XJO",
           "TickerInMetatrader": "AU200.pro",
           "Timeframe": "H1",
           "StrategyNr": 1,
-          "Risk": 0.001
+          "Risk": 0.2
         },
         {
           "TickerInTradingView": "SPX",
           "TickerInMetatrader": "US500.pro",
           "Timeframe": "H1",
           "StrategyNr": 1,
-          "Risk": 0.001
+          "Risk": 0.2
         },
         {
           "TickerInTradingView": "NDX",
           "TickerInMetatrader": "US100.pro",
           "Timeframe": "H1",
           "StrategyNr": 1,
-          "Risk": 0.001
+          "Risk": 0.2
         }
       ]
     },
@@ -557,84 +557,84 @@
           "TickerInMetatrader": "NIKJPY",
           "Timeframe": "H1",
           "StrategyNr": 2,
-          "Risk": 0.002
+          "Risk": 0.2
         },
         {
           "TickerInTradingView": "XJO",
           "TickerInMetatrader": "ASXAUD",
           "Timeframe": "H1",
           "StrategyNr": 2,
-          "Risk": 0.002
+          "Risk": 0.2
         },
         {
           "TickerInTradingView": "SX5E",
           "TickerInMetatrader": "ESXEUR",
           "Timeframe": "H1",
           "StrategyNr": 2,
-          "Risk": 0.002
+          "Risk": 0.2
         },
         {
           "TickerInTradingView": "DAX",
           "TickerInMetatrader": "DAXEUR",
           "Timeframe": "H1",
           "StrategyNr": 2,
-          "Risk": 0.001
+          "Risk": 0.1
         },
         {
           "TickerInTradingView": "PX1",
           "TickerInMetatrader": "F40EUR",
           "Timeframe": "H1",
           "StrategyNr": 2,
-          "Risk": 0.002
+          "Risk": 0.2
         },
         {
           "TickerInTradingView": "UKX",
           "TickerInMetatrader": "FTSGBP",
           "Timeframe": "H1",
           "StrategyNr": 2,
-          "Risk": 0.002
+          "Risk": 0.2
         },
         {
           "TickerInTradingView": "SPX",
           "TickerInMetatrader": "SPXUSD",
           "Timeframe": "H1",
           "StrategyNr": 2,
-          "Risk": 0.002
+          "Risk": 0.2
         },
         {
           "TickerInTradingView": "NDX",
           "TickerInMetatrader": "NDXUSD",
           "Timeframe": "H1",
           "StrategyNr": 2,
-          "Risk": 0.002
+          "Risk": 0.2
         },
         {
           "TickerInTradingView": "NKD1!",
           "TickerInMetatrader": "NIKJPY",
           "Timeframe": "H1",
           "StrategyNr": 1,
-          "Risk": 0.001
+          "Risk": 0.2
         },
         {
           "TickerInTradingView": "XJO",
           "TickerInMetatrader": "ASXAUD",
           "Timeframe": "H1",
           "StrategyNr": 1,
-          "Risk": 0.001
+          "Risk": 0.2
         },
         {
           "TickerInTradingView": "SPX",
           "TickerInMetatrader": "SPXUSD",
           "Timeframe": "H1",
           "StrategyNr": 1,
-          "Risk": 0.001
+          "Risk": 0.2
         },
         {
           "TickerInTradingView": "NDX",
           "TickerInMetatrader": "NDXUSD",
           "Timeframe": "H1",
           "StrategyNr": 1,
-          "Risk": 0.001
+          "Risk": 0.2
         }
       ]
     }

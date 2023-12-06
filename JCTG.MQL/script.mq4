@@ -717,7 +717,7 @@ void CheckMarketData() {
          if (!first)
             text += ", ";
          
-         text += StringFormat("\"%s\": {\"bid\": %.5f, \"ask\": %.5f, \"tick_value\": %.5f, \"min_lot_size\": %.5f, \"max_lot_size\": %.5f, \"contract_size\": %.5f, \"volume_step\": %.5f}", 
+         text += StringFormat("\"%s\": {\"bid\": %.5f, \"ask\": %.5f, \"tick_value\": %.5f, \"min_lot_size\": %.5f, \"max_lot_size\": %.5f, \"contract_size\": %.5f, \"volume_step\": %.5f, \"point_size\": %.5f}", 
                                MarketDataSymbols[i], 
                                lastTick.bid, 
                                lastTick.ask,
@@ -725,7 +725,9 @@ void CheckMarketData() {
                                MarketInfo(MarketDataSymbols[i], MODE_MINLOT),
                                MarketInfo(MarketDataSymbols[i], MODE_MAXLOT),
                                MarketInfo(MarketDataSymbols[i], MODE_LOTSIZE),
-                               MarketInfo(MarketDataSymbols[i], MODE_LOTSTEP));
+                               MarketInfo(MarketDataSymbols[i], MODE_LOTSTEP),
+                               MarketInfo(MarketDataSymbols[i], MODE_POINT)
+                               );
 
 
          
