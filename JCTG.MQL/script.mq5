@@ -25,16 +25,16 @@ CTrade  trade;
 
 
 // if the timer is too small, we might have problems accessing the files from python (mql will write to file every update time). 
-input int MILLISECOND_TIMER = 25;
-
-input int numLastMessages = 50;
-input bool openChartsForBarData = true;
-input bool openChartsForHistoricData = true;
-input int MaximumOrders = 10;
-input double MaximumLotSize = 100;
-input int SlippagePoints = 3;
-input int lotSizeDigits = 2;
-input bool asyncMode = true;
+input int MILLISECOND_TIMER = 100;  // Timer to drop files on the HD, in ms
+input int numLastMessages = 50;  // Maximum number of messages to save
+input bool openChartsForBarData = true;  // Open charts for bar data?
+input bool openChartsForHistoricData = true;  // Open charts for historical data?
+input int MaximumOrders = 10;  // Maximum orders that you can take on 1 broker
+input double MaximumLotSize = 100; // Maximum lot size for 1 trade
+input int SlippagePoints = 3; // Maximum slippage in points
+input int lotSizeDigits = 2; // Amount of digits for the lot size 
+input bool OnlyOpenTradeWhenNoRisk = false;  // Only open a new trade when there is no risk
+input bool asyncMode = true;  // Run EA async
 
 int maxCommandFiles = 50;
 int maxNumberOfCharts = 100;
@@ -277,6 +277,11 @@ void OpenOrder(string orderStr) {
    int numOrders = NumOrders();
    if (numOrders >= MaximumOrders) {
       SendError("OPEN_ORDER_MAXIMUM_NUMBER", StringFormat("Number of orders (%d) larger than or equal to MaximumOrders (%d).", numOrders, MaximumOrders));
+      return;
+   }
+   
+   if (IsSafeToTrade() == false) {
+      SendError("OPEN_ORDER_TOO_MUCH_RISK", "Too much risk in the market to open a new trade.");
       return;
    }
    
@@ -1093,6 +1098,46 @@ void SendMessage(string message) {
    
    if (text == lastMessageText) return;
    if (WriteToFile(filePathMessages, text)) lastMessageText = text;
+}
+
+bool IsSafeToTrade()
+{
+   if(OnlyOpenTradeWhenNoRisk == false)
+     {
+      return true;
+     }
+
+   // MQL5 uses a different approach to access orders
+   int totalOrders = PositionsTotal();
+   bool canTrade = true;
+
+   for(int i = 0; i < totalOrders; i++)
+     {
+      ulong ticket = PositionGetTicket(i);
+      if(PositionSelectByTicket(ticket))
+        {
+         if(PositionGetInteger(POSITION_TYPE) == POSITION_TYPE_BUY)
+           {
+            double breakEvenPoint = PositionGetDouble(POSITION_PRICE_OPEN); // Assuming break-even is at the open price
+            if(PositionGetDouble(POSITION_SL) <= breakEvenPoint) // SL must be at or above break-even for buy orders
+              {
+               canTrade = false;
+               break;
+              }
+           }
+         else if(PositionGetInteger(POSITION_TYPE) == POSITION_TYPE_SELL)
+           {
+            double breakEvenPoint = PositionGetDouble(POSITION_PRICE_OPEN); // Assuming break-even is at the open price
+            if(PositionGetDouble(POSITION_SL) >= breakEvenPoint) // SL must be at or below break-even for sell orders
+              {
+               canTrade = false;
+               break;
+              }
+           }
+        }
+     }
+
+   return canTrade;
 }
 
 

@@ -61,6 +61,8 @@ namespace JCTG.AzureFunction
                             response.Add(new MetatraderResponse()
                             {
                                  Action = "NONE",
+                                 AccountId = mt.AccountID,
+                                 ClientId = mt.ClientID,
                                  TickerInMetatrader = mt.TickerInMetatrader,
                                  TickerInTradingview = mt.TickerInTradingview,
                             });
@@ -110,12 +112,15 @@ namespace JCTG.AzureFunction
                                 response.Add(new MetatraderResponse()
                                 {
                                     Action = "BUY",
+                                    AccountId = mt.AccountID,
+                                    ClientId = mt.ClientID,
                                     TickerInMetatrader = mt.TickerInMetatrader,
                                     TickerInTradingview = mt.TickerInTradingview,
                                     TakeProfit = tvAlert.TakeProfit - trade.Offset,
                                     StopLoss = tvAlert.StopLoss - trade.Offset,
-                                    Magic = tvAlert.Magic
-                                });
+                                    Magic = tvAlert.Magic,
+                                    StrategyType = trade.StrategyType,
+                                }); ;
                             }
                             else
                             {
@@ -126,6 +131,8 @@ namespace JCTG.AzureFunction
                                 response.Add(new MetatraderResponse()
                                 {
                                     Action = "NONE",
+                                    AccountId = mt.AccountID,
+                                    ClientId = mt.ClientID,
                                     TickerInMetatrader = mt.TickerInMetatrader,
                                     TickerInTradingview = mt.TickerInTradingview,
                                 });

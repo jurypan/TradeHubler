@@ -3,18 +3,19 @@
 //+------------------------------------------------s-----------------+
 #property copyright "Copyright 2023, JP.x BV"
 #property link      "https://www.justcalltheguy.io"
-#property version   "2.001"
+#property version   "2.002"
 #property strict
 
 // if the timer is too small, we might have problems accessing the files from python (mql will write to file every update time). 
 input int MILLISECOND_TIMER = 100; // Timer to drop files on the HD, in ms
 
-input int numLastMessages = 50;
-input bool openChartsForBarData = true;
-input bool openChartsForHistoricData = true;
+input int numLastMessages = 50; // Maximum number of messages to save
+input bool openChartsForBarData = true; // Open charts for bar data?
+input bool openChartsForHistoricData = true; // Open charts for historical data?
 input int MaximumOrders = 10; // Maximum orders that you can take on 1 broker
 input double MaximumLotSize = 100; // Maximum lot size for 1 trade
 input int SlippagePoints = 3; // Maximum slippage in points
+input bool OnlyOpenTradeWhenNoRisk = false; // Only open a new trade when there is no risk
 
 int lotSizeDigits = 2;
 int maxCommandFiles = 50;
@@ -251,6 +252,11 @@ void OpenOrder(string orderStr) {
    int numOrders = NumOrders();
    if (numOrders >= MaximumOrders) {
       SendError("OPEN_ORDER_MAXIMUM_NUMBER", StringFormat("Number of orders (%d) larger than or equal to MaximumOrders (%d).", numOrders, MaximumOrders));
+      return;
+   }
+   
+   if (IsSafeToTrade() == false) {
+      SendError("OPEN_ORDER_TOO_MUCH_RISK", "Too much risk in the market to open a new trade.");
       return;
    }
    
@@ -949,6 +955,44 @@ bool OpenChartIfNotOpen(string symbol, ENUM_TIMEFRAMES timeFrame) {
       SendError("OPEN_CHART", StringFormat("Could not open chart (%s, %s).", symbol, TimeFrameToString(timeFrame)));
       return false;
    }
+}
+
+bool IsSafeToTrade()
+{
+   if(OnlyOpenTradeWhenNoRisk == false)
+   {
+      return true;
+   }
+   
+   int totalOrders = OrdersTotal();
+   bool canTrade = true;
+   
+   for(int i = 0; i < totalOrders; i++)
+   {
+      if(OrderSelect(i, SELECT_BY_POS) && OrderSymbol() == Symbol())
+      {
+         if(OrderType() == OP_BUY)
+         {
+            double breakEvenPoint = OrderOpenPrice(); // Assuming break-even is at the open price
+            if(OrderStopLoss() <= breakEvenPoint) // SL must be at or above break-even for buy orders
+            {
+               canTrade = false;
+               break;
+            }
+         }
+         else if(OrderType() == OP_SELL)
+         {
+            double breakEvenPoint = OrderOpenPrice(); // Assuming break-even is at the open price
+            if(OrderStopLoss() >= breakEvenPoint) // SL must be at or below break-even for sell orders
+            {
+               canTrade = false;
+               break;
+            }
+         }
+      }
+   }
+   
+   return canTrade;
 }
 
 void ResetCommandIDs() {
