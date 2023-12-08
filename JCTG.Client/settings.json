@@ -553,87 +553,17 @@
       "ClientId": 54031,
       "Pairs": [
         {
-          "TickerInTradingView": "NKD1!",
-          "TickerInMetatrader": "NIKJPY",
-          "Timeframe": "H1",
-          "StrategyNr": 2,
-          "Risk": 0.2
-        },
-        {
           "TickerInTradingView": "XJO",
           "TickerInMetatrader": "ASXAUD",
-          "Timeframe": "H1",
-          "StrategyNr": 2,
-          "Risk": 0.2
-        },
-        {
-          "TickerInTradingView": "SX5E",
-          "TickerInMetatrader": "ESXEUR",
-          "Timeframe": "H1",
-          "StrategyNr": 2,
-          "Risk": 0.2
-        },
-        {
-          "TickerInTradingView": "DAX",
-          "TickerInMetatrader": "DAXEUR",
-          "Timeframe": "H1",
-          "StrategyNr": 2,
-          "Risk": 0.1
-        },
-        {
-          "TickerInTradingView": "PX1",
-          "TickerInMetatrader": "F40EUR",
-          "Timeframe": "H1",
-          "StrategyNr": 2,
-          "Risk": 0.2
-        },
-        {
-          "TickerInTradingView": "UKX",
-          "TickerInMetatrader": "FTSGBP",
-          "Timeframe": "H1",
-          "StrategyNr": 2,
+          "Timeframe": "m3",
+          "StrategyNr": 3,
           "Risk": 0.2
         },
         {
           "TickerInTradingView": "SPX",
           "TickerInMetatrader": "SPXUSD",
-          "Timeframe": "H1",
-          "StrategyNr": 2,
-          "Risk": 0.2
-        },
-        {
-          "TickerInTradingView": "NDX",
-          "TickerInMetatrader": "NDXUSD",
-          "Timeframe": "H1",
-          "StrategyNr": 2,
-          "Risk": 0.2
-        },
-        {
-          "TickerInTradingView": "NKD1!",
-          "TickerInMetatrader": "NIKJPY",
-          "Timeframe": "H1",
-          "StrategyNr": 1,
-          "Risk": 0.2
-        },
-        {
-          "TickerInTradingView": "XJO",
-          "TickerInMetatrader": "ASXAUD",
-          "Timeframe": "H1",
-          "StrategyNr": 1,
-          "Risk": 0.2
-        },
-        {
-          "TickerInTradingView": "SPX",
-          "TickerInMetatrader": "SPXUSD",
-          "Timeframe": "H1",
-          "StrategyNr": 1,
-          "Risk": 0.2
-        },
-        {
-          "TickerInTradingView": "NDX",
-          "TickerInMetatrader": "NDXUSD",
-          "Timeframe": "H1",
-          "StrategyNr": 1,
+          "Timeframe": "m3",
+          "StrategyNr": 3,
           "Risk": 0.2
         }
       ]

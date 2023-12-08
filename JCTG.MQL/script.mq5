@@ -834,7 +834,7 @@ void CheckMarketData() {
             text += ", ";
          
                               
-         text += StringFormat("\"%s\": {\"bid\": %.5f, \"ask\": %.5f, \"tick_value\": %.5f, \"min_lot_size\": %.5f, \"max_lot_size\": %.5f, \"contract_size\": %.5f, \"volume_step\": %.5f, \"point_size\": %.5f}", 
+         text += StringFormat("\"%s\": {\"bid\": %.10f, \"ask\": %.10f, \"tick_value\": %.10f, \"min_lot_size\": %.10f, \"max_lot_size\": %.10f, \"contract_size\": %.10f, \"volume_step\": %.10f, \"point_size\": %.10f}", 
                      MarketDataSymbols[i], 
                      lastTick.bid, 
                      lastTick.ask,

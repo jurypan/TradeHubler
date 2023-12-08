@@ -8,7 +8,6 @@
 
 // if the timer is too small, we might have problems accessing the files from python (mql will write to file every update time). 
 input int MILLISECOND_TIMER = 100; // Timer to drop files on the HD, in ms
-
 input int numLastMessages = 50; // Maximum number of messages to save
 input bool openChartsForBarData = true; // Open charts for bar data?
 input bool openChartsForHistoricData = true; // Open charts for historical data?
@@ -722,8 +721,9 @@ void CheckMarketData() {
          
          if (!first)
             text += ", ";
-         
-         text += StringFormat("\"%s\": {\"bid\": %.5f, \"ask\": %.5f, \"tick_value\": %.5f, \"min_lot_size\": %.5f, \"max_lot_size\": %.5f, \"contract_size\": %.5f, \"volume_step\": %.5f, \"point_size\": %.5f}", 
+
+
+         text += StringFormat("\"%s\": {\"bid\": %.10f, \"ask\": %.10f, \"tick_value\": %.10f, \"min_lot_size\": %.10f, \"max_lot_size\": %.10f, \"contract_size\": %.10f, \"volume_step\": %.10f, \"point_size\": %.10f}", 
                                MarketDataSymbols[i], 
                                lastTick.bid, 
                                lastTick.ask,

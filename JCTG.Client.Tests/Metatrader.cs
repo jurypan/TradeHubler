@@ -304,5 +304,32 @@ namespace JCTG.Client.Tests
             Assert.That(result, Is.EqualTo(expectedLotSize)); // Expecting the calculated lot size
         }
 
+        [Test]
+        public void CalculateLotSize_WithSpecificParameters_ReturnsExpectedLotSize2()
+        {
+            // Arrange
+            double accountBalance = 161500;
+            double riskPercent = 0.2;
+            double askPrice = 146.55;
+            double stopLossPrice = 143.17;
+            double tickValue = 1;
+            double pointSize = 1;
+            double lotStep = 1;
+            double minLotSizeAllowed = 1;
+
+            // Act
+            var result = mt.CalculateLotSize(accountBalance, riskPercent, askPrice, stopLossPrice, tickValue, pointSize, lotStep, minLotSizeAllowed);
+
+            // Calculate expected result
+            double riskAmount = accountBalance * (riskPercent / 100.0); // 200
+            double stopLossPriceInPips = Math.Abs(askPrice - stopLossPrice) / pointSize; // 3.38
+            double initialLotSize = riskAmount / (stopLossPriceInPips * tickValue); // 59.17
+            double remainder = initialLotSize % lotStep; // 0.17
+            double adjustedLotSize = remainder == 0 ? initialLotSize : initialLotSize - remainder; // 59
+            double expectedLotSize = Math.Max(adjustedLotSize, minLotSizeAllowed); // 59
+
+            // Assert
+            Assert.That(result, Is.EqualTo(expectedLotSize)); // Expecting the calculated lot size
+        }
     }
 }

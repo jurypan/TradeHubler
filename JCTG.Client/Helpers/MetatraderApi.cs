@@ -317,61 +317,39 @@ namespace JCTG.Client
                 // Save file
                 lastMarketDataStr = text;
 
-                // Cast to JObject
-                JObject data;
 
-                try
-                {
-                    data = JObject.Parse(text);
-                }
-                catch
-                {
-                    continue;
-                }
-
-                // If cast was null -> continue
-                if (data == null)
-                    continue;
+                var _marketData = JsonConvert.DeserializeObject<Dictionary<string, MarketData>>(lastMarketDataStr);
 
                 // If market data is null -> create new instance
                 if (MarketData == null)
                     MarketData = new Dictionary<string, MarketData>();
 
                 // Foreach property of the data
-                foreach (var property in data.Properties())
+                if (_marketData != null)
                 {
-                    var value = property.Value as JObject;
-                    if (value != null && value["bid"] != null && value["ask"] != null && value["tick_value"] != null && value["point_size"] != null)
+                    foreach (var property in _marketData)
                     {
-                        var newMarketData = new MarketData
+                        if (property.Key != null && property.Value != null)
                         {
-                            Bid = value["bid"].ToObject<double>(),
-                            Ask = value["ask"].ToObject<double>(),
-                            TickValue = value["tick_value"].ToObject<double>(),
-                            MinLotSize = value["min_lot_size"].ToObject<double>(),
-                            MaxLotSize = value["max_lot_size"].ToObject<double>(),
-                            LotStep = value["volume_step"].ToObject<double>(),
-                            PointSize = value["point_size"].ToObject<double>(),
-                        };
-
-                        // Check if the ticker already has previous values
-                        if (MarketData.TryGetValue(property.Name, out var previousData))
-                        {
-                            // Check if the values have changed
-                            if (newMarketData.Bid != previousData.Bid || newMarketData.Ask != previousData.Ask || newMarketData.TickValue != previousData.TickValue)
+                            // Check if the ticker already has previous values
+                            if (MarketData.TryGetValue(property.Key, out var previousData))
                             {
-                                // Update the previous values
-                                MarketData[property.Name] = newMarketData;
+                                // Check if the values have changed
+                                if (property.Value.Bid != previousData.Bid || property.Value.Ask != previousData.Ask || property.Value.TickValue != previousData.TickValue)
+                                {
+                                    // Update the previous values
+                                    MarketData[property.Key] = property.Value;
 
-                                // Invoke the event
-                                OnTickEvent?.Invoke(ClientId, property.Name, newMarketData.Bid, newMarketData.Ask, newMarketData.TickValue);
+                                    // Invoke the event
+                                    OnTickEvent?.Invoke(ClientId, property.Key, property.Value.Bid, property.Value.Ask, property.Value.TickValue);
+                                }
                             }
-                        }
-                        else
-                        {
-                            // If it's a new ticker, add it to the dictionary and invoke the event
-                            MarketData.Add(property.Name, newMarketData);
-                            OnTickEvent?.Invoke(ClientId, property.Name, newMarketData.Bid, newMarketData.Ask, newMarketData.TickValue);
+                            else
+                            {
+                                // If it's a new ticker, add it to the dictionary and invoke the event
+                                MarketData.Add(property.Key, property.Value);
+                                OnTickEvent?.Invoke(ClientId, property.Key, property.Value.Bid, property.Value.Ask, property.Value.TickValue);
+                            }
                         }
                     }
                 }
@@ -718,7 +696,7 @@ namespace JCTG.Client
         /// <param name="stopLoss">New stop loss price</param>
         /// <param name="takeProfit">New take profit price</param>
         /// <param name="expiration">New expiration time given as timestamp in seconds. Can be zero if the order should not have an expiration time</param>
-        public void ModifyOrder(int ticket, double lots, double price, double stopLoss, double takeProfit, long expiration)
+        public void ModifyOrder(int ticket, double lots, double price, double stopLoss, double takeProfit, long expiration = 0)
         {
             string content = $"{ticket},{Format(lots)},{Format(price)},{Format(stopLoss)},{Format(takeProfit)},{expiration}";
             SendCommand("MODIFY_ORDER", content);

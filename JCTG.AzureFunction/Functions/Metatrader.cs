@@ -122,6 +122,48 @@ namespace JCTG.AzureFunction
                                     StrategyType = trade.StrategyType,
                                 }); ;
                             }
+
+                            // Check if we need to execute the order
+                            else if (tvAlert.OrderType == "MODIFY")
+                            {
+                                // Log item
+                                _logger.LogWarning($"MODIFY order is send to Metatrader : MODIFY,instrument={mt.TickerInMetatrader},price={mt.Price},tp={tvAlert.TakeProfit - trade.Offset},sl={tvAlert.StopLoss - trade.Offset},magic={trade.Magic}", trade);
+
+                                // Add repsonse
+                                response.Add(new MetatraderResponse()
+                                {
+                                    Action = "MODIFY",
+                                    AccountId = mt.AccountID,
+                                    ClientId = mt.ClientID,
+                                    TickerInMetatrader = mt.TickerInMetatrader,
+                                    TickerInTradingview = mt.TickerInTradingview,
+                                    TakeProfit = tvAlert.TakeProfit - trade.Offset,
+                                    StopLoss = tvAlert.StopLoss - trade.Offset,
+                                    Magic = tvAlert.Magic,
+                                    StrategyType = trade.StrategyType,
+                                });
+                            }
+
+                            // Check if we need to execute the order
+                            else if (tvAlert.OrderType == "CLOSE_ALL")
+                            {
+                                // Log item
+                                _logger.LogWarning($"CLOSE_ALL order is send to Metatrader : CLOSE_ALL,instrument={mt.TickerInMetatrader},price={mt.Price},tp={tvAlert.TakeProfit - trade.Offset},sl={tvAlert.StopLoss - trade.Offset},magic={trade.Magic}", trade);
+
+                                // Add repsonse
+                                response.Add(new MetatraderResponse()
+                                {
+                                    Action = "CLOSE_ALL",
+                                    AccountId = mt.AccountID,
+                                    ClientId = mt.ClientID,
+                                    TickerInMetatrader = mt.TickerInMetatrader,
+                                    TickerInTradingview = mt.TickerInTradingview,
+                                    TakeProfit = tvAlert.TakeProfit - trade.Offset,
+                                    StopLoss = tvAlert.StopLoss - trade.Offset,
+                                    Magic = tvAlert.Magic,
+                                    StrategyType = trade.StrategyType,
+                                });
+                            }
                             else
                             {
                                 // Log item

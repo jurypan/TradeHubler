@@ -65,7 +65,7 @@ namespace JCTG.Client
                 foreach (var _api in _apis)
                 {
                     // Do null reference checks
-                    if (_api != null && _api.AccountInfo != null && _api.MarketData != null && _api.MarketData.Any())
+                    if (_api != null && _api.AccountInfo != null && _api.MarketData != null && _api.MarketData.Count != 0)
                     {
                         // Init request to Azure Function
                         var mtRequests = new List<MetatraderRequest>();
@@ -136,6 +136,59 @@ namespace JCTG.Client
                                         // Open order
                                         _api.ExecuteOrder(ticker.TickerInMetatrader, OrderType.Buy, lotSize, 0, response.StopLoss, response.TakeProfit, response.Magic);
                                     }
+                                }
+
+                                // If mtResponse from server is MODIFY -> MODIFY order in metatrader
+                                else if (response.Action == "MODIFY")
+                                {
+                                    // Get the right ticker back from the local database
+                                    var ticker = new List<Pairs>(_appConfig.Brokers.Where(f => f.ClientId == _api.ClientId).SelectMany(f => f.Pairs)).FirstOrDefault(f => f.TickerInMetatrader.Equals(response.TickerInMetatrader));
+
+                                    // Get the metadata tick
+                                    var metadataTick = _api.MarketData.FirstOrDefault(f => f.Key == response.TickerInMetatrader).Value;
+
+                                    // Do null reference check
+                                    if (ticker != null)
+                                    {
+                                        // Make buy order
+                                        var lotSize = CalculateLotSize(_api.AccountInfo.Balance, ticker.Risk, metadataTick.Ask, response.StopLoss, metadataTick.TickValue, metadataTick.PointSize, metadataTick.LotStep, metadataTick.MinLotSize);
+
+                                        // Print on the screen
+                                        Print(Environment.NewLine);
+                                        Print("--------- SEND MODIFY ORDER TO METATRADER ---------");
+                                        Print("Broker      : " + _appConfig.Brokers.First(f => f.ClientId == _api.ClientId).Name);
+                                        Print("Ticker      : " + ticker.TickerInMetatrader);
+                                        Print("Order       : MODIFY ORDER");
+                                        Print("Lot Size    : " + lotSize);
+                                        Print("Ask price   : " + metadataTick.Ask);
+                                        Print("Stop Loss   : " + response.StopLoss);
+                                        Print("Take Profit : " + response.TakeProfit);
+                                        Print("Tick value  : " + metadataTick.TickValue);
+                                        Print("Point size  : " + metadataTick.PointSize);
+                                        Print("Lot step    : " + metadataTick.LotStep);
+                                        Print("Magic       : " + response.Magic);
+                                        Print("Strategy    : " + ticker.StrategyNr);
+                                        Print("------------------------------------------------");
+
+
+                                        // Modify order
+                                        _api.ModifyOrder(0,  lotSize, 0, response.StopLoss, response.TakeProfit);
+                                    }
+                                }
+
+                                // If mtResponse from server is CLOSE_ALL -> CLOSE_ALL order in metatrader
+                                else if (response.Action == "CLOSE_ALL")
+                                {
+                                    // Print on the screen
+                                    Print(Environment.NewLine);
+                                    Print("--------- SEND CLOSE ALL TO METATRADER ---------");
+                                    Print("Broker      : " + _appConfig.Brokers.First(f => f.ClientId == _api.ClientId).Name);
+                                    Print("Order       : CLOSE ALL");
+                                    Print("------------------------------------------------");
+
+
+                                    // Close all order
+                                    _api.CloseAllOrders();
                                 }
                             }
                         }
