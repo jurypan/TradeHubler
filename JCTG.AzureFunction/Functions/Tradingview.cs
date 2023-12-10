@@ -17,7 +17,7 @@ namespace JCTG.AzureFunction
             string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
 
             // Log item
-            _logger.LogDebug($"Tradingview || Request body : {requestBody}");
+            _logger.LogDebug($"Request body : {requestBody}");
 
             var response = req.CreateResponse(HttpStatusCode.OK);
             response.Headers.Add("Content-Type", "text/plain; charset=utf-8");
@@ -28,18 +28,18 @@ namespace JCTG.AzureFunction
                 var order = TradingviewAlert.Parse(requestBody);
 
                 // Log item
-                _logger.LogInformation($"Tradingview || Parse obejct to TradingviewAlert : AccountID={order.AccountID}, Type={order.OrderType}, TickerInMetatrader={order.Instrument}, CurrentPrice={order.CurrentPrice}, SL={order.StopLoss}, TP={order.TakeProfit}, Magic={order.Magic}", order);
+                _logger.LogInformation($"Parse obejct to TradingviewAlert : AccountID={order.AccountID}, Type={order.OrderType}, TickerInMetatrader={order.Instrument}, CurrentPrice={order.CurrentPrice}, SL={order.StopLoss}, TP={order.TakeProfit}, Magic={order.Magic}", order);
 
                 // Save into the database
                 await _dbContext.TradingviewAlert.AddAsync(order);
                 await _dbContext.SaveChangesAsync();
 
                 // Add log
-                _logger.LogInformation($"Tradingview || Added to database in table TradingviewAlert with ID : {order.ID}", order);
+                _logger.LogInformation($"Added to database in table TradingviewAlert with ID : {order.ID}", order);
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Tradingview ||\nMessage: {ex.Message}\nInner exception message: {ex.InnerException?.Message}\n", ex);
+                _logger.LogError($"Exception: {ex.Message}\nInner exception message: {ex.InnerException?.Message}\n", ex);
             }
 
             return response;

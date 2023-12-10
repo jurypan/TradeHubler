@@ -138,8 +138,8 @@ namespace JCTG.Client
                                     }
                                 }
 
-                                // If mtResponse from server is MODIFY -> MODIFY order in metatrader
-                                else if (response.Action == "MODIFY")
+                                // If mtResponse from server is MODIFYSLTOBE -> MODIFY SL TO BE order in metatrader
+                                else if (response.Action == "MODIFYSLTOBE")
                                 {
                                     // Get the right ticker back from the local database
                                     var ticker = new List<Pairs>(_appConfig.Brokers.Where(f => f.ClientId == _api.ClientId).SelectMany(f => f.Pairs)).FirstOrDefault(f => f.TickerInMetatrader.Equals(response.TickerInMetatrader));
@@ -150,45 +150,101 @@ namespace JCTG.Client
                                     // Do null reference check
                                     if (ticker != null)
                                     {
-                                        // Make buy order
-                                        var lotSize = CalculateLotSize(_api.AccountInfo.Balance, ticker.Risk, metadataTick.Ask, response.StopLoss, metadataTick.TickValue, metadataTick.PointSize, metadataTick.LotStep, metadataTick.MinLotSize);
+                                        // Get ticket Id
+                                        var ticketId = _api.OpenOrders.FirstOrDefault(f => f.Value.Symbol == response.TickerInMetatrader && f.Value.Magic == response.Magic);
 
-                                        // Print on the screen
-                                        Print(Environment.NewLine);
-                                        Print("--------- SEND MODIFY ORDER TO METATRADER ---------");
-                                        Print("Broker      : " + _appConfig.Brokers.First(f => f.ClientId == _api.ClientId).Name);
-                                        Print("Ticker      : " + ticker.TickerInMetatrader);
-                                        Print("Order       : MODIFY ORDER");
-                                        Print("Lot Size    : " + lotSize);
-                                        Print("Ask price   : " + metadataTick.Ask);
-                                        Print("Stop Loss   : " + response.StopLoss);
-                                        Print("Take Profit : " + response.TakeProfit);
-                                        Print("Tick value  : " + metadataTick.TickValue);
-                                        Print("Point size  : " + metadataTick.PointSize);
-                                        Print("Lot step    : " + metadataTick.LotStep);
-                                        Print("Magic       : " + response.Magic);
-                                        Print("Strategy    : " + ticker.StrategyNr);
-                                        Print("------------------------------------------------");
+                                        // Null reference check
+                                        if(ticketId.Key > 0)
+                                        {
+                                            // Print on the screen
+                                            Print(Environment.NewLine);
+                                            Print("--------- SEND MODIFY SL TO BE ORDER TO METATRADER ---------");
+                                            Print("Broker      : " + _appConfig.Brokers.First(f => f.ClientId == _api.ClientId).Name);
+                                            Print("Ticker      : " + ticker.TickerInMetatrader);
+                                            Print("Order       : MODIFY SL TO BE ORDER");
+                                            Print("Lot Size    : " + ticketId.Value.Lots);
+                                            Print("Price       : " + ticketId.Value.OpenPrice);
+                                            Print("Stop Loss   : " + ticketId.Value.OpenPrice);
+                                            Print("Take Profit : " + ticketId.Value.TakeProfit);
+                                            Print("Magic       : " + ticketId.Value.Magic);
+                                            Print("Strategy    : " + ticker.StrategyNr);
+                                            Print("Ticket id   : " + ticketId.Key);
+                                            Print("------------------------------------------------");
+                                        
+                                            // Modify order
+                                            _api.ModifyOrder(ticketId.Key, ticketId.Value.Lots, 0, ticketId.Value.OpenPrice, ticketId.Value.TakeProfit);
+                                        }
+                                    }
+                                }
 
+                                // If mtResponse from server is MODIFY SL -> MODIFY SL order in metatrader
+                                else if (response.Action == "MODIFYSL")
+                                {
+                                    // Get the right ticker back from the local database
+                                    var ticker = new List<Pairs>(_appConfig.Brokers.Where(f => f.ClientId == _api.ClientId).SelectMany(f => f.Pairs)).FirstOrDefault(f => f.TickerInMetatrader.Equals(response.TickerInMetatrader));
 
-                                        // Modify order
-                                        _api.ModifyOrder(0,  lotSize, 0, response.StopLoss, response.TakeProfit);
+                                    // Get the metadata tick
+                                    var metadataTick = _api.MarketData.FirstOrDefault(f => f.Key == response.TickerInMetatrader).Value;
+
+                                    // Do null reference check
+                                    if (ticker != null)
+                                    {
+                                        // Get ticket Id
+                                        var ticketId = _api.OpenOrders.FirstOrDefault(f => f.Value.Symbol == response.TickerInMetatrader && f.Value.Magic == response.Magic);
+
+                                        // Null reference check
+                                        if (ticketId.Key > 0)
+                                        {
+                                            // Print on the screen
+                                            Print(Environment.NewLine);
+                                            Print("--------- SEND MODIFY SL TO BE ORDER TO METATRADER ---------");
+                                            Print("Broker      : " + _appConfig.Brokers.First(f => f.ClientId == _api.ClientId).Name);
+                                            Print("Ticker      : " + ticker.TickerInMetatrader);
+                                            Print("Order       : MODIFY SL TO BE ORDER");
+                                            Print("Lot Size    : " + ticketId.Value.Lots);
+                                            Print("Price       : " + ticketId.Value.OpenPrice);
+                                            Print("Stop Loss   : " + response.StopLoss);
+                                            Print("Take Profit : " + ticketId.Value.TakeProfit);
+                                            Print("Magic       : " + ticketId.Value.Magic);
+                                            Print("Strategy    : " + ticker.StrategyNr);
+                                            Print("Ticket id   : " + ticketId.Key);
+                                            Print("------------------------------------------------");
+
+                                            // Modify order
+                                            _api.ModifyOrder(ticketId.Key, ticketId.Value.Lots, 0, response.StopLoss, ticketId.Value.TakeProfit);
+                                        }
                                     }
                                 }
 
                                 // If mtResponse from server is CLOSE_ALL -> CLOSE_ALL order in metatrader
-                                else if (response.Action == "CLOSE_ALL")
+                                else if (response.Action == "CLOSE")
                                 {
-                                    // Print on the screen
-                                    Print(Environment.NewLine);
-                                    Print("--------- SEND CLOSE ALL TO METATRADER ---------");
-                                    Print("Broker      : " + _appConfig.Brokers.First(f => f.ClientId == _api.ClientId).Name);
-                                    Print("Order       : CLOSE ALL");
-                                    Print("------------------------------------------------");
+                                    // Get the right ticker back from the local database
+                                    var ticker = new List<Pairs>(_appConfig.Brokers.Where(f => f.ClientId == _api.ClientId).SelectMany(f => f.Pairs)).FirstOrDefault(f => f.TickerInMetatrader.Equals(response.TickerInMetatrader));
 
+                                    // Do null reference check
+                                    if (ticker != null)
+                                    {
+                                        // Get ticket Id
+                                        var ticketId = _api.OpenOrders.FirstOrDefault(f => f.Value.Symbol != null && f.Value.Symbol.Equals(response.TickerInMetatrader) && f.Value.Magic == response.Magic);
 
-                                    // Close all order
-                                    _api.CloseAllOrders();
+                                        // Null reference check
+                                        if (ticketId.Key > 0)
+                                        {
+                                            // Print on the screen
+                                            Print(Environment.NewLine);
+                                            Print("--------- SEND CLOSE ORDER TO METATRADER ---------");
+                                            Print("Broker      : " + _appConfig.Brokers.First(f => f.ClientId == _api.ClientId).Name);
+                                            Print("Ticker      : " + ticker.TickerInMetatrader);
+                                            Print("Order       : CLOSE ORDER");
+                                            Print("Magic       : " + response.Magic);
+                                            Print("Ticket id   : " + ticketId.Key);
+                                            Print("------------------------------------------------");
+
+                                            // Modify order
+                                            _api.CloseOrder(ticketId.Key);
+                                        }
+                                    }
                                 }
                             }
                         }

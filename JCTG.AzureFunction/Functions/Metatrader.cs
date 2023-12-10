@@ -95,7 +95,7 @@ namespace JCTG.AzureFunction
                             }
 
                             // Check if we need to execute the order
-                            if (tvAlert.OrderType == "BUY" || (tvAlert.OrderType == "BUYSTOP" && mt.Price + trade.Offset >= tvAlert.EntryPrice))
+                            if (tvAlert.OrderType.Equals("BUY") || (tvAlert.OrderType.Equals("BUYSTOP") && mt.Price + trade.Offset >= tvAlert.EntryPrice))
                             {
                                 // Log item
                                 _logger.LogWarning($"BUY order is send to Metatrader : BUY,instrument={mt.TickerInMetatrader},price={mt.Price},tp={tvAlert.TakeProfit - trade.Offset},sl={tvAlert.StopLoss - trade.Offset},magic={trade.Magic}", trade);
@@ -123,37 +123,58 @@ namespace JCTG.AzureFunction
                                 }); ;
                             }
 
-                            // Check if we need to execute the order
-                            else if (tvAlert.OrderType == "MODIFY")
+                            // Check if we need to modify the stop loss to break event
+                            else if (tvAlert.OrderType.Equals("MODIFYSLTOBE"))
                             {
                                 // Log item
-                                _logger.LogWarning($"MODIFY order is send to Metatrader : MODIFY,instrument={mt.TickerInMetatrader},price={mt.Price},tp={tvAlert.TakeProfit - trade.Offset},sl={tvAlert.StopLoss - trade.Offset},magic={trade.Magic}", trade);
+                                _logger.LogWarning($"MODIFY SL order is send to Metatrader : MODIFYSLTOBE,instrument={mt.TickerInMetatrader},price={mt.Price},tp={tvAlert.TakeProfit - trade.Offset},sl={mt.Price - trade.Offset},magic={trade.Magic}", trade);
 
                                 // Add repsonse
                                 response.Add(new MetatraderResponse()
                                 {
-                                    Action = "MODIFY",
+                                    Action = "MODIFYSLTOBE",
                                     AccountId = mt.AccountID,
                                     ClientId = mt.ClientID,
                                     TickerInMetatrader = mt.TickerInMetatrader,
                                     TickerInTradingview = mt.TickerInTradingview,
                                     TakeProfit = tvAlert.TakeProfit - trade.Offset,
-                                    StopLoss = tvAlert.StopLoss - trade.Offset,
+                                    StopLoss = mt.Price - trade.Offset,
+                                    Magic = tvAlert.Magic,
+                                    StrategyType = trade.StrategyType,
+                                });
+                            }
+
+                            // Check if we need to modify the order
+                            else if (tvAlert.OrderType.Equals("MODIFYSL"))
+                            {
+                                // Log item
+                                _logger.LogWarning($"MODIFY SL order is send to Metatrader : MODIFYSL,instrument={mt.TickerInMetatrader},price={mt.Price},tp={tvAlert.TakeProfit - trade.Offset},sl={mt.Price - trade.Offset},magic={trade.Magic}", trade);
+
+                                // Add repsonse
+                                response.Add(new MetatraderResponse()
+                                {
+                                    Action = "MODIFYSL",
+                                    AccountId = mt.AccountID,
+                                    ClientId = mt.ClientID,
+                                    TickerInMetatrader = mt.TickerInMetatrader,
+                                    TickerInTradingview = mt.TickerInTradingview,
+                                    TakeProfit = tvAlert.TakeProfit - trade.Offset,
+                                    StopLoss = mt.Price - trade.Offset,
                                     Magic = tvAlert.Magic,
                                     StrategyType = trade.StrategyType,
                                 });
                             }
 
                             // Check if we need to execute the order
-                            else if (tvAlert.OrderType == "CLOSE_ALL")
+                            else if (tvAlert.OrderType.Equals("CLOSE"))
                             {
                                 // Log item
-                                _logger.LogWarning($"CLOSE_ALL order is send to Metatrader : CLOSE_ALL,instrument={mt.TickerInMetatrader},price={mt.Price},tp={tvAlert.TakeProfit - trade.Offset},sl={tvAlert.StopLoss - trade.Offset},magic={trade.Magic}", trade);
+                                _logger.LogWarning($"CLOSE order is send to Metatrader : CLOSE,instrument={mt.TickerInMetatrader},price={mt.Price},tp={tvAlert.TakeProfit - trade.Offset},sl={tvAlert.StopLoss - trade.Offset},magic={trade.Magic}", trade);
 
                                 // Add repsonse
                                 response.Add(new MetatraderResponse()
                                 {
-                                    Action = "CLOSE_ALL",
+                                    Action = "CLOSE",
                                     AccountId = mt.AccountID,
                                     ClientId = mt.ClientID,
                                     TickerInMetatrader = mt.TickerInMetatrader,

@@ -8,7 +8,7 @@ namespace JCTG.Client
 {
     public class MetatraderApi
     {
-        private readonly string MetaTraderDirPath;  // { get; private set; }
+        private readonly string MetaTraderDirPath;
         private readonly int sleepDelay;
         private readonly int maxRetryCommandSeconds;
         private readonly bool loadOrdersFromFile;
@@ -39,6 +39,8 @@ namespace JCTG.Client
         public AccountInfo? AccountInfo { get; set; }
         public Dictionary<string, MarketData> MarketData { get; set; }
         public Dictionary<string, BarData> BarData { get; set; }
+
+
         public JObject HistoricData = new JObject();
         public JObject HistoricTrades = new JObject();
         public int ClientId { get; set; }
@@ -696,7 +698,7 @@ namespace JCTG.Client
         /// <param name="stopLoss">New stop loss price</param>
         /// <param name="takeProfit">New take profit price</param>
         /// <param name="expiration">New expiration time given as timestamp in seconds. Can be zero if the order should not have an expiration time</param>
-        public void ModifyOrder(int ticket, double lots, double price, double stopLoss, double takeProfit, long expiration = 0)
+        public void ModifyOrder(long ticket, double lots, double price, double stopLoss, double takeProfit, long expiration = 0)
         {
             string content = $"{ticket},{Format(lots)},{Format(price)},{Format(stopLoss)},{Format(takeProfit)},{expiration}";
             SendCommand("MODIFY_ORDER", content);
@@ -708,7 +710,7 @@ namespace JCTG.Client
         /// </summary>
         /// <param name="ticket">Ticket of the order that should be closed.</param>
         /// <param name="lots"> Volume in lots. If lots=0 it will try to close the complete position</param>
-        public void CloseOrder(int ticket, double lots = 0)
+        public void CloseOrder(long ticket, double lots = 0)
         {
             string content = ticket + "," + Format(lots);
             SendCommand("CLOSE_ORDER", content);
