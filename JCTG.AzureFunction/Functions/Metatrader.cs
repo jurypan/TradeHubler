@@ -42,14 +42,18 @@ namespace JCTG.AzureFunction
 
                         // Get TradingviewAlert from the database
                         var tvAlert = await _dbContext.TradingviewAlert
-                                                             .Include(f => f.Trades)
-                                                             .Where(f => f.AccountID == mt.AccountID
-                                                                         && f.Instrument.Equals(mt.TickerInTradingview)
-                                                                         && (f.Trades.Count(g => g.ClientID == mt.ClientID) == 0 || f.Trades.Any(g => g.ClientID == mt.ClientID && g.Executed == false))
-                                                                         && f.StrategyType == mt.StrategyType
-                                                                         )
-                                                             .OrderBy(f => Math.Abs(f.EntryPrice - mt.Price))
-                                                             .FirstOrDefaultAsync();
+                             .Include(f => f.Trades)
+                             .Where(f => f.AccountID == mt.AccountID
+                                         && f.Instrument.Equals(mt.TickerInTradingview)
+                                         && (
+                                             (f.Trades.Count(g => g.ClientID == mt.ClientID) == 0 && f.DateCreated > DateTime.Now.AddMinutes(-10))
+                                             || f.Trades.Any(g => g.ClientID == mt.ClientID && g.Executed == false)
+                                            )
+                                         && f.StrategyType == mt.StrategyType
+                                         )
+                             .OrderBy(f => Math.Abs(f.EntryPrice - mt.Price))
+                             .FirstOrDefaultAsync();
+
 
                         // If there is a tradingview alert in the db
                         if (tvAlert == null)

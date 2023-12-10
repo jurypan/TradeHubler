@@ -394,7 +394,7 @@
       ]
     }
   ],
-  "SleepDelay": 1000,
+  "SleepDelay": 2000,
   "MaxRetryCommandSeconds": 10,
   "LoadOrdersFromFile": true,
   "Verbose": true
