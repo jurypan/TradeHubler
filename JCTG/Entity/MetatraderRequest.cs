@@ -12,6 +12,7 @@
         public int ClientID { get; set; }
         public string TickerInMetatrader { get; set; }
         public double Price { get; set; }
+        public double Spread { get; set; }
         public string TickerInTradingview { get; set; }
         public StrategyType StrategyType { get; set; }
 

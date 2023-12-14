@@ -11,105 +11,459 @@
           "TickerInMetatrader": "TSLA",
           "Timeframe": "H4",
           "StrategyNr": 1,
-          "Risk": 0.5
+          "Risk": 0.5,
+          "OverrideSession": true,
+          "Sessions": {
+            "Monday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Tuesday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Wednesday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Thursday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Friday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Saterday": null,
+            "Sunday": null
+          }
         },
         {
           "TickerInTradingView": "NVDA",
           "TickerInMetatrader": "NVDA",
           "Timeframe": "H4",
           "StrategyNr": 1,
-          "Risk": 0.5
+          "Risk": 0.5,
+          "OverrideSession": true,
+          "Sessions": {
+            "Monday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Tuesday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Wednesday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Thursday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Friday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Saterday": null,
+            "Sunday": null
+          }
         },
         {
           "TickerInTradingView": "AAPL",
           "TickerInMetatrader": "AAPL",
           "Timeframe": "H4",
           "StrategyNr": 1,
-          "Risk": 0.5
+          "Risk": 0.5,
+          "OverrideSession": true,
+          "Sessions": {
+            "Monday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Tuesday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Wednesday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Thursday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Friday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Saterday": null,
+            "Sunday": null
+          }
         },
         {
           "TickerInTradingView": "META",
           "TickerInMetatrader": "META",
           "Timeframe": "H4",
           "StrategyNr": 1,
-          "Risk": 0.5
+          "Risk": 0.5,
+          "OverrideSession": true,
+          "Sessions": {
+            "Monday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Tuesday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Wednesday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Thursday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Friday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Saterday": null,
+            "Sunday": null
+          }
         },
         {
           "TickerInTradingView": "MSFT",
           "TickerInMetatrader": "MSFT",
           "Timeframe": "H4",
           "StrategyNr": 1,
-          "Risk": 0.5
+          "Risk": 0.5,
+          "OverrideSession": true,
+          "Sessions": {
+            "Monday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Tuesday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Wednesday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Thursday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Friday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Saterday": null,
+            "Sunday": null
+          }
         },
         {
           "TickerInTradingView": "AMZN",
           "TickerInMetatrader": "AMZN",
           "Timeframe": "H4",
           "StrategyNr": 1,
-          "Risk": 0.5
+          "Risk": 0.5,
+          "OverrideSession": true,
+          "Sessions": {
+            "Monday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Tuesday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Wednesday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Thursday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Friday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Saterday": null,
+            "Sunday": null
+          }
         },
         {
           "TickerInTradingView": "NFLX",
           "TickerInMetatrader": "NFLX",
           "Timeframe": "H4",
           "StrategyNr": 1,
-          "Risk": 0.5
+          "Risk": 0.5,
+          "OverrideSession": true,
+          "Sessions": {
+            "Monday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Tuesday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Wednesday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Thursday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Friday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Saterday": null,
+            "Sunday": null
+          }
         },
         {
           "TickerInTradingView": "GOOGL",
           "TickerInMetatrader": "GOOGL",
           "Timeframe": "H4",
           "StrategyNr": 1,
-          "Risk": 0.5
+          "Risk": 0.5,
+          "OverrideSession": true,
+          "Sessions": {
+            "Monday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Tuesday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Wednesday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Thursday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Friday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Saterday": null,
+            "Sunday": null
+          }
         },
         {
           "TickerInTradingView": "NKD1!",
           "TickerInMetatrader": "NI225",
           "Timeframe": "H1",
           "StrategyNr": 2,
-          "Risk": 0.45
+          "Risk": 0.45,
+          "OverrideSession": false
         },
         {
           "TickerInTradingView": "XJO",
           "TickerInMetatrader": "AUS200",
           "Timeframe": "H1",
           "StrategyNr": 2,
-          "Risk": 0.45
+          "Risk": 0.45,
+          "OverrideSession": true,
+          "Sessions": {
+            "Monday": {
+              "open": "22:50",
+              "close": "05:10"
+            },
+            "Tuesday": {
+              "open": "22:50",
+              "close": "05:10"
+            },
+            "Wednesday": {
+              "open": "22:50",
+              "close": "05:10"
+            },
+            "Thursday": {
+              "open": "22:50",
+              "close": "05:10"
+            },
+            "Friday": {
+              "open": null,
+              "close": "05:10"
+            },
+            "Saterday": null,
+            "Sunday": {
+              "open": "22:50",
+              "close": null
+            }
+          }
         },
         {
           "TickerInTradingView": "SX5E",
           "TickerInMetatrader": "STOXX50E",
           "Timeframe": "H1",
           "StrategyNr": 2,
-          "Risk": 0.45
+          "Risk": 0.45,
+          "OverrideSession": true,
+          "Sessions": {
+            "Monday": {
+              "open": "08:50",
+              "close": "18:10"
+            },
+            "Tuesday": {
+              "open": "08:50",
+              "close": "18:10"
+            },
+            "Wednesday": {
+              "open": "08:50",
+              "close": "18:10"
+            },
+            "Thursday": {
+              "open": "08:50",
+              "close": "18:10"
+            },
+            "Friday": {
+              "open": "08:50",
+              "close": "18:10"
+            },
+            "Saterday": null,
+            "Sunday": null
+          }
         },
         {
           "TickerInTradingView": "PX1",
           "TickerInMetatrader": "FCHI40",
           "Timeframe": "H1",
           "StrategyNr": 2,
-          "Risk": 0.45
+          "Risk": 0.45,
+          "OverrideSession": true,
+          "Sessions": {
+            "Monday": {
+              "open": "08:50",
+              "close": "18:10"
+            },
+            "Tuesday": {
+              "open": "08:50",
+              "close": "18:10"
+            },
+            "Wednesday": {
+              "open": "08:50",
+              "close": "18:10"
+            },
+            "Thursday": {
+              "open": "08:50",
+              "close": "18:10"
+            },
+            "Friday": {
+              "open": "08:50",
+              "close": "18:10"
+            },
+            "Saterday": null,
+            "Sunday": null
+          }
         },
         {
           "TickerInTradingView": "UKX",
           "TickerInMetatrader": "UK100",
           "Timeframe": "H1",
           "StrategyNr": 2,
-          "Risk": 0.45
+          "Risk": 0.45,
+          "OverrideSession": true,
+          "Sessions": {
+            "Monday": {
+              "open": "08:50",
+              "close": "16:40"
+            },
+            "Tuesday": {
+              "open": "08:50",
+              "close": "16:40"
+            },
+            "Wednesday": {
+              "open": "08:50",
+              "close": "16:40"
+            },
+            "Thursday": {
+              "open": "08:50",
+              "close": "16:40"
+            },
+            "Friday": {
+              "open": "08:50",
+              "close": "16:40"
+            },
+            "Saterday": null,
+            "Sunday": null
+          }
         },
         {
           "TickerInTradingView": "SPX",
           "TickerInMetatrader": "SP500",
           "Timeframe": "H1",
           "StrategyNr": 2,
-          "Risk": 0.45
+          "Risk": 0.45,
+          "OverrideSession": true,
+          "Sessions": {
+            "Monday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Tuesday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Wednesday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Thursday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Friday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Saterday": null,
+            "Sunday": null
+          }
         },
         {
           "TickerInTradingView": "DJI",
           "TickerInMetatrader": "WS30",
           "Timeframe": "H1",
           "StrategyNr": 2,
-          "Risk": 0.45
+          "Risk": 0.45,
+          "OverrideSession": true,
+          "Sessions": {
+            "Monday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Tuesday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Wednesday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Thursday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Friday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Saterday": null,
+            "Sunday": null
+          }
         }
       ]
     },
@@ -123,56 +477,235 @@
           "TickerInMetatrader": "JP225USD",
           "Timeframe": "H1",
           "StrategyNr": 2,
-          "Risk": 0.45
+          "Risk": 0.45,
+          "OverrideSession": false
         },
         {
           "TickerInTradingView": "XJO",
           "TickerInMetatrader": "AU200AUD",
           "Timeframe": "H1",
           "StrategyNr": 2,
-          "Risk": 0.45
+          "Risk": 0.45,
+          "OverrideSession": true,
+          "Sessions": {
+            "Monday": {
+              "open": "22:50",
+              "close": "05:10"
+            },
+            "Tuesday": {
+              "open": "22:50",
+              "close": "05:10"
+            },
+            "Wednesday": {
+              "open": "22:50",
+              "close": "05:10"
+            },
+            "Thursday": {
+              "open": "22:50",
+              "close": "05:10"
+            },
+            "Friday": {
+              "open": null,
+              "close": "05:10"
+            },
+            "Saterday": null,
+            "Sunday": {
+              "open": "22:50",
+              "close": null
+            }
+          }
         },
         {
           "TickerInTradingView": "SX5E",
           "TickerInMetatrader": "EU50EUR",
           "Timeframe": "H1",
           "StrategyNr": 2,
-          "Risk": 0.45
+          "Risk": 0.45,
+          "OverrideSession": true,
+          "Sessions": {
+            "Monday": {
+              "open": "08:50",
+              "close": "18:10"
+            },
+            "Tuesday": {
+              "open": "08:50",
+              "close": "18:10"
+            },
+            "Wednesday": {
+              "open": "08:50",
+              "close": "18:10"
+            },
+            "Thursday": {
+              "open": "08:50",
+              "close": "18:10"
+            },
+            "Friday": {
+              "open": "08:50",
+              "close": "18:10"
+            },
+            "Saterday": null,
+            "Sunday": null
+          }
         },
         {
           "TickerInTradingView": "PX1",
           "TickerInMetatrader": "FR40EUR",
           "Timeframe": "H1",
           "StrategyNr": 2,
-          "Risk": 0.45
+          "Risk": 0.45,
+          "OverrideSession": true,
+          "Sessions": {
+            "Monday": {
+              "open": "08:50",
+              "close": "18:10"
+            },
+            "Tuesday": {
+              "open": "08:50",
+              "close": "18:10"
+            },
+            "Wednesday": {
+              "open": "08:50",
+              "close": "18:10"
+            },
+            "Thursday": {
+              "open": "08:50",
+              "close": "18:10"
+            },
+            "Friday": {
+              "open": "08:50",
+              "close": "18:10"
+            },
+            "Saterday": null,
+            "Sunday": null
+          }
         },
         {
           "TickerInTradingView": "UKX",
           "TickerInMetatrader": "UK100GBP",
           "Timeframe": "H1",
           "StrategyNr": 2,
-          "Risk": 0.45
+          "Risk": 0.45,
+          "OverrideSession": true,
+          "Sessions": {
+            "Monday": {
+              "open": "08:50",
+              "close": "16:40"
+            },
+            "Tuesday": {
+              "open": "08:50",
+              "close": "16:40"
+            },
+            "Wednesday": {
+              "open": "08:50",
+              "close": "16:40"
+            },
+            "Thursday": {
+              "open": "08:50",
+              "close": "16:40"
+            },
+            "Friday": {
+              "open": "08:50",
+              "close": "16:40"
+            },
+            "Saterday": null,
+            "Sunday": null
+          }
         },
         {
           "TickerInTradingView": "SPX",
           "TickerInMetatrader": "SPX500USD",
           "Timeframe": "H1",
           "StrategyNr": 2,
-          "Risk": 0.45
+          "Risk": 0.45,
+          "OverrideSession": true,
+          "Sessions": {
+            "Monday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Tuesday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Wednesday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Thursday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Friday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Saterday": null,
+            "Sunday": null
+          }
         },
         {
           "TickerInTradingView": "DJI",
           "TickerInMetatrader": "US30USD",
           "Timeframe": "H1",
           "StrategyNr": 2,
-          "Risk": 0.45
+          "Risk": 0.45,
+          "OverrideSession": true,
+          "Sessions": {
+            "Monday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Tuesday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Wednesday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Thursday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Friday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Saterday": null,
+            "Sunday": null
+          }
         },
         {
           "TickerInTradingView": "NDX",
           "TickerInMetatrader": "NAS100USD",
           "Timeframe": "H1",
           "StrategyNr": 2,
-          "Risk": 0.45
+          "Risk": 0.45,
+          "OverrideSession": true,
+          "Sessions": {
+            "Monday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Tuesday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Wednesday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Thursday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Friday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Saterday": null,
+            "Sunday": null
+          }
         }
       ]
     },
@@ -186,119 +719,475 @@
           "TickerInMetatrader": "TSLA",
           "Timeframe": "H4",
           "StrategyNr": 1,
-          "Risk": 0.5
+          "Risk": 0.5,
+          "OverrideSession": true,
+          "Sessions": {
+            "Monday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Tuesday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Wednesday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Thursday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Friday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Saterday": null,
+            "Sunday": null
+          }
         },
         {
           "TickerInTradingView": "NVDA",
           "TickerInMetatrader": "NVDA",
           "Timeframe": "H4",
           "StrategyNr": 1,
-          "Risk": 0.5
+          "Risk": 0.5,
+          "OverrideSession": true,
+          "Sessions": {
+            "Monday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Tuesday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Wednesday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Thursday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Friday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Saterday": null,
+            "Sunday": null
+          }
         },
         {
           "TickerInTradingView": "AAPL",
           "TickerInMetatrader": "AAPL",
           "Timeframe": "H4",
           "StrategyNr": 1,
-          "Risk": 0.5
+          "Risk": 0.5,
+          "OverrideSession": true,
+          "Sessions": {
+            "Monday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Tuesday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Wednesday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Thursday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Friday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Saterday": null,
+            "Sunday": null
+          }
         },
         {
           "TickerInTradingView": "META",
           "TickerInMetatrader": "META",
           "Timeframe": "H4",
           "StrategyNr": 1,
-          "Risk": 0.5
+          "Risk": 0.5,
+          "OverrideSession": true,
+          "Sessions": {
+            "Monday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Tuesday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Wednesday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Thursday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Friday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Saterday": null,
+            "Sunday": null
+          }
         },
         {
           "TickerInTradingView": "MSFT",
           "TickerInMetatrader": "MSFT",
           "Timeframe": "H4",
           "StrategyNr": 1,
-          "Risk": 0.5
+          "Risk": 0.5,
+          "OverrideSession": true,
+          "Sessions": {
+            "Monday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Tuesday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Wednesday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Thursday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Friday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Saterday": null,
+            "Sunday": null
+          }
         },
         {
           "TickerInTradingView": "AMZN",
           "TickerInMetatrader": "AMZN",
           "Timeframe": "H4",
           "StrategyNr": 1,
-          "Risk": 0.5
+          "Risk": 0.5,
+          "OverrideSession": true,
+          "Sessions": {
+            "Monday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Tuesday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Wednesday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Thursday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Friday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Saterday": null,
+            "Sunday": null
+          }
         },
         {
           "TickerInTradingView": "NFLX",
           "TickerInMetatrader": "NFLX",
           "Timeframe": "H4",
           "StrategyNr": 1,
-          "Risk": 0.5
+          "Risk": 0.5,
+          "OverrideSession": true,
+          "Sessions": {
+            "Monday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Tuesday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Wednesday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Thursday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Friday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Saterday": null,
+            "Sunday": null
+          }
         },
         {
           "TickerInTradingView": "RACE",
           "TickerInMetatrader": "RACE",
           "Timeframe": "H4",
           "StrategyNr": 1,
-          "Risk": 0.5
+          "Risk": 0.5,
+          "OverrideSession": true,
+          "Sessions": {
+            "Monday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Tuesday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Wednesday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Thursday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Friday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Saterday": null,
+            "Sunday": null
+          }
         },
         {
           "TickerInTradingView": "NKD1!",
           "TickerInMetatrader": "JP225.cash",
           "Timeframe": "H1",
           "StrategyNr": 2,
-          "Risk": 0.45
+          "Risk": 0.45,
+          "OverrideSession": false
         },
         {
           "TickerInTradingView": "XJO",
           "TickerInMetatrader": "AUS200.cash",
           "Timeframe": "H1",
           "StrategyNr": 2,
-          "Risk": 0.45
+          "Risk": 0.45,
+          "OverrideSession": true,
+          "Sessions": {
+            "Monday": {
+              "open": "22:50",
+              "close": "05:10"
+            },
+            "Tuesday": {
+              "open": "22:50",
+              "close": "05:10"
+            },
+            "Wednesday": {
+              "open": "22:50",
+              "close": "05:10"
+            },
+            "Thursday": {
+              "open": "22:50",
+              "close": "05:10"
+            },
+            "Friday": {
+              "open": null,
+              "close": "05:10"
+            },
+            "Saterday": null,
+            "Sunday": {
+              "open": "22:50",
+              "close": null
+            }
+          }
         },
         {
           "TickerInTradingView": "SX5E",
           "TickerInMetatrader": "EU50.cash",
           "Timeframe": "H1",
           "StrategyNr": 2,
-          "Risk": 0.45
+          "Risk": 0.45,
+          "OverrideSession": true,
+          "Sessions": {
+            "Monday": {
+              "open": "08:50",
+              "close": "18:10"
+            },
+            "Tuesday": {
+              "open": "08:50",
+              "close": "18:10"
+            },
+            "Wednesday": {
+              "open": "08:50",
+              "close": "18:10"
+            },
+            "Thursday": {
+              "open": "08:50",
+              "close": "18:10"
+            },
+            "Friday": {
+              "open": "08:50",
+              "close": "18:10"
+            },
+            "Saterday": null,
+            "Sunday": null
+          }
         },
         {
           "TickerInTradingView": "PX1",
           "TickerInMetatrader": "FRA40.cash",
           "Timeframe": "H1",
           "StrategyNr": 2,
-          "Risk": 0.45
+          "Risk": 0.45,
+          "OverrideSession": true,
+          "Sessions": {
+            "Monday": {
+              "open": "08:50",
+              "close": "18:10"
+            },
+            "Tuesday": {
+              "open": "08:50",
+              "close": "18:10"
+            },
+            "Wednesday": {
+              "open": "08:50",
+              "close": "18:10"
+            },
+            "Thursday": {
+              "open": "08:50",
+              "close": "18:10"
+            },
+            "Friday": {
+              "open": "08:50",
+              "close": "18:10"
+            },
+            "Saterday": null,
+            "Sunday": null
+          }
         },
         {
           "TickerInTradingView": "UKX",
           "TickerInMetatrader": "UK100.cash",
           "Timeframe": "H1",
           "StrategyNr": 2,
-          "Risk": 0.45
+          "Risk": 0.45,
+          "OverrideSession": true,
+          "Sessions": {
+            "Monday": {
+              "open": "08:50",
+              "close": "16:40"
+            },
+            "Tuesday": {
+              "open": "08:50",
+              "close": "16:40"
+            },
+            "Wednesday": {
+              "open": "08:50",
+              "close": "16:40"
+            },
+            "Thursday": {
+              "open": "08:50",
+              "close": "16:40"
+            },
+            "Friday": {
+              "open": "08:50",
+              "close": "16:40"
+            },
+            "Saterday": null,
+            "Sunday": null
+          }
         },
         {
           "TickerInTradingView": "SPX",
           "TickerInMetatrader": "US500.cash",
           "Timeframe": "H1",
           "StrategyNr": 2,
-          "Risk": 0.45
+          "Risk": 0.45,
+          "OverrideSession": true,
+          "Sessions": {
+            "Monday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Tuesday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Wednesday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Thursday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Friday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Saterday": null,
+            "Sunday": null
+          }
         },
         {
           "TickerInTradingView": "DJI",
           "TickerInMetatrader": "US30.cash",
           "Timeframe": "H1",
           "StrategyNr": 2,
-          "Risk": 0.45
+          "Risk": 0.45,
+          "OverrideSession": true,
+          "Sessions": {
+            "Monday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Tuesday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Wednesday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Thursday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Friday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Saterday": null,
+            "Sunday": null
+          }
         },
         {
           "TickerInTradingView": "BTC1!",
           "TickerInMetatrader": "BTCUSD",
           "Timeframe": "H1",
           "StrategyNr": 2,
-          "Risk": 0.45
+          "Risk": 0.45,
+          "OverrideSession": false
         },
         {
           "TickerInTradingView": "ETH1!",
           "TickerInMetatrader": "ETHUSD",
           "Timeframe": "H1",
           "StrategyNr": 2,
-          "Risk": 0.45
+          "Risk": 0.45,
+          "OverrideSession": false
         }
       ]
     },
@@ -312,56 +1201,236 @@
           "TickerInMetatrader": "JP225.pro",
           "Timeframe": "H1",
           "StrategyNr": 2,
-          "Risk": 0.45
+          "Risk": 0.45,
+          "OverrideSession": false
         },
         {
           "TickerInTradingView": "XJO",
           "TickerInMetatrader": "AU200.pro",
           "Timeframe": "H1",
           "StrategyNr": 2,
-          "Risk": 0.45
+          "Risk": 0.45,
+          "OverrideSession": true,
+          "Sessions": {
+            "Monday": {
+              "open": "22:50",
+              "close": "05:10"
+            },
+            "Tuesday": {
+              "open": "22:50",
+              "close": "05:10"
+            },
+            "Wednesday": {
+              "open": "22:50",
+              "close": "05:10"
+            },
+            "Thursday": {
+              "open": "22:50",
+              "close": "05:10"
+            },
+            "Friday": {
+              "open": null,
+              "close": "05:10"
+            },
+            "Saterday": null,
+            "Sunday": {
+              "open": "22:50",
+              "close": null
+            }
+          }
         },
         {
           "TickerInTradingView": "SX5E",
           "TickerInMetatrader": "EU50.pro",
           "Timeframe": "H1",
           "StrategyNr": 2,
-          "Risk": 0.45
+          "Risk": 0.45,
+          "OverrideSession": true,
+          "Sessions": {
+            "Monday": {
+              "open": "08:50",
+              "close": "18:10"
+            },
+            "Tuesday": {
+              "open": "08:50",
+              "close": "18:10"
+            },
+            "Wednesday": {
+              "open": "08:50",
+              "close": "18:10"
+            },
+            "Thursday": {
+              "open": "08:50",
+              "close": "18:10"
+            },
+            "Friday": {
+              "open": "08:50",
+              "close": "18:10"
+            },
+            "Saterday": null,
+            "Sunday": null
+          }
         },
         {
           "TickerInTradingView": "PX1",
           "TickerInMetatrader": "FR40.pro",
           "Timeframe": "H1",
           "StrategyNr": 2,
-          "Risk": 0.45
+          "Risk": 0.45,
+          "OverrideSession": true,
+          "Sessions": {
+            "Monday": {
+              "open": "08:50",
+              "close": "18:10"
+            },
+            "Tuesday": {
+              "open": "08:50",
+              "close": "18:10"
+            },
+            "Wednesday": {
+              "open": "08:50",
+              "close": "18:10"
+            },
+            "Thursday": {
+              "open": "08:50",
+              "close": "18:10"
+            },
+            "Friday": {
+              "open": "08:50",
+              "close": "18:10"
+            },
+            "Saterday": null,
+            "Sunday": null
+          }
         },
         {
           "TickerInTradingView": "UKX",
           "TickerInMetatrader": "GB100.pro",
           "Timeframe": "H1",
           "StrategyNr": 2,
-          "Risk": 0.45
+          "Risk": 0.45,
+          "OverrideSession": true,
+          "Sessions": {
+            "Monday": {
+              "open": "08:50",
+              "close": "16:40"
+            },
+            "Tuesday": {
+              "open": "08:50",
+              "close": "16:40"
+            },
+            "Wednesday": {
+              "open": "08:50",
+              "close": "16:40"
+            },
+            "Thursday": {
+              "open": "08:50",
+              "close": "16:40"
+            },
+            "Friday": {
+              "open": "08:50",
+              "close": "16:40"
+            },
+            "Saterday": null,
+            "Sunday": null
+          }
         },
         {
           "TickerInTradingView": "SPX",
           "TickerInMetatrader": "US500.pro",
           "Timeframe": "H1",
           "StrategyNr": 2,
-          "Risk": 0.45
+          "Risk": 0.45,
+          "OverrideSession": true,
+          "Sessions": {
+            "Monday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Tuesday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Wednesday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Thursday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Friday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Saterday": null,
+            "Sunday": null
+          }
         },
         {
           "TickerInTradingView": "DJI",
           "TickerInMetatrader": "US30.pro",
           "Timeframe": "H1",
           "StrategyNr": 2,
-          "Risk": 0.45
+          "Risk": 0.45,
+          "µ": null,
+          "OverrideSession": true,
+          "Sessions": {
+            "Monday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Tuesday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Wednesday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Thursday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Friday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Saterday": null,
+            "Sunday": null
+          }
         },
         {
           "TickerInTradingView": "NDX",
           "TickerInMetatrader": "US100.pro",
           "Timeframe": "H1",
           "StrategyNr": 2,
-          "Risk": 0.45
+          "Risk": 0.45,
+          "OverrideSession": true,
+          "Sessions": {
+            "Monday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Tuesday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Wednesday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Thursday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Friday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Saterday": null,
+            "Sunday": null
+          }
         }
       ]
     },
@@ -375,21 +1444,99 @@
           "TickerInMetatrader": "ASXAUD",
           "Timeframe": "m3",
           "StrategyNr": 3,
-          "Risk": 0.15
+          "Risk": 0.15,
+          "OverrideSession": true,
+          "Sessions": {
+            "Monday": {
+              "open": "22:50",
+              "close": "05:10"
+            },
+            "Tuesday": {
+              "open": "22:50",
+              "close": "05:10"
+            },
+            "Wednesday": {
+              "open": "22:50",
+              "close": "05:10"
+            },
+            "Thursday": {
+              "open": "22:50",
+              "close": "05:10"
+            },
+            "Friday": {
+              "open": null,
+              "close": "05:10"
+            },
+            "Saterday": null,
+            "Sunday": {
+              "open": "22:50",
+              "close": null
+            }
+          }
         },
         {
           "TickerInTradingView": "SX5E",
           "TickerInMetatrader": "ESXEUR",
           "Timeframe": "m3",
           "StrategyNr": 3,
-          "Risk": 0.15
+          "Risk": 0.15,
+          "OverrideSession": true,
+          "Sessions": {
+            "Monday": {
+              "open": "08:50",
+              "close": "18:10"
+            },
+            "Tuesday": {
+              "open": "08:50",
+              "close": "18:10"
+            },
+            "Wednesday": {
+              "open": "08:50",
+              "close": "18:10"
+            },
+            "Thursday": {
+              "open": "08:50",
+              "close": "18:10"
+            },
+            "Friday": {
+              "open": "08:50",
+              "close": "18:10"
+            },
+            "Saterday": null,
+            "Sunday": null
+          }
         },
         {
           "TickerInTradingView": "SPX",
           "TickerInMetatrader": "SPXUSD",
           "Timeframe": "m3",
           "StrategyNr": 3,
-          "Risk": 0.15
+          "Risk": 0.15,
+          "OverrideSession": true,
+          "Sessions": {
+            "Monday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Tuesday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Wednesday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Thursday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Friday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Saterday": null,
+            "Sunday": null
+          }
         }
       ]
     }

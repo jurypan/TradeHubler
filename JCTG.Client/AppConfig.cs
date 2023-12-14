@@ -1,4 +1,6 @@
-﻿namespace JCTG.Client
+﻿using Newtonsoft.Json;
+
+namespace JCTG.Client
 {
     public class AppConfig
     {
@@ -34,12 +36,24 @@
     }
     public class Pairs
     {
-        public string TickerInTradingView { get; set; }
-        public string TickerInMetatrader { get; set; }
-        public string Timeframe { get; set; }
+        public Pairs() 
+        {
+            TickerInTradingView = string.Empty;
+            TickerInMetatrader = string.Empty;
+            Timeframe = string.Empty;
+        }
+
+        public required string TickerInTradingView { get; set; }
+        public required string TickerInMetatrader { get; set; }
+        public required string Timeframe { get; set; }
         public StrategyType StrategyNr { get; set; }
         public double Risk { get; set; }
+        public bool OverrideSession { get; set; }
+        public Dictionary<string, SessionTimes> Sessions { get; set; }
     }
-
-
+    public class SessionTimes
+    {
+        public TimeSpan? Open { get; set; }
+        public TimeSpan? Close { get; set; }
+    }
 }

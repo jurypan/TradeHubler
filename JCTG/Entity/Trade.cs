@@ -21,6 +21,7 @@ namespace JCTG
         public int TradingviewAlertID { get; set; }
         public StrategyType StrategyType { get; set; }
         public double Offset { get; set; }
+        public double Spread { get; set; }
         public required string Instrument { get; set; }
         public int Magic { get; set; }
         public bool Executed { get; set; }
