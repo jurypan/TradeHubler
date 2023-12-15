@@ -1178,7 +1178,7 @@
           "TickerInMetatrader": "BTCUSD",
           "Timeframe": "H1",
           "StrategyNr": 2,
-          "Risk": 0.45,
+          "Risk": 0.2,
           "OverrideSession": false
         },
         {
@@ -1186,7 +1186,7 @@
           "TickerInMetatrader": "ETHUSD",
           "Timeframe": "H1",
           "StrategyNr": 2,
-          "Risk": 0.45,
+          "Risk": 0.2,
           "OverrideSession": false
         }
       ]
