@@ -9,7 +9,7 @@
         }
 
         public int AccountID { get; set; }
-        public int ClientID { get; set; }
+        public long ClientID { get; set; }
         public string TickerInMetatrader { get; set; }
         public double Price { get; set; }
         public double Spread { get; set; }

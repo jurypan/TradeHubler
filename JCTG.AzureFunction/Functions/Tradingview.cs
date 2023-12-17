@@ -16,7 +16,7 @@ namespace JCTG.AzureFunction
             // Read body from request
             string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
 
-            // Log item
+            // TradeJournal item
             _logger.LogDebug($"Request body : {requestBody}");
 
             var response = req.CreateResponse(HttpStatusCode.OK);
@@ -27,7 +27,7 @@ namespace JCTG.AzureFunction
                 // Parse into a Trade Alert object
                 var order = TradingviewAlert.Parse(requestBody);
 
-                // Log item
+                // TradeJournal item
                 _logger.LogInformation($"Parse obejct to TradingviewAlert : AccountID={order.AccountID}, Type={order.OrderType}, TickerInMetatrader={order.Instrument}, CurrentPrice={order.CurrentPrice}, SL={order.StopLoss}, TP={order.TakeProfit}, Magic={order.Magic}", order);
 
                 // Save into the database

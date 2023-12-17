@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using JCTG.Entity;
+using Microsoft.EntityFrameworkCore;
 
 namespace JCTG
 {
@@ -12,13 +13,10 @@ namespace JCTG
 
         public DbSet<TradingviewAlert> TradingviewAlert { get; set; }
 
+        public DbSet<TradeJournal> TradeJournal { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            // Account - Client
-            modelBuilder.Entity<Account>()
-                .HasMany(a => a.Clients)
-                .WithOne(c => c.Account)
-                .HasForeignKey(c => c.AccountID);
 
             // Account - Trade
             modelBuilder.Entity<Account>()
@@ -43,6 +41,18 @@ namespace JCTG
                 .HasOne(ta => ta.Account)
                 .WithMany(t => t.TradingviewAlerts)
                 .HasForeignKey(ta => ta.AccountID);
+
+            // Tradejournal - Account
+            modelBuilder.Entity<TradeJournal>()
+                .HasOne(ta => ta.Account)
+                .WithMany(t => t.TradeJournals)
+                .HasForeignKey(ta => ta.AccountID);
+
+            // Tradejournal - Client
+            modelBuilder.Entity<TradeJournal>()
+                .HasOne(ta => ta.Client)
+                .WithMany(t => t.TradeJournals)
+                .HasForeignKey(ta => ta.ClientID);
         }
     }
 }

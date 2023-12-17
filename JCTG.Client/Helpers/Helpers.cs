@@ -1,12 +1,12 @@
 using System.ComponentModel;
-using System.Drawing;
 using System.Globalization;
 
 namespace JCTG.Client
 {
-    public class Helpers
+    public static class Helpers
     {
-		public static void Print(object obj, bool color = false)
+
+        public static void Print(object obj, bool color = false)
         {
             if(color == true) 
             {

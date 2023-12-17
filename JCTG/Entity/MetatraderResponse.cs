@@ -9,7 +9,7 @@
             TickerInTradingview = string.Empty;
         }
         public int AccountId { get; set; }
-        public int ClientId { get; set; }
+        public long ClientId { get; set; }
         public required string Action { get; set; }
         public required string TickerInMetatrader { get; set; }
         public required string TickerInTradingview { get; set; }

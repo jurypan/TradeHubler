@@ -54,5 +54,38 @@ namespace JCTG.Client
             return new List<MetatraderResponse>();
         }
 
+        public async Task SendTradeJournalAsync(List<TradeJournalRequest> request)
+        {
+            // Number of retry attempts
+            const int maxRetries = 3;
+            // Delay in milliseconds between retries
+            const int delayBetweenRetries = 2000;
+
+            // Prepare the data to send 
+            var postData = JsonConvert.SerializeObject(request);
+            var content = new StringContent(postData, Encoding.UTF8, "application/json");
+            _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+            for (int retry = 0; retry < maxRetries; retry++)
+            {
+                try
+                {
+                    var response = await _httpClient.PostAsync("https://justcalltheguy.azurewebsites.net/api/TradeJournal?code=g-G3bQKiuiIR7V5_76MMMw3oTGeAtfijpmj077gXbD9LAzFumQ7jmg==", content);
+
+                    if (response.StatusCode == HttpStatusCode.OK)
+                    {
+
+                    }
+                }
+                catch (HttpRequestException)
+                {
+                    // Log the exception or handle it as needed
+                    if (retry == maxRetries - 1)
+                        throw; // Re-throw the exception on the last retry
+                    else
+                        await Task.Delay(delayBetweenRetries); // Wait before retrying
+                }
+            }
+        }
     }
 }

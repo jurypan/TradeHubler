@@ -16,7 +16,7 @@ namespace JCTG
         public Account? Account { get; set; }
         public int AccountID { get; set; }
         public Client? Client { get; set; }
-        public int ClientID { get; set; }
+        public long ClientID { get; set; }
         public TradingviewAlert? TradingviewAlert { get; set; }
         public int TradingviewAlertID { get; set; }
         public StrategyType StrategyType { get; set; }

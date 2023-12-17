@@ -1,3 +1,4 @@
+using System;
 using System.Globalization;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -42,8 +43,8 @@ namespace JCTG.Client
 
 
         public JObject HistoricData = new JObject();
-        public JObject HistoricTrades = new JObject();
-        public int ClientId { get; set; }
+        public Dictionary<string, TradeData> Trades { get; set; }
+        public long ClientId { get; set; }
 
         public bool ACTIVE = true;
         private bool START = false;
@@ -55,26 +56,26 @@ namespace JCTG.Client
         private Thread? historicDataThread;
 
         // Define the delegate for the event
-        public delegate void OnOrderEventHandler(int clientId, Order order);
+        public delegate void OnOrderEventHandler(long clientId, Order order);
         public event OnOrderEventHandler? OnOrderEvent;
 
-        public delegate void OnLogEventHandler(int clientId, long id, Log log);
+        public delegate void OnLogEventHandler(long clientId, long id, Log log);
         public event OnLogEventHandler? OnLogEvent;
 
-        public delegate void OnTickEventHandler(int clientId, string symbol, double bid, double ask, double tickValue);
+        public delegate void OnTickEventHandler(long clientId, string symbol, double bid, double ask, double tickValue);
         public event OnTickEventHandler? OnTickEvent;
 
-        public delegate void OnBarDataEventHandler(int clientId, string symbol, string timeFrame, DateTime time, double open, double high, double low, double close, int tickVolume);
+        public delegate void OnBarDataEventHandler(long clientId, string symbol, string timeFrame, DateTime time, double open, double high, double low, double close, int tickVolume);
         public event OnBarDataEventHandler? OnBarDataEvent;
 
-        public delegate void OnHistoricDataEventHandler(int clientId, string symbol, string timeFrame, JObject data);
-        public event OnHistoricDataEventHandler? OnHistoricDataEvent;
+        public delegate void OnHistoricDataEventHandler(long clientId, string symbol, string timeFrame, JObject data);
+        public event OnHistoricDataEventHandler? OnTradeDataEvent;
 
-        public delegate void OnHistoricTradeEventHandler(int clientId);
-        public event OnHistoricTradeEventHandler? OnHistoricTradeEvent;
+        public delegate void OnTradeEventHandler(long clientId);
+        public event OnTradeEventHandler? OnTradeEvent;
 
 
-        public MetatraderApi(string MetaTraderDirPath, int clientId, int sleepDelay, int maxRetryCommandSeconds, bool loadOrdersFromFile, bool verbose)
+        public MetatraderApi(string MetaTraderDirPath, long clientId, int sleepDelay, int maxRetryCommandSeconds, bool loadOrdersFromFile, bool verbose)
         {
             this.MetaTraderDirPath = MetaTraderDirPath;
             this.ClientId = clientId;
@@ -498,7 +499,7 @@ namespace JCTG.Client
 
                         TryDeleteFile(pathHistoricData);
 
-                        if (OnHistoricDataEvent != null)
+                        if (OnTradeDataEvent != null)
                         {
                             foreach (var x in data)
                             {
@@ -507,7 +508,7 @@ namespace JCTG.Client
                                 if (stSplit.Length != 2)
                                     continue;
                                 // JObject jo = (JObject)BarData[symbol];
-                                OnHistoricDataEvent?.Invoke(ClientId, stSplit[0], stSplit[1], (JObject)data[x.Key]);
+                                OnTradeDataEvent?.Invoke(ClientId, stSplit[0], stSplit[1], (JObject)data[x.Key]);
                             }
                         }
                     }
@@ -515,31 +516,29 @@ namespace JCTG.Client
 
                 }
 
-                // also check historic trades in the same thread. 
+                // Read file
                 text = await TryReadFileAsync(pathHistoricTrades);
 
+                // Make sure the import is new
                 if (text.Length > 0 && !text.Equals(lastHistoricTradesStr))
                 {
+                    // Set new text file to the variable
                     lastHistoricTradesStr = text;
 
-                    JObject data;
+                    // Deserialize
+                    var data = JsonConvert.DeserializeObject<Dictionary<string, TradeData>>(text);
 
-                    try
-                    {
-                        data = JObject.Parse(text);
-                    }
-                    catch
-                    {
-                        data = null;
-                    }
-
+                    // Null reference check
                     if (data != null)
                     {
-                        HistoricTrades = data;
+                        // Set the objects to the property
+                        Trades = data;
 
+                        // Delete the file on the disk
                         TryDeleteFile(pathHistoricTrades);
 
-                        OnHistoricTradeEvent?.Invoke(ClientId);
+                        // Invoke event
+                        OnTradeEvent?.Invoke(ClientId);
                     }
                 }
             }
@@ -648,11 +647,11 @@ namespace JCTG.Client
         /// </summary>
         /// <param name="symbol"> Symbol to get historic data</param>
         /// <param name="timeFrame">Time frame for the requested data</param>
-        /// <param name="start">ListToTheClientsAsync timestamp (seconds since epoch) of the requested data</param>
+        /// <param name="start">Start timestamp (seconds since epoch) of the requested data</param>
         /// <param name="end">End timestamp of the requested data</param>
-        public void GetHistoricData(string symbol, string timeFrame, long start, long end)
+        public void GetHistoricData(string symbol, string timeFrame, DateTimeOffset start, DateTimeOffset end)
         {
-            string content = symbol + "," + timeFrame + "," + start + "," + end;
+            string content = symbol + "," + timeFrame + "," + start.ToUnixTimeSeconds() + "," + end.ToUnixTimeSeconds();
             SendCommand("GET_HISTORIC_DATA", content);
         }
 

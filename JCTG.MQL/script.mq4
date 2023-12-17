@@ -31,11 +31,12 @@ string filePathOrders = folderName + "/DWX_Orders.txt";
 string filePathMessages = folderName + "/DWX_Messages.txt";
 string filePathMarketData = folderName + "/DWX_Market_Data.txt";
 string filePathBarData = folderName + "/DWX_Bar_Data.txt";
+string filePathOrderHistory = folderName + "/DWX_OrderHistory.txt";
 string filePathHistoricData = folderName + "/DWX_Historic_Data.txt";
 string filePathHistoricTrades = folderName + "/DWX_Historic_Trades.txt";
 string filePathCommandsPrefix = folderName + "/DWX_Commands_";
 
-string lastOrderText = "", lastMarketDataText = "", lastMessageText = "";
+string lastOrderText = "", lastMarketDataText = "", lastMessageText = "", lastOrderHistory = "";
 
 struct MESSAGE
 {
@@ -156,6 +157,7 @@ void OnTick() {
    CheckOpenOrders();
    CheckMarketData();
    CheckBarData();
+   CheckIfOrderHasReachedTpOrSl();
 }
 
 
@@ -232,6 +234,60 @@ void CheckCommands() {
          Print("Resetting stored command IDs.");
          ResetCommandIDs();
       }
+   }
+}
+
+void CheckIfOrderHasReachedTpOrSl() {
+   
+   string text = "[";
+   bool first = true;
+   
+   for(int i = OrdersHistoryTotal() - 1; i >= 0; i--)
+   {
+       if(OrderSelect(i, SELECT_BY_POS, MODE_HISTORY))
+       {
+           if(OrderCloseTime() > 0 && OrderCloseTime() != OrderOpenTime()) // Order closed
+           {
+               if(OrderType() <= OP_SELL && (OrderTakeProfit() == OrderClosePrice() || OrderStopLoss() == OrderClosePrice()))
+               {
+                   if(!first)
+                       text += ", ";
+   
+                  string exitType;
+                  if (OrderProfit() == 0)
+                      exitType = "BE";  // Break Even
+                  else
+                      exitType = OrderTakeProfit() == OrderClosePrice() ? "TP" : "SL";  // Take Profit or Stop Loss
+                  
+                  string orderDetails = StringFormat(
+                      "{\"ticket\": %d, \"exit_type\": \"%s\", \"entry_price\": %.10f, \"sl_price\": %.10f, \"tp_price\": %.10f, \"close_price\": %.10f, \"close_time\": \"%s\", \"swap\": %.10f, \"commission\": %.10f, \"profit\": %.10f}", 
+                      OrderTicket(), 
+                      exitType,
+                      OrderOpenPrice(),    // Original entry price
+                      OrderStopLoss(),     // Original SL price
+                      OrderTakeProfit(),   // Original TP price
+                      OrderClosePrice(),   // Close price
+                      TimeToString(OrderCloseTime(), TIME_DATE|TIME_SECONDS),
+                      OrderSwap(),         // Swap
+                      OrderCommission(),   // Commission
+                      OrderProfit()        // Profit
+                  );
+
+
+   
+                   text += orderDetails;
+                   first = false;
+               }
+           }
+       }
+   }
+   
+   text += "]";
+
+   // only write to file if there was a change. 
+   if (text == lastOrderHistory) return;
+   if (WriteToFile(filePathOrderHistory, text)) {
+      lastOrderHistory = text;
    }
 }
 
@@ -797,6 +853,7 @@ void CheckBarData() {
 ENUM_TIMEFRAMES StringToTimeFrame(string tf) {
     // Standard timeframes
     if (tf == "M1") return PERIOD_M1;
+    if (tf == "M3") return PERIOD_M3;
     if (tf == "M5") return PERIOD_M5;
     if (tf == "M15") return PERIOD_M15;
     if (tf == "M30") return PERIOD_M30;
@@ -812,6 +869,7 @@ string TimeFrameToString(ENUM_TIMEFRAMES tf) {
     // Standard timeframes
     switch(tf) {
         case PERIOD_M1:    return "M1";
+        case PERIOD_M3:    return "M3";
         case PERIOD_M5:    return "M5";
         case PERIOD_M15:   return "M15";
         case PERIOD_M30:   return "M30";

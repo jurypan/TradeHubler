@@ -29,7 +29,7 @@ namespace JCTG.Client
             Name = string.Empty;
         }
 
-        public int ClientId { get; set; }
+        public long ClientId { get; set; }
         public string Name { get; set; }
         public string MetaTraderDirPath { get; set; }
         public List<Pairs> Pairs { get; set; }

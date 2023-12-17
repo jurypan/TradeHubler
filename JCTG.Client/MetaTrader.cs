@@ -1,5 +1,4 @@
-﻿using Azure.Core;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using static JCTG.Client.Helpers;
 
 namespace JCTG.Client
@@ -8,24 +7,20 @@ namespace JCTG.Client
     {
         private readonly AppConfig? _appConfig;
         private readonly List<MetatraderApi> _apis;
-        private List<MetatraderRequest> _logPairs;
+        private readonly List<MetatraderRequest> _logPairs;
 
         public Metatrader(AppConfig appConfig)
         {
             // Init APP Config + API
             _appConfig = appConfig;
-            _apis = new List<MetatraderApi>();
-            _logPairs = new List<MetatraderRequest>();
+            _apis = [];
+            _logPairs = [];
 
             // Foreach broker, init the API
             foreach (var api in _appConfig.Brokers)
             {
                 // Init API
                 var _api = new MetatraderApi(api.MetaTraderDirPath, api.ClientId, appConfig.SleepDelay, appConfig.MaxRetryCommandSeconds, appConfig.LoadOrdersFromFile, appConfig.Verbose);
-
-                // Init the events
-                _api.OnOrderEvent += OnOrderEvent;
-                _api.OnLogEvent += OnLogEvent;
 
                 // Add to the list
                 _apis.Add(_api);
@@ -51,6 +46,19 @@ namespace JCTG.Client
 
                         // Subscribe foreach pair
                         _api.SubscribeForTicks(broker.Pairs.Select(f => f.TickerInMetatrader).ToList());
+
+                        // Get order history
+                        _api.GetHistoricTrades(30);
+
+                        // Init the events
+                        _api.OnOrderEvent += OnOrderEvent;
+                        _api.OnLogEvent += OnLogEvent;
+                        _api.OnTradeEvent += async (c) =>
+                        {
+                            await OnTradeEvent(c);
+                        };
+                        _api.OnTradeDataEvent += OnTradeDataEvent;
+                        
 
                         // Thread Sleep
                         await Task.Delay(1000);
@@ -117,14 +125,14 @@ namespace JCTG.Client
                                             ClientID = _api.ClientId,
                                             TickerInMetatrader = ticker.TickerInMetatrader,
                                             Price = metadataTick.Ask,
-                                            Spread  = Math.Abs(metadataTick.Ask - metadataTick.Bid),
+                                            Spread = Math.Abs(metadataTick.Ask - metadataTick.Bid),
                                             StrategyType = ticker.StrategyNr,
                                             TickerInTradingview = ticker.TickerInTradingView,
                                         };
 
                                         if ((session.Open == null || currentUtcTime.TimeOfDay >= session.Open) && (session.Close == null || currentUtcTime.TimeOfDay <= session.Close))
                                         {
-                                           // Add to the list
+                                            // Add to the list
                                             mtRequests.Add(mtRequest);
 
                                             // Add to the log
@@ -452,7 +460,9 @@ namespace JCTG.Client
                 return adjustedLotSize;
         }
 
-        private void OnLogEvent(int clientId, long id, Log log)
+
+
+        private void OnLogEvent(long clientId, long id, Log log)
         {
             // Do null reference check
             if (_appConfig != null)
@@ -473,7 +483,7 @@ namespace JCTG.Client
             }
         }
 
-        private void OnOrderEvent(int clientId, Order order)
+        private void OnOrderEvent(long clientId, Order order)
         {
             // Do null reference check
             if (_appConfig != null)
@@ -489,6 +499,77 @@ namespace JCTG.Client
                 Print("Magic     : " + order.Magic);
                 Print("------------------------------------------------");
             }
+        }
+
+        private async Task OnTradeEvent(long clientId)
+        {
+            // Do the API CAll
+            var backend = Program.Service?.GetService<AzureFunctionApiClient>();
+
+            // Do null reference check
+            if (_appConfig != null && backend != null)
+            {
+                // Get the api from the collection
+                var api = _apis.FirstOrDefault(f => f.ClientId == clientId);
+
+                // Do null reference check
+                if (api != null)
+                {
+                    // Prepare trade journals
+                    var tradeJournals = new List<TradeJournalRequest>();
+
+                    // Loop through the trades
+                    foreach (var trade in api.Trades)
+                    {
+                        // Get broker from the app config
+                        var broker = _appConfig.Brokers.FirstOrDefault(f => f.ClientId == clientId);
+
+                        // Do null reference check
+                        if (broker != null && trade.Value.OpenPrice > 0 && trade.Value.ClosePrice > 0)
+                        {
+                            // Get the right timeframe from the app config / borker
+                            var pair = broker.Pairs.FirstOrDefault(f => f.TickerInMetatrader == trade.Value.Symbol);
+
+                            // Do null reference check
+                            if (pair != null)
+                            {
+                                api.GetHistoricData(trade.Value.Symbol, pair.Timeframe, trade.Value.OpenTime, trade.Value.CloseTime);
+
+                                // Add 
+                                tradeJournals.Add(new TradeJournalRequest()
+                                {
+                                    AccountID = _appConfig.AccountId,
+                                    ClientID = broker.ClientId,
+                                    ClosePrice = trade.Value.ClosePrice,
+                                    CloseTime = trade.Value.CloseTime.LocalDateTime,
+                                    Comment = trade.Value.Comment,
+                                    Commission = trade.Value.Commission,
+                                    Lots = trade.Value.Lots,
+                                    Magic = trade.Value.Magic,
+                                    OpenPrice = trade.Value.OpenPrice,
+                                    OpenTime = trade.Value.OpenTime.LocalDateTime,
+                                    Pnl = trade.Value.Pnl,
+                                    SL = trade.Value.SL,
+                                    Swap = trade.Value.Swap,
+                                    Symbol = trade.Value.Symbol,
+                                    TP = trade.Value.TP,
+                                    Type = trade.Value.Type,
+                                    StrategyType = pair.StrategyNr,
+                                    Timeframe = pair.Timeframe,
+                                });
+                            }
+                        }
+                    }
+
+                    // Send to the server
+                    await backend.SendTradeJournalAsync(tradeJournals);
+                }
+            }
+        }
+
+        private void OnTradeDataEvent(long clientId, string symbol, string timeFrame, Newtonsoft.Json.Linq.JObject data)
+        {
+
         }
 
 
