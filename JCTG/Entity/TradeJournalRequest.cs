@@ -23,7 +23,6 @@
         public DateTime CloseTime { get; set; }
 
         public double OpenPrice { get; set; }
-
         public double ClosePrice { get; set; }
 
         public double SL { get; set; }
@@ -36,10 +35,11 @@
 
         public double Swap { get; set; }
 
-        public string Comment { get; set; }
-
         public StrategyType StrategyType { get; set; }
 
         public string Timeframe { get; set; }
+
+        public string Comment { get; set; }
+
     }
 }

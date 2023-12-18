@@ -525,7 +525,7 @@ namespace JCTG.Client
                         var broker = _appConfig.Brokers.FirstOrDefault(f => f.ClientId == clientId);
 
                         // Do null reference check
-                        if (broker != null && trade.Value.OpenPrice > 0 && trade.Value.ClosePrice > 0)
+                        if (broker != null && trade.Value.OpenPrice > 0)
                         {
                             // Get the right timeframe from the app config / borker
                             var pair = broker.Pairs.FirstOrDefault(f => f.TickerInMetatrader == trade.Value.Symbol);

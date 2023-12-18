@@ -497,7 +497,7 @@ namespace JCTG.Client
                             HistoricData[x.Key] = data[x.Key];
                         }
 
-                        TryDeleteFile(pathHistoricData);
+                        //TryDeleteFile(pathHistoricData);
 
                         if (OnTradeDataEvent != null)
                         {
@@ -535,7 +535,7 @@ namespace JCTG.Client
                         Trades = data;
 
                         // Delete the file on the disk
-                        TryDeleteFile(pathHistoricTrades);
+                        //TryDeleteFile(pathHistoricTrades);
 
                         // Invoke event
                         OnTradeEvent?.Invoke(ClientId);
