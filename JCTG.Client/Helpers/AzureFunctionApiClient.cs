@@ -1,5 +1,4 @@
 ﻿using Newtonsoft.Json;
-using System.Collections.Generic;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Text;
@@ -54,7 +53,7 @@ namespace JCTG.Client
             return new List<MetatraderResponse>();
         }
 
-        public async Task SendTradeJournalAsync(List<TradeJournalRequest> request)
+        public void SendTradeJournals(List<TradeJournalRequest> request)
         {
             // Number of retry attempts
             const int maxRetries = 3;
@@ -66,26 +65,33 @@ namespace JCTG.Client
             var content = new StringContent(postData, Encoding.UTF8, "application/json");
             _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
-            for (int retry = 0; retry < maxRetries; retry++)
+            // Start a background task
+            Task.Run(async () =>
             {
-                try
+                for (int retry = 0; retry < maxRetries; retry++)
                 {
-                    var response = await _httpClient.PostAsync("https://justcalltheguy.azurewebsites.net/api/TradeJournal?code=g-G3bQKiuiIR7V5_76MMMw3oTGeAtfijpmj077gXbD9LAzFumQ7jmg==", content);
-
-                    if (response.StatusCode == HttpStatusCode.OK)
+                    try
                     {
+                        // Execute the POST request
+                        var response = await _httpClient.PostAsync("https://justcalltheguy.azurewebsites.net/api/TradeJournal?code=g-G3bQKiuiIR7V5_76MMMw3oTGeAtfijpmj077gXbD9LAzFumQ7jmg==", content);
 
+                        // Check the response status
+                        if (response.StatusCode == HttpStatusCode.OK)
+                        {
+                            // Handle successful response
+                            break; // Exit the loop if successful
+                        }
+                    }
+                    catch (HttpRequestException)
+                    {
+                        // Log the exception or handle it as needed
+                        if (retry == maxRetries - 1)
+                            throw; // Re-throw the exception on the last retry
+                        else
+                            await Task.Delay(delayBetweenRetries); // Wait before retrying
                     }
                 }
-                catch (HttpRequestException)
-                {
-                    // Log the exception or handle it as needed
-                    if (retry == maxRetries - 1)
-                        throw; // Re-throw the exception on the last retry
-                    else
-                        await Task.Delay(delayBetweenRetries); // Wait before retrying
-                }
-            }
+            });
         }
     }
 }

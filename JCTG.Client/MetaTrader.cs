@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Azure;
+using Microsoft.Extensions.DependencyInjection;
 using static JCTG.Client.Helpers;
 
 namespace JCTG.Client
@@ -47,18 +48,9 @@ namespace JCTG.Client
                         // Subscribe foreach pair
                         _api.SubscribeForTicks(broker.Pairs.Select(f => f.TickerInMetatrader).ToList());
 
-                        // Get order history
-                        _api.GetHistoricTrades(30);
-
                         // Init the events
                         _api.OnOrderEvent += OnOrderEvent;
                         _api.OnLogEvent += OnLogEvent;
-                        _api.OnTradeEvent += async (c) =>
-                        {
-                            await OnTradeEvent(c);
-                        };
-                        _api.OnTradeDataEvent += OnTradeDataEvent;
-                        
 
                         // Thread Sleep
                         await Task.Delay(1000);
@@ -83,7 +75,7 @@ namespace JCTG.Client
                     {
                         // Init request to Azure Function
                         var mtRequests = new List<MetatraderRequest>();
-
+                       
                         // Loop through each pair
                         foreach (var ticker in new List<Pairs>(_appConfig.Brokers.Where(f => f.ClientId == _api.ClientId).SelectMany(f => f.Pairs)))
                         {
@@ -96,86 +88,68 @@ namespace JCTG.Client
                                 // Get current UTC time
                                 var currentUtcTime = DateTime.Now.AddHours(1);
 
-                                // Get current day of the week
-                                var currentDay = currentUtcTime.ToString("dddd");
-
                                 // Do we have custom session times?
                                 if (ticker.OverrideSession)
                                 {
-                                    // Get session
-                                    var session = GetSessionForDay(ticker.Sessions, currentDay);
-
-                                    // Do null reference check
-                                    if (session != null)
+                                    // Init request object
+                                    var mtRequest = new MetatraderRequest()
                                     {
-                                        // Adjust for sessions that close after midnight
-                                        if (session.Close == null || session.Close < session.Open)
+                                        AccountID = _appConfig.AccountId,
+                                        ClientID = _api.ClientId,
+                                        TickerInMetatrader = ticker.TickerInMetatrader,
+                                        Ask = metadataTick.Ask,
+                                        Bid = metadataTick.Bid,
+                                        StrategyType = ticker.StrategyNr,
+                                        TickerInTradingview = ticker.TickerInTradingView,
+                                        ATR = metadataTick.ATR15M,
+                                    };
+
+                                    // Is current time within the sessions of the app config ?
+                                    if (IsCurrentUTCTimeInSession(ticker.Sessions, currentUtcTime))
+                                    {
+                                        // Add to the list
+                                        mtRequests.Add(mtRequest);
+
+                                        // Add to the log
+                                        if (!_logPairs.Any(f => f.AccountID == mtRequest.AccountID
+                                                                    && f.ClientID == mtRequest.ClientID
+                                                                    && f.TickerInMetatrader == mtRequest.TickerInMetatrader
+                                                                    && f.TickerInTradingview == mtRequest.TickerInTradingview
+                                                                    && f.StrategyType == mtRequest.StrategyType))
                                         {
-                                            session.Close = session.Close?.Add(new TimeSpan(24, 0, 0)) ?? new TimeSpan(24, 0, 0);
-                                            if (currentUtcTime.TimeOfDay < session.Open)
-                                            {
-                                                currentUtcTime = currentUtcTime.AddDays(-1);
-                                            }
+                                            _logPairs.Add(mtRequest);
+
+                                            // Print on the screen
+                                            Print(Environment.NewLine);
+                                            Print("------------- START LISTENING TO NEW MARKET ----------------");
+                                            Print("Broker    : " + _appConfig.Brokers.First(f => f.ClientId == mtRequest.ClientID).Name);
+                                            Print("Time      : " + DateTime.UtcNow);
+                                            Print("Symbol    : " + mtRequest.TickerInTradingview);
+                                            Print("------------------------------------------------");
                                         }
-
-                                        // Current UTC time is within the session hours.
-                                        var mtRequest = new MetatraderRequest()
+                                    }
+                                    else
+                                    {
+                                        // Add to the log
+                                        if (_logPairs.Any(f => f.AccountID == mtRequest.AccountID
+                                                                    && f.ClientID == mtRequest.ClientID
+                                                                    && f.TickerInMetatrader == mtRequest.TickerInMetatrader
+                                                                    && f.TickerInTradingview == mtRequest.TickerInTradingview
+                                                                    && f.StrategyType == mtRequest.StrategyType))
                                         {
-                                            AccountID = _appConfig.AccountId,
-                                            ClientID = _api.ClientId,
-                                            TickerInMetatrader = ticker.TickerInMetatrader,
-                                            Price = metadataTick.Ask,
-                                            Spread = Math.Abs(metadataTick.Ask - metadataTick.Bid),
-                                            StrategyType = ticker.StrategyNr,
-                                            TickerInTradingview = ticker.TickerInTradingView,
-                                        };
+                                            _logPairs.Remove(_logPairs.First(f => f.AccountID == mtRequest.AccountID
+                                                                    && f.ClientID == mtRequest.ClientID
+                                                                    && f.TickerInMetatrader == mtRequest.TickerInMetatrader
+                                                                    && f.TickerInTradingview == mtRequest.TickerInTradingview
+                                                                    && f.StrategyType == mtRequest.StrategyType));
 
-                                        if ((session.Open == null || currentUtcTime.TimeOfDay >= session.Open) && (session.Close == null || currentUtcTime.TimeOfDay <= session.Close))
-                                        {
-                                            // Add to the list
-                                            mtRequests.Add(mtRequest);
-
-                                            // Add to the log
-                                            if (!_logPairs.Any(f => f.AccountID == mtRequest.AccountID
-                                                                        && f.ClientID == mtRequest.ClientID
-                                                                        && f.TickerInMetatrader == mtRequest.TickerInMetatrader
-                                                                        && f.TickerInTradingview == mtRequest.TickerInTradingview
-                                                                        && f.StrategyType == mtRequest.StrategyType))
-                                            {
-                                                _logPairs.Add(mtRequest);
-
-                                                // Print on the screen
-                                                Print(Environment.NewLine);
-                                                Print("------------- START LISTENING TO NEW MARKET ----------------");
-                                                Print("Broker    : " + _appConfig.Brokers.First(f => f.ClientId == mtRequest.ClientID).Name);
-                                                Print("Time      : " + DateTime.UtcNow);
-                                                Print("Symbol    : " + mtRequest.TickerInTradingview);
-                                                Print("------------------------------------------------");
-                                            }
-                                        }
-                                        else
-                                        {
-                                            // Add to the log
-                                            if (_logPairs.Any(f => f.AccountID == mtRequest.AccountID
-                                                                        && f.ClientID == mtRequest.ClientID
-                                                                        && f.TickerInMetatrader == mtRequest.TickerInMetatrader
-                                                                        && f.TickerInTradingview == mtRequest.TickerInTradingview
-                                                                        && f.StrategyType == mtRequest.StrategyType))
-                                            {
-                                                _logPairs.Remove(_logPairs.First(f => f.AccountID == mtRequest.AccountID
-                                                                        && f.ClientID == mtRequest.ClientID
-                                                                        && f.TickerInMetatrader == mtRequest.TickerInMetatrader
-                                                                        && f.TickerInTradingview == mtRequest.TickerInTradingview
-                                                                        && f.StrategyType == mtRequest.StrategyType));
-
-                                                // Print on the screen
-                                                Print(Environment.NewLine);
-                                                Print("------------- STOP LISTENING TO MARKET ----------------");
-                                                Print("Broker    : " + _appConfig.Brokers.First(f => f.ClientId == mtRequest.ClientID).Name);
-                                                Print("Time      : " + DateTime.UtcNow);
-                                                Print("Symbol    : " + mtRequest.TickerInTradingview);
-                                                Print("------------------------------------------------");
-                                            }
+                                            // Print on the screen
+                                            Print(Environment.NewLine);
+                                            Print("------------- STOP LISTENING TO MARKET ----------------");
+                                            Print("Broker    : " + _appConfig.Brokers.First(f => f.ClientId == mtRequest.ClientID).Name);
+                                            Print("Time      : " + DateTime.UtcNow);
+                                            Print("Symbol    : " + mtRequest.TickerInTradingview);
+                                            Print("------------------------------------------------");
                                         }
                                     }
                                 }
@@ -187,7 +161,7 @@ namespace JCTG.Client
                                         AccountID = _appConfig.AccountId,
                                         ClientID = _api.ClientId,
                                         TickerInMetatrader = ticker.TickerInMetatrader,
-                                        Price = metadataTick.Ask,
+                                        Ask = metadataTick.Ask,
                                         StrategyType = ticker.StrategyNr,
                                         TickerInTradingview = ticker.TickerInTradingView,
                                     };
@@ -221,7 +195,7 @@ namespace JCTG.Client
                             var mtResponse = await backend.GetMetatraderResponseAsync(mtRequests);
 
                             // Do null reference check
-                            if (mtResponse != null && mtResponse.Count == mtRequests.Count)
+                            if (mtResponse != null && _api.OpenOrders != null && mtResponse.Count == mtRequests.Count)
                             {
                                 // Ittirate through the mtResponse
                                 foreach (var response in mtResponse)
@@ -327,7 +301,7 @@ namespace JCTG.Client
                                                 Print("Ticker      : " + ticker.TickerInMetatrader);
                                                 Print("Order       : MODIFY SL TO BE ORDER");
                                                 Print("Lot Size    : " + ticketId.Value.Lots);
-                                                Print("Price       : " + ticketId.Value.OpenPrice);
+                                                Print("Ask       : " + ticketId.Value.OpenPrice);
                                                 Print("Stop Loss   : " + ticketId.Value.OpenPrice);
                                                 Print("Take Profit : " + ticketId.Value.TakeProfit);
                                                 Print("Magic       : " + ticketId.Value.Magic);
@@ -359,6 +333,12 @@ namespace JCTG.Client
                                             // Null reference check
                                             if (ticketId.Key > 0)
                                             {
+                                                // If SL is 
+                                                if (ticketId.Value.Type?.ToUpper() == "BUY" && response.StopLoss > ticketId.Value.OpenPrice)
+                                                    response.StopLoss = ticketId.Value.OpenPrice;
+                                                else if (ticketId.Value.Type?.ToUpper() == "SELL" && response.StopLoss < ticketId.Value.OpenPrice)
+                                                    response.StopLoss = ticketId.Value.OpenPrice;
+
                                                 // Print on the screen
                                                 Print(Environment.NewLine);
                                                 Print("--------- SEND MODIFY SL TO BE ORDER TO METATRADER ---------");
@@ -366,7 +346,7 @@ namespace JCTG.Client
                                                 Print("Ticker      : " + ticker.TickerInMetatrader);
                                                 Print("Order       : MODIFY SL TO BE ORDER");
                                                 Print("Lot Size    : " + ticketId.Value.Lots);
-                                                Print("Price       : " + ticketId.Value.OpenPrice);
+                                                Print("Ask       : " + ticketId.Value.OpenPrice);
                                                 Print("Stop Loss   : " + response.StopLoss);
                                                 Print("Take Profit : " + ticketId.Value.TakeProfit);
                                                 Print("Magic       : " + ticketId.Value.Magic);
@@ -424,6 +404,56 @@ namespace JCTG.Client
                             }
                         }
                     }
+
+                    // Do null reference checks
+                    if (_api != null && _api.OpenOrders != null && _api.MarketData != null)
+                    {
+                        // Init request to Azure Function
+                        var tjRequests = new List<TradeJournalRequest>();
+
+                        // Loop through each open order
+                        foreach (var order in new Dictionary<long, Order>(_api.OpenOrders))
+                        {
+                            // Get the market data
+                            var marketdata = _api.MarketData.FirstOrDefault(f => f.Key == order.Value.Symbol);
+
+                            // Get setup from appconfig
+                            var pair = _appConfig.Brokers.Where(f => f.ClientId == _api.ClientId).SelectMany(f => f.Pairs).Where(f => f.TickerInMetatrader == order.Value.Symbol).FirstOrDefault();
+
+                            // Do null reference check
+                            if(pair != null) 
+                            {
+                                // Init object
+                                tjRequests.Add(new TradeJournalRequest()
+                                {
+                                    AccountID = _appConfig.AccountId,
+                                    ClientID = _api.ClientId,
+                                    TradingviewAlertID = 1234, /// TO DO
+                                    Comment = order.Value.Comment,
+                                    Commission = order.Value.Commission,
+                                    CurrentPrice = order.Value.Type?.ToUpper() == "SELL" ? marketdata.Value.Bid : marketdata.Value.Ask,
+                                    Lots = order.Value.Lots,
+                                    Magic = order.Value.Magic,
+                                    OpenPrice = order.Value.OpenPrice,
+                                    OpenTime = order.Value.OpenTime,
+                                    Pnl = order.Value.Pnl,
+                                    SL = order.Value.StopLoss,
+                                    StrategyType = pair.StrategyNr,
+                                    Swap = order.Value.Swap,
+                                    Symbol = order.Value.Symbol != null ? order.Value.Symbol : string.Empty,
+                                    TicketId = order.Key,
+                                    Timeframe = pair.Timeframe,
+                                    TP = order.Value.TakeProfit,
+                                    Type = order.Value.Type != null ? order.Value.Type : string.Empty,
+                                    Risk = pair.Risk,
+                                });
+                            }
+                        }
+
+                        // If there any open orders, send them to the backend
+                        if (tjRequests.Any())
+                            backend.SendTradeJournals(tjRequests);
+                    }
                 }
 
                 // Wait a little bit
@@ -432,8 +462,7 @@ namespace JCTG.Client
             }
         }
 
-
-        public double CalculateLotSize(double accountBalance, double riskPercent, double askPrice, double stopLossPrice, double tickValue, double pointSize, double lotStep, double minLotSizeAllowed, double maxLotSizeAllowed)
+        public double CalculateLotSize(double accountBalance, double riskPercent, double openPrice, double stopLossPrice, double tickValue, double pipSize, double lotStep, double minLotSizeAllowed, double maxLotSizeAllowed)
         {
             // Throw exception when negative balance
             if (accountBalance <= 0)
@@ -441,12 +470,13 @@ namespace JCTG.Client
 
             // Calculate the initial lot size
             double riskAmount = accountBalance * (riskPercent / 100.0);
-            double stopLossPriceInPips = Math.Abs(askPrice - stopLossPrice) / pointSize;
-            double initialLotSize = riskAmount / (stopLossPriceInPips * tickValue);
+            double stopLossPriceInPips = Math.Abs(openPrice - stopLossPrice) / pipSize;
+            double lotSize = riskAmount / (stopLossPriceInPips * (1.0 / tickValue));
 
-            // Find the nearest multiple of lotStep
-            var remainder = initialLotSize % lotStep;
-            var adjustedLotSize = remainder == 0 ? initialLotSize : initialLotSize - remainder + (remainder >= lotStep / 2 ? lotStep : 0);
+            // Code fom MQL4 : LotSize = MathRound(LotSize / MarketInfo(Symbol(), MODE_LOTSTEP)) * MarketInfo(Symbol(), MODE_LOTSTEP);
+            // C sharp = Math.Round(lotSize / lotStep) * lotStep
+            var remainder = lotSize % lotStep;
+            var adjustedLotSize = remainder == 0 ? lotSize : lotSize - remainder + (remainder >= lotStep / 2 ? lotStep : 0);
 
             // Round to 2 decimal places
             adjustedLotSize = Math.Round(adjustedLotSize, 2);
@@ -460,7 +490,45 @@ namespace JCTG.Client
                 return adjustedLotSize;
         }
 
+        public bool IsCurrentUTCTimeInSession(Dictionary<string, SessionTimes> sessions, DateTime utcNow)
+        {
+            // Get the current day of the week
+            string dayOfWeek = utcNow.DayOfWeek.ToString();
 
+            // Check if the day of the week is in the config file + the day of the week in the config file can not be null
+            if (sessions.ContainsKey(dayOfWeek) && sessions[dayOfWeek] != null)
+            {
+                // Get current session
+                var sessionToday = sessions[dayOfWeek];
+
+                // Get open and close time
+                var openTime = sessionToday.Open ?? TimeSpan.Zero;
+                var closeTime = sessionToday.Close ?? new TimeSpan(23, 59, 59);
+
+                // Get the datetime based on the open or close settings in the app config
+                var openDateTime = new DateTime(utcNow.Year, utcNow.Month, utcNow.Day) + openTime;
+                var closeDateTime = new DateTime(utcNow.Year, utcNow.Month, utcNow.Day) + closeTime;
+
+                // Handling case where session ends on the next day
+                if (closeTime < openTime)
+                {
+                    openDateTime = openDateTime.AddDays(-1);
+                }
+
+                // Compare
+                if (utcNow >= openDateTime && utcNow <= closeDateTime)
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+
+            // Always return false
+            return false;
+        }
 
         private void OnLogEvent(long clientId, long id, Log log)
         {
@@ -499,128 +567,6 @@ namespace JCTG.Client
                 Print("Magic     : " + order.Magic);
                 Print("------------------------------------------------");
             }
-        }
-
-        private async Task OnTradeEvent(long clientId)
-        {
-            // Do the API CAll
-            var backend = Program.Service?.GetService<AzureFunctionApiClient>();
-
-            // Do null reference check
-            if (_appConfig != null && backend != null)
-            {
-                // Get the api from the collection
-                var api = _apis.FirstOrDefault(f => f.ClientId == clientId);
-
-                // Do null reference check
-                if (api != null)
-                {
-                    // Prepare trade journals
-                    var tradeJournals = new List<TradeJournalRequest>();
-
-                    // Loop through the trades
-                    foreach (var trade in api.Trades)
-                    {
-                        // Get broker from the app config
-                        var broker = _appConfig.Brokers.FirstOrDefault(f => f.ClientId == clientId);
-
-                        // Do null reference check
-                        if (broker != null && trade.Value.OpenPrice > 0)
-                        {
-                            // Get the right timeframe from the app config / borker
-                            var pair = broker.Pairs.FirstOrDefault(f => f.TickerInMetatrader == trade.Value.Symbol);
-
-                            // Do null reference check
-                            if (pair != null)
-                            {
-                                api.GetHistoricData(trade.Value.Symbol, pair.Timeframe, trade.Value.OpenTime, trade.Value.CloseTime);
-
-                                // Add 
-                                tradeJournals.Add(new TradeJournalRequest()
-                                {
-                                    AccountID = _appConfig.AccountId,
-                                    ClientID = broker.ClientId,
-                                    ClosePrice = trade.Value.ClosePrice,
-                                    CloseTime = trade.Value.CloseTime.LocalDateTime,
-                                    Comment = trade.Value.Comment,
-                                    Commission = trade.Value.Commission,
-                                    Lots = trade.Value.Lots,
-                                    Magic = trade.Value.Magic,
-                                    OpenPrice = trade.Value.OpenPrice,
-                                    OpenTime = trade.Value.OpenTime.LocalDateTime,
-                                    Pnl = trade.Value.Pnl,
-                                    SL = trade.Value.SL,
-                                    Swap = trade.Value.Swap,
-                                    Symbol = trade.Value.Symbol,
-                                    TP = trade.Value.TP,
-                                    Type = trade.Value.Type,
-                                    StrategyType = pair.StrategyNr,
-                                    Timeframe = pair.Timeframe,
-                                });
-                            }
-                        }
-                    }
-
-                    // Send to the server
-                    await backend.SendTradeJournalAsync(tradeJournals);
-                }
-            }
-        }
-
-        private void OnTradeDataEvent(long clientId, string symbol, string timeFrame, Newtonsoft.Json.Linq.JObject data)
-        {
-
-        }
-
-
-        private SessionTimes? GetSessionForDay(Dictionary<string, SessionTimes> sessions, string day)
-        {
-            // Null reference check
-            if (sessions == null || !sessions.ContainsKey(day) || sessions[day] == null)
-            {
-                return null;
-            }
-
-            // Get session
-            var session = sessions[day];
-
-            // Null reference check
-            if (session.Open == null)
-            {
-                // Check previous day for closing time
-                var previousDay = GetPreviousDay(day);
-                if (sessions.ContainsKey(previousDay) && sessions[previousDay] != null)
-                {
-                    session.Open = sessions[previousDay].Close;
-                }
-            }
-
-            // Null reference check
-            if (session.Close == null)
-            {
-                // Check next day for opening time
-                var nextDay = GetNextDay(day);
-                if (sessions.ContainsKey(nextDay) && sessions[nextDay] != null)
-                {
-                    session.Close = sessions[nextDay].Open;
-                }
-            }
-
-            return session;
-        }
-
-        private string GetPreviousDay(string day)
-        {
-            var days = new List<string> { "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday" };
-            int index = days.IndexOf(day);
-            return days[(index - 1 + days.Count) % days.Count];
-        }
-
-        private string GetNextDay(string day)
-        {
-            var days = new List<string> { "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday" };
-            int index = days.IndexOf(day);
-            return days[(index + 1) % days.Count];
         }
     }
 }

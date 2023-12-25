@@ -1,6 +1,6 @@
 namespace JCTG.Client.Tests
 {
-    public class MetatraderTests
+    public class MetatraderCalculateLotSizeTests
     {
         private Metatrader mt;
 
@@ -8,6 +8,28 @@ namespace JCTG.Client.Tests
         public void Setup()
         {
             mt = new Metatrader(new AppConfig());
+        }
+
+        [Test]
+        public void CalculateLotSize_ValidInputs_CorrectCalculation()
+        {
+            // Arrange
+            var accountBalance = 100000.0;
+            var riskPercent = 1.0;
+            var openPrice = 1.3000;
+            var stopLossPrice = 1.2950;
+            var pipValue = 10.0;
+            var pipSize = 0.0001;
+            var lotStep = 0.01;
+            var minLotSizeAllowed = 0.01;
+            var maxLotSizeAllowed = 5.0;
+
+
+            // Act
+            var result = mt.CalculateLotSize(accountBalance, riskPercent, openPrice, stopLossPrice, pipValue, pipSize, lotStep, minLotSizeAllowed, maxLotSizeAllowed);
+
+            // Assert
+            Assert.That(result, Is.EqualTo(2));
         }
 
         [Test]
@@ -29,6 +51,69 @@ namespace JCTG.Client.Tests
 
             // Assert
             Assert.That(result, Is.EqualTo(0.1)); // Expected value based on the inputs
+        }
+
+        [Test]
+        public void CalculateLotSize_ValidInputs_CorrectCalculationForNasdaq()
+        {
+            // Arrange
+            var accountBalance = 100000.0;
+            var riskPercent = 1.0;
+            var openPrice = 12000.0; // NASDAQ index value
+            var stopLossPrice = 11800.0; // 200 points stop loss
+            var pipValue = 1.0; // $1 per point
+            var pipSize = 1.0; // 1 point
+            var lotStep = 1.0; // One contract step
+            var minLotSizeAllowed = 1.0; // Minimum one contract
+            var maxLotSizeAllowed = 10.0; // Maximum ten contracts
+
+            // Act
+            var result = mt.CalculateLotSize(accountBalance, riskPercent, openPrice, stopLossPrice, pipValue, pipSize, lotStep, minLotSizeAllowed, maxLotSizeAllowed);
+
+            // Assert
+            Assert.That(result, Is.EqualTo(5)); // Expected value based on the inputs
+        }
+
+        [Test]
+        public void CalculateLotSize_ValidInputs_CorrectCalculationForSP500()
+        {
+            // Arrange
+            var accountBalance = 100000.0;
+            var riskPercent = 1.0;
+            var openPrice = 4300.0; // S&P 500 index value
+            var stopLossPrice = 4290.0; // 10 points stop loss for shorter time frames
+            var pipValue = 1.0; // $1 per point
+            var pipSize = 1.0; // 1 point
+            var lotStep = 0.01; // One contract step
+            var minLotSizeAllowed = 1.0; // Minimum one contract
+            var maxLotSizeAllowed = 10.0; // Maximum ten contracts
+
+            // Act
+            var result = mt.CalculateLotSize(accountBalance, riskPercent, openPrice, stopLossPrice, pipValue, pipSize, lotStep, minLotSizeAllowed, maxLotSizeAllowed);
+
+            // Assert
+            Assert.That(result, Is.EqualTo(10)); // Expected value based on the inputs
+        }
+
+        [Test]
+        public void CalculateLotSize_WithValidInputs_ReturnsCorrectLotSize2()
+        {
+            // Arrange
+            double accountBalance = 163400;
+            double riskPercent = 0.15;
+            double askPrice = 4726.85000;
+            double stopLossPrice = 4632.31300;
+            double tickValue = 0.0091117003;
+            double pointSize = 0.01;
+            double lotStep = 1;
+            double minLotSizeAllowed = 1;
+            double maxLotSizeAllowed = 500;
+
+            // Act
+            var result = mt.CalculateLotSize(accountBalance, riskPercent, askPrice, stopLossPrice, tickValue, pointSize, lotStep, minLotSizeAllowed, maxLotSizeAllowed);
+
+            // Assert
+            Assert.That(result, Is.EqualTo(3)); // Expected value based on the inputs
         }
 
         [Test]

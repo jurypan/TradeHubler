@@ -38,7 +38,7 @@ namespace JCTG.AzureFunction
                     foreach (var mtTrade in items)
                     {
                         // TradeJournal item
-                        _logger.LogDebug($"Parsed Metatrader object : AccountID={mtTrade.AccountID}, TickerInMetatrader={mtTrade.TickerInMetatrader}, ClientID={mtTrade.ClientID}, CurrentPrice={mtTrade.Price}, TickerInTradingview={mtTrade.TickerInTradingview}, Strategy={mtTrade.StrategyType}", jsonString);
+                        _logger.LogDebug($"Parsed Metatrader object : AccountID={mtTrade.AccountID}, TickerInMetatrader={mtTrade.TickerInMetatrader}, ClientID={mtTrade.ClientID}, CurrentPrice={mtTrade.Ask}, TickerInTradingview={mtTrade.TickerInTradingview}, Strategy={mtTrade.StrategyType}", jsonString);
 
                         // Get TradingviewAlert from the database
                         var tvAlert = await _dbContext.TradingviewAlert
@@ -51,7 +51,7 @@ namespace JCTG.AzureFunction
                                             )
                                          && f.StrategyType == mtTrade.StrategyType
                                          )
-                             .OrderBy(f => Math.Abs(f.EntryPrice - mtTrade.Price))
+                             .OrderBy(f => Math.Abs(f.EntryPrice - mtTrade.Ask))
                              .FirstOrDefaultAsync();
 
 
@@ -94,8 +94,8 @@ namespace JCTG.AzureFunction
                                     Instrument = mtTrade.TickerInMetatrader,
                                     TradingviewAlertID = tvAlert.ID,
                                     Executed = false,
-                                    Offset = Math.Round(tvAlert.CurrentPrice - mtTrade.Price, 4, MidpointRounding.AwayFromZero),
-                                    Spread = Math.Round(mtTrade.Spread, 4, MidpointRounding.AwayFromZero),
+                                    Offset = Math.Round(tvAlert.CurrentPrice - mtTrade.Ask, 4, MidpointRounding.AwayFromZero),
+                                    Spread = Math.Round(Math.Abs(mtTrade.Ask - mtTrade.Bid), 4, MidpointRounding.AwayFromZero),
                                     Magic = tvAlert.Magic,
                                 })).Entity;
                                 await _dbContext.SaveChangesAsync();
@@ -106,25 +106,27 @@ namespace JCTG.AzureFunction
 
                             // Check if we need to execute the order
                             if (tvAlert.OrderType.Equals("BUY") 
-                                || (tvAlert.OrderType.Equals("BUYSTOP") && mtTrade.Price + trade.Offset >= tvAlert.EntryPrice)
-                                || (tvAlert.OrderType.Equals("BUYLIMIT") && mtTrade.Price + trade.Offset <= tvAlert.EntryPrice)
+                                || (tvAlert.OrderType.Equals("BUYSTOP") && mtTrade.Ask + trade.Offset >= tvAlert.EntryPrice)
+                                || (tvAlert.OrderType.Equals("BUYLIMIT") && mtTrade.Ask + trade.Offset <= tvAlert.EntryPrice)
                                 )
                             {
                                 // TradeJournal item
-                                _logger.LogWarning($"BUY order is send to Metatrader : BUY,instrument={mtTrade.TickerInMetatrader},price={mtTrade.Price},tp={tvAlert.TakeProfit - trade.Offset - trade.Spread},sl={tvAlert.StopLoss - trade.Offset - trade.Spread},magic={trade.Magic}", trade);
+                                _logger.LogWarning($"BUY order is send to Metatrader : BUY,instrument={mtTrade.TickerInMetatrader},price={mtTrade.Ask},tp={tvAlert.TakeProfit - trade.Offset},sl={tvAlert.StopLoss - trade.Offset},magic={trade.Magic}", trade);
 
                                 // Update database
                                 trade.Executed = true;
                                 trade.DateExecuted = DateTime.UtcNow;
-                                trade.ExecutedPrice = mtTrade.Price;
-                                trade.ExecutedSL = tvAlert.StopLoss - trade.Offset - trade.Spread;
-                                trade.ExecutedTP = tvAlert.TakeProfit - trade.Offset - trade.Spread;
+                                trade.ExecutedPrice = mtTrade.Ask;
+                                trade.ExecutedSL = tvAlert.StopLoss - trade.Offset;
+                                trade.ExecutedTP = tvAlert.TakeProfit - trade.Offset;
                                 await _dbContext.SaveChangesAsync();
 
                                 // TV : 7462.1
                                 // MT : 7464.1
                                 // MT Spread : 1.9
                                 // Offset : 2
+
+                                // Add the maximum range between -> if range exceed -> response NONE
 
                                 // Add repsonse
                                 response.Add(new MetatraderResponse()
@@ -134,27 +136,27 @@ namespace JCTG.AzureFunction
                                     ClientId = mtTrade.ClientID,
                                     TickerInMetatrader = mtTrade.TickerInMetatrader,
                                     TickerInTradingview = mtTrade.TickerInTradingview,
-                                    TakeProfit = tvAlert.TakeProfit - trade.Offset - trade.Spread,
-                                    StopLoss = tvAlert.StopLoss - trade.Offset - trade.Spread,
+                                    TakeProfit = tvAlert.TakeProfit - trade.Offset,
+                                    StopLoss = tvAlert.StopLoss - trade.Offset,
                                     Magic = tvAlert.Magic,
                                     StrategyType = trade.StrategyType,
                                 });
                             }
 
                             else if (tvAlert.OrderType.Equals("SELL")
-                                    || (tvAlert.OrderType.Equals("SELLSTOP") && mtTrade.Price + trade.Offset <= tvAlert.EntryPrice)
-                                    || (tvAlert.OrderType.Equals("SELLLIMIT") && mtTrade.Price + trade.Offset >= tvAlert.EntryPrice)
+                                    || (tvAlert.OrderType.Equals("SELLSTOP") && mtTrade.Bid + trade.Offset <= tvAlert.EntryPrice)
+                                    || (tvAlert.OrderType.Equals("SELLLIMIT") && mtTrade.Bid + trade.Offset >= tvAlert.EntryPrice)
                                     )
                             {
                                 // TradeJournal item
-                                _logger.LogWarning($"SELL order is send to Metatrader : SELL,instrument={mtTrade.TickerInMetatrader},price={mtTrade.Price},tp={tvAlert.TakeProfit - trade.Offset + trade.Spread},sl={tvAlert.StopLoss - trade.Offset + trade.Spread},magic={trade.Magic}", trade);
+                                _logger.LogWarning($"SELL order is send to Metatrader : SELL,instrument={mtTrade.TickerInMetatrader},price={mtTrade.Ask},tp={tvAlert.TakeProfit - trade.Offset},sl={tvAlert.StopLoss - trade.Offset},magic={trade.Magic}", trade);
 
                                 // Update database
                                 trade.Executed = true;
                                 trade.DateExecuted = DateTime.UtcNow;
-                                trade.ExecutedPrice = mtTrade.Price;
-                                trade.ExecutedSL = tvAlert.StopLoss - trade.Offset + trade.Spread;
-                                trade.ExecutedTP = tvAlert.TakeProfit - trade.Offset + trade.Spread;
+                                trade.ExecutedPrice = mtTrade.Bid;
+                                trade.ExecutedSL = tvAlert.StopLoss - trade.Offset;
+                                trade.ExecutedTP = tvAlert.TakeProfit - trade.Offset;
                                 await _dbContext.SaveChangesAsync();
 
                                 // TV : 7462.1
@@ -170,8 +172,8 @@ namespace JCTG.AzureFunction
                                     ClientId = mtTrade.ClientID,
                                     TickerInMetatrader = mtTrade.TickerInMetatrader,
                                     TickerInTradingview = mtTrade.TickerInTradingview,
-                                    TakeProfit = tvAlert.TakeProfit - trade.Offset + trade.Spread,
-                                    StopLoss = tvAlert.StopLoss - trade.Offset + trade.Spread,
+                                    TakeProfit = tvAlert.TakeProfit - trade.Offset,
+                                    StopLoss = tvAlert.StopLoss - trade.Offset,
                                     Magic = tvAlert.Magic,
                                     StrategyType = trade.StrategyType,
                                 });
@@ -181,14 +183,14 @@ namespace JCTG.AzureFunction
                             else if (tvAlert.OrderType.Equals("MODIFYSLTOBE"))
                             {
                                 // TradeJournal item
-                                _logger.LogWarning($"MODIFY SL order is send to Metatrader : MODIFYSLTOBE,instrument={mtTrade.TickerInMetatrader},price={mtTrade.Price},tp={tvAlert.TakeProfit - trade.Offset - trade.Spread},sl={mtTrade.Price},magic={trade.Magic}", trade);
+                                _logger.LogWarning($"MODIFY SL order is send to Metatrader : MODIFYSLTOBE,instrument={mtTrade.TickerInMetatrader},price={mtTrade.Ask},tp={tvAlert.TakeProfit - trade.Offset},sl={mtTrade.Ask},magic={trade.Magic}", trade);
 
                                 // Update database
                                 trade.Executed = true;
                                 trade.DateExecuted = DateTime.UtcNow;
-                                trade.ExecutedPrice = mtTrade.Price;
-                                trade.ExecutedSL = mtTrade.Price;
-                                trade.ExecutedTP = tvAlert.TakeProfit - trade.Offset - trade.Spread;
+                                trade.ExecutedPrice = mtTrade.Ask;
+                                trade.ExecutedSL = mtTrade.Ask;
+                                trade.ExecutedTP = tvAlert.TakeProfit - trade.Offset;
                                 await _dbContext.SaveChangesAsync();
 
                                 // Add repsonse
@@ -199,8 +201,8 @@ namespace JCTG.AzureFunction
                                     ClientId = mtTrade.ClientID,
                                     TickerInMetatrader = mtTrade.TickerInMetatrader,
                                     TickerInTradingview = mtTrade.TickerInTradingview,
-                                    TakeProfit = tvAlert.TakeProfit - trade.Offset - trade.Spread,
-                                    StopLoss = mtTrade.Price,
+                                    TakeProfit = tvAlert.TakeProfit - trade.Offset,
+                                    StopLoss = mtTrade.Ask,
                                     Magic = tvAlert.Magic,
                                     StrategyType = trade.StrategyType,
                                 });
@@ -210,7 +212,7 @@ namespace JCTG.AzureFunction
                             else if (tvAlert.OrderType.Equals("MODIFYSL"))
                             {
                                 // TradeJournal item
-                                _logger.LogWarning($"MODIFY SL order is send to Metatrader : MODIFYSL,instrument={mtTrade.TickerInMetatrader},price={mtTrade.Price},tp={tvAlert.TakeProfit - trade.Offset - trade.Spread},sl={mtTrade.Price - trade.Offset - trade.Spread},magic={trade.Magic}", trade);
+                                _logger.LogWarning($"MODIFY SL order is send to Metatrader : MODIFYSL,instrument={mtTrade.TickerInMetatrader},price={mtTrade.Ask},tp={tvAlert.TakeProfit - trade.Offset},sl={mtTrade.Ask - trade.Offset},magic={trade.Magic}", trade);
 
                                 // Get the BUY or SELL order from the database
                                 var orgTvAlert = await _dbContext.TradingviewAlert
@@ -221,7 +223,7 @@ namespace JCTG.AzureFunction
                                                                                  && f.Magic == tvAlert.Magic
                                                                                  && (f.OrderType.Contains("BUY") || f.OrderType.Contains("SELL"))
                                                                                  )
-                                                                     .OrderBy(f => Math.Abs(f.EntryPrice - mtTrade.Price))
+                                                                     .OrderBy(f => Math.Abs(f.EntryPrice - mtTrade.Ask))
                                                                      .FirstOrDefaultAsync();
 
                                 // Do null reference check
@@ -233,9 +235,9 @@ namespace JCTG.AzureFunction
                                         // Update database
                                         trade.Executed = true;
                                         trade.DateExecuted = DateTime.UtcNow;
-                                        trade.ExecutedPrice = mtTrade.Price;
-                                        trade.ExecutedSL = mtTrade.Price - trade.Offset - trade.Spread; // MT PRICE - OFFSET - SPREAD
-                                        trade.ExecutedTP = tvAlert.TakeProfit - trade.Offset - trade.Spread;
+                                        trade.ExecutedPrice = mtTrade.Ask;
+                                        trade.ExecutedSL = tvAlert.EntryPrice - trade.Offset - trade.Spread;
+                                        trade.ExecutedTP = orgTvAlert.TakeProfit;
                                         await _dbContext.SaveChangesAsync();
 
                                         // Add repsonse
@@ -246,8 +248,8 @@ namespace JCTG.AzureFunction
                                             ClientId = mtTrade.ClientID,
                                             TickerInMetatrader = mtTrade.TickerInMetatrader,
                                             TickerInTradingview = mtTrade.TickerInTradingview,
-                                            TakeProfit = tvAlert.TakeProfit - trade.Offset - trade.Spread,
-                                            StopLoss = mtTrade.Price - trade.Offset - trade.Spread, // MT PRICE - OFFSET - SPREAD
+                                            TakeProfit = orgTvAlert.TakeProfit,
+                                            StopLoss = tvAlert.EntryPrice - trade.Offset - trade.Spread,
                                             Magic = tvAlert.Magic,
                                             StrategyType = trade.StrategyType,
                                         });
@@ -257,9 +259,9 @@ namespace JCTG.AzureFunction
                                         // Update database
                                         trade.Executed = true;
                                         trade.DateExecuted = DateTime.UtcNow;
-                                        trade.ExecutedPrice = mtTrade.Price;
-                                        trade.ExecutedSL = mtTrade.Price - trade.Offset + trade.Spread; // MT PRICE - OFFSET + SPREAD
-                                        trade.ExecutedTP = tvAlert.TakeProfit - trade.Offset + trade.Spread;
+                                        trade.ExecutedPrice = mtTrade.Ask;
+                                        trade.ExecutedSL = tvAlert.EntryPrice - trade.Offset + trade.Spread;
+                                        trade.ExecutedTP = orgTvAlert.TakeProfit;
                                         await _dbContext.SaveChangesAsync();
 
                                         // Add repsonse
@@ -270,25 +272,36 @@ namespace JCTG.AzureFunction
                                             ClientId = mtTrade.ClientID,
                                             TickerInMetatrader = mtTrade.TickerInMetatrader,
                                             TickerInTradingview = mtTrade.TickerInTradingview,
-                                            TakeProfit = tvAlert.TakeProfit - trade.Offset + trade.Spread,
-                                            StopLoss = mtTrade.Price - trade.Offset + trade.Spread, // MT PRICE - OFFSET + SPREAD
+                                            TakeProfit = orgTvAlert.TakeProfit,
+                                            StopLoss = tvAlert.EntryPrice - trade.Offset + trade.Spread,
                                             Magic = tvAlert.Magic,
                                             StrategyType = trade.StrategyType,
-                                        });
+                                        }); ;
                                     }
                                 }
+                                else
+                                {
+                                    // Add repsonse
+                                    response.Add(new MetatraderResponse()
+                                    {
+                                        Action = "NONE",
+                                        AccountId = mtTrade.AccountID,
+                                        ClientId = mtTrade.ClientID,
+                                        TickerInMetatrader = mtTrade.TickerInMetatrader,
+                                        TickerInTradingview = mtTrade.TickerInTradingview,
+                                    });
+                                }
                             }
-
                             // Check if we need to execute the order
                             else if (tvAlert.OrderType.Equals("CLOSE"))
                             {
                                 // TradeJournal item
-                                _logger.LogWarning($"CLOSE order is send to Metatrader : CLOSE,instrument={mtTrade.TickerInMetatrader},price={mtTrade.Price},tp={tvAlert.TakeProfit - trade.Offset - trade.Spread},sl={tvAlert.StopLoss - trade.Offset - trade.Spread},magic={trade.Magic}", trade);
+                                _logger.LogWarning($"CLOSE order is send to Metatrader : CLOSE,instrument={mtTrade.TickerInMetatrader},price={mtTrade.Ask},tp={tvAlert.TakeProfit - trade.Offset - trade.Spread},sl={tvAlert.StopLoss - trade.Offset - trade.Spread},magic={trade.Magic}", trade);
 
                                 // Update database
                                 trade.Executed = true;
                                 trade.DateExecuted = DateTime.UtcNow;
-                                trade.ExecutedPrice = mtTrade.Price;
+                                trade.ExecutedPrice = mtTrade.Ask;
                                 trade.ExecutedSL = tvAlert.StopLoss - trade.Offset - trade.Spread;
                                 trade.ExecutedTP = tvAlert.TakeProfit - trade.Offset - trade.Spread;
                                 await _dbContext.SaveChangesAsync();

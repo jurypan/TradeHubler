@@ -16,5 +16,14 @@ namespace JCTG.Client
         public double LotStep { get; set; }
         [JsonProperty("point_size")]
         public double PointSize { get; set; }
+
+        [JsonProperty("atr_M5_100")]
+        public double ATR5M { get; set; }
+        [JsonProperty("atr_M15_50")]
+        public double ATR15M { get; set; }
+        [JsonProperty("atr_H1_25")]
+        public double ATR1H { get; set; }
+        [JsonProperty("atr_D_14")]
+        public double ATRD { get; set; }
     }
 }

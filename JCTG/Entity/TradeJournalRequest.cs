@@ -12,6 +12,9 @@
 
         public int Magic { get; set; }
 
+        public int TradingviewAlertID { get; set; }
+        public long TicketId { get; set; }
+
         public string Symbol { get; set; }
 
         public double Lots { get; set; }
@@ -20,10 +23,8 @@
 
         public DateTime OpenTime { get; set; }
 
-        public DateTime CloseTime { get; set; }
-
         public double OpenPrice { get; set; }
-        public double ClosePrice { get; set; }
+        public double CurrentPrice { get; set; }
 
         public double SL { get; set; }
 
@@ -39,7 +40,8 @@
 
         public string Timeframe { get; set; }
 
-        public string Comment { get; set; }
+        public string? Comment { get; set; }
 
+        public double Risk { get; set; }
     }
 }

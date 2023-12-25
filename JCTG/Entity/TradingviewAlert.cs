@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using JCTG.Entity;
+using System.ComponentModel.DataAnnotations;
 
 namespace JCTG
 {
@@ -23,13 +24,20 @@ namespace JCTG
         public double StopLoss { get; set; }
         public double TakeProfit { get; set; }
         public int Magic { get; set; }
+        public double Atr5M { get; set; }
+        public double Atr15M { get; set; }
+        public double Atr1H { get; set; }
+        public double AtrD { get; set; }
+
+
         public List<Trade> Trades { get; set; }
+        public List<TradeJournal> TradeJournals { get; set; }
 
         public static TradingviewAlert Parse(string input)
         {
             var parts = input.Split(',');
 
-            if (parts.Length != 9)
+            if (parts.Length != 13)
             {
                 throw new ArgumentException("Input string does not have the correct format.");
             }
@@ -96,6 +104,38 @@ namespace JCTG
                 throw new ArgumentException("Invalid StrategyType format.");
             }
             order.StrategyType = (StrategyType)strategy;
+
+            // Parse ATR 5 minute
+            var atr5MParts = parts[6].Split('=');
+            if (atr5MParts.Length != 2 || !double.TryParse(atr5MParts[1], out double atr5M))
+            {
+                throw new ArgumentException("Invalid ATR 5 minute format.");
+            }
+            order.Atr5M = atr5M;
+
+            // Parse ATR 15 minute
+            var atr15MParts = parts[6].Split('=');
+            if (atr5MParts.Length != 2 || !double.TryParse(atr15MParts[1], out double atr15M))
+            {
+                throw new ArgumentException("Invalid ATR 15 minute format.");
+            }
+            order.Atr15M = atr15M;
+
+            // Parse ATR 1 hour
+            var atr1HParts = parts[6].Split('=');
+            if (atr5MParts.Length != 2 || !double.TryParse(atr1HParts[1], out double atr1H))
+            {
+                throw new ArgumentException("Invalid ATR 1 hour format.");
+            }
+            order.Atr1H = atr1H;
+
+            // Parse ATR day
+            var atrDParts = parts[6].Split('=');
+            if (atr5MParts.Length != 2 || !double.TryParse(atr1HParts[1], out double atrD))
+            {
+                throw new ArgumentException("Invalid ATR day format.");
+            }
+            order.AtrD = atrD;
 
             return order;
         }

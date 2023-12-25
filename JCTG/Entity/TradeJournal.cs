@@ -5,7 +5,7 @@ namespace JCTG.Entity
     public class TradeJournal
     {
         [Key]
-        public int ID { get; set; }
+        public long ID { get; set; }
         public DateTime DateCreated { get; set; }
 
         public Account? Account { get; set; }
@@ -13,17 +13,24 @@ namespace JCTG.Entity
         public Client? Client { get; set; }
         public long ClientID { get; set; }
 
+        public TradingviewAlert? TradingviewAlert { get; set; }
+        public long TradingviewAlertID { get; set; }
+
         public int Magic { get; set; }
 
-        public string Instrument { get; set; }
+        public long TicketId { get; set; }
+
+        public double Risk { get; set; }
+
+        public required string Instrument { get; set; }
 
         public double Lots { get; set; }
 
-        public string Type { get; set; }
+        public required string Type { get; set; }
 
-        public DateTimeOffset OpenTime { get; set; }
+        public DateTime OpenTime { get; set; }
 
-        public DateTimeOffset CloseTime { get; set; }
+        public DateTime CloseTime { get; set; }
 
         public double OpenPrice { get; set; }
 
@@ -39,10 +46,11 @@ namespace JCTG.Entity
 
         public double Swap { get; set; }
 
-        public string Comment { get; set; }
+        public string? Comment { get; set; }
 
         public StrategyType StrategyType { get; set; }
 
-        public string Timeframe { get; set; }
+        public required string Timeframe { get; set; }
+        public double RR { get; set; }
     }
 }

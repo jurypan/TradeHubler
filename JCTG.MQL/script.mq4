@@ -31,12 +31,11 @@ string filePathOrders = folderName + "/DWX_Orders.txt";
 string filePathMessages = folderName + "/DWX_Messages.txt";
 string filePathMarketData = folderName + "/DWX_Market_Data.txt";
 string filePathBarData = folderName + "/DWX_Bar_Data.txt";
-string filePathOrderHistory = folderName + "/DWX_OrderHistory.txt";
 string filePathHistoricData = folderName + "/DWX_Historic_Data.txt";
 string filePathHistoricTrades = folderName + "/DWX_Historic_Trades.txt";
 string filePathCommandsPrefix = folderName + "/DWX_Commands_";
 
-string lastOrderText = "", lastMarketDataText = "", lastMessageText = "", lastOrderHistory = "";
+string lastOrderText = "", lastMarketDataText = "", lastMessageText = "";
 
 struct MESSAGE
 {
@@ -157,7 +156,6 @@ void OnTick() {
    CheckOpenOrders();
    CheckMarketData();
    CheckBarData();
-   CheckIfOrderHasReachedTpOrSl();
 }
 
 
@@ -237,60 +235,7 @@ void CheckCommands() {
    }
 }
 
-void CheckIfOrderHasReachedTpOrSl() {
-   
-   string text = "[";
-   bool first = true;
-   
-   for(int i = OrdersHistoryTotal() - 1; i >= 0; i--)
-   {
-       if(OrderSelect(i, SELECT_BY_POS, MODE_HISTORY))
-       {
-           if(OrderCloseTime() > 0 && OrderCloseTime() != OrderOpenTime()) // Order closed
-           {
-               if(OrderType() <= OP_SELL && (OrderTakeProfit() == OrderClosePrice() || OrderStopLoss() == OrderClosePrice()))
-               {
-                   if(!first)
-                       text += ", ";
-   
-                  string exitType;
-                  if (OrderProfit() == 0)
-                      exitType = "BE";  // Break Even
-                  else
-                      exitType = OrderTakeProfit() == OrderClosePrice() ? "TP" : "SL";  // Take Profit or Stop Loss
-                  
-                  string orderDetails = StringFormat(
-                      "{\"ticket\": %d, \"exit_type\": \"%s\", \"entry_price\": %.10f, \"sl_price\": %.10f, \"tp_price\": %.10f, \"close_price\": %.10f, \"close_time\": \"%s\", \"swap\": %.10f, \"commission\": %.10f, \"profit\": %.10f}", 
-                      OrderTicket(), 
-                      exitType,
-                      OrderOpenPrice(),    // Original entry price
-                      OrderStopLoss(),     // Original SL price
-                      OrderTakeProfit(),   // Original TP price
-                      OrderClosePrice(),   // Close price
-                      TimeToString(OrderCloseTime(), TIME_DATE|TIME_SECONDS),
-                      OrderSwap(),         // Swap
-                      OrderCommission(),   // Commission
-                      OrderProfit()        // Profit
-                  );
-
-
-   
-                   text += orderDetails;
-                   first = false;
-               }
-           }
-       }
-   }
-   
-   text += "]";
-
-   // only write to file if there was a change. 
-   if (text == lastOrderHistory) return;
-   if (WriteToFile(filePathOrderHistory, text)) {
-      lastOrderHistory = text;
-   }
-}
-
+      
 
 void OpenOrder(string orderStr) {
    
@@ -633,6 +578,38 @@ void SubscribeSymbolsBarData(string dataStr) {
 }
 
 
+ENUM_TIMEFRAMES StringToTimeFrame(string tf) {
+    // Standard timeframes
+    if (tf == "M1") return PERIOD_M1;
+    if (tf == "M3") return PERIOD_M3;
+    if (tf == "M5") return PERIOD_M5;
+    if (tf == "M15") return PERIOD_M15;
+    if (tf == "M30") return PERIOD_M30;
+    if (tf == "H1") return PERIOD_H1;
+    if (tf == "H4") return PERIOD_H4;
+    if (tf == "D1") return PERIOD_D1;
+    if (tf == "W1") return PERIOD_W1;
+    if (tf == "MN1") return PERIOD_MN1;
+    return -1;
+}
+
+string TimeFrameToString(ENUM_TIMEFRAMES tf) {
+    // Standard timeframes
+    switch(tf) {
+        case PERIOD_M1:    return "M1";
+        case PERIOD_M3:    return "M3";
+        case PERIOD_M5:    return "M5";
+        case PERIOD_M15:   return "M15";
+        case PERIOD_M30:   return "M30";
+        case PERIOD_H1:    return "H1";
+        case PERIOD_H4:    return "H4";
+        case PERIOD_D1:    return "D1";
+        case PERIOD_W1:    return "W1";
+        case PERIOD_MN1:   return "MN1";
+        default:           return "UNKNOWN";
+    }
+}
+
 void GetHistoricData(string dataStr) {
    
    string sep = ",";
@@ -722,46 +699,71 @@ void GetHistoricData(string dataStr) {
    SendInfo(StringFormat("Successfully read historic data for %s_%s.", symbol, data[1]));
 }
 
-
 void GetHistoricTrades(string dataStr) {
 
-   int lookbackDays = (int)StringToInteger(dataStr);
+    int lookbackDays = (int)StringToInteger(dataStr);
    
-   if (lookbackDays <= 0) {
-      SendError("HISTORIC_TRADES", "Lookback days smaller or equal to zero: " + dataStr);
-      return;
-   }
+    if (lookbackDays <= 0) {
+       SendError("HISTORIC_TRADES", "Lookback days smaller or equal to zero: " + dataStr);
+       return;
+    }
    
-   bool first = true;
-   string text = "{";
-   for(int i=OrdersHistoryTotal()-1; i>=0; i--) {
-      if(!OrderSelect(i, SELECT_BY_POS, MODE_HISTORY)) continue;
-      if (OrderOpenTime() < TimeCurrent() - lookbackDays * (24 * 60 * 60)) continue;
-      if (!first) text += ", ";
-      else first = false;
-      text += StringFormat("\"%d\": {\"magic\": %d, \"symbol\": \"%s\", \"lots\": %.2f, \"type\": \"%s\", \"open_time\": \"%s\", \"close_time\": \"%s\", \"open_price\": %.5f, \"close_price\": %.5f, \"SL\": %.5f, \"TP\": %.5f, \"pnl\": %.2f, \"commission\": %.2f, \"swap\": %.2f, \"comment\": \"%s\"}", 
-                           OrderTicket(), 
-                           OrderMagicNumber(), 
-                           OrderSymbol(), 
-                           OrderLots(), 
-                           OrderTypeToString(OrderType()), 
-                           TimeToString(OrderOpenTime(), TIME_DATE|TIME_SECONDS), 
-                           TimeToString(OrderCloseTime(), TIME_DATE|TIME_SECONDS), 
-                           OrderOpenPrice(), 
-                           OrderClosePrice(), 
-                           OrderStopLoss(), 
-                           OrderTakeProfit(), 
-                           OrderProfit(), 
-                           OrderCommission(), 
-                           OrderSwap(), 
-                           OrderComment());
-   }
-   text += "}";
-   for (int i=0; i<5; i++) {
+    bool first = true;
+    string text = "{";
+    for(int i=OrdersHistoryTotal()-1; i>=0; i--) {
+        if(!OrderSelect(i, SELECT_BY_POS, MODE_HISTORY)) continue;
+        if (OrderOpenTime() < TimeCurrent() - lookbackDays * (24 * 60 * 60)) continue;
+        if (!first) text += ", ";
+        else first = false;
+        text += StringFormat("\"%d\": {\"magic\": %d, \"symbol\": \"%s\", \"lots\": %.2f, \"type\": \"%s\", \"open_time\": \"%s\", \"close_time\": \"%s\", \"open_price\": %.5f, \"close_price\": %.5f, \"SL\": %.5f, \"TP\": %.5f, \"pnl\": %.2f, \"commission\": %.2f, \"swap\": %.2f, \"comment\": \"%s\"}", 
+                             OrderTicket(), 
+                             OrderMagicNumber(), 
+                             OrderSymbol(), 
+                             OrderLots(), 
+                             OrderTypeToString(OrderType()), 
+                             TimeToString(OrderOpenTime(), TIME_DATE|TIME_SECONDS), 
+                             TimeToString(OrderCloseTime(), TIME_DATE|TIME_SECONDS), 
+                             OrderOpenPrice(), 
+                             OrderClosePrice(), 
+                             OrderStopLoss(), 
+                             OrderTakeProfit(), 
+                             OrderProfit(), 
+                             OrderCommission(), 
+                             OrderSwap(), 
+                             OrderComment());
+    }
+    text += "}";
+     for (int i=0; i<5; i++) {
       if (WriteToFile(filePathHistoricTrades, text)) break;
       Sleep(100);
    }
    SendInfo("Successfully read historic trades.");
+}
+
+double CalculateATR(string symbol, int shift, int period, string strTimeframe) {
+    ENUM_TIMEFRAMES timeframe = StringToTimeFrame(strTimeframe);
+    if (timeframe == -1) return 0; // Invalid timeframe
+
+    double atr = 0;
+    double tr = 0;
+
+    // Ensuring we have enough bars for calculation
+    if (iBars(symbol, timeframe) <= period + shift) {
+        Print("Not enough bars to calculate ATR for ", symbol);
+        return(0);
+    }
+
+    for (int i = shift; i < period + shift; i++) {
+        double high = iHigh(symbol, timeframe, i);
+        double low = iLow(symbol, timeframe, i);
+        double close = iClose(symbol, timeframe, i + 1);
+
+        double currentTR = MathMax(high - low, MathMax(MathAbs(high - close), MathAbs(low - close)));
+        tr += currentTR;
+    }
+
+    atr = tr / period;
+    return atr;
 }
 
 
@@ -778,8 +780,12 @@ void CheckMarketData() {
          if (!first)
             text += ", ";
 
+         double atrM5 = CalculateATR(MarketDataSymbols[i], 0, 14, "M5");
+         double atrM15 = CalculateATR(MarketDataSymbols[i], 0, 14, "M15");
+         double atrH1 = CalculateATR(MarketDataSymbols[i], 0, 14, "H1");
+         double atrD = CalculateATR(MarketDataSymbols[i], 0, 14, "D");
 
-         text += StringFormat("\"%s\": {\"bid\": %.10f, \"ask\": %.10f, \"tick_value\": %.10f, \"min_lot_size\": %.10f, \"max_lot_size\": %.10f, \"contract_size\": %.10f, \"volume_step\": %.10f, \"point_size\": %.10f}", 
+         text += StringFormat("\"%s\": {\"bid\": %.10f, \"ask\": %.10f, \"tick_value\": %.10f, \"min_lot_size\": %.10f, \"max_lot_size\": %.10f, \"contract_size\": %.10f, \"volume_step\": %.10f, \"point_size\": %.10f, \"digits\": %d, \"atr_M5\": %.10f, \"atr_M15\": %.10f, \"atr_H1\": %.10f, \"atr_D\": %.10f}", 
                                MarketDataSymbols[i], 
                                lastTick.bid, 
                                lastTick.ask,
@@ -788,7 +794,12 @@ void CheckMarketData() {
                                MarketInfo(MarketDataSymbols[i], MODE_MAXLOT),
                                MarketInfo(MarketDataSymbols[i], MODE_LOTSIZE),
                                MarketInfo(MarketDataSymbols[i], MODE_LOTSTEP),
-                               MarketInfo(MarketDataSymbols[i], MODE_POINT)
+                               MarketInfo(MarketDataSymbols[i], MODE_POINT),
+                               Digits,
+                               atrM5,
+                               atrM15,
+                               atrH1,
+                               atrD
                                );
 
 
@@ -850,37 +861,6 @@ void CheckBarData() {
 }
 
 
-ENUM_TIMEFRAMES StringToTimeFrame(string tf) {
-    // Standard timeframes
-    if (tf == "M1") return PERIOD_M1;
-    if (tf == "M3") return PERIOD_M3;
-    if (tf == "M5") return PERIOD_M5;
-    if (tf == "M15") return PERIOD_M15;
-    if (tf == "M30") return PERIOD_M30;
-    if (tf == "H1") return PERIOD_H1;
-    if (tf == "H4") return PERIOD_H4;
-    if (tf == "D1") return PERIOD_D1;
-    if (tf == "W1") return PERIOD_W1;
-    if (tf == "MN1") return PERIOD_MN1;
-    return -1;
-}
-
-string TimeFrameToString(ENUM_TIMEFRAMES tf) {
-    // Standard timeframes
-    switch(tf) {
-        case PERIOD_M1:    return "M1";
-        case PERIOD_M3:    return "M3";
-        case PERIOD_M5:    return "M5";
-        case PERIOD_M15:   return "M15";
-        case PERIOD_M30:   return "M30";
-        case PERIOD_H1:    return "H1";
-        case PERIOD_H4:    return "H4";
-        case PERIOD_D1:    return "D1";
-        case PERIOD_W1:    return "W1";
-        case PERIOD_MN1:   return "MN1";
-        default:           return "UNKNOWN";
-    }
-}
 
 
 // counts the number of orders with a given magic number. currently not used. 
@@ -920,7 +900,8 @@ void CheckOpenOrders() {
                            OrderProfit(), 
                            OrderCommission(), 
                            OrderSwap(), 
-                           OrderComment());
+                           OrderComment()
+                           );
       first = false;
    }
    text += "}}";

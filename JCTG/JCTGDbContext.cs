@@ -53,6 +53,12 @@ namespace JCTG
                 .HasOne(ta => ta.Client)
                 .WithMany(t => t.TradeJournals)
                 .HasForeignKey(ta => ta.ClientID);
+
+            // Tradejournal - Tradingview Alert
+            modelBuilder.Entity<TradeJournal>()
+                .HasOne(ta => ta.TradingviewAlert)
+                .WithMany(t => t.TradeJournals)
+                .HasForeignKey(ta => ta.TradingviewAlertID);
         }
     }
 }

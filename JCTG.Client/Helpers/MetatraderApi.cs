@@ -35,7 +35,7 @@ namespace JCTG.Client
         private string lastHistoricDataStr = "";
         private string lastHistoricTradesStr = "";
 
-        //public JObject OpenOrders = new JObject();
+
         public Dictionary<long, Order> OpenOrders { get; set; }
         public AccountInfo? AccountInfo { get; set; }
         public Dictionary<string, MarketData> MarketData { get; set; }
@@ -58,6 +58,9 @@ namespace JCTG.Client
         // Define the delegate for the event
         public delegate void OnOrderEventHandler(long clientId, Order order);
         public event OnOrderEventHandler? OnOrderEvent;
+
+        public delegate void OnTradeJournalEventHandler(long clientId);
+        public event OnTradeJournalEventHandler? OnTradeJournalEvent;
 
         public delegate void OnLogEventHandler(long clientId, long id, Log log);
         public event OnLogEventHandler? OnLogEvent;
@@ -199,7 +202,7 @@ namespace JCTG.Client
                                     StopLoss = value["SL"].ToObject<double>(),
                                     TakeProfit = value["TP"].ToObject<double>(),
                                     Pnl = value["pnl"].ToObject<double>(),
-                                    //Commission = value["commission"].ToObject<double>(),
+                                    Commission = value["commission"] != null ? value["commission"].ToObject<double>() : 0.0,
                                     Swap = value["swap"].ToObject<double>(),
                                     Comment = value["comment"].ToObject<string>(),
                                     Magic = value["magic"].ToObject<int>(),
@@ -227,6 +230,8 @@ namespace JCTG.Client
                             }
                         }
                     }
+
+                    OnTradeJournalEvent?.Invoke(ClientId);
                 }
 
 
@@ -673,7 +678,7 @@ namespace JCTG.Client
         /// <param name="symbol">Symbol for which an order should be opened.</param>
         /// <param name="orderType"> Order type. Can be one of: 'buy', 'sell', 'buylimit', 'selllimit', 'buystop', 'sellstop'</param>
         /// <param name="lots">Volume in lots</param>
-        /// <param name="price">Price of the (pending) order. Can be zero for market orders.</param>
+        /// <param name="price">Ask of the (pending) order. Can be zero for market orders.</param>
         /// <param name="stopLoss">SL as absoute price. Can be zero if the order should not have an SL. </param>
         /// <param name="takeProfit"> TP as absoute price. Can be zero if the order should not have a TP.  </param>
         /// <param name="magic">Magic number</param>
@@ -693,7 +698,7 @@ namespace JCTG.Client
         /// </summary>
         /// <param name="ticket">Ticket of the order that should be modified</param>
         /// <param name="lots">Volume in lots</param>
-        /// <param name="price">Price of the (pending) order. Non-zero only works for pending orders</param>
+        /// <param name="price">Ask of the (pending) order. Non-zero only works for pending orders</param>
         /// <param name="stopLoss">New stop loss price</param>
         /// <param name="takeProfit">New take profit price</param>
         /// <param name="expiration">New expiration time given as timestamp in seconds. Can be zero if the order should not have an expiration time</param>

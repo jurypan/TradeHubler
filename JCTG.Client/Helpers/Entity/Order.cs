@@ -16,6 +16,7 @@ namespace JCTG.Client
         [JsonProperty("tp")]
         public double TakeProfit { get; set; }
         public double Pnl { get; set; }
+        public double Commission { get; set; }
         public double Swap { get; set; }
         public string Comment { get; set; }
         public int Magic { get; set; }
