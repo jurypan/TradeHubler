@@ -105,35 +105,35 @@ namespace JCTG
             }
             order.StrategyType = (StrategyType)strategy;
 
-            // Parse ATR 5 minute
+            // Parse Atr5M 5 minute
             var atr5MParts = parts[6].Split('=');
             if (atr5MParts.Length != 2 || !double.TryParse(atr5MParts[1], out double atr5M))
             {
-                throw new ArgumentException("Invalid ATR 5 minute format.");
+                throw new ArgumentException("Invalid Atr5M 5 minute format.");
             }
             order.Atr5M = atr5M;
 
-            // Parse ATR 15 minute
+            // Parse Atr5M 15 minute
             var atr15MParts = parts[6].Split('=');
             if (atr5MParts.Length != 2 || !double.TryParse(atr15MParts[1], out double atr15M))
             {
-                throw new ArgumentException("Invalid ATR 15 minute format.");
+                throw new ArgumentException("Invalid Atr5M 15 minute format.");
             }
             order.Atr15M = atr15M;
 
-            // Parse ATR 1 hour
+            // Parse Atr5M 1 hour
             var atr1HParts = parts[6].Split('=');
             if (atr5MParts.Length != 2 || !double.TryParse(atr1HParts[1], out double atr1H))
             {
-                throw new ArgumentException("Invalid ATR 1 hour format.");
+                throw new ArgumentException("Invalid Atr5M 1 hour format.");
             }
             order.Atr1H = atr1H;
 
-            // Parse ATR day
+            // Parse Atr5M day
             var atrDParts = parts[6].Split('=');
             if (atr5MParts.Length != 2 || !double.TryParse(atr1HParts[1], out double atrD))
             {
-                throw new ArgumentException("Invalid ATR day format.");
+                throw new ArgumentException("Invalid Atr5M day format.");
             }
             order.AtrD = atrD;
 

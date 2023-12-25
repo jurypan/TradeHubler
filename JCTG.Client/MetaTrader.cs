@@ -101,7 +101,10 @@ namespace JCTG.Client
                                         Bid = metadataTick.Bid,
                                         StrategyType = ticker.StrategyNr,
                                         TickerInTradingview = ticker.TickerInTradingView,
-                                        ATR = metadataTick.ATR15M,
+                                        Atr5M = metadataTick.ATR5M,
+                                        Atr15M = metadataTick.ATR15M,
+                                        Atr1H = metadataTick.ATR1H,
+                                        AtrD = metadataTick.ATRD,
                                     };
 
                                     // Is current time within the sessions of the app config ?
@@ -164,6 +167,10 @@ namespace JCTG.Client
                                         Ask = metadataTick.Ask,
                                         StrategyType = ticker.StrategyNr,
                                         TickerInTradingview = ticker.TickerInTradingView,
+                                        Atr5M = metadataTick.ATR5M,
+                                        Atr15M = metadataTick.ATR15M,
+                                        Atr1H = metadataTick.ATR1H,
+                                        AtrD = metadataTick.ATRD,
                                     };
                                     mtRequests.Add(mtRequest);
 
