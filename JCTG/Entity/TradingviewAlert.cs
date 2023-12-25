@@ -12,7 +12,7 @@ namespace JCTG
         }
 
         [Key]
-        public int ID { get; set; }
+        public long ID { get; set; }
         public DateTime DateCreated { get; set; }
         public StrategyType StrategyType { get; set; }
         public Account Account { get; set; }

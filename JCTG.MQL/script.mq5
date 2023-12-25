@@ -3,7 +3,7 @@
 //+------------------------------------------------s-----------------+
 #property copyright "Copyright 2023, JP.x BV"
 #property link      "https://www.justcalltheguy.io"
-#property version   "2.001"
+#property version   "2.005"
 #property strict
 
 /*
@@ -30,7 +30,7 @@ input int numLastMessages = 50;  // Maximum number of messages to save
 input bool openChartsForBarData = true;  // Open charts for bar data?
 input bool openChartsForHistoricData = true;  // Open charts for historical data?
 input int MaximumOrders = 10;  // Maximum orders that you can take on 1 broker
-input double MaximumLotSize = 100; // Maximum lot size for 1 trade
+input double MaximumLotSize = 1000; // Maximum lot size for 1 trade
 input int SlippagePoints = 3; // Maximum slippage in points
 input int lotSizeDigits = 2; // Amount of digits for the lot size 
 input bool OnlyOpenTradeWhenNoRisk = false;  // Only open a new trade when there is no risk
@@ -808,6 +808,7 @@ void GetHistoricTrades(string dataStr) {
                            HistoryDealGetDouble(ticket, DEAL_COMMISSION), 
                            HistoryDealGetDouble(ticket, DEAL_SWAP), 
                            HistoryDealGetString(ticket, DEAL_COMMENT));
+      
    }
    
    
@@ -817,6 +818,32 @@ void GetHistoricTrades(string dataStr) {
       Sleep(100);
    }
    SendInfo("Successfully read historic trades.");
+}
+
+double CalculateATR(string symbol, int shift, int period, string strTimeframe) {
+    ENUM_TIMEFRAMES timeframe = StringToTimeFrame(strTimeframe);
+    if (timeframe == -1) return 0; // Invalid timeframe
+
+    double atr = 0;
+    double tr = 0;
+
+    // Ensuring we have enough bars for calculation
+    if (iBars(symbol, timeframe) <= period + shift) {
+        Print("Not enough bars to calculate ATR for ",  symbol);
+        return(0);
+    }
+
+    for (int i = shift; i < period + shift; i++) {
+        double high = iHigh(symbol, timeframe, i);
+        double low = iLow(symbol, timeframe, i);
+        double close = iClose(symbol, timeframe, i + 1);
+
+        double currentTR = MathMax(high - low, MathMax(MathAbs(high - close), MathAbs(low - close)));
+        tr += currentTR;
+    }
+
+    atr = tr / period;
+    return atr;
 }
 
 
@@ -833,6 +860,10 @@ void CheckMarketData() {
          if (!first)
             text += ", ";
          
+         double atrM5 = CalculateATR(MarketDataSymbols[i], 1, 14, "M5");
+         double atrM15 = CalculateATR(MarketDataSymbols[i], 1, 14, "M15");
+         double atrH1 = CalculateATR(MarketDataSymbols[i], 1, 14, "H1");
+         double atrD = CalculateATR(MarketDataSymbols[i], 1, 14, "D1");
                               
          text += StringFormat("\"%s\": {\"bid\": %.10f, \"ask\": %.10f, \"tick_value\": %.10f, \"min_lot_size\": %.10f, \"max_lot_size\": %.10f, \"contract_size\": %.10f, \"volume_step\": %.10f, \"point_size\": %.10f}", 
                      MarketDataSymbols[i], 
@@ -843,7 +874,8 @@ void CheckMarketData() {
                      SymbolInfoDouble(MarketDataSymbols[i], SYMBOL_VOLUME_MAX),
                      SymbolInfoDouble(MarketDataSymbols[i], SYMBOL_TRADE_CONTRACT_SIZE),
                      SymbolInfoDouble(MarketDataSymbols[i], SYMBOL_VOLUME_STEP),
-                     SymbolInfoDouble(MarketDataSymbols[i], SYMBOL_POINT)
+                     SymbolInfoDouble(MarketDataSymbols[i], SYMBOL_POINT),
+                     Digits()
                      );
                      
          first = false;

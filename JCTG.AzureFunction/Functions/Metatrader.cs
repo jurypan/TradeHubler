@@ -163,29 +163,26 @@ namespace JCTG.AzureFunction
                                     )
                             {
                                 // Caculate SL Price
-                                var slPrice = CalculateSLForLong(
-                                            mtPrice: mtTrade.Ask,
+                                var slPrice = CalculateSLForShort(
+                                            mtPrice: mtTrade.Bid,
                                             mtAtr: GetAtr(mtTrade.Atr5M, mtTrade.Atr15M, mtTrade.Atr1H, mtTrade.AtrD, trade.StrategyType),
                                             tvPrice: tvAlert.EntryPrice,
                                             tvSlPrice: tvAlert.StopLoss,
                                             tvAtr: GetAtr(tvAlert.Atr5M, tvAlert.Atr15M, tvAlert.Atr1H, tvAlert.AtrD, trade.StrategyType),
-                                            offset: trade.Offset);
+                                            offset: trade.Offset,
+                                            spread: trade.Spread);
 
                                 // TradeJournal item
-                                _logger.LogWarning($"SELL order is send to Metatrader : SELL,instrument={mtTrade.TickerInMetatrader},mtAskPrice={mtTrade.Ask},tp={tvAlert.TakeProfit - trade.Offset},sl={tvAlert.StopLoss - trade.Offset},magic={trade.Magic}", trade);
+                                _logger.LogWarning($"SELL order is send to Metatrader : SELL,instrument={mtTrade.TickerInMetatrader},mtAskPrice={mtTrade.Ask},tp={tvAlert.TakeProfit - trade.Offset},sl={slPrice},magic={trade.Magic}", trade);
 
                                 // Update database
                                 trade.Executed = true;
                                 trade.DateExecuted = DateTime.UtcNow;
                                 trade.ExecutedPrice = mtTrade.Bid;
-                                trade.ExecutedSL =  tvAlert.StopLoss - trade.Offset;
+                                //trade.ExecutedSL =  tvAlert.StopLoss - trade.Offset;
+                                trade.ExecutedSL = slPrice;
                                 trade.ExecutedTP = tvAlert.TakeProfit - trade.Offset;
                                 await _dbContext.SaveChangesAsync();
-
-                                // TV : 7462.1
-                                // MT : 7464.1
-                                // MT Spread : 1.9
-                                // Offset : 2
 
                                 // Add repsonse
                                 response.Add(new MetatraderResponse()
@@ -196,7 +193,8 @@ namespace JCTG.AzureFunction
                                     TickerInMetatrader = mtTrade.TickerInMetatrader,
                                     TickerInTradingview = mtTrade.TickerInTradingview,
                                     TakeProfit = tvAlert.TakeProfit - trade.Offset,
-                                    StopLoss = tvAlert.StopLoss - trade.Offset,
+                                    //StopLoss = tvAlert.StopLoss - trade.Offset,
+                                    StopLoss = slPrice,
                                     Magic = tvAlert.Magic,
                                     StrategyType = trade.StrategyType,
                                 });
@@ -233,8 +231,6 @@ namespace JCTG.AzureFunction
                             // Check if we need to modify the order
                             else if (tvAlert.OrderType.Equals("MODIFYSL"))
                             {
-                                // TradeJournal item
-                                _logger.LogWarning($"MODIFY SL order is send to Metatrader : MODIFYSL,instrument={mtTrade.TickerInMetatrader},mtAskPrice={mtTrade.Ask},tp={tvAlert.TakeProfit - trade.Offset},sl={mtTrade.Ask - trade.Offset},magic={trade.Magic}", trade);
 
                                 // Get the BUY or SELL order from the database
                                 var orgTvAlert = await _dbContext.TradingviewAlert
@@ -249,16 +245,28 @@ namespace JCTG.AzureFunction
                                                                      .FirstOrDefaultAsync();
 
                                 // Do null reference check
-                                if(orgTvAlert != null) 
+                                if (orgTvAlert != null) 
                                 {
                                     // BUY ORDER
                                     if(orgTvAlert.OrderType.Contains("BUY"))
                                     {
+                                        // Caculate SL Price
+                                        var slPrice = CalculateSLForLong(
+                                                    mtPrice: mtTrade.Ask,
+                                                    mtAtr: GetAtr(mtTrade.Atr5M, mtTrade.Atr15M, mtTrade.Atr1H, mtTrade.AtrD, trade.StrategyType),
+                                                    tvPrice: tvAlert.EntryPrice,
+                                                    tvSlPrice: tvAlert.StopLoss,
+                                                    tvAtr: GetAtr(tvAlert.Atr5M, tvAlert.Atr15M, tvAlert.Atr1H, tvAlert.AtrD, trade.StrategyType),
+                                                    offset: trade.Offset);
+
+                                        // TradeJournal item
+                                        _logger.LogWarning($"MODIFY SL order is send to Metatrader : MODIFYSL,instrument={mtTrade.TickerInMetatrader},mtAskPrice={mtTrade.Ask},tp={tvAlert.TakeProfit - trade.Offset},sl={slPrice},magic={trade.Magic}", trade);
+
                                         // Update database
                                         trade.Executed = true;
                                         trade.DateExecuted = DateTime.UtcNow;
                                         trade.ExecutedPrice = mtTrade.Ask;
-                                        trade.ExecutedSL = tvAlert.EntryPrice - trade.Offset;
+                                        trade.ExecutedSL = slPrice;
                                         trade.ExecutedTP = orgTvAlert.TakeProfit;
                                         await _dbContext.SaveChangesAsync();
 
@@ -278,11 +286,24 @@ namespace JCTG.AzureFunction
                                     }
                                     else 
                                     {
+                                        // Caculate SL Price
+                                        var slPrice = CalculateSLForShort(
+                                                    mtPrice: mtTrade.Bid,
+                                                    mtAtr: GetAtr(mtTrade.Atr5M, mtTrade.Atr15M, mtTrade.Atr1H, mtTrade.AtrD, trade.StrategyType),
+                                                    tvPrice: tvAlert.EntryPrice,
+                                                    tvSlPrice: tvAlert.StopLoss,
+                                                    tvAtr: GetAtr(tvAlert.Atr5M, tvAlert.Atr15M, tvAlert.Atr1H, tvAlert.AtrD, trade.StrategyType),
+                                                    offset: trade.Offset,
+                                                    spread: trade.Spread);
+
+                                        // TradeJournal item
+                                        _logger.LogWarning($"MODIFY SL order is send to Metatrader : MODIFYSL,instrument={mtTrade.TickerInMetatrader},mtAskPrice={mtTrade.Ask},tp={tvAlert.TakeProfit - trade.Offset},sl={slPrice},magic={trade.Magic}", trade);
+
                                         // Update database
                                         trade.Executed = true;
                                         trade.DateExecuted = DateTime.UtcNow;
                                         trade.ExecutedPrice = mtTrade.Ask;
-                                        trade.ExecutedSL = tvAlert.EntryPrice - trade.Offset;
+                                        trade.ExecutedSL = slPrice;
                                         trade.ExecutedTP = orgTvAlert.TakeProfit;
                                         await _dbContext.SaveChangesAsync();
 
@@ -295,7 +316,7 @@ namespace JCTG.AzureFunction
                                             TickerInMetatrader = mtTrade.TickerInMetatrader,
                                             TickerInTradingview = mtTrade.TickerInTradingview,
                                             TakeProfit = orgTvAlert.TakeProfit,
-                                            StopLoss = tvAlert.EntryPrice - trade.Offset,
+                                            StopLoss = slPrice,
                                             Magic = tvAlert.Magic,
                                             StrategyType = trade.StrategyType,
                                         }); ;
@@ -398,6 +419,38 @@ namespace JCTG.AzureFunction
                 // Calculate SL price using MetaTrader price minus risk to take
                 slPrice = mtPrice - ((tvPrice - tvSlPrice) * atrMultiplier);
             }
+
+            return Math.Round(slPrice, 4, MidpointRounding.AwayFromZero);
+        }
+
+        /// <summary>
+        /// Calculate the stop loss price for long positions based on the specified parameters
+        /// </summary>
+        /// <param name="mtPrice">MetaTrader ASK price</param>
+        /// <param name="mtAtr">MetaTrader Atr5M</param>
+        /// <param name="tvPrice">TradingView ENTRY price</param>
+        /// <param name="tvSlPrice">TradingView SL price</param>
+        /// <param name="tvAtr">TradingView Atr5M</param>
+        /// <param name="offset">Offset value</param>
+        /// <param name="spread">The spread value</param>
+        /// <returns>Stop loss price</returns>
+        public static double CalculateSLForShort(double mtPrice, double mtAtr, double tvPrice, double tvSlPrice, double tvAtr, double offset, double spread)
+        {
+            // Calculate the Atr5M multiplier based on the difference between MetaTrader's Atr5M and TradingView's Atr5M
+            var atrMultiplier = mtAtr > 0 && tvAtr > 0 && mtAtr > tvAtr ? mtAtr / tvAtr : 1.0;
+
+            // Calculate the stop loss price
+            var slPrice = tvSlPrice - offset;
+
+            // Check if Atr5M is equal to 1
+            if (atrMultiplier > 1.0)
+            {
+                // Calculate SL price using MetaTrader price minus risk to take
+                slPrice = mtPrice + ((tvSlPrice - tvPrice) * atrMultiplier);
+            }
+
+            // Caculate the spread on top of it
+            slPrice = slPrice + spread;
 
             return Math.Round(slPrice, 4, MidpointRounding.AwayFromZero);
         }

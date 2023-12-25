@@ -3,7 +3,7 @@
 //+------------------------------------------------s-----------------+
 #property copyright "Copyright 2023, JP.x BV"
 #property link      "https://www.justcalltheguy.io"
-#property version   "2.002"
+#property version   "2.005"
 #property strict
 
 // if the timer is too small, we might have problems accessing the files from python (mql will write to file every update time). 
@@ -12,7 +12,7 @@ input int numLastMessages = 50; // Maximum number of messages to save
 input bool openChartsForBarData = true; // Open charts for bar data?
 input bool openChartsForHistoricData = true; // Open charts for historical data?
 input int MaximumOrders = 10; // Maximum orders that you can take on 1 broker
-input double MaximumLotSize = 100; // Maximum lot size for 1 trade
+input double MaximumLotSize = 1000; // Maximum lot size for 1 trade
 input int SlippagePoints = 3; // Maximum slippage in points
 input bool OnlyOpenTradeWhenNoRisk = false; // Only open a new trade when there is no risk
 
@@ -749,7 +749,7 @@ double CalculateATR(string symbol, int shift, int period, string strTimeframe) {
 
     // Ensuring we have enough bars for calculation
     if (iBars(symbol, timeframe) <= period + shift) {
-        Print("Not enough bars to calculate ATR for ", symbol);
+        Print("Not enough bars to calculate ATR for ",  symbol);
         return(0);
     }
 
@@ -780,10 +780,10 @@ void CheckMarketData() {
          if (!first)
             text += ", ";
 
-         double atrM5 = CalculateATR(MarketDataSymbols[i], 0, 14, "M5");
-         double atrM15 = CalculateATR(MarketDataSymbols[i], 0, 14, "M15");
-         double atrH1 = CalculateATR(MarketDataSymbols[i], 0, 14, "H1");
-         double atrD = CalculateATR(MarketDataSymbols[i], 0, 14, "D");
+         double atrM5 = CalculateATR(MarketDataSymbols[i], 1, 14, "M5");
+         double atrM15 = CalculateATR(MarketDataSymbols[i], 1, 14, "M15");
+         double atrH1 = CalculateATR(MarketDataSymbols[i], 1, 14, "H1");
+         double atrD = CalculateATR(MarketDataSymbols[i], 1, 14, "D1");
 
          text += StringFormat("\"%s\": {\"bid\": %.10f, \"ask\": %.10f, \"tick_value\": %.10f, \"min_lot_size\": %.10f, \"max_lot_size\": %.10f, \"contract_size\": %.10f, \"volume_step\": %.10f, \"point_size\": %.10f, \"digits\": %d, \"atr_M5\": %.10f, \"atr_M15\": %.10f, \"atr_H1\": %.10f, \"atr_D\": %.10f}", 
                                MarketDataSymbols[i], 

@@ -1,112 +1,112 @@
 {
   "AccountId": 692803787,
   "Brokers": [
-    //{
-    //  "Name": "Darwinex Zero - MT4",
-    //  "MetaTraderDirPath": "C:\\Users\\joeri.pansaerts\\AppData\\Roaming\\MetaQuotes\\Terminal\\3B534B10135CFEDF8CD1AAB8BD994B13\\MQL4\\Files\\",
-    //  "ClientId": 2100108109,
-    //  "Pairs": [
-    //    {
-    //      "TickerInTradingView": "XJO",
-    //      "TickerInMetatrader": "AUS200",
-    //      "Timeframe": "M5",
-    //      "StrategyNr": 5,
-    //      "Risk": 0.15,
-    //      "OverrideSession": true,
-    //      "Sessions": {
-    //        "Monday": {
-    //          "open": "23:50",
-    //          "close": "06:10"
-    //        },
-    //        "Tuesday": {
-    //          "open": "23:50",
-    //          "close": "06:10"
-    //        },
-    //        "Wednesday": {
-    //          "open": "23:50",
-    //          "close": "06:10"
-    //        },
-    //        "Thursday": {
-    //          "open": "23:50",
-    //          "close": "06:10"
-    //        },
-    //        "Friday": {
-    //          "open": null,
-    //          "close": "06:10"
-    //        },
-    //        "Saterday": null,
-    //        "Sunday": {
-    //          "open": "23:50",
-    //          "close": null
-    //        }
-    //      }
-    //    },
-    //    {
-    //      "TickerInTradingView": "SX5E",
-    //      "TickerInMetatrader": "STOXX50E",
-    //      "Timeframe": "M5",
-    //      "StrategyNr": 5,
-    //      "Risk": 0.15,
-    //      "OverrideSession": true,
-    //      "Sessions": {
-    //        "Monday": {
-    //          "open": "08:50",
-    //          "close": "18:10"
-    //        },
-    //        "Tuesday": {
-    //          "open": "08:50",
-    //          "close": "18:10"
-    //        },
-    //        "Wednesday": {
-    //          "open": "08:50",
-    //          "close": "18:10"
-    //        },
-    //        "Thursday": {
-    //          "open": "08:50",
-    //          "close": "18:10"
-    //        },
-    //        "Friday": {
-    //          "open": "08:50",
-    //          "close": "18:10"
-    //        },
-    //        "Saterday": null,
-    //        "Sunday": null
-    //      }
-    //    },
-    //    {
-    //      "TickerInTradingView": "SPX",
-    //      "TickerInMetatrader": "SP500",
-    //      "Timeframe": "M5",
-    //      "StrategyNr": 5,
-    //      "Risk": 0.15,
-    //      "OverrideSession": true,
-    //      "Sessions": {
-    //        "Monday": {
-    //          "open": "15:20",
-    //          "close": "22:10"
-    //        },
-    //        "Tuesday": {
-    //          "open": "15:20",
-    //          "close": "22:10"
-    //        },
-    //        "Wednesday": {
-    //          "open": "15:20",
-    //          "close": "22:10"
-    //        },
-    //        "Thursday": {
-    //          "open": "15:20",
-    //          "close": "22:10"
-    //        },
-    //        "Friday": {
-    //          "open": "15:20",
-    //          "close": "22:10"
-    //        },
-    //        "Saterday": null,
-    //        "Sunday": null
-    //      }
-    //    }
-    //  ]
-    //},
+    {
+      "Name": "Darwinex Zero - MT4",
+      "MetaTraderDirPath": "C:\\Users\\joeri.pansaerts\\AppData\\Roaming\\MetaQuotes\\Terminal\\3B534B10135CFEDF8CD1AAB8BD994B13\\MQL4\\Files\\",
+      "ClientId": 2100108109,
+      "Pairs": [
+        {
+          "TickerInTradingView": "XJO",
+          "TickerInMetatrader": "AUS200",
+          "Timeframe": "M5",
+          "StrategyNr": 5,
+          "Risk": 0.05, // 0.15
+          "OverrideSession": true,
+          "Sessions": {
+            "Monday": {
+              "open": "23:50",
+              "close": "06:10"
+            },
+            "Tuesday": {
+              "open": "23:50",
+              "close": "06:10"
+            },
+            "Wednesday": {
+              "open": "23:50",
+              "close": "06:10"
+            },
+            "Thursday": {
+              "open": "23:50",
+              "close": "06:10"
+            },
+            "Friday": {
+              "open": null,
+              "close": "06:10"
+            },
+            "Saterday": null,
+            "Sunday": {
+              "open": "23:50",
+              "close": null
+            }
+          }
+        },
+        {
+          "TickerInTradingView": "SX5E",
+          "TickerInMetatrader": "STOXX50E",
+          "Timeframe": "M5",
+          "StrategyNr": 5,
+          "Risk": 0.05, // 0.15
+          "OverrideSession": true,
+          "Sessions": {
+            "Monday": {
+              "open": "08:50",
+              "close": "18:10"
+            },
+            "Tuesday": {
+              "open": "08:50",
+              "close": "18:10"
+            },
+            "Wednesday": {
+              "open": "08:50",
+              "close": "18:10"
+            },
+            "Thursday": {
+              "open": "08:50",
+              "close": "18:10"
+            },
+            "Friday": {
+              "open": "08:50",
+              "close": "18:10"
+            },
+            "Saterday": null,
+            "Sunday": null
+          }
+        },
+        {
+          "TickerInTradingView": "SPX",
+          "TickerInMetatrader": "SP500",
+          "Timeframe": "M5",
+          "StrategyNr": 5,
+          "Risk": 0.05, // 0.15
+          "OverrideSession": true,
+          "Sessions": {
+            "Monday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Tuesday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Wednesday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Thursday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Friday": {
+              "open": "15:20",
+              "close": "22:10"
+            },
+            "Saterday": null,
+            "Sunday": null
+          }
+        }
+      ]
+    },
     {
       "Name": "OANDA - MT4 - Paper",
       "MetaTraderDirPath": "C:\\Users\\joeri.pansaerts\\AppData\\Roaming\\MetaQuotes\\Terminal\\3212703ED955F10C7534BE8497B221F4\\MQL4\\Files\\",
@@ -1050,7 +1050,7 @@
           "TickerInMetatrader": "ASXAUD",
           "Timeframe": "M3",
           "StrategyNr": 3,
-          "Risk": 0.15,
+          "Risk": 0.05, // 0.15
           "OverrideSession": true,
           "Sessions": {
             "Monday": {
@@ -1085,7 +1085,7 @@
           "TickerInMetatrader": "ESXEUR",
           "Timeframe": "M3",
           "StrategyNr": 3,
-          "Risk": 0.15,
+          "Risk": 0.05, // 0.15
           "OverrideSession": true,
           "Sessions": {
             "Monday": {
@@ -1117,7 +1117,7 @@
           "TickerInMetatrader": "SPXUSD",
           "Timeframe": "M3",
           "StrategyNr": 3,
-          "Risk": 0.15,
+          "Risk": 0.05, // 0.15
           "OverrideSession": true,
           "Sessions": {
             "Monday": {

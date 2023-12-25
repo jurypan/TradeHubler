@@ -30,6 +30,7 @@ namespace JCTG.Client
             {
                 try
                 {
+                    //var response = await _httpClient.PostAsync("http://localhost:7259/api/Metatrader", content);
                     var response = await _httpClient.PostAsync("https://justcalltheguy.azurewebsites.net/api/Metatrader?code=6CUPL6bDM0q_AQaqZpJnpRQNQko-WFuw-I9nlxu0UvxUAzFuDRTNtw==", content);
 
                     if (response.StatusCode == HttpStatusCode.OK)

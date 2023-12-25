@@ -196,7 +196,7 @@ namespace JCTG.Client
                         }
 
                         // Check if the markets are open, and we need to do a server call
-                        if (mtRequests.Any())
+                        if (mtRequests.Count != 0)
                         {
                             // Send the information to the backend
                             var mtResponse = await backend.GetMetatraderResponseAsync(mtRequests);
