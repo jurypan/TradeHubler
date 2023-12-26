@@ -15,6 +15,8 @@ namespace JCTG
 
         public DbSet<TradeJournal> TradeJournal { get; set; }
 
+        public DbSet<Log> Log { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
 
@@ -59,6 +61,18 @@ namespace JCTG
                 .HasOne(ta => ta.TradingviewAlert)
                 .WithMany(t => t.TradeJournals)
                 .HasForeignKey(ta => ta.TradingviewAlertID);
+
+            // Log - Account
+            modelBuilder.Entity<Log>()
+                .HasOne(ta => ta.Account)
+                .WithMany(t => t.Logs)
+                .HasForeignKey(ta => ta.AccountID);
+
+            // Log - Client
+            modelBuilder.Entity<Log>()
+                .HasOne(ta => ta.Client)
+                .WithMany(t => t.Logs)
+                .HasForeignKey(ta => ta.ClientID);
         }
     }
 }

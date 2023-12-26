@@ -19,7 +19,7 @@ namespace JCTG.Client
             // Number of retry attempts
             const int maxRetries = 3;
             // Delay in milliseconds between retries
-            const int delayBetweenRetries = 2000;
+            const int delayBetweenRetries = 5000;
 
             // Prepare the data to send 
             var postData = JsonConvert.SerializeObject(request);
@@ -31,7 +31,7 @@ namespace JCTG.Client
                 try
                 {
                     //var response = await _httpClient.PostAsync("http://localhost:7259/api/Metatrader", content);
-                    var response = await _httpClient.PostAsync("https://justcalltheguy.azurewebsites.net/api/Metatrader?code=6CUPL6bDM0q_AQaqZpJnpRQNQko-WFuw-I9nlxu0UvxUAzFuDRTNtw==", content);
+                    var response = await _httpClient.PostAsync("https://justcalltheguy.azurewebsites.net/api/Metatrader?code=5cNSO8LDNjdrupIkouwPIU9tIOrjo2AMQJgsaSQOnXcNAzFu5YSBkg==", content);
 
                     if (response.StatusCode == HttpStatusCode.OK)
                     {
@@ -59,7 +59,7 @@ namespace JCTG.Client
             // Number of retry attempts
             const int maxRetries = 3;
             // Delay in milliseconds between retries
-            const int delayBetweenRetries = 2000;
+            const int delayBetweenRetries = 5000;
 
             // Prepare the data to send 
             var postData = JsonConvert.SerializeObject(request);
@@ -74,7 +74,48 @@ namespace JCTG.Client
                     try
                     {
                         // Execute the POST request
-                        var response = await _httpClient.PostAsync("https://justcalltheguy.azurewebsites.net/api/TradeJournal?code=g-G3bQKiuiIR7V5_76MMMw3oTGeAtfijpmj077gXbD9LAzFumQ7jmg==", content);
+                        var response = await _httpClient.PostAsync("https://justcalltheguy.azurewebsites.net/api/TradeJournal?code=ZiH5_uE_CNU7Yu1QvBIhAHNe-rTG4nhKaXUiUt9lgIJtAzFuPvuf-A==", content);
+
+                        // Check the response status
+                        if (response.StatusCode == HttpStatusCode.OK)
+                        {
+                            // Handle successful response
+                            break; // Exit the loop if successful
+                        }
+                    }
+                    catch (HttpRequestException)
+                    {
+                        // Log the exception or handle it as needed
+                        if (retry == maxRetries - 1)
+                            throw; // Re-throw the exception on the last retry
+                        else
+                            await Task.Delay(delayBetweenRetries); // Wait before retrying
+                    }
+                }
+            });
+        }
+
+        public void SendLog(LogRequest request)
+        {
+            // Number of retry attempts
+            const int maxRetries = 3;
+            // Delay in milliseconds between retries
+            const int delayBetweenRetries = 5000;
+
+            // Prepare the data to send 
+            var postData = JsonConvert.SerializeObject(request);
+            var content = new StringContent(postData, Encoding.UTF8, "application/json");
+            _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+            // Start a background task
+            Task.Run(async () =>
+            {
+                for (int retry = 0; retry < maxRetries; retry++)
+                {
+                    try
+                    {
+                        // Execute the POST request
+                        var response = await _httpClient.PostAsync("https://justcalltheguy.azurewebsites.net/api/Log?code=XkM05KfxlYMogR2lf_nN7klzdkHv2qwme8I-wOzUZz4EAzFuNh0wcQ==", content);
 
                         // Check the response status
                         if (response.StatusCode == HttpStatusCode.OK)

@@ -1,4 +1,5 @@
 ﻿using Azure;
+using Azure.Core;
 using Microsoft.Extensions.DependencyInjection;
 using static JCTG.Client.Helpers;
 
@@ -61,11 +62,8 @@ namespace JCTG.Client
 
         public async Task ListenToTheServerAsync()
         {
-            // Do the API CAll
-            var backend = Program.Service?.GetService<AzureFunctionApiClient>();
-
             // Do null reference checks
-            if (backend != null && _appConfig != null)
+            if(_appConfig != null)
             {
                 // Loop through the api
                 foreach (var _api in _apis)
@@ -129,6 +127,15 @@ namespace JCTG.Client
                                             Print("Time      : " + DateTime.UtcNow);
                                             Print("Symbol    : " + mtRequest.TickerInTradingview);
                                             Print("------------------------------------------------");
+
+                                            // Send to the server
+                                            new AzureFunctionApiClient().SendLog(new LogRequest()
+                                            {
+                                                AccountID = _appConfig.AccountId,
+                                                ClientID = mtRequest.ClientID,
+                                                Message = string.Format($"Symbol={mtRequest.TickerInTradingview}"),
+                                                Type = "CONSOLE - START LISTENING TO MARKET",
+                                            });
                                         }
                                     }
                                     else
@@ -153,6 +160,15 @@ namespace JCTG.Client
                                             Print("Time      : " + DateTime.UtcNow);
                                             Print("Symbol    : " + mtRequest.TickerInTradingview);
                                             Print("------------------------------------------------");
+
+                                            // Send to the server
+                                            new AzureFunctionApiClient().SendLog(new LogRequest()
+                                            {
+                                                AccountID = _appConfig.AccountId,
+                                                ClientID = mtRequest.ClientID,
+                                                Message = string.Format($"Symbol={mtRequest.TickerInTradingview}"),
+                                                Type = "CONSOLE - STOP LISTENING TO MARKET",
+                                            });
                                         }
                                     }
                                 }
@@ -190,6 +206,15 @@ namespace JCTG.Client
                                         Print("Time      : " + DateTime.UtcNow);
                                         Print("Symbol    : " + mtRequest.TickerInTradingview);
                                         Print("------------------------------------------------");
+
+                                        // Send to the server
+                                        new AzureFunctionApiClient().SendLog(new LogRequest()
+                                        {
+                                            AccountID = _appConfig.AccountId,
+                                            ClientID = mtRequest.ClientID,
+                                            Message = string.Format($"Symbol={mtRequest.TickerInTradingview}"),
+                                            Type = "CONSOLE - START LISTENING TO MARKET",
+                                        });
                                     }
                                 }
                             }
@@ -199,7 +224,7 @@ namespace JCTG.Client
                         if (mtRequests.Count != 0)
                         {
                             // Send the information to the backend
-                            var mtResponse = await backend.GetMetatraderResponseAsync(mtRequests);
+                            var mtResponse = await new AzureFunctionApiClient().GetMetatraderResponseAsync(mtRequests);
 
                             // Do null reference check
                             if (mtResponse != null && _api.OpenOrders != null && mtResponse.Count == mtRequests.Count)
@@ -220,7 +245,7 @@ namespace JCTG.Client
                                         if (ticker != null)
                                         {
                                             // Make buy order
-                                            var lotSize = CalculateLotSize(_api.AccountInfo.Balance, ticker.Risk, metadataTick.Ask, response.StopLoss, metadataTick.TickValue, metadataTick.PointSize, metadataTick.LotStep, metadataTick.MinLotSize, metadataTick.MaxLotSize);
+                                            var lotSize = CalculateLotSize(_api.ClientId, _api.AccountInfo.Balance, ticker.Risk, metadataTick.Ask, response.StopLoss, metadataTick.TickValue, metadataTick.PointSize, metadataTick.LotStep, metadataTick.MinLotSize, metadataTick.MaxLotSize, metadataTick.Ask - metadataTick.Bid);
 
                                             // Print on the screen
                                             Print(Environment.NewLine);
@@ -258,7 +283,7 @@ namespace JCTG.Client
                                         if (ticker != null)
                                         {
                                             // Make buy order
-                                            var lotSize = CalculateLotSize(_api.AccountInfo.Balance, ticker.Risk, metadataTick.Ask, response.StopLoss, metadataTick.TickValue, metadataTick.PointSize, metadataTick.LotStep, metadataTick.MinLotSize, metadataTick.MaxLotSize);
+                                            var lotSize = CalculateLotSize(_api.ClientId, _api.AccountInfo.Balance, ticker.Risk, metadataTick.Ask, response.StopLoss, metadataTick.TickValue, metadataTick.PointSize, metadataTick.LotStep, metadataTick.MinLotSize, metadataTick.MaxLotSize, metadataTick.Ask - metadataTick.Bid);
 
                                             // Print on the screen
                                             Print(Environment.NewLine);
@@ -459,7 +484,7 @@ namespace JCTG.Client
 
                         // If there any open orders, send them to the backend
                         if (tjRequests.Any())
-                            backend.SendTradeJournals(tjRequests);
+                            new AzureFunctionApiClient().SendTradeJournals(tjRequests);
                     }
                 }
 
@@ -469,7 +494,7 @@ namespace JCTG.Client
             }
         }
 
-        public double CalculateLotSize(double accountBalance, double riskPercent, double openPrice, double stopLossPrice, double tickValue, double pipSize, double lotStep, double minLotSizeAllowed, double maxLotSizeAllowed)
+        public double CalculateLotSize(long clientId, double accountBalance, double riskPercent, double openPrice, double stopLossPrice, double tickValue, double pipSize, double lotStep, double minLotSizeAllowed, double maxLotSizeAllowed, double spread)
         {
             // Throw exception when negative balance
             if (accountBalance <= 0)
@@ -477,8 +502,10 @@ namespace JCTG.Client
 
             // Calculate the initial lot size
             double riskAmount = accountBalance * (riskPercent / 100.0);
-            double stopLossPriceInPips = Math.Abs(openPrice - stopLossPrice) / pipSize;
-            double lotSize = riskAmount / (stopLossPriceInPips * (1.0 / tickValue));
+            double stopLossDistance = Math.Abs(openPrice - stopLossPrice);
+            double stopLossDistanceInPips = stopLossDistance / pipSize;
+            double totalStopLossPips = stopLossDistanceInPips + Math.Abs(spread) / pipSize;
+            double lotSize = riskAmount / (totalStopLossPips * tickValue);
 
             // Code fom MQL4 : LotSize = MathRound(LotSize / MarketInfo(Symbol(), MODE_LOTSTEP)) * MarketInfo(Symbol(), MODE_LOTSTEP);
             // C sharp = Math.Round(lotSize / lotStep) * lotStep
@@ -487,6 +514,18 @@ namespace JCTG.Client
 
             // Round to 2 decimal places
             adjustedLotSize = Math.Round(adjustedLotSize, 2);
+
+            // Send log to the server
+            if(clientId > 0 && _appConfig != null)
+            {
+                new AzureFunctionApiClient().SendLog(new LogRequest()
+                {
+                    AccountID = _appConfig.AccountId,
+                    ClientID = clientId,
+                    Message = string.Format($"AccountBalance={accountBalance},RiskPercent={riskPercent},RiskAmount={riskAmount},SLInPips={totalStopLossPips},Spread={spread},TickValue={tickValue},LotSize={lotSize},PipSize={pipSize},AdjustedLotSize={adjustedLotSize}"),
+                    Type = "MT - LOT SIZE",
+                });
+            }
 
             // Ensure the lot size is not less than the minimum allowed and not more than the maximum allowed
             if (adjustedLotSize < minLotSizeAllowed)
@@ -555,6 +594,17 @@ namespace JCTG.Client
                 if (!string.IsNullOrEmpty(log.Description))
                     Print("Description: " + log.Description);
                 Print("------------------------------------------------");
+
+
+                // Send to the server
+                new AzureFunctionApiClient().SendLog(new LogRequest()
+                {
+                    AccountID = _appConfig.AccountId,
+                    ClientID = clientId,
+                    Message = log.Message,
+                    ErrorType = log.ErrorType,
+                    Type = string.Format($"MT - {log.Type}"),
+                });
             }
         }
 
@@ -573,6 +623,15 @@ namespace JCTG.Client
                 Print("Type      : " + order.Type);
                 Print("Magic     : " + order.Magic);
                 Print("------------------------------------------------");
+
+                // Send to the server
+                new AzureFunctionApiClient().SendLog(new LogRequest()
+                {
+                    AccountID = _appConfig.AccountId,
+                    ClientID = clientId,
+                    Message = string.Format($"Symbol={order.Symbol},Lots={order.Lots},Type={order.Type},Magic={order.Magic},TP={order.TakeProfit},SL={order.StopLoss}"),
+                    Type = "MT - NEW ORDER",
+                });
             }
         }
     }

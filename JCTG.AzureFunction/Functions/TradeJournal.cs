@@ -37,7 +37,7 @@ namespace JCTG.AzureFunction.Functions
                     foreach (var item in items)
                     {
                         // TradeJournal item
-                        _logger.LogInformation($"Parsed Metatrader object : AccountID={item.AccountID}, ClientID={item.ClientID}, Symbol={item.Symbol}, CurrentPrice={item.CurrentPrice}, SL={item.SL}, TP={item.TP}, Magic={item.Magic}, StrategyType={item.StrategyType}", jsonString);
+                        _logger.LogInformation($"Parsed tradejournal object : AccountID={item.AccountID}, ClientID={item.ClientID}, Symbol={item.Symbol}, CurrentPrice={item.CurrentPrice}, SL={item.SL}, TP={item.TP}, Magic={item.Magic}, StrategyType={item.StrategyType}", jsonString);
 
                         var tradeJournal = await _dbContext.TradeJournal.FirstOrDefaultAsync(f => 
                                                                    f.ClientID == item.ClientID

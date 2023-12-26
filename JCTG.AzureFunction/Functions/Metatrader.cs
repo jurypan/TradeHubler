@@ -122,6 +122,16 @@ namespace JCTG.AzureFunction
                                             tvAtr: GetAtr(tvAlert.Atr5M, tvAlert.Atr15M, tvAlert.Atr1H, tvAlert.AtrD, trade.StrategyType),
                                             offset: trade.Offset);
 
+                                // Add to log
+                                await _dbContext.Log.AddAsync(new Log()
+                                {
+                                     AccountID = mtTrade.AccountID,
+                                     ClientID = mtTrade.ClientID,
+                                     DateCreated = DateTime.UtcNow,
+                                     Type = "BACKEND - STOPLOSS CALCULATION",
+                                     Message = string.Format($"Type=BUY,StrategypType={trade.StrategyType},MtAsk={mtTrade.Ask},Atr={GetAtr(mtTrade.Atr5M, mtTrade.Atr15M, mtTrade.Atr1H, mtTrade.AtrD, trade.StrategyType)},TvEntryPrice={tvAlert.EntryPrice},TvSlPrice={tvAlert.StopLoss},TvAtr={GetAtr(tvAlert.Atr5M, tvAlert.Atr15M, tvAlert.Atr1H, tvAlert.AtrD, trade.StrategyType)},Offset={trade.Offset}"),
+                                });
+
                                 // TradeJournal item
                                 _logger.LogWarning($"BUY order is send to Metatrader : BUY,instrument={mtTrade.TickerInMetatrader},mtAskPrice={mtTrade.Ask},tp={tvAlert.TakeProfit - trade.Offset},sl={slPrice},magic={trade.Magic}", trade);
 
@@ -129,17 +139,9 @@ namespace JCTG.AzureFunction
                                 trade.Executed = true;
                                 trade.DateExecuted = DateTime.UtcNow;
                                 trade.ExecutedPrice = mtTrade.Ask;
-                                //trade.ExecutedSL = tvAlert.StopLoss - trade.Offset;
                                 trade.ExecutedSL = slPrice;
                                 trade.ExecutedTP = tvAlert.TakeProfit - trade.Offset;
                                 await _dbContext.SaveChangesAsync();
-
-                                // TV : 7462.1
-                                // MT : 7464.1
-                                // MT Spread : 1.9
-                                // Offset : 2
-
-                                // Add the maximum range between -> if range exceed -> response NONE
 
                                 // Add repsonse
                                 response.Add(new MetatraderResponse()
@@ -150,7 +152,6 @@ namespace JCTG.AzureFunction
                                     TickerInMetatrader = mtTrade.TickerInMetatrader,
                                     TickerInTradingview = mtTrade.TickerInTradingview,
                                     TakeProfit = tvAlert.TakeProfit - trade.Offset,
-                                    //StopLoss = tvAlert.StopLoss - trade.Offset,
                                     StopLoss = slPrice,
                                     Magic = tvAlert.Magic,
                                     StrategyType = trade.StrategyType,
@@ -172,6 +173,16 @@ namespace JCTG.AzureFunction
                                             offset: trade.Offset,
                                             spread: trade.Spread);
 
+                                // Add to log
+                                await _dbContext.Log.AddAsync(new Log()
+                                {
+                                    AccountID = mtTrade.AccountID,
+                                    ClientID = mtTrade.ClientID,
+                                    DateCreated = DateTime.UtcNow,
+                                    Type = "BACKEND - STOPLOSS CALCULATION",
+                                    Message = string.Format($"Type=SELL,StrategypType={trade.StrategyType},MtAsk={mtTrade.Ask},Atr={GetAtr(mtTrade.Atr5M, mtTrade.Atr15M, mtTrade.Atr1H, mtTrade.AtrD, trade.StrategyType)},TvEntryPrice={tvAlert.EntryPrice},TvSlPrice={tvAlert.StopLoss},TvAtr={GetAtr(tvAlert.Atr5M, tvAlert.Atr15M, tvAlert.Atr1H, tvAlert.AtrD, trade.StrategyType)},Offset={trade.Offset},Spread={trade.Spread}"),
+                                });
+
                                 // TradeJournal item
                                 _logger.LogWarning($"SELL order is send to Metatrader : SELL,instrument={mtTrade.TickerInMetatrader},mtAskPrice={mtTrade.Ask},tp={tvAlert.TakeProfit - trade.Offset},sl={slPrice},magic={trade.Magic}", trade);
 
@@ -179,7 +190,6 @@ namespace JCTG.AzureFunction
                                 trade.Executed = true;
                                 trade.DateExecuted = DateTime.UtcNow;
                                 trade.ExecutedPrice = mtTrade.Bid;
-                                //trade.ExecutedSL =  tvAlert.StopLoss - trade.Offset;
                                 trade.ExecutedSL = slPrice;
                                 trade.ExecutedTP = tvAlert.TakeProfit - trade.Offset;
                                 await _dbContext.SaveChangesAsync();

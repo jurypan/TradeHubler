@@ -5,6 +5,18 @@
       "type": "appInsights.azure",
       "connectionId": "APPLICATIONINSIGHTS_CONNECTION_STRING",
       "dynamicId": null
+    },
+    "storage1": {
+      "serviceConnectorResourceId": "/subscriptions/[parameters('subscriptionId')]/resourceGroups/[parameters('resourceGroupName')]/providers/Microsoft.Web/sites/justcalltheguy/providers/Microsoft.ServiceLinker/linkers/AzureWebJobsStorage_FC61CF0C0B, /subscriptions/64555237-c052-4973-9a6e-e8d33fa9aa8f/resourceGroups/TR/providers/Microsoft.Web/sites/justcalltheguy/providers/Microsoft.ServiceLinker/linkers/AzureWebJobsStorage_1F87DEB2A4",
+      "secretStore": "AzureAppSettings",
+      "resourceId": "/subscriptions/[parameters('subscriptionId')]/resourceGroups/[parameters('resourceGroupName')]/providers/Microsoft.Storage/storageAccounts/justcalltheguy",
+      "type": "storage.azure",
+      "connectionId": "AzureWebJobsStorage",
+      "dynamicId": null
+    },
+    "appInsights1": {
+      "ignored": "true",
+      "type": "appInsights"
     }
   }
 }
