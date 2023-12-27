@@ -47,7 +47,9 @@ namespace JCTG.Client
                         _api.SubscribeForTicks(broker.Pairs.Select(f => f.TickerInMetatrader).ToList());
 
                         // Init the events
-                        _api.OnOrderEvent += OnOrderEvent;
+                        _api.OnOrderCreateEvent += OnOrderCreateEvent;
+                        _api.OnOrderUpdateEvent += OnOrderUpdateEvent;
+                        _api.OnOrderRemoveEvent += OnOrderRemoveEvent;
                         _api.OnLogEvent += OnLogEvent;
 
                         // Thread Sleep
@@ -461,7 +463,7 @@ namespace JCTG.Client
                                     Pnl = order.Value.Pnl,
                                     SL = order.Value.StopLoss,
                                     StrategyType = pair.StrategyNr,
-                                    Spread = Math.Abs(marketdata.Value.Bid - marketdata.Value.Ask),
+                                    Spread = Math.Round(Math.Abs(marketdata.Value.Bid - marketdata.Value.Ask), 4, MidpointRounding.AwayFromZero),
                                     Swap = order.Value.Swap,
                                     Symbol = order.Value.Symbol != null ? order.Value.Symbol : "NONE",
                                     TicketId = order.Key,
@@ -599,17 +601,18 @@ namespace JCTG.Client
             }
         }
 
-        private void OnOrderEvent(long clientId, Order order)
+        private void OnOrderCreateEvent(long clientId, long ticketId, Order order)
         {
             // Do null reference check
             if (_appConfig != null)
             {
                 // Print on the screen
                 Print(Environment.NewLine);
-                Print("------------------- ORDER ----------------------");
+                Print("-------------- CREATE ORDER ---------------------");
                 Print("Broker    : " + _appConfig.Brokers.First(f => f.ClientId == clientId).Name);
                 Print("Time      : " + DateTime.UtcNow);
                 Print("Symbol    : " + order.Symbol);
+                Print("Ticket    : " + ticketId);
                 Print("Lot       : " + order.Lots);
                 Print("Type      : " + order.Type);
                 Print("Magic     : " + order.Magic);
@@ -620,8 +623,66 @@ namespace JCTG.Client
                 {
                     AccountID = _appConfig.AccountId,
                     ClientID = clientId,
-                    Message = string.Format($"Symbol={order.Symbol},Lots={order.Lots},Type={order.Type},Magic={order.Magic},TP={order.TakeProfit},SL={order.StopLoss}"),
-                    Type = "MT - NEW ORDER",
+                    Message = string.Format($"Symbol={order.Symbol},Ticket={ticketId},Lots={order.Lots},Type={order.Type},Magic={order.Magic},Price={order.OpenPrice},TP={order.TakeProfit},SL={order.StopLoss}"),
+                    Type = "MT - CREATE ORDER",
+                });
+            }
+        }
+
+        private void OnOrderUpdateEvent(long clientId, long ticketId, Order order)
+        {
+            // Do null reference check
+            if (_appConfig != null)
+            {
+                // Print on the screen
+                Print(Environment.NewLine);
+                Print("-------------- UPDATE ORDER ---------------------");
+                Print("Broker    : " + _appConfig.Brokers.First(f => f.ClientId == clientId).Name);
+                Print("Time      : " + DateTime.UtcNow);
+                Print("Symbol    : " + order.Symbol);
+                Print("Ticket    : " + ticketId);
+                Print("Lot       : " + order.Lots);
+                Print("SL        : " + order.StopLoss);
+                Print("TP        : " + order.TakeProfit);
+                Print("Magic     : " + order.Magic);
+                Print("------------------------------------------------");
+
+                // Send to the server
+                new AzureFunctionApiClient().SendLog(new LogRequest()
+                {
+                    AccountID = _appConfig.AccountId,
+                    ClientID = clientId,
+                    Message = string.Format($"Symbol={order.Symbol},Ticket={ticketId},Lots={order.Lots},Type={order.Type},Magic={order.Magic},Price={order.OpenPrice},TP={order.TakeProfit},SL={order.StopLoss}"),
+                    Type = "MT - UDPATE ORDER",
+                });
+            }
+        }
+
+        private void OnOrderRemoveEvent(long clientId, long ticketId, Order order)
+        {
+            // Do null reference check
+            if (_appConfig != null)
+            {
+                // Print on the screen
+                Print(Environment.NewLine);
+                Print("-------------- CLOSED ORDER ---------------------");
+                Print("Broker    : " + _appConfig.Brokers.First(f => f.ClientId == clientId).Name);
+                Print("Time      : " + DateTime.UtcNow);
+                Print("Symbol    : " + order.Symbol);
+                Print("Ticket    : " + ticketId);
+                Print("Lot       : " + order.Lots);
+                Print("SL        : " + order.StopLoss);
+                Print("TP        : " + order.TakeProfit);
+                Print("Magic     : " + order.Magic);
+                Print("------------------------------------------------");
+
+                // Send to the server
+                new AzureFunctionApiClient().SendLog(new LogRequest()
+                {
+                    AccountID = _appConfig.AccountId,
+                    ClientID = clientId,
+                    Message = string.Format($"Symbol={order.Symbol},Ticket={ticketId},Lots={order.Lots},Type={order.Type},Magic={order.Magic},Price={order.OpenPrice},TP={order.TakeProfit},SL={order.StopLoss}"),
+                    Type = "MT - CLOSE ORDER",
                 });
             }
         }

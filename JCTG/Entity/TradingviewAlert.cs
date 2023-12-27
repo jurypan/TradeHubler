@@ -105,34 +105,34 @@ namespace JCTG
             order.StrategyType = (StrategyType)strategy;
 
             // Parse Atr5M 5 minute
-            var atr5MParts = parts[6].Split('=');
+            var atr5MParts = parts[9].Split('=');
             if (atr5MParts.Length != 2 || !double.TryParse(atr5MParts[1], out double atr5M))
             {
-                throw new ArgumentException("Invalid Atr5M 5 minute format.");
+                throw new ArgumentException("Invalid Atr 5 minute format.");
             }
             order.Atr5M = atr5M;
 
             // Parse Atr 15 minute
-            var atr15MParts = parts[7].Split('=');
-            if (atr5MParts.Length != 2 || !double.TryParse(atr15MParts[1], out double atr15M))
+            var atr15MParts = parts[10].Split('=');
+            if (atr15MParts.Length != 2 || !double.TryParse(atr15MParts[1], out double atr15M))
             {
-                throw new ArgumentException("Invalid Atr5M 15 minute format.");
+                throw new ArgumentException("Invalid Atr 15 minute format.");
             }
             order.Atr15M = atr15M;
 
             // Parse Atr 1 hour
-            var atr1HParts = parts[8].Split('=');
+            var atr1HParts = parts[11].Split('=');
             if (atr5MParts.Length != 2 || !double.TryParse(atr1HParts[1], out double atr1H))
             {
-                throw new ArgumentException("Invalid Atr5M 1 hour format.");
+                throw new ArgumentException("Invalid Atr 1 hour format.");
             }
             order.Atr1H = atr1H;
 
             // Parse Atr day
-            var atrDParts = parts[9].Split('=');
-            if (atr5MParts.Length != 2 || !double.TryParse(atr1HParts[1], out double atrD))
+            var atrDParts = parts[12].Split('=');
+            if (atrDParts.Length != 2 || !double.TryParse(atrDParts[1], out double atrD))
             {
-                throw new ArgumentException("Invalid Atr5M day format.");
+                throw new ArgumentException("Invalid Atr day format.");
             }
             order.AtrD = atrD;
 

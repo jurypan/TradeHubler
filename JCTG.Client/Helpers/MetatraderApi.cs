@@ -1,4 +1,3 @@
-using System;
 using System.Globalization;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -56,11 +55,14 @@ namespace JCTG.Client
         private Thread? historicDataThread;
 
         // Define the delegate for the event
-        public delegate void OnOrderEventHandler(long clientId, Order order);
-        public event OnOrderEventHandler? OnOrderEvent;
+        public delegate void OnOrderCreateEventHandler(long clientId, long ticketId, Order order);
+        public event OnOrderCreateEventHandler? OnOrderCreateEvent;
 
-        public delegate void OnTradeJournalEventHandler(long clientId);
-        public event OnTradeJournalEventHandler? OnTradeJournalEvent;
+        public delegate void OnOrderUpdateEventHandler(long clientId, long ticketId, Order order);
+        public event OnOrderUpdateEventHandler? OnOrderUpdateEvent;
+
+        public delegate void OnOrderRemoveEventHandler(long clientId, long ticketId, Order order);
+        public event OnOrderRemoveEventHandler? OnOrderRemoveEvent;
 
         public delegate void OnLogEventHandler(long clientId, long id, Log log);
         public event OnLogEventHandler? OnLogEvent;
@@ -138,7 +140,7 @@ namespace JCTG.Client
 
 
         /// <summary>
-        /// Regularly checks the file for open orders and triggers the eventHandler.OnOrderEvent() function.
+        /// Regularly checks the file for open orders and triggers the eventHandler.OnOrderCreateEvent() function.
         /// </summary>
         private async Task CheckOpenOrdersAsync()
         {
@@ -182,6 +184,20 @@ namespace JCTG.Client
                 // Iterate over each order in the JSON
                 if (ordersData != null)
                 {
+                    // Next, handle removal of orders not in ordersData
+                    List<long> ordersToRemove = new List<long>();
+                    foreach (var openOrder in OpenOrders)
+                    {
+                        long orderId = openOrder.Key;
+
+                        // If orderId is not in ordersData, mark it for removal
+                        if (!ordersData.ContainsKey(orderId.ToString()))
+                        {
+                            ordersToRemove.Add(orderId);
+                        }
+                    }
+
+                    // Add or update
                     foreach (var orderEntry in ordersData)
                     {
                         long orderId = long.Parse(orderEntry.Key);
@@ -212,26 +228,35 @@ namespace JCTG.Client
                                 if (OpenOrders.TryGetValue(orderId, out var previousData))
                                 {
                                     // Check if the values have changed
-                                    if (newOrder.OpenTime != previousData.OpenTime)
+                                    if (newOrder.OpenTime != previousData.OpenTime || newOrder.StopLoss != previousData.StopLoss || newOrder.TakeProfit != previousData.TakeProfit)
                                     {
                                         // Update the previous values
                                         OpenOrders[orderId] = newOrder;
 
                                         // Invoke the event
-                                        OnOrderEvent?.Invoke(ClientId, newOrder);
+                                        OnOrderUpdateEvent?.Invoke(ClientId, orderId, newOrder);
                                     }
                                 }
                                 else
                                 {
                                     // If it's a new order, add it to the dictionary and invoke the event
                                     OpenOrders.Add(orderId, newOrder);
-                                    OnOrderEvent?.Invoke(ClientId, newOrder);
+                                    OnOrderCreateEvent?.Invoke(ClientId, orderId, newOrder);
                                 }
                             }
                         }
                     }
 
-                    OnTradeJournalEvent?.Invoke(ClientId);
+
+                    // Remove the marked orders
+                    foreach (var orderId in ordersToRemove)
+                    {
+                        // Invoke the event
+                        OnOrderRemoveEvent?.Invoke(ClientId, orderId, OpenOrders[orderId]);
+
+                        // Remove the order from the list
+                        OpenOrders.Remove(orderId);
+                    }
                 }
 
 
