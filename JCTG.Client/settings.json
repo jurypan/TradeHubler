@@ -9,7 +9,7 @@
         {
           "TickerInTradingView": "XJO",
           "TickerInMetatrader": "AUS200",
-          "Timeframe": "M5",
+          "Timeframe": "M15",
           "StrategyNr": 5,
           "Risk": 0.05, // 0.15
           "OverrideSession": true,
@@ -44,7 +44,7 @@
         {
           "TickerInTradingView": "SX5E",
           "TickerInMetatrader": "STOXX50E",
-          "Timeframe": "M5",
+          "Timeframe": "M15",
           "StrategyNr": 5,
           "Risk": 0.05, // 0.15
           "OverrideSession": true,
@@ -76,7 +76,7 @@
         {
           "TickerInTradingView": "SPX",
           "TickerInMetatrader": "SP500",
-          "Timeframe": "M5",
+          "Timeframe": "M15",
           "StrategyNr": 5,
           "Risk": 0.05, // 0.15
           "OverrideSession": true,
@@ -115,7 +115,7 @@
         {
           "TickerInTradingView": "XJO",
           "TickerInMetatrader": "AU200AUD",
-          "Timeframe": "M5",
+          "Timeframe": "M15",
           "StrategyNr": 5,
           "Risk": 0.15,
           "OverrideSession": true,
@@ -150,7 +150,7 @@
         {
           "TickerInTradingView": "SX5E",
           "TickerInMetatrader": "EU50EUR",
-          "Timeframe": "M5",
+          "Timeframe": "M15",
           "StrategyNr": 5,
           "Risk": 0.15,
           "OverrideSession": true,
@@ -182,7 +182,7 @@
         {
           "TickerInTradingView": "SPX",
           "TickerInMetatrader": "SPX500USD",
-          "Timeframe": "M5",
+          "Timeframe": "M15",
           "StrategyNr": 5,
           "Risk": 0.15,
           "OverrideSession": true,

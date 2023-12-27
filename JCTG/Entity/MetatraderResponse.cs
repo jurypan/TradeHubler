@@ -17,6 +17,7 @@
         public double StopLoss { get; set; }
         public StrategyType StrategyType { get; set; }
         public long Magic { get; set; }
+        public long? TicketId { get; set; }
 
     }
 }

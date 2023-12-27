@@ -112,24 +112,24 @@ namespace JCTG
             }
             order.Atr5M = atr5M;
 
-            // Parse Atr5M 15 minute
-            var atr15MParts = parts[6].Split('=');
+            // Parse Atr 15 minute
+            var atr15MParts = parts[7].Split('=');
             if (atr5MParts.Length != 2 || !double.TryParse(atr15MParts[1], out double atr15M))
             {
                 throw new ArgumentException("Invalid Atr5M 15 minute format.");
             }
             order.Atr15M = atr15M;
 
-            // Parse Atr5M 1 hour
-            var atr1HParts = parts[6].Split('=');
+            // Parse Atr 1 hour
+            var atr1HParts = parts[8].Split('=');
             if (atr5MParts.Length != 2 || !double.TryParse(atr1HParts[1], out double atr1H))
             {
                 throw new ArgumentException("Invalid Atr5M 1 hour format.");
             }
             order.Atr1H = atr1H;
 
-            // Parse Atr5M day
-            var atrDParts = parts[6].Split('=');
+            // Parse Atr day
+            var atrDParts = parts[9].Split('=');
             if (atr5MParts.Length != 2 || !double.TryParse(atr1HParts[1], out double atrD))
             {
                 throw new ArgumentException("Invalid Atr5M day format.");

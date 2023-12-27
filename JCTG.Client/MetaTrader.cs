@@ -312,10 +312,10 @@ namespace JCTG.Client
                                         var ticker = new List<Pairs>(_appConfig.Brokers.Where(f => f.ClientId == _api.ClientId).SelectMany(f => f.Pairs)).FirstOrDefault(f => f.TickerInMetatrader.Equals(response.TickerInMetatrader));
 
                                         // Do null reference check
-                                        if (ticker != null)
+                                        if (ticker != null && response.TicketId.HasValue)
                                         {
                                             // Get ticket Id
-                                            var ticketId = _api.OpenOrders.FirstOrDefault(f => f.Value.Symbol == response.TickerInMetatrader && f.Value.Magic == response.Magic);
+                                            var ticketId = _api.OpenOrders.FirstOrDefault(f => f.Key == response.TicketId.Value);
 
                                             // Null reference check
                                             if (ticketId.Key > 0)
@@ -347,14 +347,11 @@ namespace JCTG.Client
                                         // Get the right ticker back from the local database
                                         var ticker = new List<Pairs>(_appConfig.Brokers.Where(f => f.ClientId == _api.ClientId).SelectMany(f => f.Pairs)).FirstOrDefault(f => f.TickerInMetatrader.Equals(response.TickerInMetatrader));
 
-                                        // Get the metadata tick
-                                        var metadataTick = _api.MarketData.FirstOrDefault(f => f.Key == response.TickerInMetatrader).Value;
-
                                         // Do null reference check
-                                        if (ticker != null)
+                                        if (ticker != null && response.TicketId.HasValue)
                                         {
                                             // Get ticket Id
-                                            var ticketId = _api.OpenOrders.FirstOrDefault(f => f.Value.Symbol == response.TickerInMetatrader && f.Value.Magic == response.Magic);
+                                            var ticketId = _api.OpenOrders.FirstOrDefault(f => f.Key == response.TicketId.Value);
 
                                             // Null reference check
                                             if (ticketId.Key > 0)
