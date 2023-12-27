@@ -23,7 +23,7 @@ namespace JCTG
         public double Offset { get; set; }
         public double Spread { get; set; }
         public required string Instrument { get; set; }
-        public int Magic { get; set; }
+        public long Magic { get; set; }
         public bool Executed { get; set; }
         public DateTime? DateExecuted { get; set; }
         public double? ExecutedPrice { get; set; }

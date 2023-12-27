@@ -1,7 +1,4 @@
-﻿using Azure;
-using Azure.Core;
-using Microsoft.Extensions.DependencyInjection;
-using static JCTG.Client.Helpers;
+﻿using static JCTG.Client.Helpers;
 
 namespace JCTG.Client
 {
@@ -266,7 +263,7 @@ namespace JCTG.Client
 
 
                                             // Open order
-                                            _api.ExecuteOrder(ticker.TickerInMetatrader, OrderType.Buy, lotSize, 0, response.StopLoss, response.TakeProfit, response.Magic);
+                                            _api.ExecuteOrder(ticker.TickerInMetatrader, OrderType.Buy, lotSize, 0, response.StopLoss, response.TakeProfit, (int)response.Magic);
                                         }
                                     }
 
@@ -304,7 +301,7 @@ namespace JCTG.Client
 
 
                                             // Open order
-                                            _api.ExecuteOrder(ticker.TickerInMetatrader, OrderType.Sell, lotSize, 0, response.StopLoss, response.TakeProfit, response.Magic);
+                                            _api.ExecuteOrder(ticker.TickerInMetatrader, OrderType.Sell, lotSize, 0, response.StopLoss, response.TakeProfit, (int)response.Magic);
                                         }
                                     }
 
@@ -313,9 +310,6 @@ namespace JCTG.Client
                                     {
                                         // Get the right ticker back from the local database
                                         var ticker = new List<Pairs>(_appConfig.Brokers.Where(f => f.ClientId == _api.ClientId).SelectMany(f => f.Pairs)).FirstOrDefault(f => f.TickerInMetatrader.Equals(response.TickerInMetatrader));
-
-                                        // Get the metadata tick
-                                        var metadataTick = _api.MarketData.FirstOrDefault(f => f.Key == response.TickerInMetatrader).Value;
 
                                         // Do null reference check
                                         if (ticker != null)
@@ -460,7 +454,6 @@ namespace JCTG.Client
                                 {
                                     AccountID = _appConfig.AccountId,
                                     ClientID = _api.ClientId,
-                                    TradingviewAlertID = 1234, /// TO DO
                                     Comment = order.Value.Comment,
                                     Commission = order.Value.Commission,
                                     CurrentPrice = order.Value.Type?.ToUpper() == "SELL" ? marketdata.Value.Bid : marketdata.Value.Ask,
@@ -471,19 +464,20 @@ namespace JCTG.Client
                                     Pnl = order.Value.Pnl,
                                     SL = order.Value.StopLoss,
                                     StrategyType = pair.StrategyNr,
+                                    Spread = Math.Abs(marketdata.Value.Bid - marketdata.Value.Ask),
                                     Swap = order.Value.Swap,
-                                    Symbol = order.Value.Symbol != null ? order.Value.Symbol : string.Empty,
+                                    Symbol = order.Value.Symbol != null ? order.Value.Symbol : "NONE",
                                     TicketId = order.Key,
                                     Timeframe = pair.Timeframe,
                                     TP = order.Value.TakeProfit,
-                                    Type = order.Value.Type != null ? order.Value.Type : string.Empty,
+                                    Type = order.Value.Type != null ? order.Value.Type.ToUpper() : "NONE",
                                     Risk = pair.Risk,
                                 });
                             }
                         }
 
                         // If there any open orders, send them to the backend
-                        if (tjRequests.Any())
+                        if (tjRequests.Count != 0)
                             new AzureFunctionApiClient().SendTradeJournals(tjRequests);
                     }
                 }

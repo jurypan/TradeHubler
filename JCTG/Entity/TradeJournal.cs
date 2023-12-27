@@ -13,9 +13,6 @@ namespace JCTG.Entity
         public Client? Client { get; set; }
         public long ClientID { get; set; }
 
-        public TradingviewAlert? TradingviewAlert { get; set; }
-        public long TradingviewAlertID { get; set; }
-
         public int Magic { get; set; }
 
         public long TicketId { get; set; }
@@ -35,6 +32,12 @@ namespace JCTG.Entity
         public double OpenPrice { get; set; }
 
         public double ClosePrice { get; set; }
+
+        public double OpenSL { get; set; }
+
+        public double OpenTP { get; set; }
+
+        public double Spread { get; set; }
 
         public double SL { get; set; }
 

@@ -12,7 +12,6 @@
 
         public int Magic { get; set; }
 
-        public int TradingviewAlertID { get; set; }
         public long TicketId { get; set; }
 
         public string Symbol { get; set; }
@@ -25,6 +24,7 @@
 
         public double OpenPrice { get; set; }
         public double CurrentPrice { get; set; }
+        public double Spread { get; set; }
 
         public double SL { get; set; }
 

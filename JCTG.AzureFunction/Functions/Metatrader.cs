@@ -80,13 +80,6 @@ namespace JCTG.AzureFunction
                             // if Not exist
                             if (trade == null)
                             {
-                                // TV : 7462.1 / SL=7442.1 / Atr5M=1
-                                // MT : 7464.1 / SL=7444.1 / Atr5M=2
-                                // MT Spread : 1.9
-                                // Offset : -2
-                                // Entry => Offset
-                                // SL & TP => Atr5M (if Atr5M of MT > Atr5M of TV, else offset)
-
                                 // Create trade in the database
                                 trade = (await _dbContext.Trade.AddAsync(new Trade
                                 {
@@ -99,7 +92,7 @@ namespace JCTG.AzureFunction
                                     Executed = false,
                                     Offset = Math.Round(tvAlert.CurrentPrice - mtTrade.Ask, 4, MidpointRounding.AwayFromZero),
                                     Spread = Math.Round(Math.Abs(mtTrade.Ask - mtTrade.Bid), 4, MidpointRounding.AwayFromZero),
-                                    Magic = tvAlert.Magic,
+                                    Magic = tvAlert.ID,
                                 })).Entity;
                                 await _dbContext.SaveChangesAsync();
 
@@ -109,10 +102,12 @@ namespace JCTG.AzureFunction
 
                             // Check if we need to execute the order
                             if (tvAlert.OrderType.Equals("BUY") 
-                                || (tvAlert.OrderType.Equals("BUYSTOP") && mtTrade.Ask + trade.Offset >= tvAlert.EntryPrice)
-                                || (tvAlert.OrderType.Equals("BUYLIMIT") && mtTrade.Ask + trade.Offset <= tvAlert.EntryPrice)
+                                || (tvAlert.OrderType.Equals("BUYSTOP") && mtTrade.Ask + trade.Offset + trade.Spread >= tvAlert.EntryPrice)
+                                || (tvAlert.OrderType.Equals("BUYLIMIT") && mtTrade.Ask + trade.Offset + trade.Spread <= tvAlert.EntryPrice)
                                 )
                             {
+                                // I used the ASK price, just to make sure the spread is calculated
+
                                 // Caculate SL Price
                                 var slPrice = CalculateSLForLong(
                                             mtPrice: mtTrade.Ask,
@@ -153,14 +148,14 @@ namespace JCTG.AzureFunction
                                     TickerInTradingview = mtTrade.TickerInTradingview,
                                     TakeProfit = tvAlert.TakeProfit - trade.Offset,
                                     StopLoss = slPrice,
-                                    Magic = tvAlert.Magic,
+                                    Magic = tvAlert.ID,
                                     StrategyType = trade.StrategyType,
                                 });
                             }
 
                             else if (tvAlert.OrderType.Equals("SELL")
-                                    || (tvAlert.OrderType.Equals("SELLSTOP") && mtTrade.Bid + trade.Offset <= tvAlert.EntryPrice)
-                                    || (tvAlert.OrderType.Equals("SELLLIMIT") && mtTrade.Bid + trade.Offset >= tvAlert.EntryPrice)
+                                    || (tvAlert.OrderType.Equals("SELLSTOP") && mtTrade.Bid + trade.Offset - trade.Spread <= tvAlert.EntryPrice)
+                                    || (tvAlert.OrderType.Equals("SELLLIMIT") && mtTrade.Bid + trade.Offset - trade.Spread >= tvAlert.EntryPrice)
                                     )
                             {
                                 // Caculate SL Price
@@ -203,9 +198,8 @@ namespace JCTG.AzureFunction
                                     TickerInMetatrader = mtTrade.TickerInMetatrader,
                                     TickerInTradingview = mtTrade.TickerInTradingview,
                                     TakeProfit = tvAlert.TakeProfit - trade.Offset,
-                                    //StopLoss = tvAlert.StopLoss - trade.Offset,
                                     StopLoss = slPrice,
-                                    Magic = tvAlert.Magic,
+                                    Magic = tvAlert.ID,
                                     StrategyType = trade.StrategyType,
                                 });
                             }
@@ -234,7 +228,7 @@ namespace JCTG.AzureFunction
                                     TickerInTradingview = mtTrade.TickerInTradingview,
                                     TakeProfit = tvAlert.TakeProfit - trade.Offset,
                                     StopLoss = mtTrade.Ask,
-                                    Magic = tvAlert.Magic,
+                                    Magic = tvAlert.ID,
                                     StrategyType = trade.StrategyType,
                                 });
                             }
@@ -268,6 +262,17 @@ namespace JCTG.AzureFunction
                                                     tvSlPrice: tvAlert.StopLoss,
                                                     tvAtr: GetAtr(tvAlert.Atr5M, tvAlert.Atr15M, tvAlert.Atr1H, tvAlert.AtrD, trade.StrategyType),
                                                     offset: trade.Offset);
+
+
+                                        // Add to log
+                                        await _dbContext.Log.AddAsync(new Log()
+                                        {
+                                            AccountID = mtTrade.AccountID,
+                                            ClientID = mtTrade.ClientID,
+                                            DateCreated = DateTime.UtcNow,
+                                            Type = "BACKEND - STOPLOSS CALCULATION",
+                                            Message = string.Format($"Type=MODIFYSL,StrategypType={trade.StrategyType},MtAsk={mtTrade.Ask},Atr={GetAtr(mtTrade.Atr5M, mtTrade.Atr15M, mtTrade.Atr1H, mtTrade.AtrD, trade.StrategyType)},TvEntryPrice={tvAlert.EntryPrice},TvSlPrice={tvAlert.StopLoss},TvAtr={GetAtr(tvAlert.Atr5M, tvAlert.Atr15M, tvAlert.Atr1H, tvAlert.AtrD, trade.StrategyType)},Offset={trade.Offset},Spread={trade.Spread}"),
+                                        });
 
                                         // TradeJournal item
                                         _logger.LogWarning($"MODIFY SL order is send to Metatrader : MODIFYSL,instrument={mtTrade.TickerInMetatrader},mtAskPrice={mtTrade.Ask},tp={tvAlert.TakeProfit - trade.Offset},sl={slPrice},magic={trade.Magic}", trade);
@@ -306,6 +311,16 @@ namespace JCTG.AzureFunction
                                                     offset: trade.Offset,
                                                     spread: trade.Spread);
 
+                                        // Add to log
+                                        await _dbContext.Log.AddAsync(new Log()
+                                        {
+                                            AccountID = mtTrade.AccountID,
+                                            ClientID = mtTrade.ClientID,
+                                            DateCreated = DateTime.UtcNow,
+                                            Type = "BACKEND - STOPLOSS CALCULATION",
+                                            Message = string.Format($"Type=MODIFYSL,StrategypType={trade.StrategyType},MtAsk={mtTrade.Ask},Atr={GetAtr(mtTrade.Atr5M, mtTrade.Atr15M, mtTrade.Atr1H, mtTrade.AtrD, trade.StrategyType)},TvEntryPrice={tvAlert.EntryPrice},TvSlPrice={tvAlert.StopLoss},TvAtr={GetAtr(tvAlert.Atr5M, tvAlert.Atr15M, tvAlert.Atr1H, tvAlert.AtrD, trade.StrategyType)},Offset={trade.Offset},Spread={trade.Spread}"),
+                                        });
+
                                         // TradeJournal item
                                         _logger.LogWarning($"MODIFY SL order is send to Metatrader : MODIFYSL,instrument={mtTrade.TickerInMetatrader},mtAskPrice={mtTrade.Ask},tp={tvAlert.TakeProfit - trade.Offset},sl={slPrice},magic={trade.Magic}", trade);
 
@@ -327,9 +342,9 @@ namespace JCTG.AzureFunction
                                             TickerInTradingview = mtTrade.TickerInTradingview,
                                             TakeProfit = orgTvAlert.TakeProfit,
                                             StopLoss = slPrice,
-                                            Magic = tvAlert.Magic,
+                                            Magic = tvAlert.ID,
                                             StrategyType = trade.StrategyType,
-                                        }); ;
+                                        });
                                     }
                                 }
                                 else
@@ -369,7 +384,7 @@ namespace JCTG.AzureFunction
                                     TickerInTradingview = mtTrade.TickerInTradingview,
                                     TakeProfit = tvAlert.TakeProfit - trade.Offset,
                                     StopLoss = tvAlert.StopLoss - trade.Offset,
-                                    Magic = tvAlert.Magic,
+                                    Magic = tvAlert.ID,
                                     StrategyType = trade.StrategyType,
                                 });
                             }

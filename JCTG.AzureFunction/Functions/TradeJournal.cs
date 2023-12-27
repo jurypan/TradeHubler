@@ -40,10 +40,14 @@ namespace JCTG.AzureFunction.Functions
                         _logger.LogInformation($"Parsed tradejournal object : AccountID={item.AccountID}, ClientID={item.ClientID}, Symbol={item.Symbol}, CurrentPrice={item.CurrentPrice}, SL={item.SL}, TP={item.TP}, Magic={item.Magic}, StrategyType={item.StrategyType}", jsonString);
 
                         var tradeJournal = await _dbContext.TradeJournal.FirstOrDefaultAsync(f => 
-                                                                   f.ClientID == item.ClientID
-                                                                && f.AccountID == item.AccountID
-                                                                && f.TradingviewAlertID == item.TradingviewAlertID
-                                                                && f.Magic == item.Magic
+                                                                       f.ClientID == item.ClientID
+                                                                    && f.AccountID == item.AccountID
+                                                                    && f.Instrument == item.Symbol
+                                                                    && f.Type == item.Type
+                                                                    && f.OpenPrice == item.OpenPrice
+                                                                    && f.OpenTime == item.OpenTime
+                                                                    && f.StrategyType == item.StrategyType
+                                                                    && f.Magic == item.Magic
                                                                 );
 
                         // check if item is already in the db
@@ -54,16 +58,20 @@ namespace JCTG.AzureFunction.Functions
                             {
                                 AccountID = item.AccountID,
                                 ClientID = item.ClientID,
-                                TradingviewAlertID = item.TradingviewAlertID,
+                                DateCreated = DateTime.UtcNow,
                                 Comment = item.Comment,
                                 Commission = item.Commission,
+                                CloseTime = DateTime.UtcNow,
                                 ClosePrice = item.CurrentPrice,
                                 Lots = item.Lots,
                                 Magic = item.Magic,
                                 OpenPrice = item.OpenPrice,
                                 OpenTime = item.OpenTime,
                                 Pnl =item.Pnl,
+                                OpenSL = item.SL,
+                                OpenTP = item.TP,
                                 SL = item.SL,
+                                Spread = item.Spread,
                                 StrategyType = item.StrategyType,
                                 Swap = item.Swap,
                                 Instrument = item.Symbol,
@@ -72,7 +80,7 @@ namespace JCTG.AzureFunction.Functions
                                 TP = item.TP,
                                 Type = item.Type,
                                 Risk = item.Risk,
-                                RR = item.OpenPrice / item.SL * item.CurrentPrice,
+                                RR = item.Type == "BUY" ? Math.Round((item.CurrentPrice - item.OpenPrice) / Math.Abs(item.OpenPrice - item.SL), 4, MidpointRounding.AwayFromZero)  : Math.Round((item.OpenPrice - item.CurrentPrice) / Math.Abs(item.OpenPrice - item.SL), 4, MidpointRounding.AwayFromZero)
                             };
 
                             // Add to database
@@ -82,11 +90,14 @@ namespace JCTG.AzureFunction.Functions
                         {
                             // Add item to the database
                             tradeJournal.ClosePrice = item.CurrentPrice;
+                            tradeJournal.CloseTime = DateTime.UtcNow;
                             tradeJournal.Commission = item.Commission;
                             tradeJournal.Pnl = item.Pnl;
+                            tradeJournal.SL = item.SL;
+                            tradeJournal.TP = item.TP;
                             tradeJournal.Swap = item.Swap;
                             tradeJournal.CloseTime = DateTime.UtcNow;
-                            tradeJournal.RR = item.OpenPrice / item.SL * item.CurrentPrice;
+                            tradeJournal.RR = item.Type == "BUY" ? Math.Round((item.CurrentPrice - item.OpenPrice) / Math.Abs(item.OpenPrice - tradeJournal.OpenSL), 4, MidpointRounding.AwayFromZero) : Math.Round((item.OpenPrice - item.CurrentPrice) / Math.Abs(item.OpenPrice - tradeJournal.OpenSL), 4, MidpointRounding.AwayFromZero);
                         };
                     }
 

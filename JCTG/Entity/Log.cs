@@ -17,8 +17,8 @@ namespace JCTG
 
         public Client? Client { get; set; }
         public long ClientID { get; set; }
-        public string Type { get; set; }
-        public string ErrorType { get; set; }
-        public string Message { get; set; }
+        public string? Type { get; set; }
+        public string? ErrorType { get; set; }
+        public string? Message { get; set; }
     }
 }

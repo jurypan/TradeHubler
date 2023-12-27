@@ -16,7 +16,7 @@
         public double TakeProfit { get; set; }
         public double StopLoss { get; set; }
         public StrategyType StrategyType { get; set; }
-        public int Magic { get; set; }
+        public long Magic { get; set; }
 
     }
 }

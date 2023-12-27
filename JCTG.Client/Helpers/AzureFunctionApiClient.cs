@@ -73,8 +73,8 @@ namespace JCTG.Client
                 {
                     try
                     {
-                        // Execute the POST request
                         var response = await _httpClient.PostAsync("https://justcalltheguy.azurewebsites.net/api/TradeJournal?code=ZiH5_uE_CNU7Yu1QvBIhAHNe-rTG4nhKaXUiUt9lgIJtAzFuPvuf-A==", content);
+                        //var response = await _httpClient.PostAsync("http://localhost:7259/api/TradeJournal", content);
 
                         // Check the response status
                         if (response.StatusCode == HttpStatusCode.OK)
@@ -93,6 +93,45 @@ namespace JCTG.Client
                     }
                 }
             });
+        }
+
+        public async Task<long> GetTicketIdAsync(TicketIdRequest request)
+        {
+            // Number of retry attempts
+            const int maxRetries = 3;
+            // Delay in milliseconds between retries
+            const int delayBetweenRetries = 5000;
+
+            // Prepare the data to send 
+            var postData = JsonConvert.SerializeObject(request);
+            var content = new StringContent(postData, Encoding.UTF8, "application/json");
+            _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+            for (int retry = 0; retry < maxRetries; retry++)
+            {
+                try
+                {
+                    //var response = await _httpClient.PostAsync("http://localhost:7259/api/TicketId", content);
+                    var response = await _httpClient.PostAsync("https://justcalltheguy.azurewebsites.net/api/TicketId?code=5cNSO8LDNjdrupIkouwPIU9tIOrjo2AMQJgsaSQOnXcNAzFu5YSBkg==", content);
+
+                    if (response.StatusCode == HttpStatusCode.OK)
+                    {
+                        var jsonString = await response.Content.ReadAsStringAsync();
+                        return JsonConvert.DeserializeObject<long>(jsonString);
+                    }
+                }
+                catch (HttpRequestException)
+                {
+                    // Log the exception or handle it as needed
+                    if (retry == maxRetries - 1)
+                        throw; // Re-throw the exception on the last retry
+                    else
+                        await Task.Delay(delayBetweenRetries); // Wait before retrying
+                }
+            }
+
+            // If all retries failed, return an empty list or handle it as needed
+            return 0;
         }
 
         public void SendLog(LogRequest request)

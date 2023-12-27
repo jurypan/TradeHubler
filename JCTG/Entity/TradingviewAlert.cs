@@ -31,7 +31,6 @@ namespace JCTG
 
 
         public List<Trade> Trades { get; set; }
-        public List<TradeJournal> TradeJournals { get; set; }
 
         public static TradingviewAlert Parse(string input)
         {
