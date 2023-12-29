@@ -45,6 +45,7 @@ namespace JCTG.Client
 
         public required string TickerInTradingView { get; set; }
         public required string TickerInMetatrader { get; set; }
+        public required string TickerInFMP { get; set; }
         public required string Timeframe { get; set; }
         public StrategyType StrategyNr { get; set; }
         public double Risk { get; set; }

@@ -25,7 +25,7 @@ namespace JCTG.Client.Tests
             var result = mt.IsCurrentUTCTimeInSession(sessions, new DateTime(2023, 12, 19, 0, 0, 0));
 
             // Assert
-            Assert.IsTrue(result);
+            Assert.That(result);
         }
 
         [Test]
@@ -42,7 +42,7 @@ namespace JCTG.Client.Tests
             var result = mt.IsCurrentUTCTimeInSession(sessions, new DateTime(2023, 12, 17, 20, 0, 0));
 
             // Assert
-            Assert.IsTrue(result);
+            Assert.That(result);
         }
 
         [Test]
@@ -59,7 +59,7 @@ namespace JCTG.Client.Tests
             var result = mt.IsCurrentUTCTimeInSession(sessions, new DateTime(2023, 12, 15, 20, 0, 0));
             
             // Assert
-            Assert.IsTrue(result);
+            Assert.That(result);
         }
 
         [Test]
@@ -73,7 +73,7 @@ namespace JCTG.Client.Tests
 
             var result = mt.IsCurrentUTCTimeInSession(sessions, new DateTime(2023, 12, 17, 10, 0, 0));
 
-            Assert.IsFalse(result);
+            Assert.That(!result);
         }
 
         // 2. Test a normal weekday session where the current time is within the session (e.g., Monday afternoon)
@@ -88,7 +88,7 @@ namespace JCTG.Client.Tests
 
             var result = mt.IsCurrentUTCTimeInSession(sessions, new DateTime(2023, 12, 18, 15, 0, 0));
 
-            Assert.IsTrue(result);
+            Assert.That(result);
         }
 
         // 3. Test a normal weekday session where the current time is outside the session (e.g., Monday morning)
@@ -102,7 +102,7 @@ namespace JCTG.Client.Tests
             };
             var result = mt.IsCurrentUTCTimeInSession(sessions, new DateTime(2023, 12, 18, 8, 0, 0));
 
-            Assert.IsFalse(result);
+            Assert.That(!result);
         }
 
         // 4. Test a session that goes from one day to another, where the current time is after midnight but still within the session (e.g., Saturday to Sunday)
@@ -118,7 +118,7 @@ namespace JCTG.Client.Tests
 
             var result = mt.IsCurrentUTCTimeInSession(sessions, new DateTime(2023, 12, 17, 1, 0, 0));
 
-            Assert.IsTrue(result);
+            Assert.That(result);
         }
 
         // 5. Test when the `sessions` dictionary is empty (no sessions defined)
@@ -129,7 +129,7 @@ namespace JCTG.Client.Tests
 
             var result = mt.IsCurrentUTCTimeInSession(sessions, new DateTime(2023, 12, 18, 10, 0, 0));
 
-            Assert.IsFalse(result);
+            Assert.That(!result);
         }
     }
 }

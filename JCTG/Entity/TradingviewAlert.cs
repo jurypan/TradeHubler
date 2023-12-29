@@ -15,6 +15,8 @@ namespace JCTG
         public long ID { get; set; }
         public DateTime DateCreated { get; set; }
         public StrategyType StrategyType { get; set; }
+        public bool Executed { get; set; }
+        public DateTime DateExecuted { get; set; }
         public Account Account { get; set; }
         public int AccountID { get; set; }
         public string OrderType { get; set; }

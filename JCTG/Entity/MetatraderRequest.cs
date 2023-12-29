@@ -14,6 +14,7 @@
         public double Ask { get; set; }
         public double Bid { get; set; }
         public string TickerInTradingview { get; set; }
+        public string TickerInFMP { get; set; }
         public StrategyType StrategyType { get; set; }
         public double Atr5M { get; set; }
         public double Atr15M { get; set; }

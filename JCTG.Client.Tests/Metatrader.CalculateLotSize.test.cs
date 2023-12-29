@@ -229,7 +229,7 @@ namespace JCTG.Client.Tests
 
             // Assert
             // The expected value should be adjusted according to the new lot step
-            Assert.IsTrue(result % 0.05 < double.Epsilon || Math.Abs(result % 0.05 - 0.05) < double.Epsilon);
+            Assert.That(result % 0.05 < double.Epsilon || Math.Abs(result % 0.05 - 0.05) < double.Epsilon);
         }
 
         [Test]
@@ -251,7 +251,7 @@ namespace JCTG.Client.Tests
             var result = mt.CalculateLotSize(0, accountBalance, riskPercent, askPrice, stopLossPrice, tickValue, pointSize, lotStep, minLotSizeAllowed, maxLotSizeAllowed, spread);
 
             // Assert
-            Assert.Less(result, 0.1); // Expecting a lower lot size due to higher tick value
+            Assert.That(result < 0.1); // Expecting a lower lot size due to higher tick value
         }
 
         [Test]
@@ -339,7 +339,7 @@ namespace JCTG.Client.Tests
             var result = mt.CalculateLotSize(0, accountBalance, riskPercent, askPrice, stopLossPrice, tickValue, pointSize, lotStep, minLotSizeAllowed, maxLotSizeAllowed, spread);
 
             // Assert
-            Assert.IsTrue(result % lotStep < double.Epsilon || Math.Abs(result % lotStep - lotStep) < double.Epsilon); // Result should be a multiple of lotStep
+            Assert.That(result % lotStep < double.Epsilon || Math.Abs(result % lotStep - lotStep) < double.Epsilon); // Result should be a multiple of lotStep
         }
 
 
