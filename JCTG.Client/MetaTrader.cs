@@ -72,7 +72,7 @@ namespace JCTG.Client
                     {
                         // Init request to Azure Function
                         var mtRequests = new List<MetatraderRequest>();
-                       
+
                         // Loop through each pair
                         foreach (var ticker in new List<Pairs>(_appConfig.Brokers.Where(f => f.ClientId == _api.ClientId).SelectMany(f => f.Pairs)))
                         {
@@ -86,6 +86,7 @@ namespace JCTG.Client
                                 var currentUtcTime = DateTime.Now.AddHours(1);
 
                                 // Do we have custom session times?
+                                ticker.OverrideSession = false;
                                 if (ticker.OverrideSession)
                                 {
                                     // Init request object
@@ -182,6 +183,8 @@ namespace JCTG.Client
                                         ClientID = _api.ClientId,
                                         TickerInMetatrader = ticker.TickerInMetatrader,
                                         Ask = metadataTick.Ask,
+                                        Bid = metadataTick.Bid,
+                                        TickSize = metadataTick.TickSize,
                                         StrategyType = ticker.StrategyNr,
                                         TickerInTradingview = ticker.TickerInTradingView,
                                         TickerInFMP = ticker.TickerInFMP,

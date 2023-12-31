@@ -54,9 +54,10 @@ namespace JCTG.AzureFunction
                         // Get Signal BUY or SELL orders from the database
                         foreach (var signal in await _dbContext.Signal.Where(f =>
                                                             f.AccountID == mtTrade.AccountID
-                                                            && f.Trades.Count(g => g.SignalID == f.ID && g.ClientID == mtTrade.ClientID) == 0
+                                                            && f.Trades.Count(g => g.SignalID == f.ID && g.ClientID == mtTrade.ClientID && g.StrategyType == mtTrade.StrategyType) == 0
                                                             && f.Instrument.Equals(mtTrade.TickerInTradingview)
                                                             && f.StrategyType == mtTrade.StrategyType
+                                                            && (f.DateExecuted == null || f.DateExecuted >= DateTime.UtcNow.AddMinutes(-10))
                                                             && (f.OrderType.Contains("BUY") || f.OrderType.Contains("SELL"))
                                                             ).ToListAsync())
                         {
@@ -189,6 +190,7 @@ namespace JCTG.AzureFunction
                                                             && f.Trades.Count(g => g.SignalID == f.ID && g.ClientID == mtTrade.ClientID) == 0
                                                             && f.Instrument.Equals(mtTrade.TickerInTradingview)
                                                             && f.StrategyType == mtTrade.StrategyType
+                                                            && (f.DateExecuted == null || f.DateExecuted >= DateTime.UtcNow.AddMinutes(-10))
                                                             && (f.OrderType.Equals("MODIFYSLTOBE") || f.OrderType.Equals("MODIFYSL") || f.OrderType.Equals("CLOSE"))
                                                             ).ToListAsync())
                         {
