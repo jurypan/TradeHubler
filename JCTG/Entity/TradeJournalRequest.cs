@@ -4,7 +4,9 @@
     {
         public TradeJournalRequest()
         {
-
+            this.Symbol = string.Empty;
+            this.Type = string.Empty;
+            this.Timeframe = string.Empty;
         }
 
         public int AccountID { get; set; }

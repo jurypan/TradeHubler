@@ -432,56 +432,6 @@ namespace JCTG.Client
                             }
                         }
                     }
-
-                    // Do null reference checks
-                    if (_api != null && _api.OpenOrders != null && _api.MarketData != null)
-                    {
-                        // Init request to Azure Function
-                        var tjRequests = new List<TradeJournalRequest>();
-
-                        // Loop through each open order
-                        foreach (var order in new Dictionary<long, Order>(_api.OpenOrders))
-                        {
-                            // Get the market data
-                            var marketdata = _api.MarketData.FirstOrDefault(f => f.Key == order.Value.Symbol);
-
-                            // Get setup from appconfig
-                            var pair = _appConfig.Brokers.Where(f => f.ClientId == _api.ClientId).SelectMany(f => f.Pairs).Where(f => f.TickerInMetatrader == order.Value.Symbol).FirstOrDefault();
-
-                            // Do null reference check
-                            if(pair != null) 
-                            {
-                                // Init object
-                                tjRequests.Add(new TradeJournalRequest()
-                                {
-                                    AccountID = _appConfig.AccountId,
-                                    ClientID = _api.ClientId,
-                                    Comment = order.Value.Comment,
-                                    Commission = order.Value.Commission,
-                                    CurrentPrice = order.Value.Type?.ToUpper() == "SELL" ? marketdata.Value.Bid : marketdata.Value.Ask,
-                                    Lots = order.Value.Lots,
-                                    Magic = order.Value.Magic,
-                                    OpenPrice = order.Value.OpenPrice,
-                                    OpenTime = order.Value.OpenTime,
-                                    Pnl = order.Value.Pnl,
-                                    SL = order.Value.StopLoss,
-                                    StrategyType = pair.StrategyNr,
-                                    Spread = Math.Round(Math.Abs(marketdata.Value.Bid - marketdata.Value.Ask), 4, MidpointRounding.AwayFromZero),
-                                    Swap = order.Value.Swap,
-                                    Symbol = order.Value.Symbol != null ? order.Value.Symbol : "NONE",
-                                    TicketId = order.Key,
-                                    Timeframe = pair.Timeframe,
-                                    TP = order.Value.TakeProfit,
-                                    Type = order.Value.Type != null ? order.Value.Type.ToUpper() : "NONE",
-                                    Risk = pair.Risk,
-                                });
-                            }
-                        }
-
-                        // If there any open orders, send them to the backend
-                        if (tjRequests.Count != 0)
-                            new AzureFunctionApiClient().SendTradeJournals(tjRequests);
-                    }
                 });
 
                 // Wait a little bit
@@ -621,7 +571,7 @@ namespace JCTG.Client
                 Print("Magic     : " + order.Magic);
                 Print("------------------------------------------------");
 
-                // Send to the server
+                // Send log to the server
                 new AzureFunctionApiClient().SendLog(new LogRequest()
                 {
                     AccountID = _appConfig.AccountId,
@@ -629,6 +579,9 @@ namespace JCTG.Client
                     Message = string.Format($"Symbol={order.Symbol},Ticket={ticketId},Lots={order.Lots},Type={order.Type},Magic={order.Magic},Price={order.OpenPrice},TP={order.TakeProfit},SL={order.StopLoss}"),
                     Type = "MT - CREATE ORDER",
                 });
+
+                // Send to tradingjournal
+                SendOrderToBackend(clientId, ticketId, order);
             }
         }
 
@@ -658,6 +611,9 @@ namespace JCTG.Client
                     Message = string.Format($"Symbol={order.Symbol},Ticket={ticketId},Lots={order.Lots},Type={order.Type},Magic={order.Magic},Price={order.OpenPrice},TP={order.TakeProfit},SL={order.StopLoss}"),
                     Type = "MT - UDPATE ORDER",
                 });
+
+                // Send to tradingjournal
+                SendOrderToBackend(clientId, ticketId, order);
             }
         }
 
@@ -687,7 +643,51 @@ namespace JCTG.Client
                     Message = string.Format($"Symbol={order.Symbol},Ticket={ticketId},Lots={order.Lots},Type={order.Type},Magic={order.Magic},Price={order.OpenPrice},TP={order.TakeProfit},SL={order.StopLoss}"),
                     Type = "MT - CLOSE ORDER",
                 });
+                
+                // Send to tradingjournal
+                SendOrderToBackend(clientId, ticketId, order);
             }
+        }
+
+        private void SendOrderToBackend(long clientId, long ticketId, Order order) 
+        { 
+            if (_appConfig != null && _apis != null && _apis.Count(f => f.ClientId == clientId) == 1) 
+            {
+                // Add to the trading journal
+                var marketdata = _apis.First(f => f.ClientId == clientId).MarketData.FirstOrDefault(f => f.Key == order.Symbol);
+
+                // Get setup from appconfig
+                var pair = _appConfig.Brokers.Where(f => f.ClientId == clientId).SelectMany(f => f.Pairs).Where(f => f.TickerInMetatrader == order.Symbol).FirstOrDefault();
+
+                // Do null reference check
+                if (pair != null && !string.IsNullOrEmpty(marketdata.Key))
+                {
+                    // Init object
+                    new AzureFunctionApiClient().SendTradeJournal(new TradeJournalRequest()
+                    {
+                        AccountID = _appConfig.AccountId,
+                        ClientID = clientId,
+                        Comment = order.Comment,
+                        Commission = order.Commission,
+                        CurrentPrice = marketdata.Value.Ask,
+                        Lots = order.Lots,
+                        Magic = order.Magic,
+                        OpenPrice = order.OpenPrice,
+                        OpenTime = order.OpenTime,
+                        Pnl = order.Pnl,
+                        SL = order.StopLoss,
+                        StrategyType = pair.StrategyNr,
+                        Spread = Math.Round(Math.Abs(marketdata.Value.Bid - marketdata.Value.Ask), 4, MidpointRounding.AwayFromZero),
+                        Swap = order.Swap,
+                        Symbol = order.Symbol != null ? order.Symbol : "NONE",
+                        TicketId = ticketId,
+                        Timeframe = pair.Timeframe,
+                        TP = order.TakeProfit,
+                        Type = order.Type != null ? order.Type.ToUpper() : "NONE",
+                        Risk = pair.Risk,
+                    });
+                }
+            } 
         }
     }
 }
