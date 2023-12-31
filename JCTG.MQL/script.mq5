@@ -865,7 +865,7 @@ void CheckMarketData() {
          double atrH1 = CalculateATR(MarketDataSymbols[i], 1, 14, "H1");
          double atrD = CalculateATR(MarketDataSymbols[i], 1, 14, "D1");
                               
-         text += StringFormat("\"%s\": {\"bid\": %.10f, \"ask\": %.10f, \"tick_value\": %.10f, \"min_lot_size\": %.10f, \"max_lot_size\": %.10f, \"contract_size\": %.10f, \"volume_step\": %.10f, \"point_size\": %.10f}", 
+         text += StringFormat("\"%s\": {\"bid\": %.10f, \"ask\": %.10f, \"tick_value\": %.10f, \"min_lot_size\": %.10f, \"max_lot_size\": %.10f, \"contract_size\": %.10f, \"volume_step\": %.10f, \"tick_size\": %.10f, \"digits\": %d, \"atr_M5\": %.10f, \"atr_M15\": %.10f, \"atr_H1\": %.10f, \"atr_D\": %.10f}", 
                      MarketDataSymbols[i], 
                      lastTick.bid, 
                      lastTick.ask,
@@ -874,8 +874,12 @@ void CheckMarketData() {
                      SymbolInfoDouble(MarketDataSymbols[i], SYMBOL_VOLUME_MAX),
                      SymbolInfoDouble(MarketDataSymbols[i], SYMBOL_TRADE_CONTRACT_SIZE),
                      SymbolInfoDouble(MarketDataSymbols[i], SYMBOL_VOLUME_STEP),
-                     SymbolInfoDouble(MarketDataSymbols[i], SYMBOL_POINT),
-                     Digits()
+                     SymbolInfoDouble(MarketDataSymbols[i], SYMBOL_TRADE_TICK_SIZE),
+                     Digits(),
+                     atrM5,
+                     atrM15,
+                     atrH1,
+                     atrD
                      );
                      
          first = false;
@@ -889,8 +893,6 @@ void CheckMarketData() {
    
    // only write to file if there was a change. 
    if (text == lastMarketDataText) return;
-   
-   
    
    if (WriteToFile(filePathMarketData, text)) {
       lastMarketDataText = text;
@@ -1151,7 +1153,7 @@ bool IsSafeToTrade()
          if(PositionGetInteger(POSITION_TYPE) == POSITION_TYPE_BUY)
            {
             double breakEvenPoint = PositionGetDouble(POSITION_PRICE_OPEN); // Assuming break-even is at the open price
-            if(PositionGetDouble(POSITION_SL) <= breakEvenPoint) // SL must be at or above break-even for buy orders
+            if(PositionGetDouble(POSITION_SL) < breakEvenPoint) // SL must be at or above break-even for buy orders
               {
                canTrade = false;
                break;
@@ -1160,7 +1162,7 @@ bool IsSafeToTrade()
          else if(PositionGetInteger(POSITION_TYPE) == POSITION_TYPE_SELL)
            {
             double breakEvenPoint = PositionGetDouble(POSITION_PRICE_OPEN); // Assuming break-even is at the open price
-            if(PositionGetDouble(POSITION_SL) >= breakEvenPoint) // SL must be at or below break-even for sell orders
+            if(PositionGetDouble(POSITION_SL) > breakEvenPoint) // SL must be at or below break-even for sell orders
               {
                canTrade = false;
                break;

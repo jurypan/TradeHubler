@@ -785,7 +785,7 @@ void CheckMarketData() {
          double atrH1 = CalculateATR(MarketDataSymbols[i], 1, 14, "H1");
          double atrD = CalculateATR(MarketDataSymbols[i], 1, 14, "D1");
 
-         text += StringFormat("\"%s\": {\"bid\": %.10f, \"ask\": %.10f, \"tick_value\": %.10f, \"min_lot_size\": %.10f, \"max_lot_size\": %.10f, \"contract_size\": %.10f, \"volume_step\": %.10f, \"point_size\": %.10f, \"digits\": %d, \"atr_M5\": %.10f, \"atr_M15\": %.10f, \"atr_H1\": %.10f, \"atr_D\": %.10f}", 
+         text += StringFormat("\"%s\": {\"bid\": %.10f, \"ask\": %.10f, \"tick_value\": %.10f, \"min_lot_size\": %.10f, \"max_lot_size\": %.10f, \"contract_size\": %.10f, \"volume_step\": %.10f, \"tick_size\": %.10f, \"digits\": %d, \"atr_M5\": %.10f, \"atr_M15\": %.10f, \"atr_H1\": %.10f, \"atr_D\": %.10f}", 
                                MarketDataSymbols[i], 
                                lastTick.bid, 
                                lastTick.ask,
@@ -794,7 +794,7 @@ void CheckMarketData() {
                                MarketInfo(MarketDataSymbols[i], MODE_MAXLOT),
                                MarketInfo(MarketDataSymbols[i], MODE_LOTSIZE),
                                MarketInfo(MarketDataSymbols[i], MODE_LOTSTEP),
-                               MarketInfo(MarketDataSymbols[i], MODE_POINT),
+                               MarketInfo(MarketDataSymbols[i], MODE_TICKSIZE),
                                Digits,
                                atrM5,
                                atrM15,
