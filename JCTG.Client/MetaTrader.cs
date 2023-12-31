@@ -65,7 +65,7 @@ namespace JCTG.Client
             if(_appConfig != null)
             {
                 // Loop through the api
-                Parallel.ForEach(_apis, async _api =>
+                foreach (var _api in _apis)
                 {
                     // Do null reference checks
                     if (_api != null && _api.AccountInfo != null && _api.MarketData != null && _api.MarketData.Count != 0)
@@ -86,7 +86,6 @@ namespace JCTG.Client
                                 var currentUtcTime = DateTime.Now.AddHours(1);
 
                                 // Do we have custom session times?
-                                ticker.OverrideSession = false;
                                 if (ticker.OverrideSession)
                                 {
                                     // Init request object
@@ -435,7 +434,7 @@ namespace JCTG.Client
                             }
                         }
                     }
-                });
+                }
 
                 // Wait a little bit
                 await Task.Delay(_appConfig.SleepDelay);

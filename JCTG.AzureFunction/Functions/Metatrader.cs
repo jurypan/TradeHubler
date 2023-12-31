@@ -76,6 +76,17 @@ namespace JCTG.AzureFunction
                                             signalATR: GetAtr(signal.Atr5M, signal.Atr15M, signal.Atr1H, signal.AtrD, signal.StrategyType)
                                             );
 
+                                // Caculate TP Price
+                                var tpPrice = CalculateTPForLong(
+                                            mtPrice: mtTrade.Ask,
+                                            mtATR: GetAtr(mtTrade.Atr5M, mtTrade.Atr15M, mtTrade.Atr1H, mtTrade.AtrD, signal.StrategyType),
+                                            mtSpread: spread,
+                                            mtTickSize: mtTrade.TickSize,
+                                            signalEntryPrice: signal.EntryPrice,
+                                            signalTpPrice: signal.TakeProfit,
+                                            signalATR: GetAtr(signal.Atr5M, signal.Atr15M, signal.Atr1H, signal.AtrD, signal.StrategyType)
+                                            );
+
                                 // Add to log
                                 await _dbContext.Log.AddAsync(new Log()
                                 {
@@ -83,11 +94,11 @@ namespace JCTG.AzureFunction
                                     ClientID = mtTrade.ClientID,
                                     DateCreated = DateTime.UtcNow,
                                     Type = "BACKEND - STOPLOSS CALCULATION",
-                                    Message = string.Format($"Type=BUY,StrategypType={signal.StrategyType},MtAsk={mtTrade.Ask},Atr={GetAtr(mtTrade.Atr5M, mtTrade.Atr15M, mtTrade.Atr1H, mtTrade.AtrD, signal.StrategyType)},TvEntryPrice={signal.EntryPrice},TvSlPrice={signal.StopLoss},TvAtr={GetAtr(signal.Atr5M, signal.Atr15M, signal.Atr1H, signal.AtrD, signal.StrategyType)},Offset={offset}"),
+                                    Message = string.Format($"Type=BUY,StrategypType={signal.StrategyType},MtAsk={mtTrade.Ask},MtAtr={GetAtr(mtTrade.Atr5M, mtTrade.Atr15M, mtTrade.Atr1H, mtTrade.AtrD, signal.StrategyType)},TvEntryPrice={signal.EntryPrice},TvSlPrice={signal.StopLoss},TvAtr={GetAtr(signal.Atr5M, signal.Atr15M, signal.Atr1H, signal.AtrD, signal.StrategyType)},Offset={offset},Tp={tpPrice},Sl={slPrice},Magic={signal.Magic}"),
                                 });
 
                                 // TradeJournal item
-                                _logger.LogWarning($"BUY order is send to Metatrader : BUY,instrument={mtTrade.TickerInMetatrader},mtAskPrice={mtTrade.Ask},tp={signal.TakeProfit - offset},sl={slPrice},magic={signal.Magic}", signal);
+                                _logger.LogWarning($"BUY order is send to Metatrader : BUY,instrument={mtTrade.TickerInMetatrader},mtAskPrice={mtTrade.Ask},tp={tpPrice},sl={slPrice},magic={signal.Magic}", signal);
 
                                 // Update database
                                 signal.Executed = true;
@@ -105,7 +116,7 @@ namespace JCTG.AzureFunction
                                     Magic = signal.Magic,
                                     ExecutedPrice = mtTrade.Ask,
                                     ExecutedSL = slPrice,
-                                    ExecutedTP = signal.TakeProfit - offset,
+                                    ExecutedTP = tpPrice,
                                 });
 
 
@@ -117,7 +128,7 @@ namespace JCTG.AzureFunction
                                     ClientId = mtTrade.ClientID,
                                     TickerInMetatrader = mtTrade.TickerInMetatrader,
                                     TickerInTradingview = mtTrade.TickerInTradingview,
-                                    TakeProfit = signal.TakeProfit - offset,
+                                    TakeProfit = tpPrice,
                                     StopLoss = slPrice,
                                     Magic = signal.Magic,
                                     StrategyType = signal.StrategyType,
@@ -136,6 +147,17 @@ namespace JCTG.AzureFunction
                                             signalATR: GetAtr(signal.Atr5M, signal.Atr15M, signal.Atr1H, signal.AtrD, signal.StrategyType)
                                            );
 
+                                // Caculate TP Price
+                                var tpPrice = CalculateTPForShort(
+                                            mtPrice: mtTrade.Ask,
+                                            mtAtr: GetAtr(mtTrade.Atr5M, mtTrade.Atr15M, mtTrade.Atr1H, mtTrade.AtrD, signal.StrategyType),
+                                            mtSpread: spread,
+                                            mtTickSize: mtTrade.TickSize,
+                                            signalEntryPrice: signal.EntryPrice,
+                                            signalTpPrice: signal.TakeProfit,
+                                            signalATR: GetAtr(signal.Atr5M, signal.Atr15M, signal.Atr1H, signal.AtrD, signal.StrategyType)
+                                           );
+
                                 // Add to log
                                 await _dbContext.Log.AddAsync(new Log()
                                 {
@@ -143,11 +165,11 @@ namespace JCTG.AzureFunction
                                     ClientID = mtTrade.ClientID,
                                     DateCreated = DateTime.UtcNow,
                                     Type = "BACKEND - STOPLOSS CALCULATION",
-                                    Message = string.Format($"Type=SELL,StrategypType={signal.StrategyType},MtAsk={mtTrade.Ask},Atr={GetAtr(mtTrade.Atr5M, mtTrade.Atr15M, mtTrade.Atr1H, mtTrade.AtrD, signal.StrategyType)},TvEntryPrice={signal.EntryPrice},TvSlPrice={signal.StopLoss},TvAtr={GetAtr(signal.Atr5M, signal.Atr15M, signal.Atr1H, signal.AtrD, signal.StrategyType)},Offset={offset},Spread={spread}"),
+                                    Message = string.Format($"Type=SELL,StrategypType={signal.StrategyType},MtAsk={mtTrade.Ask},MtAtr={GetAtr(mtTrade.Atr5M, mtTrade.Atr15M, mtTrade.Atr1H, mtTrade.AtrD, signal.StrategyType)},TvEntryPrice={signal.EntryPrice},TvSlPrice={signal.StopLoss},TvAtr={GetAtr(signal.Atr5M, signal.Atr15M, signal.Atr1H, signal.AtrD, signal.StrategyType)},Offset={offset},Tp={tpPrice},Sl={slPrice},Magic={signal.Magic}"),
                                 });
 
                                 // TradeJournal item
-                                _logger.LogWarning($"SELL order is send to Metatrader : SELL,instrument={mtTrade.TickerInMetatrader},mtAskPrice={mtTrade.Ask},tp={signal.TakeProfit - offset},sl={slPrice},magic={signal.Magic}", signal);
+                                _logger.LogWarning($"SELL order is send to Metatrader : SELL,instrument={mtTrade.TickerInMetatrader},mtAskPrice={mtTrade.Ask},tp={tpPrice},sl={slPrice},magic={signal.Magic}", signal);
 
                                 // Update database
                                 signal.Executed = true;
@@ -165,7 +187,7 @@ namespace JCTG.AzureFunction
                                     Magic = signal.Magic,
                                     ExecutedPrice = mtTrade.Ask,
                                     ExecutedSL = slPrice,
-                                    ExecutedTP = signal.TakeProfit - offset,
+                                    ExecutedTP = tpPrice,
                                 });
 
                                 // Add repsonse
@@ -176,7 +198,7 @@ namespace JCTG.AzureFunction
                                     ClientId = mtTrade.ClientID,
                                     TickerInMetatrader = mtTrade.TickerInMetatrader,
                                     TickerInTradingview = mtTrade.TickerInTradingview,
-                                    TakeProfit = signal.TakeProfit - offset,
+                                    TakeProfit = tpPrice,
                                     StopLoss = slPrice,
                                     Magic = signal.Magic,
                                     StrategyType = signal.StrategyType,
@@ -271,7 +293,6 @@ namespace JCTG.AzureFunction
 
                                     // TradeJournal item
                                     _logger.LogWarning($"MODIFY SL order is send to Metatrader : MODIFYSL,instrument={mtTrade.TickerInMetatrader},mtAskPrice={mtTrade.Ask},tp={tradeJournal.TP},sl={slPrice},magic={signal.Magic}");
-
 
                                     // Update database
                                     signal.Executed = true;
@@ -389,17 +410,17 @@ namespace JCTG.AzureFunction
         /// Calculate the stop loss price for long positions based on the specified parameters
         /// </summary>
         /// <param name="mtPrice">MetaTrader ASK price</param>
-        /// <param name="mtATR">MetaTrader Atr5M</param>
+        /// <param name="mtATR">MetaTrader ATR</param>
         /// <param name="mtSpread">Spread value</param>
         /// <param name="mtTickSize">Tick size</param>
         /// <param name="signalEntryPrice">Signal ENTRY price</param>
         /// <param name="signalSlPrice">Signal SL price</param>
-        /// <param name="signalATR">Signal Atr5M</param>
+        /// <param name="signalATR">Signal ATR</param>
         /// <returns>Stop loss price</returns>
         public static double CalculateSLForLong(double mtPrice, double mtATR, double mtSpread, double mtTickSize, double signalEntryPrice, double signalSlPrice, double signalATR)
         {
-            // Calculate the Atr5M multiplier based on the difference between MetaTrader's Atr5M and TradingView's Atr5M
-            var atrMultiplier = mtATR > 0 && signalATR > 0 && mtATR > signalATR ? mtATR / signalATR : 1.0;
+            // Calculate the ATR multiplier based on the difference between MetaTrader's ATR and TradingView's ATR
+            var atrMultiplier = mtATR > 0 && signalATR > 0 ? mtATR / signalATR : 1.0;
 
             // Calculate SL price using MetaTrader price minus risk to take
             var slPrice = mtPrice - ((signalEntryPrice - signalSlPrice) * atrMultiplier);
@@ -418,6 +439,7 @@ namespace JCTG.AzureFunction
             return slPrice - mtSpread;
         }
 
+
         /// <summary>
         /// Calculate the stop loss price for long positions based on the specified parameters
         /// </summary>
@@ -430,8 +452,8 @@ namespace JCTG.AzureFunction
         /// <returns>Stop loss price</returns>
         public static double CalculateSLForShort(double mtPrice, double mtAtr, double mtSpread, double mtTickSize, double signalEntryPrice, double signalSlPrice, double signalATR)
         {
-            // Calculate the Atr5M multiplier based on the difference between MetaTrader's Atr5M and TradingView's Atr5M
-            var atrMultiplier = mtAtr > 0 && signalATR > 0 && mtAtr > signalATR ? mtAtr / signalATR : 1.0;
+            // Calculate the ATR multiplier based on the difference between MetaTrader's ATR and TradingView's ATR
+            var atrMultiplier = mtAtr > 0 && signalATR > 0 ? mtAtr / signalATR : 1.0;
 
             // Calculate SL price using MetaTrader price minus risk to take
             var slPrice = mtPrice + ((signalSlPrice - signalEntryPrice) * atrMultiplier);
@@ -448,6 +470,63 @@ namespace JCTG.AzureFunction
 
             // Return SL Price plus spread
             return slPrice + mtSpread;
+        }
+
+        /// <summary>
+        /// Calculate the take profit price for long positions based on the specified parameters
+        /// </summary>
+        /// <param name="mtPrice">MetaTrader ASK price</param>
+        /// <param name="mtATR">MetaTrader ATR</param>
+        /// <param name="mtSpread">Spread value</param>
+        /// <param name="mtTickSize">Tick size</param>
+        /// <param name="signalEntryPrice">Signal ENTRY price</param>
+        /// <param name="signalTpPrice">Signal TP price</param>
+        /// <param name="signalATR">Signal ATR</param>
+        /// <returns>Take profit price</returns>
+        public static double CalculateTPForLong(double mtPrice, double mtATR, double mtSpread, double mtTickSize, double signalEntryPrice, double signalTpPrice, double signalATR)
+        {
+            // Calculate the ATR multiplier based on the difference between MetaTrader's ATR and TradingView's ATR
+            var atrMultiplier = mtATR > 0 && signalATR > 0 ? mtATR / signalATR : 1.0;
+
+            // Calculate TP price using MetaTrader price minus risk to take
+            var tpPrice = mtPrice + ((signalTpPrice - signalEntryPrice) * atrMultiplier);
+
+            // Calculate the number of ticks
+            var numberOfTicks = Math.Floor(tpPrice / mtTickSize);
+
+            // Multiply back to get the rounded value
+            tpPrice = numberOfTicks * mtTickSize;
+
+            // Return SL Price minus spread
+            return tpPrice - mtSpread;
+        }
+
+        /// <summary>
+        /// Calculate the take profit price for long positions based on the specified parameters
+        /// </summary>
+        /// <param name="mtPrice">MetaTrader ASK price</param>
+        /// <param name="mtAtr">MetaTrader ATR</param>
+        /// <param name="mtSpread">The spread value</param>
+        /// <param name="signalEntryPrice">Signal ENTRY price</param>
+        /// <param name="signalTpPrice">Signal TP price</param>
+        /// <param name="signalATR">Signal ATR</param>
+        /// <returns>Take profit price</returns>
+        public static double CalculateTPForShort(double mtPrice, double mtAtr, double mtSpread, double mtTickSize, double signalEntryPrice, double signalTpPrice, double signalATR)
+        {
+            // Calculate the ATR multiplier based on the difference between MetaTrader's ATR and TradingView's ATR
+            var atrMultiplier = mtAtr > 0 && signalATR > 0 ? mtAtr / signalATR : 1.0;
+
+            // Calculate TP price using MetaTrader price minus risk to take
+            var tpPrice = mtPrice - ((signalEntryPrice - signalTpPrice) * atrMultiplier);
+
+            // Calculate the number of ticks
+            var numberOfTicks = Math.Ceiling(tpPrice / mtTickSize);
+
+            // Multiply back to get the rounded value
+            tpPrice = numberOfTicks * mtTickSize;
+
+            // Return SL Price plus spread
+            return tpPrice + mtSpread;
         }
 
         private double GetAtr(double atr5M, double atr15M, double atr1H, double atrD, StrategyType type)
