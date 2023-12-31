@@ -1,11 +1,10 @@
-﻿using JCTG.Entity;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace JCTG
 {
-    public class TradingviewAlert
+    public class Signal
     {
-        public TradingviewAlert()
+        public Signal()
         {
             DateCreated = DateTime.UtcNow;
             Trades = [];
@@ -16,7 +15,7 @@ namespace JCTG
         public DateTime DateCreated { get; set; }
         public StrategyType StrategyType { get; set; }
         public bool Executed { get; set; }
-        public DateTime DateExecuted { get; set; }
+        public DateTime? DateExecuted { get; set; }
         public Account Account { get; set; }
         public int AccountID { get; set; }
         public string OrderType { get; set; }
@@ -32,9 +31,9 @@ namespace JCTG
         public double AtrD { get; set; }
 
 
-        public List<Trade> Trades { get; set; }
+        public List<Executed> Trades { get; set; }
 
-        public static TradingviewAlert Parse(string input)
+        public static Signal Parse(string input)
         {
             var parts = input.Split(',');
 
@@ -43,7 +42,7 @@ namespace JCTG
                 throw new ArgumentException("Input string does not have the correct format.");
             }
 
-            var order = new TradingviewAlert();
+            var order = new Signal();
 
             // Parsing ID
             if (!int.TryParse(parts[0], out int id))

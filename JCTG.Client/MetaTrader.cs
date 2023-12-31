@@ -65,7 +65,7 @@ namespace JCTG.Client
             if(_appConfig != null)
             {
                 // Loop through the api
-                foreach (var _api in _apis)
+                Parallel.ForEach(_apis, async _api =>
                 {
                     // Do null reference checks
                     if (_api != null && _api.AccountInfo != null && _api.MarketData != null && _api.MarketData.Count != 0)
@@ -96,6 +96,7 @@ namespace JCTG.Client
                                         TickerInMetatrader = ticker.TickerInMetatrader,
                                         Ask = metadataTick.Ask,
                                         Bid = metadataTick.Bid,
+                                        TickSize = metadataTick.TickSize,
                                         StrategyType = ticker.StrategyNr,
                                         TickerInTradingview = ticker.TickerInTradingView,
                                         TickerInFMP = ticker.TickerInFMP,
@@ -246,7 +247,7 @@ namespace JCTG.Client
                                         if (ticker != null)
                                         {
                                             // Make buy order
-                                            var lotSize = CalculateLotSize(_api.ClientId, _api.AccountInfo.Balance, ticker.Risk, metadataTick.Ask, response.StopLoss, metadataTick.TickValue, metadataTick.PointSize, metadataTick.LotStep, metadataTick.MinLotSize, metadataTick.MaxLotSize, metadataTick.Ask - metadataTick.Bid);
+                                            var lotSize = CalculateLotSize(_api.ClientId, _api.AccountInfo.Balance, ticker.Risk, metadataTick.Ask, response.StopLoss, metadataTick.TickValue, metadataTick.TickSize, metadataTick.LotStep, metadataTick.MinLotSize, metadataTick.MaxLotSize, metadataTick.Ask - metadataTick.Bid);
 
                                             // Print on the screen
                                             Print(Environment.NewLine);
@@ -259,7 +260,7 @@ namespace JCTG.Client
                                             Print("Stop Loss   : " + response.StopLoss);
                                             Print("Take Profit : " + response.TakeProfit);
                                             Print("Tick value  : " + metadataTick.TickValue);
-                                            Print("Point size  : " + metadataTick.PointSize);
+                                            Print("Point size  : " + metadataTick.TickSize);
                                             Print("Lot step    : " + metadataTick.LotStep);
                                             Print("Magic       : " + response.Magic);
                                             Print("Strategy    : " + ticker.StrategyNr);
@@ -284,7 +285,7 @@ namespace JCTG.Client
                                         if (ticker != null)
                                         {
                                             // Make buy order
-                                            var lotSize = CalculateLotSize(_api.ClientId, _api.AccountInfo.Balance, ticker.Risk, metadataTick.Ask, response.StopLoss, metadataTick.TickValue, metadataTick.PointSize, metadataTick.LotStep, metadataTick.MinLotSize, metadataTick.MaxLotSize, metadataTick.Ask - metadataTick.Bid);
+                                            var lotSize = CalculateLotSize(_api.ClientId, _api.AccountInfo.Balance, ticker.Risk, metadataTick.Ask, response.StopLoss, metadataTick.TickValue, metadataTick.TickSize, metadataTick.LotStep, metadataTick.MinLotSize, metadataTick.MaxLotSize, metadataTick.Ask - metadataTick.Bid);
 
                                             // Print on the screen
                                             Print(Environment.NewLine);
@@ -297,7 +298,7 @@ namespace JCTG.Client
                                             Print("Stop Loss   : " + response.StopLoss);
                                             Print("Take Profit : " + response.TakeProfit);
                                             Print("Tick value  : " + metadataTick.TickValue);
-                                            Print("Point size  : " + metadataTick.PointSize);
+                                            Print("Point size  : " + metadataTick.TickSize);
                                             Print("Lot step    : " + metadataTick.LotStep);
                                             Print("Magic       : " + response.Magic);
                                             Print("Strategy    : " + ticker.StrategyNr);
@@ -318,7 +319,7 @@ namespace JCTG.Client
                                         // Do null reference check
                                         if (ticker != null && response.TicketId.HasValue)
                                         {
-                                            // Get ticket Id
+                                            // Check if the ticket still exist as open order
                                             var ticketId = _api.OpenOrders.FirstOrDefault(f => f.Key == response.TicketId.Value);
 
                                             // Null reference check
@@ -354,7 +355,7 @@ namespace JCTG.Client
                                         // Do null reference check
                                         if (ticker != null && response.TicketId.HasValue)
                                         {
-                                            // Get ticket Id
+                                            // Check if the ticket still exist as open order
                                             var ticketId = _api.OpenOrders.FirstOrDefault(f => f.Key == response.TicketId.Value);
 
                                             // Null reference check
@@ -394,10 +395,10 @@ namespace JCTG.Client
                                         var ticker = new List<Pairs>(_appConfig.Brokers.Where(f => f.ClientId == _api.ClientId).SelectMany(f => f.Pairs)).FirstOrDefault(f => f.TickerInMetatrader.Equals(response.TickerInMetatrader));
 
                                         // Do null reference check
-                                        if (ticker != null)
+                                        if (ticker != null && response.TicketId.HasValue)
                                         {
-                                            // Get ticket Id
-                                            var ticketId = _api.OpenOrders.FirstOrDefault(f => f.Value.Symbol != null && f.Value.Symbol.Equals(response.TickerInMetatrader) && f.Value.Magic == response.Magic);
+                                            // Check if the ticket still exist as open order
+                                            var ticketId = _api.OpenOrders.FirstOrDefault(f => f.Key == response.TicketId.Value);
 
                                             // Null reference check
                                             if (ticketId.Key > 0)
@@ -481,7 +482,7 @@ namespace JCTG.Client
                         if (tjRequests.Count != 0)
                             new AzureFunctionApiClient().SendTradeJournals(tjRequests);
                     }
-                }
+                });
 
                 // Wait a little bit
                 await Task.Delay(_appConfig.SleepDelay);

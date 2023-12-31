@@ -24,18 +24,18 @@ namespace JCTG.AzureFunction
 
             try
             {
-                // Parse into a Trade Alert object
-                var order = TradingviewAlert.Parse(requestBody);
+                // Parse into a Executed Alert object
+                var order = Signal.Parse(requestBody);
 
                 // TradeJournal item
-                _logger.LogInformation($"Parse obejct to TradingviewAlert : AccountID={order.AccountID}, Type={order.OrderType}, TickerInMetatrader={order.Instrument}, CurrentPrice={order.CurrentPrice}, SL={order.StopLoss}, TP={order.TakeProfit}, Magic={order.Magic}", order);
+                _logger.LogInformation($"Parse obejct to Signal : AccountID={order.AccountID}, Type={order.OrderType}, TickerInMetatrader={order.Instrument}, CurrentPrice={order.CurrentPrice}, SL={order.StopLoss}, TP={order.TakeProfit}, Magic={order.Magic}", order);
 
                 // Save into the database
-                await _dbContext.TradingviewAlert.AddAsync(order);
+                await _dbContext.Signal.AddAsync(order);
                 await _dbContext.SaveChangesAsync();
 
                 // Add log
-                _logger.LogInformation($"Added to database in table TradingviewAlert with ID : {order.ID}", order);
+                _logger.LogInformation($"Added to database in table Signal with ID : {order.ID}", order);
             }
             catch (Exception ex)
             {

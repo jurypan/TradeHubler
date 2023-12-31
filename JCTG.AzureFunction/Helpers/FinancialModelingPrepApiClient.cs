@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System.Net;
 using System.Net.Http.Headers;
+using System.Web;
 
 namespace JCTG.AzureFunction.Helpers
 {
@@ -27,15 +28,17 @@ namespace JCTG.AzureFunction.Helpers
             {
                 try
                 {
-                    var response = await _httpClient.GetAsync(string.Format($"https://financialmodelingprep.com/api/v3/stock/real-time-price/{ticker}?apikey=fd0c588f21a15111ff1debcb7a027175"));
+                    var urlEncodeTicker = HttpUtility.UrlEncode(ticker);
+                    //https://financialmodelingprep.com/api/v3/quote-short/%5ESTOXX50E?apikey=fd0c588f21a15111ff1debcb7a027175
+                    var response = await _httpClient.GetAsync(string.Format($"https://financialmodelingprep.com/api/v3/quote-short/{urlEncodeTicker}?apikey=fd0c588f21a15111ff1debcb7a027175"));
 
                     if (response.StatusCode == HttpStatusCode.OK)
                     {
                         var jsonString = await response.Content.ReadAsStringAsync();
-                        var entity = JsonConvert.DeserializeObject<CompaniesPriceListContainer>(jsonString);
-                        if(entity != null && entity.CompaniesPriceList != null && entity.CompaniesPriceList.Count == 1)
+                        var entity = JsonConvert.DeserializeObject<List<StockData>>(jsonString);
+                        if(entity != null && entity.Count == 1)
                         {
-                            return entity.CompaniesPriceList.First().Price;
+                            return entity.First().Price;
                         }
                     }
                 }
@@ -53,15 +56,12 @@ namespace JCTG.AzureFunction.Helpers
             return 0.0;
         }
 
-        private class CompanyPrice
+        private class StockData
         {
-            public required string Symbol { get; set; }
+            public string Symbol { get; set; }
             public double Price { get; set; }
+            public long Volume { get; set; }
         }
 
-        private class CompaniesPriceListContainer
-        {
-            public required List<CompanyPrice> CompaniesPriceList { get; set; }
-        }
     }
 }

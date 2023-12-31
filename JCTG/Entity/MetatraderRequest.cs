@@ -6,13 +6,15 @@
         {
             TickerInMetatrader = string.Empty;
             TickerInTradingview = string.Empty;
+            TickerInFMP = string.Empty;
         }
 
         public int AccountID { get; set; }
         public long ClientID { get; set; }
-        public string TickerInMetatrader { get; set; }
         public double Ask { get; set; }
         public double Bid { get; set; }
+        public double TickSize { get; set; }
+        public string TickerInMetatrader { get; set; }
         public string TickerInTradingview { get; set; }
         public string TickerInFMP { get; set; }
         public StrategyType StrategyType { get; set; }

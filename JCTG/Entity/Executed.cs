@@ -2,9 +2,9 @@
 
 namespace JCTG
 {
-    public class Trade
+    public class Executed
     {
-        public Trade() 
+        public Executed() 
         {
             DateCreated = DateTime.UtcNow;
         }
@@ -17,17 +17,15 @@ namespace JCTG
         public int AccountID { get; set; }
         public Client? Client { get; set; }
         public long ClientID { get; set; }
-        public TradingviewAlert? TradingviewAlert { get; set; }
-        public long TradingviewAlertID { get; set; }
+        public Signal? Signal { get; set; }
+        public long SignalID { get; set; }
         public StrategyType StrategyType { get; set; }
         public double Offset { get; set; }
         public double Spread { get; set; }
         public required string Instrument { get; set; }
         public long Magic { get; set; }
-        public bool Executed { get; set; }
-        public DateTime? DateExecuted { get; set; }
-        public double? ExecutedPrice { get; set; }
-        public double? ExecutedSL { get; set; }
-        public double? ExecutedTP { get; set; }
+        public double ExecutedPrice { get; set; }
+        public double ExecutedSL { get; set; }
+        public double ExecutedTP { get; set; }
     }
 }

@@ -43,9 +43,9 @@
           }
         },
         {
-          "TickerInTradingView": "SX5E",
-          "TickerInMetatrader": "STOXX50E",
-          "TickerInFMP": "^STOXX50E",
+          "TickerInTradingView": "UKX",
+          "TickerInMetatrader": "UK100",
+          "TickerInFMP": "^FTSE",
           "Timeframe": "M15",
           "StrategyNr": 5,
           "Risk": 0.05, // 0.15
@@ -53,23 +53,23 @@
           "Sessions": {
             "Monday": {
               "open": "08:50",
-              "close": "18:10"
+              "close": "16:40"
             },
             "Tuesday": {
               "open": "08:50",
-              "close": "18:10"
+              "close": "16:40"
             },
             "Wednesday": {
               "open": "08:50",
-              "close": "18:10"
+              "close": "16:40"
             },
             "Thursday": {
               "open": "08:50",
-              "close": "18:10"
+              "close": "16:40"
             },
             "Friday": {
               "open": "08:50",
-              "close": "18:10"
+              "close": "16:40"
             },
             "Saterday": null,
             "Sunday": null
@@ -149,6 +149,39 @@
               "open": "23:50",
               "close": null
             }
+          }
+        },
+        {
+          "TickerInTradingView": "UKX",
+          "TickerInMetatrader": "UK100GBP",
+          "TickerInFMP": "^FTSE",
+          "Timeframe": "M15",
+          "StrategyNr": 5,
+          "Risk": 0.05, // 0.15
+          "OverrideSession": true,
+          "Sessions": {
+            "Monday": {
+              "open": "08:50",
+              "close": "16:40"
+            },
+            "Tuesday": {
+              "open": "08:50",
+              "close": "16:40"
+            },
+            "Wednesday": {
+              "open": "08:50",
+              "close": "16:40"
+            },
+            "Thursday": {
+              "open": "08:50",
+              "close": "16:40"
+            },
+            "Friday": {
+              "open": "08:50",
+              "close": "16:40"
+            },
+            "Saterday": null,
+            "Sunday": null
           }
         },
         {
@@ -1080,8 +1113,8 @@
           "TickerInTradingView": "XJO",
           "TickerInMetatrader": "ASXAUD",
           "TickerInFMP": "^AXJO",
-          "Timeframe": "M3",
-          "StrategyNr": 3,
+          "Timeframe": "M5",
+          "StrategyNr": 4,
           "Risk": 0.05, // 0.15
           "OverrideSession": true,
           "Sessions": {
@@ -1113,11 +1146,11 @@
           }
         },
         {
-          "TickerInTradingView": "SX5E",
-          "TickerInMetatrader": "ESXEUR",
-          "TickerInFMP": "^STOXX50E",
-          "Timeframe": "M3",
-          "StrategyNr": 3,
+          "TickerInTradingView": "PX1",
+          "TickerInMetatrader": "F40EUR",
+          "TickerInFMP": "^FCHI",
+          "Timeframe": "M5",
+          "StrategyNr": 4,
           "Risk": 0.05, // 0.15
           "OverrideSession": true,
           "Sessions": {
@@ -1149,8 +1182,8 @@
           "TickerInTradingView": "SPX",
           "TickerInMetatrader": "SPXUSD",
           "TickerInFMP": "^GSPC",
-          "Timeframe": "M3",
-          "StrategyNr": 3,
+          "Timeframe": "M5",
+          "StrategyNr": 4,
           "Risk": 0.05, // 0.15
           "OverrideSession": true,
           "Sessions": {

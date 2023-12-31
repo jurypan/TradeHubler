@@ -14,8 +14,10 @@ namespace JCTG.Client
         public double MaxLotSize { get; set; }
         [JsonProperty("volume_step")]
         public double LotStep { get; set; }
-        [JsonProperty("point_size")]
-        public double PointSize { get; set; }
+        [JsonProperty("tick_size")]
+        public double TickSize { get; set; }
+        [JsonProperty("digits")]
+        public int Digits { get; set; }
 
         [JsonProperty("atr_M5_100")]
         public double ATR5M { get; set; }
