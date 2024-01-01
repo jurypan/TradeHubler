@@ -65,7 +65,7 @@ namespace JCTG.Client
             if(_appConfig != null)
             {
                 // Loop through the api
-                foreach (var _api in _apis)
+                Parallel.ForEach(_apis, new() { MaxDegreeOfParallelism = 1 }, async _api =>
                 {
                     // Do null reference checks
                     if (_api != null && _api.AccountInfo != null && _api.MarketData != null && _api.MarketData.Count != 0)
@@ -434,7 +434,7 @@ namespace JCTG.Client
                             }
                         }
                     }
-                }
+                });
 
                 // Wait a little bit
                 await Task.Delay(_appConfig.SleepDelay);

@@ -9,7 +9,7 @@ namespace JCTG
 
         public DbSet<Client> Client { get; set; }
 
-        public DbSet<Executed> Executed { get; set; }
+        public DbSet<SignalExecuted> SignalExecuted { get; set; }
 
         public DbSet<Signal> Signal { get; set; }
 
@@ -20,28 +20,28 @@ namespace JCTG
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
 
-            // Account - Executed
+            // Account - SignalExecuted
             modelBuilder.Entity<Account>()
                 .HasMany(a => a.Trades)
                 .WithOne(t => t.Account)
                 .HasForeignKey(t => t.AccountID);
 
-            // Client - Executed
+            // Client - SignalExecuted
             modelBuilder.Entity<Client>()
                 .HasMany(c => c.Trades)
                 .WithOne(t => t.Client)
                 .HasForeignKey(t => t.ClientID);
 
-            // Signal - Executed
+            // Signal - SignalExecuted
             modelBuilder.Entity<Signal>()
-                .HasMany(ta => ta.Trades)
+                .HasMany(ta => ta.SignalExecuted)
                 .WithOne(t => t.Signal)
                 .HasForeignKey(t => t.SignalID);
 
             // Signal - Account
             modelBuilder.Entity<Signal>()
                 .HasOne(ta => ta.Account)
-                .WithMany(t => t.TradingviewAlerts)
+                .WithMany(t => t.Signals)
                 .HasForeignKey(ta => ta.AccountID);
 
             // Tradejournal - Account

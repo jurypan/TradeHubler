@@ -2,9 +2,9 @@
 
 namespace JCTG
 {
-    public class Executed
+    public class SignalExecuted
     {
-        public Executed() 
+        public SignalExecuted() 
         {
             DateCreated = DateTime.UtcNow;
         }

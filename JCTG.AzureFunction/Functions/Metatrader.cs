@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Net;
 using Google.Protobuf.WellKnownTypes;
 using JCTG.AzureFunction.Helpers;
@@ -54,14 +55,13 @@ namespace JCTG.AzureFunction
                         // Get Signal BUY or SELL orders from the database
                         foreach (var signal in await _dbContext.Signal.Where(f =>
                                                             f.AccountID == mtTrade.AccountID
-                                                            && f.Trades.Count(g => g.SignalID == f.ID && g.ClientID == mtTrade.ClientID && g.StrategyType == mtTrade.StrategyType) == 0
+                                                            && f.SignalExecuted.Count(g => g.SignalID == f.ID && g.ClientID == mtTrade.ClientID && g.StrategyType == mtTrade.StrategyType) == 0
                                                             && f.Instrument.Equals(mtTrade.TickerInTradingview)
                                                             && f.StrategyType == mtTrade.StrategyType
                                                             && (f.DateExecuted == null || f.DateExecuted >= DateTime.UtcNow.AddMinutes(-10))
                                                             && (f.OrderType.Contains("BUY") || f.OrderType.Contains("SELL"))
                                                             ).ToListAsync())
                         {
-
                             // Check if we need to execute the order
                             if (signal.OrderType.Equals("BUY") || (signal.OrderType.Equals("BUYSTOP") && price > 0.0 && price > signal.EntryPrice))
                             {
@@ -103,7 +103,7 @@ namespace JCTG.AzureFunction
                                 // Update database
                                 signal.Executed = true;
                                 signal.DateExecuted = DateTime.UtcNow;
-                                await _dbContext.Executed.AddAsync(new Executed
+                                await _dbContext.SignalExecuted.AddAsync(new SignalExecuted
                                 {
                                     DateCreated = DateTime.UtcNow,
                                     AccountID = mtTrade.AccountID,
@@ -174,7 +174,7 @@ namespace JCTG.AzureFunction
                                 // Update database
                                 signal.Executed = true;
                                 signal.DateExecuted = DateTime.UtcNow;
-                                await _dbContext.Executed.AddAsync(new Executed
+                                await _dbContext.SignalExecuted.AddAsync(new SignalExecuted
                                 {
                                     DateCreated = DateTime.UtcNow,
                                     AccountID = mtTrade.AccountID,
@@ -209,7 +209,7 @@ namespace JCTG.AzureFunction
                         // Get Signal CANCEL, MODIFY SL orders from the database
                         foreach (var signal in await _dbContext.Signal.Where(f =>
                                                             f.AccountID == mtTrade.AccountID
-                                                            && f.Trades.Count(g => g.SignalID == f.ID && g.ClientID == mtTrade.ClientID) == 0
+                                                            && f.SignalExecuted.Count(g => g.SignalID == f.ID && g.ClientID == mtTrade.ClientID) == 0
                                                             && f.Instrument.Equals(mtTrade.TickerInTradingview)
                                                             && f.StrategyType == mtTrade.StrategyType
                                                             && (f.DateExecuted == null || f.DateExecuted >= DateTime.UtcNow.AddMinutes(-10))
@@ -226,7 +226,7 @@ namespace JCTG.AzureFunction
                                                            && f.Magic == signal.Magic);
 
                             // Do null reference check
-                            if (tradeJournal != null && (tradeJournal.Type == "BUY" || tradeJournal.Type == "SELL"))
+                            if (tradeJournal != null && (tradeJournal.Type == "BUY" || tradeJournal.Type == "SELL") && price > 0)
                             {
                                 // Check if we need to modify the stop loss to break event
                                 if (signal.OrderType.Equals("MODIFYSLTOBE"))
@@ -237,7 +237,7 @@ namespace JCTG.AzureFunction
                                     // Update database
                                     signal.Executed = true;
                                     signal.DateExecuted = DateTime.UtcNow;
-                                    await _dbContext.Executed.AddAsync(new Executed
+                                    await _dbContext.SignalExecuted.AddAsync(new SignalExecuted
                                     {
                                         DateCreated = DateTime.UtcNow,
                                         AccountID = mtTrade.AccountID,
@@ -297,7 +297,7 @@ namespace JCTG.AzureFunction
                                     // Update database
                                     signal.Executed = true;
                                     signal.DateExecuted = DateTime.UtcNow;
-                                    await _dbContext.Executed.AddAsync(new Executed
+                                    await _dbContext.SignalExecuted.AddAsync(new SignalExecuted
                                     {
                                         DateCreated = DateTime.UtcNow,
                                         AccountID = mtTrade.AccountID,
@@ -339,7 +339,7 @@ namespace JCTG.AzureFunction
                                     // Update database
                                     signal.Executed = true;
                                     signal.DateExecuted = DateTime.UtcNow;
-                                    await _dbContext.Executed.AddAsync(new Executed
+                                    await _dbContext.SignalExecuted.AddAsync(new SignalExecuted
                                     {
                                         DateCreated = DateTime.UtcNow,
                                         AccountID = mtTrade.AccountID,

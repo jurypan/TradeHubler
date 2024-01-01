@@ -24,7 +24,7 @@ namespace JCTG.AzureFunction
 
             try
             {
-                // Parse into a Executed Alert object
+                // Parse into a SignalExecuted Alert object
                 var order = Signal.Parse(requestBody);
 
                 // TradeJournal item
