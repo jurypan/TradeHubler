@@ -1,0 +1,148 @@
+//@version=5
+strategy("STR2.1", overlay=true, process_orders_on_close = true, calc_on_every_tick = true, default_qty_type = strategy.percent_of_equity, default_qty_value = 100, pyramiding = 100, currency = currency.NONE, initial_capital = 10000000, close_entries_rule="ANY")
+import TradingView/ta/5
+
+
+
+//INPUTS
+i_showStrategy              = input.bool(true,title="Show Strategy",group = "General") 
+i_showRiskReward            = input.bool(true,title="Show Risk/Reward Area",group = "General") 
+i_takeLongOrShort           = input.string("Long", title="Direction",group = "General", options = ["Long", "Short"])
+
+i_doNotOpenIfLessThen5Pips  = input.bool(true,title="Skip signal candle where previous candle is less then 10 pips",group = "General") 
+
+i_pyramiding                = input.bool(false,title = "Pyramiding?", group = "Risk / Reward")
+i_positionSize              = input.string("Fixed 1%", title = "Position Size", options = ["Fixed 1%", "Compound 1%", "1 Unit", "Auto"], group = "Risk / Reward")
+i_rewardRatio               = input.int(5, title = "Reward Ratio", group = "Risk / Reward") 
+i_moveSLtoBEafterR          = input.int(1,title="Move SL to BE after xR",group = "Risk / Reward") 
+
+i_pcLicenseID               = input.string("692803787",title="License ID",group = "Account")
+
+
+//VARS
+var int id = 0, var float priceSL = -1, var float priceTP = 0
+var float longTP = na, var float longSL = na, var float longEntryPrice = na
+var float shortTP = na, var float shortSL = na, var float shortEntryPrice = na
+var float risk = na
+
+// Get ATR's
+atr5M = str.tostring(request.security(syminfo.tickerid, "5", ta.atr(14)))
+atr15M = str.tostring(request.security(syminfo.tickerid, "15", ta.atr(14)))
+atr1H = str.tostring(request.security(syminfo.tickerid, "60", ta.atr(14)))
+atrD = str.tostring(request.security(syminfo.tickerid, "D", ta.atr(14)))
+
+//FUNCTIONS
+bullishOutsideBar() => 
+    close > high[1] and low < low[1]
+
+bearishOutsideBar() => 
+    close < low[1] and high > high[1]
+
+isPreviousCandle5PipsHigh() =>
+    if i_doNotOpenIfLessThen5Pips
+        high[1] - low[1] >= 10 * syminfo.mintick
+    else
+        true
+
+isSignalCandle() => 
+    if  i_pyramiding or strategy.position_size == 0
+        i_takeLongOrShort == "Long" ? bearishOutsideBar() and isPreviousCandle5PipsHigh() : bullishOutsideBar() and isPreviousCandle5PipsHigh()
+    else
+        false
+
+idTrade() =>
+	str.tostring(id)
+
+roundUp(number, decimals) =>
+    factor = math.pow(10, decimals)
+    math.ceil(number * factor) / factor
+
+positionSize(entryPrice, diff) =>
+    float posSize = na
+    if i_positionSize == "Fixed 1%"
+        posSize := math.abs(roundUp(strategy.initial_capital *  0.01 / diff / syminfo.pointvalue, 2))
+    else if i_positionSize == "Compound 1%"
+        posSize := roundUp(strategy.equity *  0.01 / diff / syminfo.pointvalue, 2)
+    else if i_positionSize == "1 Unit"
+        posSize := 1
+
+
+//long
+if isSignalCandle() and i_takeLongOrShort == "Long" and barstate.isconfirmed
+    id := id + 1
+    longEntryPrice := low[1]
+    longSL := longEntryPrice - (high - longEntryPrice)
+    risk := longEntryPrice - longSL
+    longTP := longEntryPrice + (i_rewardRatio * risk)
+    
+    // Position Size
+    positionSize = positionSize(longEntryPrice, risk)
+    
+    // Do entry
+    message = i_pcLicenseID + ',buy,' + syminfo.ticker + ',entryprice=' + str.tostring(longEntryPrice) + ',currentprice=' + str.tostring(close) + ',sl=' + str.tostring(longSL) + ',tp=' + str.tostring(longTP) + ',magic=' + idTrade() + ',strategytype=2,atr5M=' + atr5M + ',atr15M=' + atr15M + ',atr1H=' + atr1H + ',atrD=' + atrD
+    strategy.entry(id = idTrade(), direction = strategy.long, comment = idTrade(), stop = longEntryPrice, qty = positionSize, alert_message = message)
+    messageTP = i_pcLicenseID + ',tphit,' + syminfo.ticker + ',entryprice=' + str.tostring(longEntryPrice) + ',currentprice=' + str.tostring(close) + ',sl=' + str.tostring(longSL) + ',tp=' + str.tostring(longTP) + ',magic=' + idTrade() + ',strategytype=2,atr5M=' + atr5M + ',atr15M=' + atr15M + ',atr1H=' + atr1H + ',atrD=' + atrD
+    messageSL = i_pcLicenseID + ',slhit,' + syminfo.ticker + ',entryprice=' + str.tostring(longEntryPrice) + ',currentprice=' + str.tostring(close) + ',sl=' + str.tostring(longSL) + ',tp=' + str.tostring(longTP) + ',magic=' + idTrade() + ',strategytype=2,atr5M=' + atr5M + ',atr15M=' + atr15M + ',atr1H=' + atr1H + ',atrD=' + atrD
+    strategy.exit("EXIT" + idTrade(), from_entry =  idTrade(), comment= idTrade(), comment_loss=str.tostring("-1"), comment_profit = str.tostring(i_rewardRatio), stop=longSL, limit=longTP, alert_profit = messageTP, alert_loss = messageSL)
+
+
+
+if i_takeLongOrShort == "Long" and strategy.position_size > 0 and longEntryPrice != longSL and i_moveSLtoBEafterR > 0 and close >= (longEntryPrice + (i_moveSLtoBEafterR * risk)) and barstate.isconfirmed
+    longSL := longEntryPrice
+    message = i_pcLicenseID + ',modifysltobe,' + syminfo.ticker + ',entryprice=' + str.tostring(close) + ',currentprice=' + str.tostring(close) + ',sl=' + str.tostring(longEntryPrice) + ',tp=' + str.tostring(longTP) + ',magic=' + idTrade() + ',strategytype=2,atr5M=' + atr5M + ',atr15M=' + atr15M + ',atr1H=' + atr1H + ',atrD=' + atrD
+    messageTP = i_pcLicenseID + ',tphit,' + syminfo.ticker + ',entryprice=' + str.tostring(close) + ',currentprice=' + str.tostring(close) + ',sl=' + str.tostring(longEntryPrice) + ',tp=' + str.tostring(longTP) + ',magic=' + idTrade() + ',strategytype=2,atr5M=' + atr5M + ',atr15M=' + atr15M + ',atr1H=' + atr1H + ',atrD=' + atrD
+    messageSL = i_pcLicenseID + ',slhit,' + syminfo.ticker + ',entryprice=' + str.tostring(close) + ',currentprice=' + str.tostring(close) + ',sl=' + str.tostring(longEntryPrice) + ',tp=' + str.tostring(longTP) + ',magic=' + idTrade() + ',strategytype=2,atr5M=' + atr5M + ',atr15M=' + atr15M + ',atr1H=' + atr1H + ',atrD=' + atrD
+    strategy.exit("EXIT" + idTrade(), from_entry = idTrade(), comment = idTrade(), comment_loss= str.tostring("0"), comment_profit = str.tostring(i_rewardRatio), stop = longSL, limit=longTP, alert_profit = messageTP, alert_loss = messageSL) 
+    alert(message, alert.freq_once_per_bar_close)
+    
+
+
+if isSignalCandle() and i_takeLongOrShort == "Short" and barstate.isconfirmed
+    id := id + 1
+    shortEntryPrice := high[1]
+    shortSL := shortEntryPrice + (shortEntryPrice - low)
+    risk := shortSL - shortEntryPrice
+    shortTP := shortEntryPrice - (i_rewardRatio * (risk))
+
+    // Position Size
+    positionSize = positionSize(shortEntryPrice, risk)
+    
+    // Do entry
+    message = i_pcLicenseID + ',sell,' + syminfo.ticker + ',entryprice=' + str.tostring(shortEntryPrice) + ',currentprice=' + str.tostring(close) + ',sl=' + str.tostring(shortSL) + ',tp=' + str.tostring(shortTP) + ',magic=' + idTrade() + ',strategytype=2,atr5M=' + atr5M + ',atr15M=' + atr15M + ',atr1H=' + atr1H + ',atrD=' + atrD
+    strategy.entry(id = idTrade(), direction = strategy.short, comment = idTrade(), stop = shortEntryPrice, qty = positionSize, alert_message = message)
+    messageTP = i_pcLicenseID + ',tphit,' + syminfo.ticker + ',entryprice=' + str.tostring(shortEntryPrice) + ',currentprice=' + str.tostring(close) + ',sl=' + str.tostring(shortSL) + ',tp=' + str.tostring(shortTP) + ',magic=' + idTrade() + ',strategytype=2,atr5M=' + atr5M + ',atr15M=' + atr15M + ',atr1H=' + atr1H + ',atrD=' + atrD
+    messageSL = i_pcLicenseID + ',slhit,' + syminfo.ticker + ',entryprice=' + str.tostring(shortEntryPrice) + ',currentprice=' + str.tostring(close) + ',sl=' + str.tostring(shortSL) + ',tp=' + str.tostring(shortTP) + ',magic=' + idTrade() + ',strategytype=2,atr5M=' + atr5M + ',atr15M=' + atr15M + ',atr1H=' + atr1H + ',atrD=' + atrD
+    strategy.exit("EXIT" + idTrade(), from_entry =  idTrade(), comment= idTrade(), comment_loss=str.tostring("-1"), comment_profit = str.tostring(i_rewardRatio), stop=shortSL, limit=shortTP, alert_profit = messageTP, alert_loss = messageSL)
+
+
+if i_takeLongOrShort == "Short" and strategy.position_size < 0 and shortEntryPrice != shortSL and i_moveSLtoBEafterR > 0 and close <= (shortEntryPrice - (i_moveSLtoBEafterR * risk)) and barstate.isconfirmed
+    shortSL := shortEntryPrice
+    message = i_pcLicenseID + ',modifysltobe,' + syminfo.ticker + ',entryprice=' + str.tostring(close) + ',currentprice=' + str.tostring(close) + ',sl=' + str.tostring(shortEntryPrice) + ',tp=' + str.tostring(shortTP) + ',magic=' + idTrade() + ',strategytype=2,atr5M=' + atr5M + ',atr15M=' + atr15M + ',atr1H=' + atr1H + ',atrD=' + atrD
+    alert(message, alert.freq_once_per_bar_close)
+    messageTP = i_pcLicenseID + ',tphit,' + syminfo.ticker + ',entryprice=' + str.tostring(close) + ',currentprice=' + str.tostring(close) + ',sl=' + str.tostring(shortEntryPrice) + ',tp=' + str.tostring(shortTP) + ',magic=' + idTrade() + ',strategytype=2,atr5M=' + atr5M + ',atr15M=' + atr15M + ',atr1H=' + atr1H + ',atrD=' + atrD
+    messageSL = i_pcLicenseID + ',slhit,' + syminfo.ticker + ',entryprice=' + str.tostring(close) + ',currentprice=' + str.tostring(close) + ',sl=' + str.tostring(shortEntryPrice) + ',tp=' + str.tostring(shortTP) + ',magic=' + idTrade() + ',strategytype=2,atr5M=' + atr5M + ',atr15M=' + atr15M + ',atr1H=' + atr1H + ',atrD=' + atrD
+    strategy.exit("EXIT" + idTrade(), from_entry = idTrade(), comment = idTrade(), comment_loss= str.tostring("0"), comment_profit = str.tostring(i_rewardRatio), stop = shortSL, limit=shortTP, alert_profit = messageTP, alert_loss = messageSL) 
+    
+    
+
+
+//PLOTS
+barcolor(isSignalCandle() ? i_takeLongOrShort == "Short" ? color.rgb(17, 93, 20) : color.rgb(196, 9, 9) : na, title = "Signal Candle")
+plotshape(isSignalCandle(), style=shape.xcross, color = color.black, title = "Signal Candle")
+
+L1 = plot(i_showRiskReward and strategy.position_size > 0 ? longEntryPrice : na, color=color.green, linewidth=1, style=plot.style_linebr, title="Long Entry Price")
+L2 = plot(i_showRiskReward and strategy.position_size > 0 ? longSL : na , color=color.red, linewidth=1, style=plot.style_linebr, title="Long Stop-Loss Price")
+L3 = plot(i_showRiskReward and strategy.position_size > 0 ? longTP : na, color=color.green, linewidth=1, style=plot.style_linebr, title="Long Take-Profit Price")
+fill(L1,L2,color=color.new(color.red,90))
+fill(L1,L3,color=color.new(color.green,90)) 
+
+S1 = plot(i_showRiskReward and strategy.position_size < 0 ? shortEntryPrice : na, color=color.green, linewidth=1, style=plot.style_linebr, title="Short Entry Price")
+S2 = plot(i_showRiskReward and strategy.position_size < 0 ? shortSL : na , color=color.red, linewidth=1, style=plot.style_linebr, title="Short Stop-Loss Price")
+S3 = plot(i_showRiskReward and strategy.position_size < 0 ? shortTP : na, color=color.green, linewidth=1, style=plot.style_linebr, title="Short Take-Profit Price")
+fill(S1,S2,color=color.new(color.red,90))
+fill(S1,S3,color=color.new(color.green,90)) 
+
+var table nameDisplay = table.new(position.middle_center, 1, 1, bgcolor = color.white, frame_width = 0)
+if barstate.islast and math.round(strategy.equity,0) <= 0
+    table.cell(nameDisplay, 0, 0, "Total Equity dropped below ZERO.\nThese parameters are not useful.",text_color=color.white, bgcolor=color.red)
+

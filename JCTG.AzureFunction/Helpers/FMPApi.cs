@@ -5,11 +5,11 @@ using System.Web;
 
 namespace JCTG.AzureFunction.Helpers
 {
-    public class FinancialModelingPrepApiClient
+    public class FMPApi
     {
         private readonly HttpClient _httpClient;
 
-        public FinancialModelingPrepApiClient()
+        public FMPApi()
         {
             _httpClient = new HttpClient();
         }

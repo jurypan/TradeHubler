@@ -65,7 +65,7 @@ namespace JCTG.Client
             if(_appConfig != null && _apis != null)
             {
                 // Loop through the api
-                foreach(var _api in _apis)
+                Parallel.ForEach(_apis, new() { MaxDegreeOfParallelism = 4 }, async _api =>
                 {
                     // Do null reference checks
                     if (_api != null && _api.AccountInfo != null && _api.MarketData != null && _api.MarketData.Count != 0)
@@ -99,7 +99,6 @@ namespace JCTG.Client
                                         TickSize = metadataTick.TickSize,
                                         StrategyType = ticker.StrategyNr,
                                         TickerInTradingview = ticker.TickerInTradingView,
-                                        TickerInFMP = ticker.TickerInFMP,
                                         Atr5M = metadataTick.ATR5M,
                                         Atr15M = metadataTick.ATR15M,
                                         Atr1H = metadataTick.ATR1H,
@@ -186,7 +185,6 @@ namespace JCTG.Client
                                         TickSize = metadataTick.TickSize,
                                         StrategyType = ticker.StrategyNr,
                                         TickerInTradingview = ticker.TickerInTradingView,
-                                        TickerInFMP = ticker.TickerInFMP,
                                         Atr5M = metadataTick.ATR5M,
                                         Atr15M = metadataTick.ATR15M,
                                         Atr1H = metadataTick.ATR1H,
@@ -434,7 +432,7 @@ namespace JCTG.Client
                             }
                         }
                     }
-                }
+                });
 
                 // Wait a little bit
                 await Task.Delay(_appConfig.SleepDelay);

@@ -1,4 +1,5 @@
 using JCTG;
+using JCTG.AzureFunction.Helpers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -9,7 +10,7 @@ var host = new HostBuilder()
         .ConfigureFunctionsWorkerDefaults()
         .ConfigureAppConfiguration(builder =>
         {
-            
+
         })
         .ConfigureServices(services =>
         {
@@ -18,8 +19,7 @@ var host = new HostBuilder()
                 options => options.UseSqlServer(connectionString)
                 .UseLoggerFactory(LoggerFactory.Create(builder =>
                    builder.AddFilter((category, level) =>
-                       category != DbLoggerCategory.Database.Command.Name || level > LogLevel.Information)))
-            );
+                       category != DbLoggerCategory.Database.Command.Name || level > LogLevel.Information))));
         })
         //.ConfigureFunctionsWorkerDefaults(app =>
         //{

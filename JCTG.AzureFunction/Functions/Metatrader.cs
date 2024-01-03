@@ -43,11 +43,6 @@ namespace JCTG.AzureFunction
                         // TradeJournal item
                         _logger.LogDebug($"Parsed Metatrader object : AccountID={mtTrade.AccountID}, TickerInMetatrader={mtTrade.TickerInMetatrader}, ClientID={mtTrade.ClientID}, CurrentPrice={mtTrade.Ask}, TickerInTradingview={mtTrade.TickerInTradingview}, Strategy={mtTrade.StrategyType}", jsonString);
 
-                        // Get current price
-                        var price = await new FinancialModelingPrepApiClient().GetPriceAsync(mtTrade.TickerInFMP);
-
-                        // Caulcate offset
-                        var offset = Math.Round(price - mtTrade.Ask, 4, MidpointRounding.AwayFromZero);
 
                         // Caulcate mtSpread
                         var spread = Math.Round(Math.Abs(mtTrade.Ask - mtTrade.Bid), 4, MidpointRounding.AwayFromZero);
@@ -63,7 +58,7 @@ namespace JCTG.AzureFunction
                                                             ).ToListAsync())
                         {
                             // Check if we need to execute the order
-                            if (signal.OrderType.Equals("BUY") || (signal.OrderType.Equals("BUYSTOP") && price > 0.0 && price > signal.EntryPrice))
+                            if (signal.OrderType.Equals("BUY"))
                             {
                                 // Caculate SL Price
                                 var slPrice = CalculateSLForLong(
@@ -87,14 +82,17 @@ namespace JCTG.AzureFunction
                                             signalATR: GetAtr(signal.Atr5M, signal.Atr15M, signal.Atr1H, signal.AtrD, signal.StrategyType)
                                             );
 
+                                // Caulcate offset
+                                var offset = Math.Round(signal.EntryPrice - mtTrade.Ask, 4, MidpointRounding.AwayFromZero);
+
                                 // Add to log
                                 await _dbContext.Log.AddAsync(new Log()
                                 {
                                     AccountID = mtTrade.AccountID,
                                     ClientID = mtTrade.ClientID,
                                     DateCreated = DateTime.UtcNow,
-                                    Type = "BACKEND - STOPLOSS CALCULATION",
-                                    Message = string.Format($"Type=BUY,StrategypType={signal.StrategyType},MtAsk={mtTrade.Ask},MtAtr={GetAtr(mtTrade.Atr5M, mtTrade.Atr15M, mtTrade.Atr1H, mtTrade.AtrD, signal.StrategyType)},TvEntryPrice={signal.EntryPrice},TvSlPrice={signal.StopLoss},TvAtr={GetAtr(signal.Atr5M, signal.Atr15M, signal.Atr1H, signal.AtrD, signal.StrategyType)},Offset={offset},Tp={tpPrice},Sl={slPrice},Magic={signal.Magic}"),
+                                    Type = "BACKEND - SIGNAL EXECUTED",
+                                    Message = string.Format($"Type=BUY,StrategypType={signal.StrategyType},Price={signal.EntryPrice},Spread={spread},Offset={offset},MtAsk={mtTrade.Ask},MtAtr={GetAtr(mtTrade.Atr5M, mtTrade.Atr15M, mtTrade.Atr1H, mtTrade.AtrD, signal.StrategyType)},TvEntryPrice={signal.EntryPrice},TvSlPrice={signal.StopLoss},TvAtr={GetAtr(signal.Atr5M, signal.Atr15M, signal.Atr1H, signal.AtrD, signal.StrategyType)},Offset={offset},Tp={tpPrice},Sl={slPrice},Magic={signal.Magic}"),
                                 });
 
                                 // TradeJournal item
@@ -102,6 +100,7 @@ namespace JCTG.AzureFunction
 
                                 // Update database
                                 signal.Executed = true;
+                                signal.ExecutedPrice = signal.EntryPrice;
                                 signal.DateExecuted = DateTime.UtcNow;
                                 await _dbContext.SignalExecuted.AddAsync(new SignalExecuted
                                 {
@@ -134,7 +133,7 @@ namespace JCTG.AzureFunction
                                     StrategyType = signal.StrategyType,
                                 });
                             }
-                            else if (signal.OrderType.Equals("SELL") || (signal.OrderType.Equals("SELLSTOP") && price > 0.0 && price < signal.EntryPrice))
+                            else if (signal.OrderType.Equals("SELL"))
                             {
                                 // Caculate SL Price
                                 var slPrice = CalculateSLForShort(
@@ -158,14 +157,17 @@ namespace JCTG.AzureFunction
                                             signalATR: GetAtr(signal.Atr5M, signal.Atr15M, signal.Atr1H, signal.AtrD, signal.StrategyType)
                                            );
 
+                                // Caulcate offset
+                                var offset = Math.Round(signal.EntryPrice - mtTrade.Ask, 4, MidpointRounding.AwayFromZero);
+
                                 // Add to log
                                 await _dbContext.Log.AddAsync(new Log()
                                 {
                                     AccountID = mtTrade.AccountID,
                                     ClientID = mtTrade.ClientID,
                                     DateCreated = DateTime.UtcNow,
-                                    Type = "BACKEND - STOPLOSS CALCULATION",
-                                    Message = string.Format($"Type=SELL,StrategypType={signal.StrategyType},MtAsk={mtTrade.Ask},MtAtr={GetAtr(mtTrade.Atr5M, mtTrade.Atr15M, mtTrade.Atr1H, mtTrade.AtrD, signal.StrategyType)},TvEntryPrice={signal.EntryPrice},TvSlPrice={signal.StopLoss},TvAtr={GetAtr(signal.Atr5M, signal.Atr15M, signal.Atr1H, signal.AtrD, signal.StrategyType)},Offset={offset},Tp={tpPrice},Sl={slPrice},Magic={signal.Magic}"),
+                                    Type = "BACKEND - SIGNAL EXECUTED",
+                                    Message = string.Format($"Type=SELL,StrategypType={signal.StrategyType},Price={signal.EntryPrice},Spread={spread},Offset={offset},MtAsk={mtTrade.Ask},MtAtr={GetAtr(mtTrade.Atr5M, mtTrade.Atr15M, mtTrade.Atr1H, mtTrade.AtrD, signal.StrategyType)},TvEntryPrice={signal.EntryPrice},TvSlPrice={signal.StopLoss},TvAtr={GetAtr(signal.Atr5M, signal.Atr15M, signal.Atr1H, signal.AtrD, signal.StrategyType)},Offset={offset},Tp={tpPrice},Sl={slPrice},Magic={signal.Magic}"),
                                 });
 
                                 // TradeJournal item
@@ -173,6 +175,7 @@ namespace JCTG.AzureFunction
 
                                 // Update database
                                 signal.Executed = true;
+                                signal.ExecutedPrice = signal.EntryPrice;
                                 signal.DateExecuted = DateTime.UtcNow;
                                 await _dbContext.SignalExecuted.AddAsync(new SignalExecuted
                                 {
@@ -226,7 +229,7 @@ namespace JCTG.AzureFunction
                                                            && f.Magic == signal.Magic);
 
                             // Do null reference check
-                            if (tradeJournal != null && (tradeJournal.Type == "BUY" || tradeJournal.Type == "SELL") && price > 0)
+                            if (tradeJournal != null && (tradeJournal.Type == "BUY" || tradeJournal.Type == "SELL"))
                             {
                                 // Check if we need to modify the stop loss to break event
                                 if (signal.OrderType.Equals("MODIFYSLTOBE"))
@@ -236,7 +239,22 @@ namespace JCTG.AzureFunction
 
                                     // Update database
                                     signal.Executed = true;
+                                    signal.ExecutedPrice = signal.CurrentPrice;
                                     signal.DateExecuted = DateTime.UtcNow;
+
+                                    // Caulcate offset
+                                    var offset = Math.Round(signal.CurrentPrice - mtTrade.Ask, 4, MidpointRounding.AwayFromZero);
+
+                                    // Add to log
+                                    await _dbContext.Log.AddAsync(new Log()
+                                    {
+                                        AccountID = mtTrade.AccountID,
+                                        ClientID = mtTrade.ClientID,
+                                        DateCreated = DateTime.UtcNow,
+                                        Type = "BACKEND - SIGNAL EXECUTED",
+                                        Message = string.Format($"Type=MODIFYSLTOBE,StrategypType={signal.StrategyType},Price={signal.CurrentPrice},Spread={spread},Offset={offset},MtAsk={mtTrade.Ask},MtAtr={GetAtr(mtTrade.Atr5M, mtTrade.Atr15M, mtTrade.Atr1H, mtTrade.AtrD, signal.StrategyType)},TvEntryPrice={signal.EntryPrice},TvSlPrice={signal.StopLoss},TvAtr={GetAtr(signal.Atr5M, signal.Atr15M, signal.Atr1H, signal.AtrD, signal.StrategyType)},Offset={offset},Tp={tradeJournal.TP},Sl={tradeJournal.OpenPrice},Magic={signal.Magic}"),
+                                    });
+
                                     await _dbContext.SignalExecuted.AddAsync(new SignalExecuted
                                     {
                                         DateCreated = DateTime.UtcNow,
@@ -296,7 +314,22 @@ namespace JCTG.AzureFunction
 
                                     // Update database
                                     signal.Executed = true;
+                                    signal.ExecutedPrice = signal.CurrentPrice;
                                     signal.DateExecuted = DateTime.UtcNow;
+
+                                    // Caulcate offset
+                                    var offset = Math.Round(signal.CurrentPrice - mtTrade.Ask, 4, MidpointRounding.AwayFromZero);
+
+                                    // Add to log
+                                    await _dbContext.Log.AddAsync(new Log()
+                                    {
+                                        AccountID = mtTrade.AccountID,
+                                        ClientID = mtTrade.ClientID,
+                                        DateCreated = DateTime.UtcNow,
+                                        Type = "BACKEND - SIGNAL EXECUTED",
+                                        Message = string.Format($"Type=MODIFYSL,StrategypType={signal.StrategyType},Price={signal.CurrentPrice},Spread={spread},Offset={offset},MtAsk={mtTrade.Ask},MtAtr={GetAtr(mtTrade.Atr5M, mtTrade.Atr15M, mtTrade.Atr1H, mtTrade.AtrD, signal.StrategyType)},TvEntryPrice={signal.EntryPrice},TvSlPrice={signal.StopLoss},TvAtr={GetAtr(signal.Atr5M, signal.Atr15M, signal.Atr1H, signal.AtrD, signal.StrategyType)},Offset={offset},Tp={tradeJournal.TP},Sl={slPrice},Magic={signal.Magic}"),
+                                    });
+
                                     await _dbContext.SignalExecuted.AddAsync(new SignalExecuted
                                     {
                                         DateCreated = DateTime.UtcNow,
@@ -338,7 +371,23 @@ namespace JCTG.AzureFunction
 
                                     // Update database
                                     signal.Executed = true;
+                                    signal.ExecutedPrice = signal.CurrentPrice;
                                     signal.DateExecuted = DateTime.UtcNow;
+
+                                    // Caulcate offset
+                                    var offset = Math.Round(signal.CurrentPrice - mtTrade.Ask, 4, MidpointRounding.AwayFromZero);
+
+                                    // Add to log
+                                    await _dbContext.Log.AddAsync(new Log()
+                                    {
+                                        AccountID = mtTrade.AccountID,
+                                        ClientID = mtTrade.ClientID,
+                                        DateCreated = DateTime.UtcNow,
+                                        Type = "BACKEND - STOPLOSS CALCULATION",
+                                        Message = string.Format($"Type=CLOSE,StrategypType={signal.StrategyType},Price={signal.CurrentPrice},Spread={spread},Offset={offset},MtAsk={mtTrade.Ask},MtAtr={GetAtr(mtTrade.Atr5M, mtTrade.Atr15M, mtTrade.Atr1H, mtTrade.AtrD, signal.StrategyType)},TvEntryPrice={signal.EntryPrice},TvSlPrice={signal.StopLoss},TvAtr={GetAtr(signal.Atr5M, signal.Atr15M, signal.Atr1H, signal.AtrD, signal.StrategyType)},Offset={offset},Tp={tradeJournal.TP},Sl={tradeJournal.SL},Magic={signal.Magic}"),
+                                    });
+
+                                    // Add signal executed
                                     await _dbContext.SignalExecuted.AddAsync(new SignalExecuted
                                     {
                                         DateCreated = DateTime.UtcNow,

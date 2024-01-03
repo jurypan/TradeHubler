@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Net;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
@@ -31,11 +32,14 @@ namespace JCTG.AzureFunction
                 _logger.LogInformation($"Parse obejct to Signal : AccountID={order.AccountID}, Type={order.OrderType}, TickerInMetatrader={order.Instrument}, CurrentPrice={order.CurrentPrice}, SL={order.StopLoss}, TP={order.TakeProfit}, Magic={order.Magic}", order);
 
                 // Save into the database
-                await _dbContext.Signal.AddAsync(order);
-                await _dbContext.SaveChangesAsync();
+                if(order.OrderType != "SLHIT" && order.OrderType != "TPHIT")
+                {
+                    await _dbContext.Signal.AddAsync(order);
+                    await _dbContext.SaveChangesAsync();
 
-                // Add log
-                _logger.LogInformation($"Added to database in table Signal with ID : {order.ID}", order);
+                    // Add log
+                    _logger.LogInformation($"Added to database in table Signal with ID : {order.ID}", order);
+                }
             }
             catch (Exception ex)
             {

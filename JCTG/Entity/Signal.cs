@@ -16,6 +16,7 @@ namespace JCTG
         public StrategyType StrategyType { get; set; }
         public bool Executed { get; set; }
         public DateTime? DateExecuted { get; set; }
+        public double? ExecutedPrice { get; set; }
         public Account Account { get; set; }
         public int AccountID { get; set; }
         public string OrderType { get; set; }

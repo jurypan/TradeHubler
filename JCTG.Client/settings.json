@@ -9,9 +9,8 @@
         {
           "TickerInTradingView": "XJO",
           "TickerInMetatrader": "AUS200",
-          "TickerInFMP": "^AXJO",
-          "Timeframe": "M15",
-          "StrategyNr": 5,
+          "Timeframe": "M5",
+          "StrategyNr": 4,
           "Risk": 0.05, // 0.15
           "OverrideSession": true,
           "Sessions": {
@@ -43,11 +42,74 @@
           }
         },
         {
+          "TickerInTradingView": "SX5E",
+          "TickerInMetatrader": "STOXX50E",
+          "Timeframe": "M5",
+          "StrategyNr": 4,
+          "Risk": 0.05, // 0.15
+          "OverrideSession": true,
+          "Sessions": {
+            "Monday": {
+              "open": "08:58",
+              "close": "18:02"
+            },
+            "Tuesday": {
+              "open": "08:58",
+              "close": "18:02"
+            },
+            "Wednesday": {
+              "open": "08:58",
+              "close": "18:02"
+            },
+            "Thursday": {
+              "open": "08:58",
+              "close": "18:02"
+            },
+            "Friday": {
+              "open": "08:58",
+              "close": "18:02"
+            },
+            "Saterday": null,
+            "Sunday": null
+          }
+        },
+        {
+          "TickerInTradingView": "PX1",
+          "TickerInMetatrader": "FCHI40",
+          "Timeframe": "M5",
+          "StrategyNr": 4,
+          "Risk": 0.05, // 0.15
+          "OverrideSession": true,
+          "Sessions": {
+            "Monday": {
+              "open": "08:58",
+              "close": "18:02"
+            },
+            "Tuesday": {
+              "open": "08:58",
+              "close": "18:02"
+            },
+            "Wednesday": {
+              "open": "08:58",
+              "close": "18:02"
+            },
+            "Thursday": {
+              "open": "08:58",
+              "close": "18:02"
+            },
+            "Friday": {
+              "open": "08:58",
+              "close": "18:02"
+            },
+            "Saterday": null,
+            "Sunday": null
+          }
+        },
+        {
           "TickerInTradingView": "UKX",
           "TickerInMetatrader": "UK100",
-          "TickerInFMP": "^FTSE",
-          "Timeframe": "M15",
-          "StrategyNr": 5,
+          "Timeframe": "M5",
+          "StrategyNr": 4,
           "Risk": 0.05, // 0.15
           "OverrideSession": true,
           "Sessions": {
@@ -78,9 +140,8 @@
         {
           "TickerInTradingView": "SPX",
           "TickerInMetatrader": "SP500",
-          "TickerInFMP": "^GSPC",
-          "Timeframe": "M15",
-          "StrategyNr": 5,
+          "Timeframe": "M5",
+          "StrategyNr": 4,
           "Risk": 0.05, // 0.15
           "OverrideSession": true,
           "Sessions": {
@@ -118,7 +179,6 @@
         {
           "TickerInTradingView": "XJO",
           "TickerInMetatrader": "AU200AUD",
-          "TickerInFMP": "^AXJO",
           "Timeframe": "M15",
           "StrategyNr": 5,
           "Risk": 0.05, // 0.15
@@ -152,9 +212,40 @@
           }
         },
         {
+          "TickerInTradingView": "SX5E",
+          "TickerInMetatrader": "EU50EUR",
+          "Timeframe": "M5",
+          "StrategyNr": 4,
+          "Risk": 0.05, // 0.15
+          "OverrideSession": true,
+          "Sessions": {
+            "Monday": {
+              "open": "08:58",
+              "close": "18:02"
+            },
+            "Tuesday": {
+              "open": "08:58",
+              "close": "18:02"
+            },
+            "Wednesday": {
+              "open": "08:58",
+              "close": "18:02"
+            },
+            "Thursday": {
+              "open": "08:58",
+              "close": "18:02"
+            },
+            "Friday": {
+              "open": "08:58",
+              "close": "18:02"
+            },
+            "Saterday": null,
+            "Sunday": null
+          }
+        },
+        {
           "TickerInTradingView": "UKX",
           "TickerInMetatrader": "UK100GBP",
-          "TickerInFMP": "^FTSE",
           "Timeframe": "M15",
           "StrategyNr": 5,
           "Risk": 0.05, // 0.15
@@ -185,11 +276,10 @@
           }
         },
         {
-          "TickerInTradingView": "SX5E",
-          "TickerInMetatrader": "EU50EUR",
-          "TickerInFMP": "^STOXX50E",
-          "Timeframe": "M15",
-          "StrategyNr": 5,
+          "TickerInTradingView": "PX1",
+          "TickerInMetatrader": "FR40EUR",
+          "Timeframe": "M5",
+          "StrategyNr": 4,
           "Risk": 0.05, // 0.15
           "OverrideSession": true,
           "Sessions": {
@@ -220,9 +310,8 @@
         {
           "TickerInTradingView": "SPX",
           "TickerInMetatrader": "SPX500USD",
-          "TickerInFMP": "^GSPC",
-          "Timeframe": "M15",
-          "StrategyNr": 5,
+          "Timeframe": "M5",
+          "StrategyNr": 4,
           "Risk": 0.05, // 0.15
           "OverrideSession": true,
           "Sessions": {
@@ -260,7 +349,6 @@
         {
           "TickerInTradingView": "TSLA",
           "TickerInMetatrader": "TSLA",
-          "TickerInFMP": "TSLA",
           "Timeframe": "H4",
           "StrategyNr": 1,
           "Risk": 0.5,
@@ -293,7 +381,6 @@
         {
           "TickerInTradingView": "NVDA",
           "TickerInMetatrader": "NVDA",
-          "TickerInFMP": "NVDA",
           "Timeframe": "H4",
           "StrategyNr": 1,
           "Risk": 0.5,
@@ -326,7 +413,6 @@
         {
           "TickerInTradingView": "AAPL",
           "TickerInMetatrader": "AAPL",
-          "TickerInFMP": "AAPL",
           "Timeframe": "H4",
           "StrategyNr": 1,
           "Risk": 0.5,
@@ -359,7 +445,6 @@
         {
           "TickerInTradingView": "META",
           "TickerInMetatrader": "META",
-          "TickerInFMP": "META",
           "Timeframe": "H4",
           "StrategyNr": 1,
           "Risk": 0.5,
@@ -392,7 +477,6 @@
         {
           "TickerInTradingView": "MSFT",
           "TickerInMetatrader": "MSFT",
-          "TickerInFMP": "MSFT",
           "Timeframe": "H4",
           "StrategyNr": 1,
           "Risk": 0.5,
@@ -425,7 +509,6 @@
         {
           "TickerInTradingView": "AMZN",
           "TickerInMetatrader": "AMZN",
-          "TickerInFMP": "AMZN",
           "Timeframe": "H4",
           "StrategyNr": 1,
           "Risk": 0.5,
@@ -458,7 +541,6 @@
         {
           "TickerInTradingView": "NFLX",
           "TickerInMetatrader": "NFLX",
-          "TickerInFMP": "NFLX",
           "Timeframe": "H4",
           "StrategyNr": 1,
           "Risk": 0.5,
@@ -491,7 +573,6 @@
         {
           "TickerInTradingView": "RACE",
           "TickerInMetatrader": "RACE",
-          "TickerInFMP": "RACE",
           "Timeframe": "H4",
           "StrategyNr": 1,
           "Risk": 0.5,
@@ -524,7 +605,6 @@
         {
           "TickerInTradingView": "NKD1!",
           "TickerInMetatrader": "JP225.cash",
-          "TickerInFMP": "^N225",
           "Timeframe": "H1",
           "StrategyNr": 2,
           "Risk": 0.45,
@@ -557,7 +637,6 @@
         {
           "TickerInTradingView": "XJO",
           "TickerInMetatrader": "AUS200.cash",
-          "TickerInFMP": "^AXJO",
           "Timeframe": "H1",
           "StrategyNr": 2,
           "Risk": 0.45,
@@ -593,7 +672,6 @@
         {
           "TickerInTradingView": "SX5E",
           "TickerInMetatrader": "EU50.cash",
-          "TickerInFMP": "^STOXX50E",
           "Timeframe": "H1",
           "StrategyNr": 2,
           "Risk": 0.45,
@@ -626,7 +704,6 @@
         {
           "TickerInTradingView": "PX1",
           "TickerInMetatrader": "FRA40.cash",
-          "TickerInFMP": "^FCHI",
           "Timeframe": "H1",
           "StrategyNr": 2,
           "Risk": 0.45,
@@ -659,7 +736,6 @@
         {
           "TickerInTradingView": "UKX",
           "TickerInMetatrader": "UK100.cash",
-          "TickerInFMP": "^FTSE",
           "Timeframe": "H1",
           "StrategyNr": 2,
           "Risk": 0.45,
@@ -692,7 +768,6 @@
         {
           "TickerInTradingView": "SPX",
           "TickerInMetatrader": "US500.cash",
-          "TickerInFMP": "^GSPC",
           "Timeframe": "H1",
           "StrategyNr": 2,
           "Risk": 0.45,
@@ -725,7 +800,6 @@
         {
           "TickerInTradingView": "DJI",
           "TickerInMetatrader": "US30.cash",
-          "TickerInFMP": "^DJI",
           "Timeframe": "H1",
           "StrategyNr": 2,
           "Risk": 0.45,
@@ -754,78 +828,6 @@
             "Saterday": null,
             "Sunday": null
           }
-        },
-        {
-          "TickerInTradingView": "BTC1!",
-          "TickerInMetatrader": "BTCUSD",
-          "TickerInFMP": "BTCUSD",
-          "Timeframe": "H1",
-          "StrategyNr": 2,
-          "Risk": 0.2,
-          "OverrideSession": true,
-          "Sessions": {
-            "Monday": {
-              "open": "23:58",
-              "close": "23:10"
-            },
-            "Tuesday": {
-              "open": "23:58",
-              "close": "23:10"
-            },
-            "Wednesday": {
-              "open": "23:58",
-              "close": "23:10"
-            },
-            "Thursday": {
-              "open": "23:58",
-              "close": "23:10"
-            },
-            "Friday": {
-              "open": "23:58",
-              "close": "23:10"
-            },
-            "Saterday": null,
-            "Sunday": {
-              "open": "23:58",
-              "close": null
-            }
-          }
-        },
-        {
-          "TickerInTradingView": "ETH1!",
-          "TickerInMetatrader": "ETHUSD",
-          "TickerInFMP": "ETHUSD",
-          "Timeframe": "H1",
-          "StrategyNr": 2,
-          "Risk": 0.2,
-          "OverrideSession": true,
-          "Sessions": {
-            "Monday": {
-              "open": "23:58",
-              "close": "23:10"
-            },
-            "Tuesday": {
-              "open": "23:58",
-              "close": "23:10"
-            },
-            "Wednesday": {
-              "open": "23:58",
-              "close": "23:10"
-            },
-            "Thursday": {
-              "open": "23:58",
-              "close": "23:10"
-            },
-            "Friday": {
-              "open": "23:58",
-              "close": "23:10"
-            },
-            "Saterday": null,
-            "Sunday": {
-              "open": "23:58",
-              "close": null
-            }
-          }
         }
       ]
     },
@@ -837,7 +839,6 @@
         {
           "TickerInTradingView": "NKD1!",
           "TickerInMetatrader": "JP225.pro",
-          "TickerInFMP": "^N225",
           "Timeframe": "H1",
           "StrategyNr": 2,
           "Risk": 0.45,
@@ -870,7 +871,6 @@
         {
           "TickerInTradingView": "XJO",
           "TickerInMetatrader": "AU200.pro",
-          "TickerInFMP": "^AXJO",
           "Timeframe": "H1",
           "StrategyNr": 2,
           "Risk": 0.45,
@@ -906,7 +906,6 @@
         {
           "TickerInTradingView": "SX5E",
           "TickerInMetatrader": "EU50.pro",
-          "TickerInFMP": "^STOXX50E",
           "Timeframe": "H1",
           "StrategyNr": 2,
           "Risk": 0.45,
@@ -939,7 +938,6 @@
         {
           "TickerInTradingView": "PX1",
           "TickerInMetatrader": "FR40.pro",
-          "TickerInFMP": "^FCHI",
           "Timeframe": "H1",
           "StrategyNr": 2,
           "Risk": 0.45,
@@ -972,7 +970,6 @@
         {
           "TickerInTradingView": "UKX",
           "TickerInMetatrader": "GB100.pro",
-          "TickerInFMP": "^FTSE",
           "Timeframe": "H1",
           "StrategyNr": 2,
           "Risk": 0.45,
@@ -1005,7 +1002,6 @@
         {
           "TickerInTradingView": "SPX",
           "TickerInMetatrader": "US500.pro",
-          "TickerInFMP": "^GSPC",
           "Timeframe": "H1",
           "StrategyNr": 2,
           "Risk": 0.45,
@@ -1038,7 +1034,6 @@
         {
           "TickerInTradingView": "DJI",
           "TickerInMetatrader": "US30.pro",
-          "TickerInFMP": "^DJI",
           "Timeframe": "H1",
           "StrategyNr": 2,
           "Risk": 0.45,
@@ -1072,7 +1067,6 @@
         {
           "TickerInTradingView": "NDX",
           "TickerInMetatrader": "US100.pro",
-          "TickerInFMP": "^NDX",
           "Timeframe": "H1",
           "StrategyNr": 2,
           "Risk": 0.45,
@@ -1112,7 +1106,6 @@
         {
           "TickerInTradingView": "XJO",
           "TickerInMetatrader": "ASXAUD",
-          "TickerInFMP": "^AXJO",
           "Timeframe": "M5",
           "StrategyNr": 4,
           "Risk": 0.05, // 0.15
@@ -1148,7 +1141,6 @@
         {
           "TickerInTradingView": "PX1",
           "TickerInMetatrader": "F40EUR",
-          "TickerInFMP": "^FCHI",
           "Timeframe": "M5",
           "StrategyNr": 4,
           "Risk": 0.05, // 0.15
@@ -1181,7 +1173,6 @@
         {
           "TickerInTradingView": "SPX",
           "TickerInMetatrader": "SPXUSD",
-          "TickerInFMP": "^GSPC",
           "Timeframe": "M5",
           "StrategyNr": 4,
           "Risk": 0.05, // 0.15
@@ -1214,7 +1205,7 @@
       ]
     }
   ],
-  "SleepDelay": 1000,
+  "SleepDelay": 500,
   "MaxRetryCommandSeconds": 10,
   "LoadOrdersFromFile": true,
   "Verbose": true
