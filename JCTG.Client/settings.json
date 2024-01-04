@@ -42,38 +42,6 @@
           }
         },
         {
-          "TickerInTradingView": "SX5E",
-          "TickerInMetatrader": "STOXX50E",
-          "Timeframe": "M5",
-          "StrategyNr": 4,
-          "Risk": 0.05, // 0.15
-          "OverrideSession": true,
-          "Sessions": {
-            "Monday": {
-              "open": "08:58",
-              "close": "18:02"
-            },
-            "Tuesday": {
-              "open": "08:58",
-              "close": "18:02"
-            },
-            "Wednesday": {
-              "open": "08:58",
-              "close": "18:02"
-            },
-            "Thursday": {
-              "open": "08:58",
-              "close": "18:02"
-            },
-            "Friday": {
-              "open": "08:58",
-              "close": "18:02"
-            },
-            "Saterday": null,
-            "Sunday": null
-          }
-        },
-        {
           "TickerInTradingView": "PX1",
           "TickerInMetatrader": "FCHI40",
           "Timeframe": "M5",
@@ -100,38 +68,6 @@
             "Friday": {
               "open": "08:58",
               "close": "18:02"
-            },
-            "Saterday": null,
-            "Sunday": null
-          }
-        },
-        {
-          "TickerInTradingView": "UKX",
-          "TickerInMetatrader": "UK100",
-          "Timeframe": "M5",
-          "StrategyNr": 4,
-          "Risk": 0.05, // 0.15
-          "OverrideSession": true,
-          "Sessions": {
-            "Monday": {
-              "open": "08:58",
-              "close": "16:32"
-            },
-            "Tuesday": {
-              "open": "08:58",
-              "close": "16:32"
-            },
-            "Wednesday": {
-              "open": "08:58",
-              "close": "16:32"
-            },
-            "Thursday": {
-              "open": "08:58",
-              "close": "16:32"
-            },
-            "Friday": {
-              "open": "08:58",
-              "close": "16:32"
             },
             "Saterday": null,
             "Sunday": null
@@ -179,8 +115,8 @@
         {
           "TickerInTradingView": "XJO",
           "TickerInMetatrader": "AU200AUD",
-          "Timeframe": "M15",
-          "StrategyNr": 5,
+          "Timeframe": "M5",
+          "StrategyNr": 4,
           "Risk": 0.05, // 0.15
           "OverrideSession": true,
           "Sessions": {
@@ -209,70 +145,6 @@
               "open": "23:58",
               "close": null
             }
-          }
-        },
-        {
-          "TickerInTradingView": "SX5E",
-          "TickerInMetatrader": "EU50EUR",
-          "Timeframe": "M5",
-          "StrategyNr": 4,
-          "Risk": 0.05, // 0.15
-          "OverrideSession": true,
-          "Sessions": {
-            "Monday": {
-              "open": "08:58",
-              "close": "18:02"
-            },
-            "Tuesday": {
-              "open": "08:58",
-              "close": "18:02"
-            },
-            "Wednesday": {
-              "open": "08:58",
-              "close": "18:02"
-            },
-            "Thursday": {
-              "open": "08:58",
-              "close": "18:02"
-            },
-            "Friday": {
-              "open": "08:58",
-              "close": "18:02"
-            },
-            "Saterday": null,
-            "Sunday": null
-          }
-        },
-        {
-          "TickerInTradingView": "UKX",
-          "TickerInMetatrader": "UK100GBP",
-          "Timeframe": "M15",
-          "StrategyNr": 5,
-          "Risk": 0.05, // 0.15
-          "OverrideSession": true,
-          "Sessions": {
-            "Monday": {
-              "open": "08:58",
-              "close": "16:32"
-            },
-            "Tuesday": {
-              "open": "08:58",
-              "close": "16:32"
-            },
-            "Wednesday": {
-              "open": "08:58",
-              "close": "16:32"
-            },
-            "Thursday": {
-              "open": "08:58",
-              "close": "16:32"
-            },
-            "Friday": {
-              "open": "08:58",
-              "close": "16:32"
-            },
-            "Saterday": null,
-            "Sunday": null
           }
         },
         {
