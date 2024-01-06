@@ -85,111 +85,27 @@ namespace JCTG.Client
                                 // Get current UTC time
                                 var currentUtcTime = DateTime.Now.AddHours(1);
 
-                                // Do we have custom session times?
-                                if (ticker.OverrideSession)
+                                // Init request object
+                                var mtRequest = new MetatraderRequest()
                                 {
-                                    // Init request object
-                                    var mtRequest = new MetatraderRequest()
-                                    {
-                                        AccountID = _appConfig.AccountId,
-                                        ClientID = _api.ClientId,
-                                        TickerInMetatrader = ticker.TickerInMetatrader,
-                                        Ask = metadataTick.Ask,
-                                        Bid = metadataTick.Bid,
-                                        TickSize = metadataTick.TickSize,
-                                        StrategyType = ticker.StrategyNr,
-                                        TickerInTradingview = ticker.TickerInTradingView,
-                                        Atr5M = metadataTick.ATR5M,
-                                        Atr15M = metadataTick.ATR15M,
-                                        Atr1H = metadataTick.ATR1H,
-                                        AtrD = metadataTick.ATRD,
-                                    };
+                                    AccountID = _appConfig.AccountId,
+                                    ClientID = _api.ClientId,
+                                    TickerInMetatrader = ticker.TickerInMetatrader,
+                                    Ask = metadataTick.Ask,
+                                    Bid = metadataTick.Bid,
+                                    TickSize = metadataTick.TickSize,
+                                    StrategyType = ticker.StrategyNr,
+                                    TickerInTradingview = ticker.TickerInTradingView,
+                                    Atr5M = metadataTick.ATR5M,
+                                    Atr15M = metadataTick.ATR15M,
+                                    Atr1H = metadataTick.ATR1H,
+                                    AtrD = metadataTick.ATRD,
+                                };
 
-                                    // Is current time within the sessions of the app config ?
-                                    if (IsCurrentUTCTimeInSession(ticker.Sessions, currentUtcTime))
-                                    {
-                                        // Add to the list
-                                        mtRequests.Add(mtRequest);
-
-                                        // Add to the log
-                                        if (!_logPairs.Any(f => f.AccountID == mtRequest.AccountID
-                                                                    && f.ClientID == mtRequest.ClientID
-                                                                    && f.TickerInMetatrader == mtRequest.TickerInMetatrader
-                                                                    && f.TickerInTradingview == mtRequest.TickerInTradingview
-                                                                    && f.StrategyType == mtRequest.StrategyType))
-                                        {
-                                            _logPairs.Add(mtRequest);
-
-                                            // Print on the screen
-                                            Print(Environment.NewLine);
-                                            Print("------------- START LISTENING TO NEW MARKET ----------------");
-                                            Print("Broker    : " + _appConfig.Brokers.First(f => f.ClientId == mtRequest.ClientID).Name);
-                                            Print("Time      : " + DateTime.UtcNow);
-                                            Print("Symbol    : " + mtRequest.TickerInTradingview);
-                                            Print("------------------------------------------------");
-
-                                            // Send to the server
-                                            new AzureFunctionApiClient().SendLog(new LogRequest()
-                                            {
-                                                AccountID = _appConfig.AccountId,
-                                                ClientID = mtRequest.ClientID,
-                                                Message = string.Format($"Symbol={mtRequest.TickerInTradingview}"),
-                                                Type = "CONSOLE - START LISTENING TO MARKET",
-                                            });
-                                        }
-                                    }
-                                    else
-                                    {
-                                        // Add to the log
-                                        if (_logPairs.Any(f => f.AccountID == mtRequest.AccountID
-                                                                    && f.ClientID == mtRequest.ClientID
-                                                                    && f.TickerInMetatrader == mtRequest.TickerInMetatrader
-                                                                    && f.TickerInTradingview == mtRequest.TickerInTradingview
-                                                                    && f.StrategyType == mtRequest.StrategyType))
-                                        {
-                                            _logPairs.Remove(_logPairs.First(f => f.AccountID == mtRequest.AccountID
-                                                                    && f.ClientID == mtRequest.ClientID
-                                                                    && f.TickerInMetatrader == mtRequest.TickerInMetatrader
-                                                                    && f.TickerInTradingview == mtRequest.TickerInTradingview
-                                                                    && f.StrategyType == mtRequest.StrategyType));
-
-                                            // Print on the screen
-                                            Print(Environment.NewLine);
-                                            Print("------------- STOP LISTENING TO MARKET ----------------");
-                                            Print("Broker    : " + _appConfig.Brokers.First(f => f.ClientId == mtRequest.ClientID).Name);
-                                            Print("Time      : " + DateTime.UtcNow);
-                                            Print("Symbol    : " + mtRequest.TickerInTradingview);
-                                            Print("------------------------------------------------");
-
-                                            // Send to the server
-                                            new AzureFunctionApiClient().SendLog(new LogRequest()
-                                            {
-                                                AccountID = _appConfig.AccountId,
-                                                ClientID = mtRequest.ClientID,
-                                                Message = string.Format($"Symbol={mtRequest.TickerInTradingview}"),
-                                                Type = "CONSOLE - STOP LISTENING TO MARKET",
-                                            });
-                                        }
-                                    }
-                                }
-                                else
+                                // Is current time within the sessions of the app config ?
+                                if (IsCurrentUTCTimeInSession(ticker.Sessions, currentUtcTime))
                                 {
-                                    // Current UTC time is within the session hours.
-                                    var mtRequest = new MetatraderRequest()
-                                    {
-                                        AccountID = _appConfig.AccountId,
-                                        ClientID = _api.ClientId,
-                                        TickerInMetatrader = ticker.TickerInMetatrader,
-                                        Ask = metadataTick.Ask,
-                                        Bid = metadataTick.Bid,
-                                        TickSize = metadataTick.TickSize,
-                                        StrategyType = ticker.StrategyNr,
-                                        TickerInTradingview = ticker.TickerInTradingView,
-                                        Atr5M = metadataTick.ATR5M,
-                                        Atr15M = metadataTick.ATR15M,
-                                        Atr1H = metadataTick.ATR1H,
-                                        AtrD = metadataTick.ATRD,
-                                    };
+                                    // Add to the list
                                     mtRequests.Add(mtRequest);
 
                                     // Add to the log
@@ -219,6 +135,40 @@ namespace JCTG.Client
                                         });
                                     }
                                 }
+                                else
+                                {
+                                    // Add to the log
+                                    if (_logPairs.Any(f => f.AccountID == mtRequest.AccountID
+                                                                && f.ClientID == mtRequest.ClientID
+                                                                && f.TickerInMetatrader == mtRequest.TickerInMetatrader
+                                                                && f.TickerInTradingview == mtRequest.TickerInTradingview
+                                                                && f.StrategyType == mtRequest.StrategyType))
+                                    {
+                                        _logPairs.Remove(_logPairs.First(f => f.AccountID == mtRequest.AccountID
+                                                                && f.ClientID == mtRequest.ClientID
+                                                                && f.TickerInMetatrader == mtRequest.TickerInMetatrader
+                                                                && f.TickerInTradingview == mtRequest.TickerInTradingview
+                                                                && f.StrategyType == mtRequest.StrategyType));
+
+                                        // Print on the screen
+                                        Print(Environment.NewLine);
+                                        Print("------------- STOP LISTENING TO MARKET ----------------");
+                                        Print("Broker    : " + _appConfig.Brokers.First(f => f.ClientId == mtRequest.ClientID).Name);
+                                        Print("Time      : " + DateTime.UtcNow);
+                                        Print("Symbol    : " + mtRequest.TickerInTradingview);
+                                        Print("------------------------------------------------");
+
+                                        // Send to the server
+                                        new AzureFunctionApiClient().SendLog(new LogRequest()
+                                        {
+                                            AccountID = _appConfig.AccountId,
+                                            ClientID = mtRequest.ClientID,
+                                            Message = string.Format($"Symbol={mtRequest.TickerInTradingview}"),
+                                            Type = "CONSOLE - STOP LISTENING TO MARKET",
+                                        });
+                                    }
+                                }
+
                             }
                         }
 
@@ -581,7 +531,7 @@ namespace JCTG.Client
                 });
 
                 // Send to tradingjournal
-                SendOrderToBackend(clientId, ticketId, order);
+                SendOrderToBackend(clientId, ticketId, order, false);
             }
         }
 
@@ -613,7 +563,7 @@ namespace JCTG.Client
                 });
 
                 // Send to tradingjournal
-                SendOrderToBackend(clientId, ticketId, order);
+                SendOrderToBackend(clientId, ticketId, order, false);
             }
         }
 
@@ -645,11 +595,11 @@ namespace JCTG.Client
                 });
                 
                 // Send to tradingjournal
-                SendOrderToBackend(clientId, ticketId, order);
+                SendOrderToBackend(clientId, ticketId, order, true);
             }
         }
 
-        private void SendOrderToBackend(long clientId, long ticketId, Order order) 
+        private void SendOrderToBackend(long clientId, long ticketId, Order order, bool isTradeClosed) 
         { 
             if (_appConfig != null && _apis != null && _apis.Count(f => f.ClientId == clientId) == 1) 
             {
@@ -679,12 +629,13 @@ namespace JCTG.Client
                         StrategyType = pair.StrategyNr,
                         Spread = Math.Round(Math.Abs(marketdata.Value.Bid - marketdata.Value.Ask), 4, MidpointRounding.AwayFromZero),
                         Swap = order.Swap,
-                        Symbol = order.Symbol != null ? order.Symbol : "NONE",
+                        Symbol = order.Symbol ?? "NONE",
                         TicketId = ticketId,
                         Timeframe = pair.Timeframe,
                         TP = order.TakeProfit,
                         Type = order.Type != null ? order.Type.ToUpper() : "NONE",
                         Risk = pair.Risk,
+                        IsTradeClosed = isTradeClosed,
                     });
                 }
             } 

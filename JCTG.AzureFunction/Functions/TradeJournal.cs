@@ -61,8 +61,8 @@ namespace JCTG.AzureFunction.Functions
                                 DateCreated = DateTime.UtcNow,
                                 Comment = item.Comment,
                                 Commission = item.Commission,
-                                CloseTime = DateTime.UtcNow,
-                                ClosePrice = item.CurrentPrice,
+                                CloseTime = null,
+                                ClosePrice = null,
                                 Lots = item.Lots,
                                 Magic = item.Magic,
                                 OpenPrice = item.OpenPrice,
@@ -89,14 +89,13 @@ namespace JCTG.AzureFunction.Functions
                         else
                         {
                             // Add item to the database
-                            tradeJournal.ClosePrice = item.CurrentPrice;
-                            tradeJournal.CloseTime = DateTime.UtcNow;
+                            tradeJournal.ClosePrice = item.IsTradeClosed ? item.CurrentPrice : null;
+                            tradeJournal.CloseTime = item.IsTradeClosed ? DateTime.UtcNow : null;
                             tradeJournal.Commission = item.Commission;
                             tradeJournal.Pnl = item.Pnl;
                             tradeJournal.SL = item.SL;
                             tradeJournal.TP = item.TP;
                             tradeJournal.Swap = item.Swap;
-                            tradeJournal.CloseTime = DateTime.UtcNow;
                             tradeJournal.RR = Math.Round(Math.Abs(item.CurrentPrice - tradeJournal.OpenPrice) / Math.Abs(tradeJournal.OpenPrice - tradeJournal.OpenSL), 4, MidpointRounding.AwayFromZero);
                         };
                     }

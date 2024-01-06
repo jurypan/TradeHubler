@@ -45,5 +45,6 @@
         public string? Comment { get; set; }
 
         public double Risk { get; set; }
+        public bool IsTradeClosed { get; set; }
     }
 }

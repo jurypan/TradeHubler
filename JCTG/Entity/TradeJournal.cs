@@ -27,11 +27,11 @@ namespace JCTG.Entity
 
         public DateTime OpenTime { get; set; }
 
-        public DateTime CloseTime { get; set; }
+        public DateTime? CloseTime { get; set; }
 
         public double OpenPrice { get; set; }
 
-        public double ClosePrice { get; set; }
+        public double? ClosePrice { get; set; }
 
         public double OpenSL { get; set; }
 

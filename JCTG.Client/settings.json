@@ -11,8 +11,7 @@
           "TickerInMetatrader": "AUS200",
           "Timeframe": "M5",
           "StrategyNr": 4,
-          "Risk": 0.05, // 0.15
-          "OverrideSession": true,
+          "Risk": 0.15, // 0.15
           "Sessions": {
             "Monday": {
               "open": "23:58",
@@ -46,8 +45,7 @@
           "TickerInMetatrader": "UK100",
           "Timeframe": "M5",
           "StrategyNr": 4,
-          "Risk": 0.05, // 0.15
-          "OverrideSession": true,
+          "Risk": 0.15, // 0.15
           "Sessions": {
             "Monday": {
               "open": "07:58",
@@ -78,8 +76,7 @@
           "TickerInMetatrader": "SP500",
           "Timeframe": "M5",
           "StrategyNr": 4,
-          "Risk": 0.05, // 0.15
-          "OverrideSession": true,
+          "Risk": 0.15, // 0.15
           "Sessions": {
             "Monday": {
               "open": "15:28",
@@ -117,8 +114,7 @@
           "TickerInMetatrader": "AU200AUD",
           "Timeframe": "M5",
           "StrategyNr": 4,
-          "Risk": 0.05, // 0.15
-          "OverrideSession": true,
+          "Risk": 0.15, // 0.15
           "Sessions": {
             "Monday": {
               "open": "23:58",
@@ -152,8 +148,7 @@
           "TickerInMetatrader": "UK100GBP",
           "Timeframe": "M5",
           "StrategyNr": 4,
-          "Risk": 0.05, // 0.15
-          "OverrideSession": true,
+          "Risk": 0.15, // 0.15
           "Sessions": {
             "Monday": {
               "open": "07:58",
@@ -184,8 +179,7 @@
           "TickerInMetatrader": "SPX500USD",
           "Timeframe": "M5",
           "StrategyNr": 4,
-          "Risk": 0.05, // 0.15
-          "OverrideSession": true,
+          "Risk": 0.15, // 0.15
           "Sessions": {
             "Monday": {
               "open": "15:28",
@@ -224,7 +218,6 @@
           "Timeframe": "H4",
           "StrategyNr": 1,
           "Risk": 0.5,
-          "OverrideSession": true,
           "Sessions": {
             "Monday": {
               "open": "15:28",
@@ -256,7 +249,6 @@
           "Timeframe": "H4",
           "StrategyNr": 1,
           "Risk": 0.5,
-          "OverrideSession": true,
           "Sessions": {
             "Monday": {
               "open": "15:28",
@@ -288,7 +280,6 @@
           "Timeframe": "H4",
           "StrategyNr": 1,
           "Risk": 0.5,
-          "OverrideSession": true,
           "Sessions": {
             "Monday": {
               "open": "15:28",
@@ -320,7 +311,6 @@
           "Timeframe": "H4",
           "StrategyNr": 1,
           "Risk": 0.5,
-          "OverrideSession": true,
           "Sessions": {
             "Monday": {
               "open": "15:28",
@@ -352,7 +342,6 @@
           "Timeframe": "H4",
           "StrategyNr": 1,
           "Risk": 0.5,
-          "OverrideSession": true,
           "Sessions": {
             "Monday": {
               "open": "15:28",
@@ -384,7 +373,6 @@
           "Timeframe": "H4",
           "StrategyNr": 1,
           "Risk": 0.5,
-          "OverrideSession": true,
           "Sessions": {
             "Monday": {
               "open": "15:28",
@@ -416,7 +404,6 @@
           "Timeframe": "H4",
           "StrategyNr": 1,
           "Risk": 0.5,
-          "OverrideSession": true,
           "Sessions": {
             "Monday": {
               "open": "15:28",
@@ -448,7 +435,6 @@
           "Timeframe": "H4",
           "StrategyNr": 1,
           "Risk": 0.5,
-          "OverrideSession": true,
           "Sessions": {
             "Monday": {
               "open": "15:28",
@@ -480,7 +466,6 @@
           "Timeframe": "H1",
           "StrategyNr": 2,
           "Risk": 0.45,
-          "OverrideSession": true,
           "Sessions": {
             "Monday": {
               "open": "00:00",
@@ -512,7 +497,6 @@
           "Timeframe": "H1",
           "StrategyNr": 2,
           "Risk": 0.45,
-          "OverrideSession": true,
           "Sessions": {
             "Monday": {
               "open": "23:58",
@@ -547,7 +531,6 @@
           "Timeframe": "H1",
           "StrategyNr": 2,
           "Risk": 0.45,
-          "OverrideSession": true,
           "Sessions": {
             "Monday": {
               "open": "08:58",
@@ -579,7 +562,6 @@
           "Timeframe": "H1",
           "StrategyNr": 2,
           "Risk": 0.45,
-          "OverrideSession": true,
           "Sessions": {
             "Monday": {
               "open": "08:58",
@@ -611,7 +593,6 @@
           "Timeframe": "H1",
           "StrategyNr": 2,
           "Risk": 0.45,
-          "OverrideSession": true,
           "Sessions": {
             "Monday": {
               "open": "07:58",
@@ -643,7 +624,6 @@
           "Timeframe": "H1",
           "StrategyNr": 2,
           "Risk": 0.45,
-          "OverrideSession": true,
           "Sessions": {
             "Monday": {
               "open": "15:28",
@@ -675,7 +655,102 @@
           "Timeframe": "H1",
           "StrategyNr": 2,
           "Risk": 0.45,
-          "OverrideSession": true,
+          "Sessions": {
+            "Monday": {
+              "open": "15:28",
+              "close": "22:02"
+            },
+            "Tuesday": {
+              "open": "15:28",
+              "close": "22:02"
+            },
+            "Wednesday": {
+              "open": "15:28",
+              "close": "22:02"
+            },
+            "Thursday": {
+              "open": "15:28",
+              "close": "22:02"
+            },
+            "Friday": {
+              "open": "15:28",
+              "close": "22:02"
+            },
+            "Saterday": null,
+            "Sunday": null
+          }
+        },
+        {
+          "TickerInTradingView": "XJO",
+          "TickerInMetatrader": "AUS200.cash",
+          "Timeframe": "M5",
+          "StrategyNr": 4,
+          "Risk": 0.15, // 0.15
+          "Sessions": {
+            "Monday": {
+              "open": "23:58",
+              "close": "06:02"
+            },
+            "Tuesday": {
+              "open": "23:58",
+              "close": "06:02"
+            },
+            "Wednesday": {
+              "open": "23:58",
+              "close": "06:02"
+            },
+            "Thursday": {
+              "open": "23:58",
+              "close": "06:02"
+            },
+            "Friday": {
+              "open": null,
+              "close": "06:02"
+            },
+            "Saterday": null,
+            "Sunday": {
+              "open": "23:58",
+              "close": null
+            }
+          }
+        },
+        {
+          "TickerInTradingView": "UKX",
+          "TickerInMetatrader": "UK100.cash",
+          "Timeframe": "M5",
+          "StrategyNr": 4,
+          "Risk": 0.15, // 0.15
+          "Sessions": {
+            "Monday": {
+              "open": "07:58",
+              "close": "16:32"
+            },
+            "Tuesday": {
+              "open": "07:58",
+              "close": "16:32"
+            },
+            "Wednesday": {
+              "open": "07:58",
+              "close": "16:32"
+            },
+            "Thursday": {
+              "open": "07:58",
+              "close": "16:32"
+            },
+            "Friday": {
+              "open": "07:58",
+              "close": "16:32"
+            },
+            "Saterday": null,
+            "Sunday": null
+          }
+        },
+        {
+          "TickerInTradingView": "SPX",
+          "TickerInMetatrader": "US500.cash",
+          "Timeframe": "M5",
+          "StrategyNr": 4,
+          "Risk": 0.15, // 0.15
           "Sessions": {
             "Monday": {
               "open": "15:28",
@@ -714,7 +789,6 @@
           "Timeframe": "H1",
           "StrategyNr": 2,
           "Risk": 0.45,
-          "OverrideSession": true,
           "Sessions": {
             "Monday": {
               "open": "00:00",
@@ -746,7 +820,6 @@
           "Timeframe": "H1",
           "StrategyNr": 2,
           "Risk": 0.45,
-          "OverrideSession": true,
           "Sessions": {
             "Monday": {
               "open": "23:58",
@@ -781,7 +854,6 @@
           "Timeframe": "H1",
           "StrategyNr": 2,
           "Risk": 0.45,
-          "OverrideSession": true,
           "Sessions": {
             "Monday": {
               "open": "08:58",
@@ -813,7 +885,6 @@
           "Timeframe": "H1",
           "StrategyNr": 2,
           "Risk": 0.45,
-          "OverrideSession": true,
           "Sessions": {
             "Monday": {
               "open": "08:58",
@@ -845,7 +916,6 @@
           "Timeframe": "H1",
           "StrategyNr": 2,
           "Risk": 0.45,
-          "OverrideSession": true,
           "Sessions": {
             "Monday": {
               "open": "07:58",
@@ -877,7 +947,6 @@
           "Timeframe": "H1",
           "StrategyNr": 2,
           "Risk": 0.45,
-          "OverrideSession": true,
           "Sessions": {
             "Monday": {
               "open": "15:28",
@@ -909,8 +978,6 @@
           "Timeframe": "H1",
           "StrategyNr": 2,
           "Risk": 0.45,
-          "µ": null,
-          "OverrideSession": true,
           "Sessions": {
             "Monday": {
               "open": "15:28",
@@ -942,7 +1009,6 @@
           "Timeframe": "H1",
           "StrategyNr": 2,
           "Risk": 0.45,
-          "OverrideSession": true,
           "Sessions": {
             "Monday": {
               "open": "15:28",
@@ -980,8 +1046,7 @@
           "TickerInMetatrader": "ASXAUD",
           "Timeframe": "M5",
           "StrategyNr": 4,
-          "Risk": 0.05, // 0.15
-          "OverrideSession": true,
+          "Risk": 0.15, // 0.15
           "Sessions": {
             "Monday": {
               "open": "23:58",
@@ -1015,8 +1080,7 @@
           "TickerInMetatrader": "FTSGBP",
           "Timeframe": "M5",
           "StrategyNr": 4,
-          "Risk": 0.05, // 0.15
-          "OverrideSession": true,
+          "Risk": 0.15, // 0.15
           "Sessions": {
             "Monday": {
               "open": "07:58",
@@ -1047,8 +1111,7 @@
           "TickerInMetatrader": "SPXUSD",
           "Timeframe": "M5",
           "StrategyNr": 4,
-          "Risk": 0.05, // 0.15
-          "OverrideSession": true,
+          "Risk": 0.15, // 0.15
           "Sessions": {
             "Monday": {
               "open": "15:28",
