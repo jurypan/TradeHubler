@@ -42,32 +42,32 @@
           }
         },
         {
-          "TickerInTradingView": "PX1",
-          "TickerInMetatrader": "FCHI40",
+          "TickerInTradingView": "UKX",
+          "TickerInMetatrader": "UK100",
           "Timeframe": "M5",
           "StrategyNr": 4,
           "Risk": 0.05, // 0.15
           "OverrideSession": true,
           "Sessions": {
             "Monday": {
-              "open": "08:58",
-              "close": "18:02"
+              "open": "07:58",
+              "close": "16:32"
             },
             "Tuesday": {
-              "open": "08:58",
-              "close": "18:02"
+              "open": "07:58",
+              "close": "16:32"
             },
             "Wednesday": {
-              "open": "08:58",
-              "close": "18:02"
+              "open": "07:58",
+              "close": "16:32"
             },
             "Thursday": {
-              "open": "08:58",
-              "close": "18:02"
+              "open": "07:58",
+              "close": "16:32"
             },
             "Friday": {
-              "open": "08:58",
-              "close": "18:02"
+              "open": "07:58",
+              "close": "16:32"
             },
             "Saterday": null,
             "Sunday": null
@@ -148,32 +148,32 @@
           }
         },
         {
-          "TickerInTradingView": "PX1",
-          "TickerInMetatrader": "FR40EUR",
+          "TickerInTradingView": "UKX",
+          "TickerInMetatrader": "UK100GBP",
           "Timeframe": "M5",
           "StrategyNr": 4,
           "Risk": 0.05, // 0.15
           "OverrideSession": true,
           "Sessions": {
             "Monday": {
-              "open": "08:58",
-              "close": "18:02"
+              "open": "07:58",
+              "close": "16:32"
             },
             "Tuesday": {
-              "open": "08:58",
-              "close": "18:02"
+              "open": "07:58",
+              "close": "16:32"
             },
             "Wednesday": {
-              "open": "08:58",
-              "close": "18:02"
+              "open": "07:58",
+              "close": "16:32"
             },
             "Thursday": {
-              "open": "08:58",
-              "close": "18:02"
+              "open": "07:58",
+              "close": "16:32"
             },
             "Friday": {
-              "open": "08:58",
-              "close": "18:02"
+              "open": "07:58",
+              "close": "16:32"
             },
             "Saterday": null,
             "Sunday": null
@@ -614,23 +614,23 @@
           "OverrideSession": true,
           "Sessions": {
             "Monday": {
-              "open": "08:58",
+              "open": "07:58",
               "close": "16:32"
             },
             "Tuesday": {
-              "open": "08:58",
+              "open": "07:58",
               "close": "16:32"
             },
             "Wednesday": {
-              "open": "08:58",
+              "open": "07:58",
               "close": "16:32"
             },
             "Thursday": {
-              "open": "08:58",
+              "open": "07:58",
               "close": "16:32"
             },
             "Friday": {
-              "open": "08:58",
+              "open": "07:58",
               "close": "16:32"
             },
             "Saterday": null,
@@ -848,23 +848,23 @@
           "OverrideSession": true,
           "Sessions": {
             "Monday": {
-              "open": "08:58",
+              "open": "07:58",
               "close": "16:32"
             },
             "Tuesday": {
-              "open": "08:58",
+              "open": "07:58",
               "close": "16:32"
             },
             "Wednesday": {
-              "open": "08:58",
+              "open": "07:58",
               "close": "16:32"
             },
             "Thursday": {
-              "open": "08:58",
+              "open": "07:58",
               "close": "16:32"
             },
             "Friday": {
-              "open": "08:58",
+              "open": "07:58",
               "close": "16:32"
             },
             "Saterday": null,
@@ -1011,32 +1011,32 @@
           }
         },
         {
-          "TickerInTradingView": "PX1",
-          "TickerInMetatrader": "F40EUR",
+          "TickerInTradingView": "UKX",
+          "TickerInMetatrader": "FTSGBP",
           "Timeframe": "M5",
           "StrategyNr": 4,
           "Risk": 0.05, // 0.15
           "OverrideSession": true,
           "Sessions": {
             "Monday": {
-              "open": "08:58",
-              "close": "18:02"
+              "open": "07:58",
+              "close": "16:32"
             },
             "Tuesday": {
-              "open": "08:58",
-              "close": "18:02"
+              "open": "07:58",
+              "close": "16:32"
             },
             "Wednesday": {
-              "open": "08:58",
-              "close": "18:02"
+              "open": "07:58",
+              "close": "16:32"
             },
             "Thursday": {
-              "open": "08:58",
-              "close": "18:02"
+              "open": "07:58",
+              "close": "16:32"
             },
             "Friday": {
-              "open": "08:58",
-              "close": "18:02"
+              "open": "07:58",
+              "close": "16:32"
             },
             "Saterday": null,
             "Sunday": null

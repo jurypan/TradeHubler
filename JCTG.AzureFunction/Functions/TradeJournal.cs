@@ -80,7 +80,7 @@ namespace JCTG.AzureFunction.Functions
                                 TP = item.TP,
                                 Type = item.Type,
                                 Risk = item.Risk,
-                                RR = item.Type == "BUY" ? Math.Round((item.CurrentPrice - item.OpenPrice) / Math.Abs(item.OpenPrice - item.SL), 4, MidpointRounding.AwayFromZero)  : Math.Round((item.OpenPrice - item.CurrentPrice) / Math.Abs(item.OpenPrice - item.SL), 4, MidpointRounding.AwayFromZero)
+                                RR = Math.Round(Math.Abs(item.CurrentPrice - item.OpenPrice) / Math.Abs(item.OpenPrice - item.SL), 4, MidpointRounding.AwayFromZero),
                             };
 
                             // Add to database
@@ -97,7 +97,7 @@ namespace JCTG.AzureFunction.Functions
                             tradeJournal.TP = item.TP;
                             tradeJournal.Swap = item.Swap;
                             tradeJournal.CloseTime = DateTime.UtcNow;
-                            tradeJournal.RR = item.Type == "BUY" ? Math.Round((item.CurrentPrice - item.OpenPrice) / Math.Abs(item.OpenPrice - tradeJournal.OpenSL), 4, MidpointRounding.AwayFromZero) : Math.Round((item.OpenPrice - item.CurrentPrice) / Math.Abs(item.OpenPrice - tradeJournal.OpenSL), 4, MidpointRounding.AwayFromZero);
+                            tradeJournal.RR = Math.Round(Math.Abs(item.CurrentPrice - tradeJournal.OpenPrice) / Math.Abs(tradeJournal.OpenPrice - tradeJournal.OpenSL), 4, MidpointRounding.AwayFromZero);
                         };
                     }
 
