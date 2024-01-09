@@ -19,13 +19,13 @@ namespace JCTG.Client
         [JsonProperty("digits")]
         public int Digits { get; set; }
 
-        [JsonProperty("atr_M5_100")]
+        [JsonProperty("atr_M5")]
         public double ATR5M { get; set; }
-        [JsonProperty("atr_M15_50")]
+        [JsonProperty("atr_M15")]
         public double ATR15M { get; set; }
-        [JsonProperty("atr_H1_25")]
+        [JsonProperty("atr_H1")]
         public double ATR1H { get; set; }
-        [JsonProperty("atr_D_14")]
+        [JsonProperty("atr_D")]
         public double ATRD { get; set; }
     }
 }

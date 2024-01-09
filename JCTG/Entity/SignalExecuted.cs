@@ -27,5 +27,9 @@ namespace JCTG
         public double ExecutedPrice { get; set; }
         public double ExecutedSL { get; set; }
         public double ExecutedTP { get; set; }
+        public double Atr5M { get; set; }
+        public double Atr15M { get; set; }
+        public double Atr1H { get; set; }
+        public double AtrD { get; set; }
     }
 }

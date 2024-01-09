@@ -1,7 +1,5 @@
-using System.Diagnostics;
+using System;
 using System.Net;
-using Google.Protobuf.WellKnownTypes;
-using JCTG.AzureFunction.Helpers;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.EntityFrameworkCore;
@@ -116,6 +114,10 @@ namespace JCTG.AzureFunction
                                     ExecutedPrice = mtTrade.Ask,
                                     ExecutedSL = slPrice,
                                     ExecutedTP = tpPrice,
+                                    Atr5M = mtTrade.Atr5M,
+                                    Atr15M = mtTrade.Atr15M,
+                                    Atr1H = mtTrade.Atr1H,
+                                    AtrD = mtTrade.AtrD,
                                 });
 
 
@@ -138,7 +140,7 @@ namespace JCTG.AzureFunction
                                 // Caculate SL Price
                                 var slPrice = CalculateSLForShort(
                                             mtPrice: mtTrade.Ask,
-                                            mtAtr: GetAtr(mtTrade.Atr5M, mtTrade.Atr15M, mtTrade.Atr1H, mtTrade.AtrD, signal.StrategyType),
+                                            mtATR: GetAtr(mtTrade.Atr5M, mtTrade.Atr15M, mtTrade.Atr1H, mtTrade.AtrD, signal.StrategyType),
                                             mtSpread: spread,
                                             mtTickSize: mtTrade.TickSize,
                                             signalEntryPrice: signal.EntryPrice,
@@ -149,7 +151,7 @@ namespace JCTG.AzureFunction
                                 // Caculate TP Price
                                 var tpPrice = CalculateTPForShort(
                                             mtPrice: mtTrade.Ask,
-                                            mtAtr: GetAtr(mtTrade.Atr5M, mtTrade.Atr15M, mtTrade.Atr1H, mtTrade.AtrD, signal.StrategyType),
+                                            mtATR: GetAtr(mtTrade.Atr5M, mtTrade.Atr15M, mtTrade.Atr1H, mtTrade.AtrD, signal.StrategyType),
                                             mtSpread: spread,
                                             mtTickSize: mtTrade.TickSize,
                                             signalEntryPrice: signal.EntryPrice,
@@ -191,6 +193,10 @@ namespace JCTG.AzureFunction
                                     ExecutedPrice = mtTrade.Ask,
                                     ExecutedSL = slPrice,
                                     ExecutedTP = tpPrice,
+                                    Atr5M = mtTrade.Atr5M,
+                                    Atr15M = mtTrade.Atr15M,
+                                    Atr1H = mtTrade.Atr1H,
+                                    AtrD = mtTrade.AtrD,
                                 });
 
                                 // Add repsonse
@@ -269,6 +275,10 @@ namespace JCTG.AzureFunction
                                         ExecutedPrice = mtTrade.Ask,
                                         ExecutedSL = tradeJournal.OpenPrice,
                                         ExecutedTP = tradeJournal.TP,
+                                        Atr5M = mtTrade.Atr5M,
+                                        Atr15M = mtTrade.Atr15M,
+                                        Atr1H = mtTrade.Atr1H,
+                                        AtrD = mtTrade.AtrD,
                                     });
 
                                     // Add repsonse
@@ -301,7 +311,7 @@ namespace JCTG.AzureFunction
                                                 signalATR: GetAtr(signal.Atr5M, signal.Atr15M, signal.Atr1H, signal.AtrD, signal.StrategyType)
                                                 ) : CalculateSLForShort(
                                                 mtPrice: mtTrade.Ask,
-                                                mtAtr: GetAtr(mtTrade.Atr5M, mtTrade.Atr15M, mtTrade.Atr1H, mtTrade.AtrD, signal.StrategyType),
+                                                mtATR: GetAtr(mtTrade.Atr5M, mtTrade.Atr15M, mtTrade.Atr1H, mtTrade.AtrD, signal.StrategyType),
                                                 mtSpread: spread,
                                                 mtTickSize: mtTrade.TickSize,
                                                 signalEntryPrice: signal.EntryPrice,
@@ -344,6 +354,10 @@ namespace JCTG.AzureFunction
                                         ExecutedPrice = mtTrade.Ask,
                                         ExecutedSL = slPrice,
                                         ExecutedTP = tradeJournal.TP,
+                                        Atr5M = mtTrade.Atr5M,
+                                        Atr15M = mtTrade.Atr15M,
+                                        Atr1H = mtTrade.Atr1H,
+                                        AtrD = mtTrade.AtrD,
                                     });
 
                                     // Add repsonse
@@ -402,6 +416,10 @@ namespace JCTG.AzureFunction
                                         ExecutedPrice = mtTrade.Ask,
                                         ExecutedSL = tradeJournal.SL,
                                         ExecutedTP = tradeJournal.TP,
+                                        Atr5M = mtTrade.Atr5M,
+                                        Atr15M = mtTrade.Atr15M,
+                                        Atr1H = mtTrade.Atr1H,
+                                        AtrD = mtTrade.AtrD,
                                     });
 
                                     // Add repsonse
@@ -429,7 +447,7 @@ namespace JCTG.AzureFunction
                     // Foreach item in the list, if there is no command, add "NONE" as command
                     foreach (var mtTrade in items)
                     {
-                        if(!response.Any(f => f.TickerInMetatrader == mtTrade.TickerInMetatrader))
+                        if(!response.Any(f => f.TickerInMetatrader == mtTrade.TickerInMetatrader && f.StrategyType == mtTrade.StrategyType))
                         {
                             response.Add(new MetatraderResponse()
                             {
@@ -438,6 +456,7 @@ namespace JCTG.AzureFunction
                                 ClientId = mtTrade.ClientID,
                                 TickerInMetatrader = mtTrade.TickerInMetatrader,
                                 TickerInTradingview = mtTrade.TickerInTradingview,
+                                StrategyType = mtTrade.StrategyType,
                             });
                         }
                     }
@@ -469,7 +488,7 @@ namespace JCTG.AzureFunction
         public static double CalculateSLForLong(double mtPrice, double mtATR, double mtSpread, double mtTickSize, double signalEntryPrice, double signalSlPrice, double signalATR)
         {
             // Calculate the ATR multiplier based on the difference between MetaTrader's ATR and TradingView's ATR
-            var atrMultiplier = mtATR > 0 && signalATR > 0 ? mtATR / signalATR : 1.0;
+            var atrMultiplier = mtATR > 0 && signalATR > 0 && mtATR > signalATR ? 1.1 : 1.0;
 
             // Calculate SL price using MetaTrader price minus risk to take
             var slPrice = mtPrice - ((signalEntryPrice - signalSlPrice) * atrMultiplier);
@@ -485,7 +504,7 @@ namespace JCTG.AzureFunction
                 slPrice = mtPrice;
 
             // Return SL Price minus spread
-            return slPrice - mtSpread;
+            return slPrice - (2 * mtSpread);
         }
 
 
@@ -493,16 +512,16 @@ namespace JCTG.AzureFunction
         /// Calculate the stop loss price for long positions based on the specified parameters
         /// </summary>
         /// <param name="mtPrice">MetaTrader ASK price</param>
-        /// <param name="mtAtr">MetaTrader Atr5M</param>
+        /// <param name="mtATR">MetaTrader Atr5M</param>
         /// <param name="mtSpread">The spread value</param>
         /// <param name="signalEntryPrice">Signal ENTRY price</param>
         /// <param name="signalSlPrice">Signal SL price</param>
         /// <param name="signalATR">Signal Atr5M</param>
         /// <returns>Stop loss price</returns>
-        public static double CalculateSLForShort(double mtPrice, double mtAtr, double mtSpread, double mtTickSize, double signalEntryPrice, double signalSlPrice, double signalATR)
+        public static double CalculateSLForShort(double mtPrice, double mtATR, double mtSpread, double mtTickSize, double signalEntryPrice, double signalSlPrice, double signalATR)
         {
             // Calculate the ATR multiplier based on the difference between MetaTrader's ATR and TradingView's ATR
-            var atrMultiplier = mtAtr > 0 && signalATR > 0 ? mtAtr / signalATR : 1.0;
+            var atrMultiplier = mtATR > 0 && signalATR > 0 && mtATR > signalATR ? 1.1 : 1.0;
 
             // Calculate SL price using MetaTrader price minus risk to take
             var slPrice = mtPrice + ((signalSlPrice - signalEntryPrice) * atrMultiplier);
@@ -518,7 +537,7 @@ namespace JCTG.AzureFunction
                 slPrice = mtPrice;
 
             // Return SL Price plus spread
-            return slPrice + mtSpread;
+            return slPrice + (2 * mtSpread);
         }
 
         /// <summary>
@@ -535,7 +554,7 @@ namespace JCTG.AzureFunction
         public static double CalculateTPForLong(double mtPrice, double mtATR, double mtSpread, double mtTickSize, double signalEntryPrice, double signalTpPrice, double signalATR)
         {
             // Calculate the ATR multiplier based on the difference between MetaTrader's ATR and TradingView's ATR
-            var atrMultiplier = mtATR > 0 && signalATR > 0 ? mtATR / signalATR : 1.0;
+            var atrMultiplier = mtATR > 0 && signalATR > 0 && mtATR > signalATR ? 1.1 : 1.0;
 
             // Calculate TP price using MetaTrader price minus risk to take
             var tpPrice = mtPrice + ((signalTpPrice - signalEntryPrice) * atrMultiplier);
@@ -547,23 +566,23 @@ namespace JCTG.AzureFunction
             tpPrice = numberOfTicks * mtTickSize;
 
             // Return SL Price minus spread
-            return tpPrice - mtSpread;
+            return tpPrice;
         }
 
         /// <summary>
         /// Calculate the take profit price for long positions based on the specified parameters
         /// </summary>
         /// <param name="mtPrice">MetaTrader ASK price</param>
-        /// <param name="mtAtr">MetaTrader ATR</param>
+        /// <param name="mtATR">MetaTrader ATR</param>
         /// <param name="mtSpread">The spread value</param>
         /// <param name="signalEntryPrice">Signal ENTRY price</param>
         /// <param name="signalTpPrice">Signal TP price</param>
         /// <param name="signalATR">Signal ATR</param>
         /// <returns>Take profit price</returns>
-        public static double CalculateTPForShort(double mtPrice, double mtAtr, double mtSpread, double mtTickSize, double signalEntryPrice, double signalTpPrice, double signalATR)
+        public static double CalculateTPForShort(double mtPrice, double mtATR, double mtSpread, double mtTickSize, double signalEntryPrice, double signalTpPrice, double signalATR)
         {
             // Calculate the ATR multiplier based on the difference between MetaTrader's ATR and TradingView's ATR
-            var atrMultiplier = mtAtr > 0 && signalATR > 0 ? mtAtr / signalATR : 1.0;
+            var atrMultiplier = mtATR > 0 && signalATR > 0 && mtATR > signalATR ? 1.1 : 1.0;
 
             // Calculate TP price using MetaTrader price minus risk to take
             var tpPrice = mtPrice - ((signalEntryPrice - signalTpPrice) * atrMultiplier);
@@ -575,21 +594,21 @@ namespace JCTG.AzureFunction
             tpPrice = numberOfTicks * mtTickSize;
 
             // Return SL Price plus spread
-            return tpPrice + mtSpread;
+            return tpPrice;
         }
 
         private double GetAtr(double atr5M, double atr15M, double atr1H, double atrD, StrategyType type)
         {
-            if (type == StrategyType.Strategy1)
+            if (type == StrategyType.Strategy1) // SWING - STOCKS
                 return atr1H; // 4H
-            else if (type == StrategyType.Strategy2)
+            else if (type == StrategyType.Strategy2) // SWING - INDICES
                 return atr1H;
             else if (type == StrategyType.Strategy3)
                 return atr5M;
-            else if (type == StrategyType.Strategy4)
+            else if (type == StrategyType.Strategy4) // DAYTRADE - INDICES
                 return atr5M;
-            else if (type == StrategyType.Strategy5)
-                return atr15M;
+            else if (type == StrategyType.Strategy5) // DAYTRADE - CRYPTO
+                return atr5M;
             return atr15M;
         }
     }

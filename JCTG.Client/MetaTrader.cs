@@ -601,7 +601,7 @@ namespace JCTG.Client
 
         private void SendOrderToBackend(long clientId, long ticketId, Order order, bool isTradeClosed) 
         { 
-            if (_appConfig != null && _apis != null && _apis.Count(f => f.ClientId == clientId) == 1) 
+            if (_appConfig != null && _apis != null && _apis.Count(f => f.ClientId == clientId && f.MarketData != null) == 1) 
             {
                 // Add to the trading journal
                 var marketdata = _apis.First(f => f.ClientId == clientId).MarketData.FirstOrDefault(f => f.Key == order.Symbol);

@@ -96,7 +96,9 @@ namespace JCTG.AzureFunction.Functions
                             tradeJournal.SL = item.SL;
                             tradeJournal.TP = item.TP;
                             tradeJournal.Swap = item.Swap;
-                            tradeJournal.RR = Math.Round(Math.Abs(item.CurrentPrice - tradeJournal.OpenPrice) / Math.Abs(tradeJournal.OpenPrice - tradeJournal.OpenSL), 4, MidpointRounding.AwayFromZero);
+                            tradeJournal.RR = tradeJournal.Type == "BUY" ? 
+                                Math.Round((item.CurrentPrice - tradeJournal.OpenPrice) / Math.Abs(tradeJournal.OpenPrice - tradeJournal.OpenSL), 4, MidpointRounding.AwayFromZero) : 
+                                Math.Round((tradeJournal.OpenPrice - item.CurrentPrice) / Math.Abs(tradeJournal.OpenPrice - tradeJournal.OpenSL), 4, MidpointRounding.AwayFromZero);
                         };
                     }
 

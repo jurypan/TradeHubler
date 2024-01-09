@@ -775,6 +775,43 @@
             "Saterday": null,
             "Sunday": null
           }
+        },
+        {
+          "TickerInTradingView": "BTCUSD",
+          "TickerInMetatrader": "BTCUSD",
+          "Timeframe": "M15",
+          "StrategyNr": 5,
+          "Risk": 0.025,
+          "Sessions": {
+            "Monday": {
+              "open": "00:00",
+              "close": "23:59"
+            },
+            "Tuesday": {
+              "open": "00:00",
+              "close": "23:59"
+            },
+            "Wednesday": {
+              "open": "00:00",
+              "close": "23:59"
+            },
+            "Thursday": {
+              "open": "00:00",
+              "close": "23:59"
+            },
+            "Friday": {
+              "open": "00:00",
+              "close": "23:59"
+            },
+            "Saturday": {
+              "open": "00:00",
+              "close": "23:59"
+            },
+            "Sunday": {
+              "open": "00:00",
+              "close": "23:59"
+            }
+          }
         }
       ]
     },
@@ -1033,6 +1070,43 @@
             "Saterday": null,
             "Sunday": null
           }
+        },
+        {
+          "TickerInTradingView": "BTCUSD",
+          "TickerInMetatrader": "BTCUSD",
+          "Timeframe": "M15",
+          "StrategyNr": 5,
+          "Risk": 0.025,
+          "Sessions": {
+            "Monday": {
+              "open": "00:00",
+              "close": "23:59"
+            },
+            "Tuesday": {
+              "open": "00:00",
+              "close": "23:59"
+            },
+            "Wednesday": {
+              "open": "00:00",
+              "close": "23:59"
+            },
+            "Thursday": {
+              "open": "00:00",
+              "close": "23:59"
+            },
+            "Friday": {
+              "open": "00:00",
+              "close": "23:59"
+            },
+            "Saturday": {
+              "open": "00:00",
+              "close": "23:59"
+            },
+            "Sunday": {
+              "open": "00:00",
+              "close": "23:59"
+            }
+          }
         }
       ]
     },
@@ -1135,6 +1209,331 @@
             },
             "Saterday": null,
             "Sunday": null
+          }
+        }
+      ]
+    },
+    {
+      "Name": "CRYPTO FUND TRADER - MT5",
+      "MetaTraderDirPath": "C:\\Users\\joeri.pansaerts\\AppData\\Roaming\\MetaQuotes\\Terminal\\1EC23421AF558490730707A48E5336B0\\MQL5\\Files",
+      "ClientId": 147367,
+      "Pairs": [
+        {
+          "TickerInTradingView": "XJO",
+          "TickerInMetatrader": "AUS200",
+          "Timeframe": "M5",
+          "StrategyNr": 4,
+          "Risk": 0.15, // 0.15
+          "Sessions": {
+            "Monday": {
+              "open": "23:58",
+              "close": "06:02"
+            },
+            "Tuesday": {
+              "open": "23:58",
+              "close": "06:02"
+            },
+            "Wednesday": {
+              "open": "23:58",
+              "close": "06:02"
+            },
+            "Thursday": {
+              "open": "23:58",
+              "close": "06:02"
+            },
+            "Friday": {
+              "open": null,
+              "close": "06:02"
+            },
+            "Saterday": null,
+            "Sunday": {
+              "open": "23:58",
+              "close": null
+            }
+          }
+        },
+        {
+          "TickerInTradingView": "UKX",
+          "TickerInMetatrader": "UK100",
+          "Timeframe": "M5",
+          "StrategyNr": 4,
+          "Risk": 0.15, // 0.15
+          "Sessions": {
+            "Monday": {
+              "open": "07:58",
+              "close": "16:32"
+            },
+            "Tuesday": {
+              "open": "07:58",
+              "close": "16:32"
+            },
+            "Wednesday": {
+              "open": "07:58",
+              "close": "16:32"
+            },
+            "Thursday": {
+              "open": "07:58",
+              "close": "16:32"
+            },
+            "Friday": {
+              "open": "07:58",
+              "close": "16:32"
+            },
+            "Saterday": null,
+            "Sunday": null
+          }
+        },
+        {
+          "TickerInTradingView": "SPX",
+          "TickerInMetatrader": "US500",
+          "Timeframe": "M5",
+          "StrategyNr": 4,
+          "Risk": 0.15, // 0.15
+          "Sessions": {
+            "Monday": {
+              "open": "15:28",
+              "close": "22:02"
+            },
+            "Tuesday": {
+              "open": "15:28",
+              "close": "22:02"
+            },
+            "Wednesday": {
+              "open": "15:28",
+              "close": "22:02"
+            },
+            "Thursday": {
+              "open": "15:28",
+              "close": "22:02"
+            },
+            "Friday": {
+              "open": "15:28",
+              "close": "22:02"
+            },
+            "Saterday": null,
+            "Sunday": null
+          }
+        },
+        {
+          "TickerInTradingView": "BTCUSD",
+          "TickerInMetatrader": "BTCUSDT",
+          "Timeframe": "M15",
+          "StrategyNr": 5,
+          "Risk": 0.1,
+          "Sessions": {
+            "Monday": {
+              "open": "00:00",
+              "close": "23:59"
+            },
+            "Tuesday": {
+              "open": "00:00",
+              "close": "23:59"
+            },
+            "Wednesday": {
+              "open": "00:00",
+              "close": "23:59"
+            },
+            "Thursday": {
+              "open": "00:00",
+              "close": "23:59"
+            },
+            "Friday": {
+              "open": "00:00",
+              "close": "23:59"
+            },
+            "Saturday": {
+              "open": "00:00",
+              "close": "23:59"
+            },
+            "Sunday": {
+              "open": "00:00",
+              "close": "23:59"
+            }
+          }
+        },
+        {
+          "TickerInTradingView": "DOTUSD",
+          "TickerInMetatrader": "DOTUSDT",
+          "Timeframe": "M5",
+          "StrategyNr": 5,
+          "Risk": 0.1,
+          "Sessions": {
+            "Monday": {
+              "open": "00:00",
+              "close": "23:59"
+            },
+            "Tuesday": {
+              "open": "00:00",
+              "close": "23:59"
+            },
+            "Wednesday": {
+              "open": "00:00",
+              "close": "23:59"
+            },
+            "Thursday": {
+              "open": "00:00",
+              "close": "23:59"
+            },
+            "Friday": {
+              "open": "00:00",
+              "close": "23:59"
+            },
+            "Saturday": {
+              "open": "00:00",
+              "close": "23:59"
+            },
+            "Sunday": {
+              "open": "00:00",
+              "close": "23:59"
+            }
+          }
+        },
+        {
+          "TickerInTradingView": "ADAUSD",
+          "TickerInMetatrader": "ADAUSDT",
+          "Timeframe": "M5",
+          "StrategyNr": 5,
+          "Risk": 0.1,
+          "Sessions": {
+            "Monday": {
+              "open": "00:00",
+              "close": "23:59"
+            },
+            "Tuesday": {
+              "open": "00:00",
+              "close": "23:59"
+            },
+            "Wednesday": {
+              "open": "00:00",
+              "close": "23:59"
+            },
+            "Thursday": {
+              "open": "00:00",
+              "close": "23:59"
+            },
+            "Friday": {
+              "open": "00:00",
+              "close": "23:59"
+            },
+            "Saturday": {
+              "open": "00:00",
+              "close": "23:59"
+            },
+            "Sunday": {
+              "open": "00:00",
+              "close": "23:59"
+            }
+          }
+        },
+        {
+          "TickerInTradingView": "LINKUSD",
+          "TickerInMetatrader": "LINKUSDT",
+          "Timeframe": "M5",
+          "StrategyNr": 5,
+          "Risk": 0.1,
+          "Sessions": {
+            "Monday": {
+              "open": "00:00",
+              "close": "23:59"
+            },
+            "Tuesday": {
+              "open": "00:00",
+              "close": "23:59"
+            },
+            "Wednesday": {
+              "open": "00:00",
+              "close": "23:59"
+            },
+            "Thursday": {
+              "open": "00:00",
+              "close": "23:59"
+            },
+            "Friday": {
+              "open": "00:00",
+              "close": "23:59"
+            },
+            "Saturday": {
+              "open": "00:00",
+              "close": "23:59"
+            },
+            "Sunday": {
+              "open": "00:00",
+              "close": "23:59"
+            }
+          }
+        },
+        {
+          "TickerInTradingView": "ETHUSD",
+          "TickerInMetatrader": "ETHUSDT",
+          "Timeframe": "M5",
+          "StrategyNr": 5,
+          "Risk": 0.1,
+          "Sessions": {
+            "Monday": {
+              "open": "00:00",
+              "close": "23:59"
+            },
+            "Tuesday": {
+              "open": "00:00",
+              "close": "23:59"
+            },
+            "Wednesday": {
+              "open": "00:00",
+              "close": "23:59"
+            },
+            "Thursday": {
+              "open": "00:00",
+              "close": "23:59"
+            },
+            "Friday": {
+              "open": "00:00",
+              "close": "23:59"
+            },
+            "Saturday": {
+              "open": "00:00",
+              "close": "23:59"
+            },
+            "Sunday": {
+              "open": "00:00",
+              "close": "23:59"
+            }
+          }
+        },
+        {
+          "TickerInTradingView": "MATICUSD",
+          "TickerInMetatrader": "MATICUSDT",
+          "Timeframe": "M5",
+          "StrategyNr": 5,
+          "Risk": 0.1,
+          "Sessions": {
+            "Monday": {
+              "open": "00:00",
+              "close": "23:59"
+            },
+            "Tuesday": {
+              "open": "00:00",
+              "close": "23:59"
+            },
+            "Wednesday": {
+              "open": "00:00",
+              "close": "23:59"
+            },
+            "Thursday": {
+              "open": "00:00",
+              "close": "23:59"
+            },
+            "Friday": {
+              "open": "00:00",
+              "close": "23:59"
+            },
+            "Saturday": {
+              "open": "00:00",
+              "close": "23:59"
+            },
+            "Sunday": {
+              "open": "00:00",
+              "close": "23:59"
+            }
           }
         }
       ]
