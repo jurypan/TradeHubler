@@ -1,12 +1,19 @@
-﻿using static JCTG.Client.Helpers;
+﻿using Azure.Core;
+using Azure.Messaging.WebPubSub;
+using Newtonsoft.Json;
+using System.Collections.Concurrent;
+using Websocket.Client;
+using static JCTG.Client.Helpers;
 
 namespace JCTG.Client
 {
     public class Metatrader
     {
+        private readonly string _pubsubConnectionString = "Endpoint=https://justcalltheguy.webpubsub.azure.com;AccessKey=BdxAvvoxX7+nkCq/lQDNe2LAy41lwDfJD8bCPiNuY/k=;Version=1.0;";
         private readonly AppConfig? _appConfig;
         private readonly List<MetatraderApi> _apis;
         private readonly List<MetatraderRequest> _logPairs;
+        object myLock = new object();
 
         public Metatrader(AppConfig appConfig)
         {
@@ -62,7 +69,7 @@ namespace JCTG.Client
         public async Task ListenToTheServerAsync()
         {
             // Do null reference checks
-            if(_appConfig != null && _apis != null)
+            if (_appConfig != null && _apis != null)
             {
                 // Loop through the api
                 Parallel.ForEach(_apis, new() { MaxDegreeOfParallelism = 4 }, async _api =>
@@ -99,7 +106,7 @@ namespace JCTG.Client
                                     Atr5M = metadataTick.ATR5M,
                                     Atr15M = metadataTick.ATR15M,
                                     Atr1H = metadataTick.ATR1H,
-                                    AtrD = metadataTick.ATRD,
+                                    AtrD = metadataTick.ATRD
                                 };
 
                                 // Is current time within the sessions of the app config ?
@@ -115,7 +122,10 @@ namespace JCTG.Client
                                                                 && f.TickerInTradingview == mtRequest.TickerInTradingview
                                                                 && f.StrategyType == mtRequest.StrategyType))
                                     {
-                                        _logPairs.Add(mtRequest);
+                                        lock (myLock)
+                                        {
+                                            _logPairs.Add(mtRequest);
+                                        }
 
                                         // Print on the screen
                                         Print(Environment.NewLine);
@@ -144,11 +154,14 @@ namespace JCTG.Client
                                                                 && f.TickerInTradingview == mtRequest.TickerInTradingview
                                                                 && f.StrategyType == mtRequest.StrategyType))
                                     {
-                                        _logPairs.Remove(_logPairs.First(f => f.AccountID == mtRequest.AccountID
+                                        lock (myLock)
+                                        {
+                                            _logPairs.Remove(_logPairs.First(f => f.AccountID == mtRequest.AccountID
                                                                 && f.ClientID == mtRequest.ClientID
                                                                 && f.TickerInMetatrader == mtRequest.TickerInMetatrader
                                                                 && f.TickerInTradingview == mtRequest.TickerInTradingview
                                                                 && f.StrategyType == mtRequest.StrategyType));
+                                        }
 
                                         // Print on the screen
                                         Print(Environment.NewLine);
@@ -199,26 +212,30 @@ namespace JCTG.Client
                                             // Make buy order
                                             var lotSize = CalculateLotSize(_api.ClientId, _api.AccountInfo.Balance, ticker.Risk, metadataTick.Ask, response.StopLoss, metadataTick.TickValue, metadataTick.TickSize, metadataTick.LotStep, metadataTick.MinLotSize, metadataTick.MaxLotSize, metadataTick.Ask - metadataTick.Bid);
 
-                                            // Print on the screen
-                                            Print(Environment.NewLine);
-                                            Print("--------- SEND NEW ORDER TO METATRADER ---------");
-                                            Print("Broker      : " + _appConfig.Brokers.First(f => f.ClientId == _api.ClientId).Name);
-                                            Print("Ticker      : " + ticker.TickerInMetatrader);
-                                            Print("Order       : BUY MARKET ORDER");
-                                            Print("Lot Size    : " + lotSize);
-                                            Print("Ask price   : " + metadataTick.Ask);
-                                            Print("Stop Loss   : " + response.StopLoss);
-                                            Print("Take Profit : " + response.TakeProfit);
-                                            Print("Tick value  : " + metadataTick.TickValue);
-                                            Print("Point size  : " + metadataTick.TickSize);
-                                            Print("Lot step    : " + metadataTick.LotStep);
-                                            Print("Magic       : " + response.Magic);
-                                            Print("Strategy    : " + ticker.StrategyNr);
-                                            Print("------------------------------------------------");
+                                            // do 0.0 check
+                                            if(lotSize > 0.0)
+                                            {
+                                                // Print on the screen
+                                                Print(Environment.NewLine);
+                                                Print("--------- SEND NEW ORDER TO METATRADER ---------");
+                                                Print("Broker      : " + _appConfig.Brokers.First(f => f.ClientId == _api.ClientId).Name);
+                                                Print("Ticker      : " + ticker.TickerInMetatrader);
+                                                Print("Order       : BUY MARKET ORDER");
+                                                Print("Lot Size    : " + lotSize);
+                                                Print("Ask price   : " + metadataTick.Ask);
+                                                Print("Stop Loss   : " + response.StopLoss);
+                                                Print("Take Profit : " + response.TakeProfit);
+                                                Print("Tick value  : " + metadataTick.TickValue);
+                                                Print("Point size  : " + metadataTick.TickSize);
+                                                Print("Lot step    : " + metadataTick.LotStep);
+                                                Print("Magic       : " + response.Magic);
+                                                Print("Strategy    : " + ticker.StrategyNr);
+                                                Print("------------------------------------------------");
 
 
-                                            // Open order
-                                            _api.ExecuteOrder(ticker.TickerInMetatrader, OrderType.Buy, lotSize, 0, response.StopLoss, response.TakeProfit, (int)response.Magic);
+                                                // Open order
+                                                _api.ExecuteOrder(ticker.TickerInMetatrader, OrderType.Buy, lotSize, 0, response.StopLoss, response.TakeProfit, (int)response.Magic);
+                                            }
                                         }
                                     }
 
@@ -237,26 +254,30 @@ namespace JCTG.Client
                                             // Make buy order
                                             var lotSize = CalculateLotSize(_api.ClientId, _api.AccountInfo.Balance, ticker.Risk, metadataTick.Ask, response.StopLoss, metadataTick.TickValue, metadataTick.TickSize, metadataTick.LotStep, metadataTick.MinLotSize, metadataTick.MaxLotSize, metadataTick.Ask - metadataTick.Bid);
 
-                                            // Print on the screen
-                                            Print(Environment.NewLine);
-                                            Print("--------- SEND NEW ORDER TO METATRADER ---------");
-                                            Print("Broker      : " + _appConfig.Brokers.First(f => f.ClientId == _api.ClientId).Name);
-                                            Print("Ticker      : " + ticker.TickerInMetatrader);
-                                            Print("Order       : SELL MARKET ORDER");
-                                            Print("Lot Size    : " + lotSize);
-                                            Print("Ask price   : " + metadataTick.Ask);
-                                            Print("Stop Loss   : " + response.StopLoss);
-                                            Print("Take Profit : " + response.TakeProfit);
-                                            Print("Tick value  : " + metadataTick.TickValue);
-                                            Print("Point size  : " + metadataTick.TickSize);
-                                            Print("Lot step    : " + metadataTick.LotStep);
-                                            Print("Magic       : " + response.Magic);
-                                            Print("Strategy    : " + ticker.StrategyNr);
-                                            Print("------------------------------------------------");
+                                            // do 0.0 check
+                                            if (lotSize > 0.0)
+                                            {
+                                                // Print on the screen
+                                                Print(Environment.NewLine);
+                                                Print("--------- SEND NEW ORDER TO METATRADER ---------");
+                                                Print("Broker      : " + _appConfig.Brokers.First(f => f.ClientId == _api.ClientId).Name);
+                                                Print("Ticker      : " + ticker.TickerInMetatrader);
+                                                Print("Order       : SELL MARKET ORDER");
+                                                Print("Lot Size    : " + lotSize);
+                                                Print("Ask price   : " + metadataTick.Ask);
+                                                Print("Stop Loss   : " + response.StopLoss);
+                                                Print("Take Profit : " + response.TakeProfit);
+                                                Print("Tick value  : " + metadataTick.TickValue);
+                                                Print("Point size  : " + metadataTick.TickSize);
+                                                Print("Lot step    : " + metadataTick.LotStep);
+                                                Print("Magic       : " + response.Magic);
+                                                Print("Strategy    : " + ticker.StrategyNr);
+                                                Print("------------------------------------------------");
 
 
-                                            // Open order
-                                            _api.ExecuteOrder(ticker.TickerInMetatrader, OrderType.Sell, lotSize, 0, response.StopLoss, response.TakeProfit, (int)response.Magic);
+                                                // Open order
+                                                _api.ExecuteOrder(ticker.TickerInMetatrader, OrderType.Sell, lotSize, 0, response.StopLoss, response.TakeProfit, (int)response.Magic);
+                                            }
                                         }
                                     }
 
@@ -272,9 +293,20 @@ namespace JCTG.Client
                                             // Check if the ticket still exist as open order
                                             var ticketId = _api.OpenOrders.FirstOrDefault(f => f.Key == response.TicketId.Value);
 
+                                            // Get the metadata tick
+                                            var metadataTick = _api.MarketData.FirstOrDefault(f => f.Key == response.TickerInMetatrader).Value;
+
                                             // Null reference check
-                                            if (ticketId.Key > 0)
+                                            if (ticketId.Key > 0 && ticketId.Value.Type != null)
                                             {
+                                                // If type is SELL, the SL should be set as BE minus Spread
+                                                var sl = ticketId.Value.OpenPrice;
+                                                if (ticketId.Value.Type.ToUpper() == "SELL")
+                                                {
+                                                    var spread = Math.Abs(metadataTick.Ask - metadataTick.Bid);
+                                                    sl = ticketId.Value.OpenPrice + spread;
+                                                }
+
                                                 // Print on the screen
                                                 Print(Environment.NewLine);
                                                 Print("--------- SEND MODIFY SL TO BE ORDER TO METATRADER ---------");
@@ -291,7 +323,7 @@ namespace JCTG.Client
                                                 Print("------------------------------------------------");
 
                                                 // Modify order
-                                                _api.ModifyOrder(ticketId.Key, ticketId.Value.Lots, 0, ticketId.Value.OpenPrice, ticketId.Value.TakeProfit);
+                                                _api.ModifyOrder(ticketId.Key, ticketId.Value.Lots, 0, sl, ticketId.Value.TakeProfit);
                                             }
                                         }
                                     }
@@ -390,21 +422,43 @@ namespace JCTG.Client
             }
         }
 
-        public double CalculateLotSize(long clientId, double accountBalance, double riskPercent, double openPrice, double stopLossPrice, double tickValue, double pipSize, double lotStep, double minLotSizeAllowed, double maxLotSizeAllowed, double spread)
+        public async Task ListenToAzureWebPubSubAsync()
+        {
+            // Do null reference checks
+            if (_appConfig != null && _apis != null)
+            {
+                // Either generate the URL or fetch it from server or fetch a temp one from the portal
+                var serviceClient = new WebPubSubServiceClient(_pubsubConnectionString, "a" +  _appConfig.AccountId.ToString());
+                var url = serviceClient.GetClientAccessUri();
+
+                using (var client = new WebsocketClient(url))
+                {
+                    // Disable the auto disconnect and reconnect because the sample would like the client to stay online even no data comes in
+                    client.ReconnectTimeout = null;
+                    client.MessageReceived.Subscribe(msg => 
+                    {
+                        Print("------------------- WEBSOCKET !!! ------------------------");
+                        Print("------------------- WEBSOCKET !!! ------------------------");
+                        Print("------------------- WEBSOCKET !!! ------------------------");
+                    });
+                    await client.Start();
+                }
+            }
+        }
+
+        public double CalculateLotSize(long clientId, double accountBalance, double riskPercent, double openPrice, double stopLossPrice, double tickValue, double tickSize, double lotStep, double minLotSizeAllowed, double maxLotSizeAllowed, double spread)
         {
             // Throw exception when negative balance
             if (accountBalance <= 0)
-                throw new ArgumentException("Account balance should be greater then 0", "accountBalance");
+                return 0.0;
 
             // Calculate the initial lot size
             double riskAmount = accountBalance * (riskPercent / 100.0);
             double stopLossDistance = Math.Abs(openPrice - stopLossPrice);
-            double stopLossDistanceInPips = stopLossDistance / pipSize;
-            double totalStopLossPips = stopLossDistanceInPips + Math.Abs(spread) / pipSize;
-            double lotSize = riskAmount / (totalStopLossPips * tickValue);
+            double stopLossDistanceInTicks = stopLossDistance / tickSize;
+            double lotSize = riskAmount / (stopLossDistanceInTicks * tickValue);
 
-            // Code fom MQL4 : LotSize = MathRound(LotSize / MarketInfo(Symbol(), MODE_LOTSTEP)) * MarketInfo(Symbol(), MODE_LOTSTEP);
-            // C sharp = Math.Round(lotSize / lotStep) * lotStep
+
             var remainder = lotSize % lotStep;
             var adjustedLotSize = remainder == 0 ? lotSize : lotSize - remainder + (remainder >= lotStep / 2 ? lotStep : 0);
 
@@ -412,13 +466,13 @@ namespace JCTG.Client
             adjustedLotSize = Math.Round(adjustedLotSize, 2);
 
             // Send log to the server
-            if(clientId > 0 && _appConfig != null)
+            if (clientId > 0 && _appConfig != null)
             {
                 new AzureFunctionApiClient().SendLog(new LogRequest()
                 {
                     AccountID = _appConfig.AccountId,
                     ClientID = clientId,
-                    Message = string.Format($"AccountBalance={accountBalance},RiskPercent={riskPercent},RiskAmount={riskAmount},SLInPips={totalStopLossPips},Spread={spread},TickValue={tickValue},LotSize={lotSize},PipSize={pipSize},AdjustedLotSize={adjustedLotSize}"),
+                    Message = string.Format($"AccountBalance={accountBalance},RiskPercent={riskPercent},RiskAmount={riskAmount},SLInTicks={stopLossDistanceInTicks},Spread={spread},TickValue={tickValue},TickSize={tickSize},LotSize={lotSize},AdjustedLotSize={adjustedLotSize}"),
                     Type = "MT - LOT SIZE",
                 });
             }
@@ -593,15 +647,15 @@ namespace JCTG.Client
                     Message = string.Format($"Symbol={order.Symbol},Ticket={ticketId},Lots={order.Lots},Type={order.Type},Magic={order.Magic},Price={order.OpenPrice},TP={order.TakeProfit},SL={order.StopLoss}"),
                     Type = "MT - CLOSE ORDER",
                 });
-                
+
                 // Send to tradingjournal
                 SendOrderToBackend(clientId, ticketId, order, true);
             }
         }
 
-        private void SendOrderToBackend(long clientId, long ticketId, Order order, bool isTradeClosed) 
-        { 
-            if (_appConfig != null && _apis != null && _apis.Count(f => f.ClientId == clientId && f.MarketData != null) == 1) 
+        private void SendOrderToBackend(long clientId, long ticketId, Order order, bool isTradeClosed)
+        {
+            if (_appConfig != null && _apis != null && _apis.Count(f => f.ClientId == clientId && f.MarketData != null) == 1)
             {
                 // Add to the trading journal
                 var marketdata = _apis.First(f => f.ClientId == clientId).MarketData.FirstOrDefault(f => f.Key == order.Symbol);
@@ -638,7 +692,7 @@ namespace JCTG.Client
                         IsTradeClosed = isTradeClosed,
                     });
                 }
-            } 
+            }
         }
     }
 }

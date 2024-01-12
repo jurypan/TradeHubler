@@ -22,6 +22,7 @@ namespace JCTG.Client
                 {
                     await metatrader.ListToTheClientsAsync();
                     await metatrader.ListenToTheServerAsync();
+                    await metatrader.ListenToAzureWebPubSubAsync();
                 }
             }
            

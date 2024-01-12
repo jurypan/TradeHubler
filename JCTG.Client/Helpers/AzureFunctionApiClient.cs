@@ -43,9 +43,7 @@ namespace JCTG.Client
                 catch (HttpRequestException)
                 {
                     // Log the exception or handle it as needed
-                    if (retry == maxRetries - 1)
-                        throw; // Re-throw the exception on the last retry
-                    else
+                    if (retry != maxRetries - 1)
                         await Task.Delay(delayBetweenRetries); // Wait before retrying
                 }
             }

@@ -27,5 +27,7 @@ namespace JCTG.Client
         public double ATR1H { get; set; }
         [JsonProperty("atr_D")]
         public double ATRD { get; set; }
+        [JsonProperty("magic")]
+        public int Magic { get; set; }
     }
 }

@@ -51,6 +51,7 @@ namespace JCTG.AzureFunction
                                                             && f.SignalExecuted.Count(g => g.SignalID == f.ID && g.ClientID == mtTrade.ClientID && g.StrategyType == mtTrade.StrategyType) == 0
                                                             && f.Instrument.Equals(mtTrade.TickerInTradingview)
                                                             && f.StrategyType == mtTrade.StrategyType
+                                                            && f.DateCreated >= DateTime.UtcNow.AddHours(-1)
                                                             && (f.DateExecuted == null || f.DateExecuted >= DateTime.UtcNow.AddMinutes(-10))
                                                             && (f.OrderType.Contains("BUY") || f.OrderType.Contains("SELL"))
                                                             ).ToListAsync())
@@ -221,6 +222,7 @@ namespace JCTG.AzureFunction
                                                             && f.SignalExecuted.Count(g => g.SignalID == f.ID && g.ClientID == mtTrade.ClientID) == 0
                                                             && f.Instrument.Equals(mtTrade.TickerInTradingview)
                                                             && f.StrategyType == mtTrade.StrategyType
+                                                            && f.DateCreated >= DateTime.UtcNow.AddHours(-1)
                                                             && (f.DateExecuted == null || f.DateExecuted >= DateTime.UtcNow.AddMinutes(-10))
                                                             && (f.OrderType.Equals("MODIFYSLTOBE") || f.OrderType.Equals("MODIFYSL") || f.OrderType.Equals("CLOSE"))
                                                             ).ToListAsync())
@@ -376,7 +378,6 @@ namespace JCTG.AzureFunction
                                     }); ;
                                 }
 
-
                                 // Check if we need to execute the order
                                 else if (signal.OrderType.Equals("CLOSE"))
                                 {
@@ -438,6 +439,21 @@ namespace JCTG.AzureFunction
                                     });
                                 }
                             }
+                        }
+
+                        // Develop Extra Check if SL is set to BE after x R -> do the check if the signal was executed
+                        foreach (var signal in await _dbContext.Signal.Where(f => 
+                                                            f.AccountID == mtTrade.AccountID
+                                                            && f.SignalExecuted.Any(g => g.Signal != null && g.Signal.Magic == f.Magic && (g.Signal.OrderType == "BUY" || g.Signal.OrderType == "SELL"))
+                                                            && f.Instrument.Equals(mtTrade.TickerInTradingview)
+                                                            && f.StrategyType == mtTrade.StrategyType
+                                                            && (f.OrderType.Contains("BUY") || f.OrderType.Contains("SELL"))
+                                                            && !f.SignalExecuted.Any(g => g.Signal != null && g.Signal.Magic == f.Magic && g.Signal.OrderType == "MODIFYSLTOBE"))
+                                                        .ToListAsync())
+                        {
+                            // Check if Ask price is X time the R:R
+
+                            // if yes, MetatraderResponse doens't have a record of this instrument yet + add to DB + response MODIFYSLTOBE
                         }
                     }
 

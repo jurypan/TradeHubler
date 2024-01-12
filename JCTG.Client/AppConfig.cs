@@ -49,6 +49,7 @@ namespace JCTG.Client
         public StrategyType StrategyNr { get; set; }
         public double Risk { get; set; }
         public Dictionary<string, SessionTimes> Sessions { get; set; }
+        public int SLtoBEafterR { get; set; }
     }
     public class SessionTimes
     {
