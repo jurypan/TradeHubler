@@ -1,6 +1,6 @@
 using NUnit.Framework;
 
-namespace JCTG.AzureFunction.Tests
+namespace JCTG.Client.Tests
 {
     public class MetatraderCalcuateSLPriceTest
     {

@@ -14,9 +14,9 @@ namespace JCTG.Client
 
         public List<Brokers> Brokers { get; set; }
        
-        public int SleepDelay { get; set; }
         public int MaxRetryCommandSeconds { get; set; }
         public bool LoadOrdersFromFile { get; set; }
+        public int SleepDelay { get; set; }
         public bool Verbose { get; set; }
 
     }
@@ -48,12 +48,6 @@ namespace JCTG.Client
         public required string Timeframe { get; set; }
         public StrategyType StrategyNr { get; set; }
         public double Risk { get; set; }
-        public Dictionary<string, SessionTimes> Sessions { get; set; }
         public int SLtoBEafterR { get; set; }
-    }
-    public class SessionTimes
-    {
-        public TimeSpan? Open { get; set; }
-        public TimeSpan? Close { get; set; }
     }
 }

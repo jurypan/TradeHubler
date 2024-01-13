@@ -17,13 +17,24 @@ namespace JCTG.AzureFunction.Functions
         {
             _logger.LogDebug($"C# Timer trigger function executed at: {DateTime.Now}");
 
-            var url = "https://justcalltheguy.azurewebsites.net/api/Tradingview?code=YOUR_FUNCTION_KEY&source=timer";
-
             try
             {
-                HttpResponseMessage response = await new HttpClient().GetAsync(url);
+                // Tradingview
+                HttpResponseMessage response = await new HttpClient().GetAsync("https://justcalltheguy.azurewebsites.net/api/Tradingview?code=Ocebxtg1excWosFez5rWMtNp3ZsmIzSFQ0XhqtrfHlMuAzFuQ0OGhA==&source=timer");
                 response.EnsureSuccessStatusCode();
                 string responseBody = await response.Content.ReadAsStringAsync();
+                _logger.LogDebug(responseBody);
+
+                // Log
+                response = await new HttpClient().GetAsync("https://justcalltheguy.azurewebsites.net/api/Log?code=XkM05KfxlYMogR2lf_nN7klzdkHv2qwme8I-wOzUZz4EAzFuNh0wcQ==&source=timer");
+                response.EnsureSuccessStatusCode();
+                responseBody = await response.Content.ReadAsStringAsync();
+                _logger.LogDebug(responseBody);
+
+                // Tradingjournal
+                response = await new HttpClient().GetAsync("https://justcalltheguy.azurewebsites.net/api/TradeJournal?code=ZiH5_uE_CNU7Yu1QvBIhAHNe-rTG4nhKaXUiUt9lgIJtAzFuPvuf-A==&source=timer");
+                response.EnsureSuccessStatusCode();
+                responseBody = await response.Content.ReadAsStringAsync();
                 _logger.LogDebug(responseBody);
             }
             catch (HttpRequestException e)

@@ -20,6 +20,7 @@
         public double Atr15M { get; set; }
         public double Atr1H { get; set; }
         public double AtrD { get; set; }
+        public int SLtoBEafterR { get; set; }
 
     }
 }

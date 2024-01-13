@@ -106,7 +106,7 @@ namespace JCTG
             }
             order.StrategyType = (StrategyType)strategy;
 
-            // Parse Atr5M 5 minute
+            // Parse ATR5M 5 minute
             var atr5MParts = parts[9].Split('=');
             if (atr5MParts.Length != 2 || !double.TryParse(atr5MParts[1], out double atr5M))
             {

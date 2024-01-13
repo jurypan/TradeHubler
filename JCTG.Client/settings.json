@@ -11,99 +11,24 @@
           "TickerInMetatrader": "AUS200",
           "Timeframe": "M5",
           "StrategyNr": 4,
-          "Risk": 0.15, // 0.15
-          "SLtoBEafterR": 1,
-          "Sessions": {
-            "Monday": {
-              "open": "23:58",
-              "close": "06:02"
-            },
-            "Tuesday": {
-              "open": "23:58",
-              "close": "06:02"
-            },
-            "Wednesday": {
-              "open": "23:58",
-              "close": "06:02"
-            },
-            "Thursday": {
-              "open": "23:58",
-              "close": "06:02"
-            },
-            "Friday": {
-              "open": null,
-              "close": "06:02"
-            },
-            "Saterday": null,
-            "Sunday": {
-              "open": "23:58",
-              "close": null
-            }
-          }
+          "Risk": 0.05, // 0.15
+          "SLtoBEafterR": 1
         },
         {
           "TickerInTradingView": "UKX",
           "TickerInMetatrader": "UK100",
           "Timeframe": "M5",
           "StrategyNr": 4,
-          "Risk": 0.15, // 0.15
-          "SLtoBEafterR": 1,
-          "Sessions": {
-            "Monday": {
-              "open": "08:58",
-              "close": "17:32"
-            },
-            "Tuesday": {
-              "open": "08:58",
-              "close": "17:32"
-            },
-            "Wednesday": {
-              "open": "08:58",
-              "close": "17:32"
-            },
-            "Thursday": {
-              "open": "08:58",
-              "close": "17:32"
-            },
-            "Friday": {
-              "open": "08:58",
-              "close": "17:32"
-            },
-            "Saterday": null,
-            "Sunday": null
-          }
+          "Risk": 0.05, // 0.15
+          "SLtoBEafterR": 1
         },
         {
           "TickerInTradingView": "SPX",
           "TickerInMetatrader": "SP500",
           "Timeframe": "M5",
           "StrategyNr": 4,
-          "Risk": 0.15, // 0.15
-          "SLtoBEafterR ": 1,
-          "Sessions": {
-            "Monday": {
-              "open": "15:28",
-              "close": "22:02"
-            },
-            "Tuesday": {
-              "open": "15:28",
-              "close": "22:02"
-            },
-            "Wednesday": {
-              "open": "15:28",
-              "close": "22:02"
-            },
-            "Thursday": {
-              "open": "15:28",
-              "close": "22:02"
-            },
-            "Friday": {
-              "open": "15:28",
-              "close": "22:02"
-            },
-            "Saterday": null,
-            "Sunday": null
-          }
+          "Risk": 0.05, // 0.15
+          "SLtoBEafterR ": 1
         }
       ]
     },
@@ -118,31 +43,7 @@
           "Timeframe": "H4",
           "StrategyNr": 1,
           "Risk": 0.5,
-          "SLtoBEafterR": 1,
-          "Sessions": {
-            "Monday": {
-              "open": "15:28",
-              "close": "22:02"
-            },
-            "Tuesday": {
-              "open": "15:28",
-              "close": "22:02"
-            },
-            "Wednesday": {
-              "open": "15:28",
-              "close": "22:02"
-            },
-            "Thursday": {
-              "open": "15:28",
-              "close": "22:02"
-            },
-            "Friday": {
-              "open": "15:28",
-              "close": "22:02"
-            },
-            "Saterday": null,
-            "Sunday": null
-          }
+          "SLtoBEafterR": 1
         },
         {
           "TickerInTradingView": "NVDA",
@@ -150,31 +51,7 @@
           "Timeframe": "H4",
           "StrategyNr": 1,
           "Risk": 0.5,
-          "SLtoBEafterR": 1,
-          "Sessions": {
-            "Monday": {
-              "open": "15:28",
-              "close": "22:02"
-            },
-            "Tuesday": {
-              "open": "15:28",
-              "close": "22:02"
-            },
-            "Wednesday": {
-              "open": "15:28",
-              "close": "22:02"
-            },
-            "Thursday": {
-              "open": "15:28",
-              "close": "22:02"
-            },
-            "Friday": {
-              "open": "15:28",
-              "close": "22:02"
-            },
-            "Saterday": null,
-            "Sunday": null
-          }
+          "SLtoBEafterR": 1
         },
         {
           "TickerInTradingView": "AAPL",
@@ -182,31 +59,7 @@
           "Timeframe": "H4",
           "StrategyNr": 1,
           "Risk": 0.5,
-          "SLtoBEafterR": 1,
-          "Sessions": {
-            "Monday": {
-              "open": "15:28",
-              "close": "22:02"
-            },
-            "Tuesday": {
-              "open": "15:28",
-              "close": "22:02"
-            },
-            "Wednesday": {
-              "open": "15:28",
-              "close": "22:02"
-            },
-            "Thursday": {
-              "open": "15:28",
-              "close": "22:02"
-            },
-            "Friday": {
-              "open": "15:28",
-              "close": "22:02"
-            },
-            "Saterday": null,
-            "Sunday": null
-          }
+          "SLtoBEafterR": 1
         },
         {
           "TickerInTradingView": "META",
@@ -214,31 +67,7 @@
           "Timeframe": "H4",
           "StrategyNr": 1,
           "Risk": 0.5,
-          "SLtoBEafterR": 1,
-          "Sessions": {
-            "Monday": {
-              "open": "15:28",
-              "close": "22:02"
-            },
-            "Tuesday": {
-              "open": "15:28",
-              "close": "22:02"
-            },
-            "Wednesday": {
-              "open": "15:28",
-              "close": "22:02"
-            },
-            "Thursday": {
-              "open": "15:28",
-              "close": "22:02"
-            },
-            "Friday": {
-              "open": "15:28",
-              "close": "22:02"
-            },
-            "Saterday": null,
-            "Sunday": null
-          }
+          "SLtoBEafterR": 1
         },
         {
           "TickerInTradingView": "MSFT",
@@ -246,31 +75,7 @@
           "Timeframe": "H4",
           "StrategyNr": 1,
           "Risk": 0.5,
-          "SLtoBEafterR": 1,
-          "Sessions": {
-            "Monday": {
-              "open": "15:28",
-              "close": "22:02"
-            },
-            "Tuesday": {
-              "open": "15:28",
-              "close": "22:02"
-            },
-            "Wednesday": {
-              "open": "15:28",
-              "close": "22:02"
-            },
-            "Thursday": {
-              "open": "15:28",
-              "close": "22:02"
-            },
-            "Friday": {
-              "open": "15:28",
-              "close": "22:02"
-            },
-            "Saterday": null,
-            "Sunday": null
-          }
+          "SLtoBEafterR": 1
         },
         {
           "TickerInTradingView": "AMZN",
@@ -278,31 +83,7 @@
           "Timeframe": "H4",
           "StrategyNr": 1,
           "Risk": 0.5,
-          "SLtoBEafterR": 1,
-          "Sessions": {
-            "Monday": {
-              "open": "15:28",
-              "close": "22:02"
-            },
-            "Tuesday": {
-              "open": "15:28",
-              "close": "22:02"
-            },
-            "Wednesday": {
-              "open": "15:28",
-              "close": "22:02"
-            },
-            "Thursday": {
-              "open": "15:28",
-              "close": "22:02"
-            },
-            "Friday": {
-              "open": "15:28",
-              "close": "22:02"
-            },
-            "Saterday": null,
-            "Sunday": null
-          }
+          "SLtoBEafterR": 1
         },
         {
           "TickerInTradingView": "NFLX",
@@ -310,31 +91,7 @@
           "Timeframe": "H4",
           "StrategyNr": 1,
           "Risk": 0.5,
-          "SLtoBEafterR": 1,
-          "Sessions": {
-            "Monday": {
-              "open": "15:28",
-              "close": "22:02"
-            },
-            "Tuesday": {
-              "open": "15:28",
-              "close": "22:02"
-            },
-            "Wednesday": {
-              "open": "15:28",
-              "close": "22:02"
-            },
-            "Thursday": {
-              "open": "15:28",
-              "close": "22:02"
-            },
-            "Friday": {
-              "open": "15:28",
-              "close": "22:02"
-            },
-            "Saterday": null,
-            "Sunday": null
-          }
+          "SLtoBEafterR": 1
         },
         {
           "TickerInTradingView": "RACE",
@@ -342,31 +99,7 @@
           "Timeframe": "H4",
           "StrategyNr": 1,
           "Risk": 0.5,
-          "SLtoBEafterR": 1,
-          "Sessions": {
-            "Monday": {
-              "open": "15:28",
-              "close": "22:02"
-            },
-            "Tuesday": {
-              "open": "15:28",
-              "close": "22:02"
-            },
-            "Wednesday": {
-              "open": "15:28",
-              "close": "22:02"
-            },
-            "Thursday": {
-              "open": "15:28",
-              "close": "22:02"
-            },
-            "Friday": {
-              "open": "15:28",
-              "close": "22:02"
-            },
-            "Saterday": null,
-            "Sunday": null
-          }
+          "SLtoBEafterR": 1
         },
         {
           "TickerInTradingView": "NKD1!",
@@ -374,31 +107,7 @@
           "Timeframe": "H1",
           "StrategyNr": 2,
           "Risk": 0.45,
-          "SLtoBEafterR": 1,
-          "Sessions": {
-            "Monday": {
-              "open": "00:00",
-              "close": "23:10"
-            },
-            "Tuesday": {
-              "open": "00:00",
-              "close": "23:10"
-            },
-            "Wednesday": {
-              "open": "00:00",
-              "close": "23:10"
-            },
-            "Thursday": {
-              "open": "00:00",
-              "close": "23:10"
-            },
-            "Friday": {
-              "open": "00:00",
-              "close": "23:10"
-            },
-            "Saterday": null,
-            "Sunday": null
-          }
+          "SLtoBEafterR": 1
         },
         {
           "TickerInTradingView": "XJO",
@@ -406,34 +115,7 @@
           "Timeframe": "H1",
           "StrategyNr": 2,
           "Risk": 0.45,
-          "SLtoBEafterR": 1,
-          "Sessions": {
-            "Monday": {
-              "open": "23:58",
-              "close": "06:02"
-            },
-            "Tuesday": {
-              "open": "23:58",
-              "close": "06:02"
-            },
-            "Wednesday": {
-              "open": "23:58",
-              "close": "06:02"
-            },
-            "Thursday": {
-              "open": "23:58",
-              "close": "06:02"
-            },
-            "Friday": {
-              "open": null,
-              "close": "06:02"
-            },
-            "Saterday": null,
-            "Sunday": {
-              "open": "23:58",
-              "close": null
-            }
-          }
+          "SLtoBEafterR": 1
         },
         {
           "TickerInTradingView": "SX5E",
@@ -441,31 +123,7 @@
           "Timeframe": "H1",
           "StrategyNr": 2,
           "Risk": 0.45,
-          "SLtoBEafterR": 1,
-          "Sessions": {
-            "Monday": {
-              "open": "08:58",
-              "close": "18:02"
-            },
-            "Tuesday": {
-              "open": "08:58",
-              "close": "18:02"
-            },
-            "Wednesday": {
-              "open": "08:58",
-              "close": "18:02"
-            },
-            "Thursday": {
-              "open": "08:58",
-              "close": "18:02"
-            },
-            "Friday": {
-              "open": "08:58",
-              "close": "18:02"
-            },
-            "Saterday": null,
-            "Sunday": null
-          }
+          "SLtoBEafterR": 1
         },
         {
           "TickerInTradingView": "PX1",
@@ -473,31 +131,7 @@
           "Timeframe": "H1",
           "StrategyNr": 2,
           "Risk": 0.45,
-          "SLtoBEafterR": 1,
-          "Sessions": {
-            "Monday": {
-              "open": "08:58",
-              "close": "18:02"
-            },
-            "Tuesday": {
-              "open": "08:58",
-              "close": "18:02"
-            },
-            "Wednesday": {
-              "open": "08:58",
-              "close": "18:02"
-            },
-            "Thursday": {
-              "open": "08:58",
-              "close": "18:02"
-            },
-            "Friday": {
-              "open": "08:58",
-              "close": "18:02"
-            },
-            "Saterday": null,
-            "Sunday": null
-          }
+          "SLtoBEafterR": 1
         },
         {
           "TickerInTradingView": "UKX",
@@ -505,31 +139,7 @@
           "Timeframe": "H1",
           "StrategyNr": 2,
           "Risk": 0.45,
-          "SLtoBEafterR": 1,
-          "Sessions": {
-            "Monday": {
-              "open": "07:58",
-              "close": "16:32"
-            },
-            "Tuesday": {
-              "open": "07:58",
-              "close": "16:32"
-            },
-            "Wednesday": {
-              "open": "07:58",
-              "close": "16:32"
-            },
-            "Thursday": {
-              "open": "07:58",
-              "close": "16:32"
-            },
-            "Friday": {
-              "open": "07:58",
-              "close": "16:32"
-            },
-            "Saterday": null,
-            "Sunday": null
-          }
+          "SLtoBEafterR": 1
         },
         {
           "TickerInTradingView": "SPX",
@@ -537,31 +147,7 @@
           "Timeframe": "H1",
           "StrategyNr": 2,
           "Risk": 0.45,
-          "SLtoBEafterR": 1,
-          "Sessions": {
-            "Monday": {
-              "open": "15:28",
-              "close": "22:02"
-            },
-            "Tuesday": {
-              "open": "15:28",
-              "close": "22:02"
-            },
-            "Wednesday": {
-              "open": "15:28",
-              "close": "22:02"
-            },
-            "Thursday": {
-              "open": "15:28",
-              "close": "22:02"
-            },
-            "Friday": {
-              "open": "15:28",
-              "close": "22:02"
-            },
-            "Saterday": null,
-            "Sunday": null
-          }
+          "SLtoBEafterR": 1
         },
         {
           "TickerInTradingView": "DJI",
@@ -569,31 +155,7 @@
           "Timeframe": "H1",
           "StrategyNr": 2,
           "Risk": 0.45,
-          "SLtoBEafterR": 1,
-          "Sessions": {
-            "Monday": {
-              "open": "15:28",
-              "close": "22:02"
-            },
-            "Tuesday": {
-              "open": "15:28",
-              "close": "22:02"
-            },
-            "Wednesday": {
-              "open": "15:28",
-              "close": "22:02"
-            },
-            "Thursday": {
-              "open": "15:28",
-              "close": "22:02"
-            },
-            "Friday": {
-              "open": "15:28",
-              "close": "22:02"
-            },
-            "Saterday": null,
-            "Sunday": null
-          }
+          "SLtoBEafterR": 1
         }
       ]
     },
@@ -608,34 +170,7 @@
           "Timeframe": "M5",
           "StrategyNr": 4,
           "Risk": 0.15, // 0.15
-          "SLtoBEafterR": 1,
-          "Sessions": {
-            "Monday": {
-              "open": "23:58",
-              "close": "06:02"
-            },
-            "Tuesday": {
-              "open": "23:58",
-              "close": "06:02"
-            },
-            "Wednesday": {
-              "open": "23:58",
-              "close": "06:02"
-            },
-            "Thursday": {
-              "open": "23:58",
-              "close": "06:02"
-            },
-            "Friday": {
-              "open": null,
-              "close": "06:02"
-            },
-            "Saterday": null,
-            "Sunday": {
-              "open": "23:58",
-              "close": null
-            }
-          }
+          "SLtoBEafterR": 1
         },
         {
           "TickerInTradingView": "UKX",
@@ -643,31 +178,7 @@
           "Timeframe": "M5",
           "StrategyNr": 4,
           "Risk": 0.15, // 0.15
-          "SLtoBEafterR": 1,
-          "Sessions": {
-            "Monday": {
-              "open": "08:58",
-              "close": "17:32"
-            },
-            "Tuesday": {
-              "open": "08:58",
-              "close": "17:32"
-            },
-            "Wednesday": {
-              "open": "08:58",
-              "close": "17:32"
-            },
-            "Thursday": {
-              "open": "08:58",
-              "close": "17:32"
-            },
-            "Friday": {
-              "open": "08:58",
-              "close": "17:32"
-            },
-            "Saterday": null,
-            "Sunday": null
-          }
+          "SLtoBEafterR": 1
         },
         {
           "TickerInTradingView": "SPX",
@@ -675,36 +186,35 @@
           "Timeframe": "M5",
           "StrategyNr": 4,
           "Risk": 0.15, // 0.15
-          "SLtoBEafterR": 1,
-          "Sessions": {
-            "Monday": {
-              "open": "15:28",
-              "close": "22:02"
-            },
-            "Tuesday": {
-              "open": "15:28",
-              "close": "22:02"
-            },
-            "Wednesday": {
-              "open": "15:28",
-              "close": "22:02"
-            },
-            "Thursday": {
-              "open": "15:28",
-              "close": "22:02"
-            },
-            "Friday": {
-              "open": "15:28",
-              "close": "22:02"
-            },
-            "Saterday": null,
-            "Sunday": null
-          }
+          "SLtoBEafterR": 1
+        }
+      ]
+    },
+    {
+      "Name": "FXIFY - MT5",
+      "MetaTraderDirPath": "C:\\Users\\joeri.pansaerts\\AppData\\Roaming\\MetaQuotes\\Terminal\\E4502BE8BEB5B3D03E12C99F54D8C04C\\MQL5\\Files",
+      "ClientId": 7006712,
+      "Pairs": [
+        {
+          "TickerInTradingView": "BTCUSD",
+          "TickerInMetatrader": "BTCUSD.r",
+          "Timeframe": "M5",
+          "StrategyNr": 5,
+          "Risk": 0.05,
+          "SLtoBEafterR": 1
+        },
+        {
+          "TickerInTradingView": "ETHUSD",
+          "TickerInMetatrader": "ETHUSD.r",
+          "Timeframe": "M5",
+          "StrategyNr": 5,
+          "Risk": 0.05,
+          "SLtoBEafterR": 1
         }
       ]
     }
   ],
-  "SleepDelay": 500,
+  "SleepDelay": 250,
   "MaxRetryCommandSeconds": 10,
   "LoadOrdersFromFile": true,
   "Verbose": true

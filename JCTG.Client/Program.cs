@@ -1,11 +1,13 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Azure.Messaging.WebPubSub;
+using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
+using Websocket.Client;
 
 namespace JCTG.Client
 {
     public class Program
     {
-        // Public static property for IServiceProvider
+        private static string _pubsubConnectionString = "Endpoint=https://justcalltheguy.webpubsub.azure.com;AccessKey=BdxAvvoxX7+nkCq/lQDNe2LAy41lwDfJD8bCPiNuY/k=;Version=1.0;";
         public static IServiceProvider? Service { get; private set; }
 
         static async Task Main(string[] args)
@@ -22,7 +24,6 @@ namespace JCTG.Client
                 {
                     await metatrader.ListToTheClientsAsync();
                     await metatrader.ListenToTheServerAsync();
-                    await metatrader.ListenToAzureWebPubSubAsync();
                 }
             }
            
@@ -37,7 +38,7 @@ namespace JCTG.Client
             if (config == null)
                 throw new Exception("Can not load config file");
 
-            // Init Depdency Injection class
+            // Init Dependency Injection class
             var services = new ServiceCollection();
 
             // Add other services
@@ -46,6 +47,10 @@ namespace JCTG.Client
 
             // Register configuration instance with DI container
             services.AddSingleton(config);
+
+            var serviceClient = new WebPubSubServiceClient(_pubsubConnectionString, "a" + config.AccountId.ToString());
+            var url = serviceClient.GetClientAccessUri();
+            services.AddSingleton(new WebsocketClient(url));
 
             return services.BuildServiceProvider();
         }

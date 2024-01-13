@@ -16,104 +16,116 @@ namespace JCTG.AzureFunction.Functions
         [Function("TradeJournal")]
         public async Task<HttpResponseData> Run([HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req)
         {
-            // Read body from request
-            string jsonString = await new StreamReader(req.Body).ReadToEndAsync();
+            // Check for the custom query parameter
+            var queryParameters = System.Web.HttpUtility.ParseQueryString(req.Url.Query);
+            var source = queryParameters["source"];
 
-            // TradeJournal item
-            _logger.LogDebug($"Request body : {jsonString}");
+            var response = req.CreateResponse(HttpStatusCode.OK);
+            response.Headers.Add("Content-Type", "text/plain; charset=utf-8");
 
-            // Create httpResponse object
-            var httpResponse = req.CreateResponse(HttpStatusCode.OK);
-
-            try
+            if (source == "timer")
             {
-                // Parse object
-                var items = JsonConvert.DeserializeObject<List<TradeJournalRequest>>(jsonString);
+                _logger.LogDebug("Call received from Timer Triggered function");
+            }
+            else
+            {
 
-                // Do null reference check
-                if (items != null)
+                // Read body from request
+                string jsonString = await new StreamReader(req.Body).ReadToEndAsync();
+
+                // TradeJournal item
+                _logger.LogDebug($"Request body : {jsonString}");
+
+                try
                 {
-                    // Foreach item
-                    foreach (var item in items)
+                    // Parse object
+                    var items = JsonConvert.DeserializeObject<List<TradeJournalRequest>>(jsonString);
+
+                    // Do null reference check
+                    if (items != null)
                     {
-                        // TradeJournal item
-                        _logger.LogInformation($"Parsed tradejournal object : AccountID={item.AccountID}, ClientID={item.ClientID}, Symbol={item.Symbol}, CurrentPrice={item.CurrentPrice}, SL={item.SL}, TP={item.TP}, Magic={item.Magic}, StrategyType={item.StrategyType}", jsonString);
-
-                        var tradeJournal = await _dbContext.TradeJournal.FirstOrDefaultAsync(f => 
-                                                                       f.ClientID == item.ClientID
-                                                                    && f.AccountID == item.AccountID
-                                                                    && f.Instrument == item.Symbol
-                                                                    && f.Type == item.Type
-                                                                    && f.OpenPrice == item.OpenPrice
-                                                                    && f.OpenTime == item.OpenTime
-                                                                    && f.StrategyType == item.StrategyType
-                                                                    && f.Magic == item.Magic
-                                                                );
-
-                        // check if item is already in the db
-                        if (tradeJournal == null)
+                        // Foreach item
+                        foreach (var item in items)
                         {
-                            // Add item to the database
-                            tradeJournal = new Entity.TradeJournal
+                            // TradeJournal item
+                            _logger.LogInformation($"Parsed tradejournal object : AccountID={item.AccountID}, ClientID={item.ClientID}, Symbol={item.Symbol}, CurrentPrice={item.CurrentPrice}, SL={item.SL}, TP={item.TP}, Magic={item.Magic}, StrategyType={item.StrategyType}", jsonString);
+
+                            var tradeJournal = await _dbContext.TradeJournal.FirstOrDefaultAsync(f =>
+                                                                           f.ClientID == item.ClientID
+                                                                        && f.AccountID == item.AccountID
+                                                                        && f.Instrument == item.Symbol
+                                                                        && f.Type == item.Type
+                                                                        && f.OpenPrice == item.OpenPrice
+                                                                        && f.OpenTime == item.OpenTime
+                                                                        && f.StrategyType == item.StrategyType
+                                                                        && f.Magic == item.Magic
+                                                                    );
+
+                            // check if item is already in the db
+                            if (tradeJournal == null)
                             {
-                                AccountID = item.AccountID,
-                                ClientID = item.ClientID,
-                                DateCreated = DateTime.UtcNow,
-                                Comment = item.Comment,
-                                Commission = item.Commission,
-                                CloseTime = null,
-                                ClosePrice = null,
-                                Lots = item.Lots,
-                                Magic = item.Magic,
-                                OpenPrice = item.OpenPrice,
-                                OpenTime = item.OpenTime,
-                                Pnl =item.Pnl,
-                                OpenSL = item.SL,
-                                OpenTP = item.TP,
-                                SL = item.SL,
-                                Spread = item.Spread,
-                                StrategyType = item.StrategyType,
-                                Swap = item.Swap,
-                                Instrument = item.Symbol,
-                                TicketId = item.TicketId,
-                                Timeframe = item.Timeframe,
-                                TP = item.TP,
-                                Type = item.Type,
-                                Risk = item.Risk,
-                                RR = Math.Round(Math.Abs(item.CurrentPrice - item.OpenPrice) / Math.Abs(item.OpenPrice - item.SL), 4, MidpointRounding.AwayFromZero),
-                            };
+                                // Add item to the database
+                                tradeJournal = new Entity.TradeJournal
+                                {
+                                    AccountID = item.AccountID,
+                                    ClientID = item.ClientID,
+                                    DateCreated = DateTime.UtcNow,
+                                    Comment = item.Comment,
+                                    Commission = item.Commission,
+                                    CloseTime = null,
+                                    ClosePrice = null,
+                                    Lots = item.Lots,
+                                    Magic = item.Magic,
+                                    OpenPrice = item.OpenPrice,
+                                    OpenTime = item.OpenTime,
+                                    Pnl = item.Pnl,
+                                    OpenSL = item.SL,
+                                    OpenTP = item.TP,
+                                    SL = item.SL,
+                                    Spread = item.Spread,
+                                    StrategyType = item.StrategyType,
+                                    Swap = item.Swap,
+                                    Instrument = item.Symbol,
+                                    TicketId = item.TicketId,
+                                    Timeframe = item.Timeframe,
+                                    TP = item.TP,
+                                    Type = item.Type,
+                                    Risk = item.Risk,
+                                    RR = Math.Round(Math.Abs(item.CurrentPrice - item.OpenPrice) / Math.Abs(item.OpenPrice - item.SL), 4, MidpointRounding.AwayFromZero),
+                                };
 
-                            // Add to database
-                            await _dbContext.TradeJournal.AddAsync(tradeJournal);
+                                // Add to database
+                                await _dbContext.TradeJournal.AddAsync(tradeJournal);
+                            }
+                            else
+                            {
+                                // Add item to the database
+                                tradeJournal.ClosePrice = item.IsTradeClosed ? item.CurrentPrice : null;
+                                tradeJournal.CloseTime = item.IsTradeClosed ? DateTime.UtcNow : null;
+                                tradeJournal.Commission = item.Commission;
+                                tradeJournal.Pnl = item.Pnl;
+                                tradeJournal.SL = item.SL;
+                                tradeJournal.TP = item.TP;
+                                tradeJournal.Swap = item.Swap;
+                                tradeJournal.RR = tradeJournal.Type == "BUY" ?
+                                    Math.Round((item.CurrentPrice - tradeJournal.OpenPrice) / Math.Abs(tradeJournal.OpenPrice - tradeJournal.OpenSL), 4, MidpointRounding.AwayFromZero) :
+                                    Math.Round((tradeJournal.OpenPrice - item.CurrentPrice) / Math.Abs(tradeJournal.OpenPrice - tradeJournal.OpenSL), 4, MidpointRounding.AwayFromZero);
+                            };
                         }
-                        else
-                        {
-                            // Add item to the database
-                            tradeJournal.ClosePrice = item.IsTradeClosed ? item.CurrentPrice : null;
-                            tradeJournal.CloseTime = item.IsTradeClosed ? DateTime.UtcNow : null;
-                            tradeJournal.Commission = item.Commission;
-                            tradeJournal.Pnl = item.Pnl;
-                            tradeJournal.SL = item.SL;
-                            tradeJournal.TP = item.TP;
-                            tradeJournal.Swap = item.Swap;
-                            tradeJournal.RR = tradeJournal.Type == "BUY" ? 
-                                Math.Round((item.CurrentPrice - tradeJournal.OpenPrice) / Math.Abs(tradeJournal.OpenPrice - tradeJournal.OpenSL), 4, MidpointRounding.AwayFromZero) : 
-                                Math.Round((tradeJournal.OpenPrice - item.CurrentPrice) / Math.Abs(tradeJournal.OpenPrice - tradeJournal.OpenSL), 4, MidpointRounding.AwayFromZero);
-                        };
+
+                        // Update database
+                        await _dbContext.SaveChangesAsync();
                     }
 
-                    // Update database
-                    await _dbContext.SaveChangesAsync();
                 }
-
+                catch (Exception ex)
+                {
+                    // TradeJournal item
+                    _logger.LogError($"Object: {ex.Message}\nInner exception message: {ex.InnerException?.Message}\n", ex);
+                }
             }
-            catch (Exception ex)
-            {
-                // TradeJournal item
-                _logger.LogError($"Message: {ex.Message}\nInner exception message: {ex.InnerException?.Message}\n", ex);
-            }
 
-            return httpResponse;
+            return response;
         }
     }
 }

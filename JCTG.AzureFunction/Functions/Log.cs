@@ -14,52 +14,64 @@ namespace JCTG.AzureFunction.Functions
         [Function("Log")]
         public async Task<HttpResponseData> Run([HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req)
         {
-            // Read body from request
-            string jsonString = await new StreamReader(req.Body).ReadToEndAsync();
+            // Check for the custom query parameter
+            var queryParameters = System.Web.HttpUtility.ParseQueryString(req.Url.Query);
+            var source = queryParameters["source"];
 
-            // TradeJournal item
-            _logger.LogDebug($"Request body : {jsonString}");
+            var response = req.CreateResponse(HttpStatusCode.OK);
+            response.Headers.Add("Content-Type", "text/plain; charset=utf-8");
 
-            // Create httpResponse object
-            var httpResponse = req.CreateResponse(HttpStatusCode.OK);
-
-            try
+            if (source == "timer")
             {
-                // Parse object
-                var logItem = JsonConvert.DeserializeObject<LogRequest>(jsonString);
+                _logger.LogDebug("Call received from Timer Triggered function");
+            }
+            else
+            {
 
-                // Do null reference check
-                if (logItem != null)
+                // Read body from request
+                string jsonString = await new StreamReader(req.Body).ReadToEndAsync();
+
+                // TradeJournal item
+                _logger.LogDebug($"Request body : {jsonString}");
+
+                try
+                {
+                    // Parse object
+                    var logItem = JsonConvert.DeserializeObject<LogRequest>(jsonString);
+
+                    // Do null reference check
+                    if (logItem != null)
+                    {
+                        // TradeJournal item
+                        _logger.LogInformation($"Parsed Log object : AccountID={logItem.AccountID}, ClientID={logItem.ClientID}, Type={logItem.Type}, ErrorType={logItem.ErrorType}", jsonString);
+
+                        // Add item to the database
+                        var log = new JCTG.Log
+                        {
+                            AccountID = logItem.AccountID,
+                            ClientID = logItem.ClientID,
+                            DateCreated = DateTime.UtcNow,
+                            ErrorType = logItem.ErrorType,
+                            Message = logItem.Message,
+                            Type = logItem.Type,
+                        };
+
+                        // Add to database
+                        await _dbContext.Log.AddAsync(log);
+
+                        // Update database
+                        await _dbContext.SaveChangesAsync();
+                    }
+
+                }
+                catch (Exception ex)
                 {
                     // TradeJournal item
-                    _logger.LogInformation($"Parsed Log object : AccountID={logItem.AccountID}, ClientID={logItem.ClientID}, Type={logItem.Type}, ErrorType={logItem.ErrorType}", jsonString);
-
-                    // Add item to the database
-                    var log = new JCTG.Log
-                    {
-                        AccountID = logItem.AccountID,
-                        ClientID = logItem.ClientID,
-                        DateCreated = DateTime.UtcNow,
-                        ErrorType = logItem.ErrorType,
-                        Message = logItem.Message,
-                        Type = logItem.Type,
-                    };
-
-                    // Add to database
-                    await _dbContext.Log.AddAsync(log);
-
-                    // Update database
-                    await _dbContext.SaveChangesAsync();
+                    _logger.LogError($"Object: {ex.Message}\nInner exception message: {ex.InnerException?.Message}\n", ex);
                 }
-
-            }
-            catch (Exception ex)
-            {
-                // TradeJournal item
-                _logger.LogError($"Message: {ex.Message}\nInner exception message: {ex.InnerException?.Message}\n", ex);
             }
 
-            return httpResponse;
+            return response;
         }
     }
 }

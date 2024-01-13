@@ -1,7 +1,6 @@
-﻿using Azure.Core;
-using Azure.Messaging.WebPubSub;
+﻿using JCTG.Entity;
+using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
-using System.Collections.Concurrent;
 using Websocket.Client;
 using static JCTG.Client.Helpers;
 
@@ -9,7 +8,7 @@ namespace JCTG.Client
 {
     public class Metatrader
     {
-        private readonly string _pubsubConnectionString = "Endpoint=https://justcalltheguy.webpubsub.azure.com;AccessKey=BdxAvvoxX7+nkCq/lQDNe2LAy41lwDfJD8bCPiNuY/k=;Version=1.0;";
+
         private readonly AppConfig? _appConfig;
         private readonly List<MetatraderApi> _apis;
         private readonly List<MetatraderRequest> _logPairs;
@@ -71,196 +70,127 @@ namespace JCTG.Client
             // Do null reference checks
             if (_appConfig != null && _apis != null)
             {
-                // Loop through the api
-                Parallel.ForEach(_apis, new() { MaxDegreeOfParallelism = 4 }, async _api =>
+                // Get web socket client
+                var client = Program.Service?.GetService<WebsocketClient>();
+
+                // Do null reference check
+                if (client != null)
                 {
-                    // Do null reference checks
-                    if (_api != null && _api.AccountInfo != null && _api.MarketData != null && _api.MarketData.Count != 0)
+                    // Disable the auto disconnect and reconnect because the sample would like the client to stay online even no data comes in
+                    client.ReconnectTimeout = null;
+
+                    // Enable the message receive
+                    client.MessageReceived.Subscribe(msg =>
                     {
-                        // Init request to Azure Function
-                        var mtRequests = new List<MetatraderRequest>();
-
-                        // Loop through each pair
-                        foreach (var ticker in new List<Pairs>(_appConfig.Brokers.Where(f => f.ClientId == _api.ClientId).SelectMany(f => f.Pairs)))
+                        // Do null reference check
+                        if (msg != null && msg.Text != null)
                         {
-                            // Get the metadata tick
-                            var metadataTick = _api.MarketData.FirstOrDefault(f => f.Key == ticker.TickerInMetatrader).Value;
+                            // Get response
+                            var response = JsonConvert.DeserializeObject<MetatraderMessage>(msg.Text);
 
                             // Do null reference check
-                            if (metadataTick != null && metadataTick.Ask > 0)
+                            if (response != null)
                             {
-                                // Get current UTC time
-                                var currentUtcTime = DateTime.Now.AddHours(1);
-
-                                // Init request object
-                                var mtRequest = new MetatraderRequest()
+                                // Iterate through the api's
+                                foreach (var api in _apis)
                                 {
-                                    AccountID = _appConfig.AccountId,
-                                    ClientID = _api.ClientId,
-                                    TickerInMetatrader = ticker.TickerInMetatrader,
-                                    Ask = metadataTick.Ask,
-                                    Bid = metadataTick.Bid,
-                                    TickSize = metadataTick.TickSize,
-                                    StrategyType = ticker.StrategyNr,
-                                    TickerInTradingview = ticker.TickerInTradingView,
-                                    Atr5M = metadataTick.ATR5M,
-                                    Atr15M = metadataTick.ATR15M,
-                                    Atr1H = metadataTick.ATR1H,
-                                    AtrD = metadataTick.ATRD
-                                };
+                                    // Get the right ticker back from the local database
+                                    var ticker = new List<Pairs>(_appConfig.Brokers.Where(f => f.ClientId == api.ClientId).SelectMany(f => f.Pairs)).FirstOrDefault(f => f.TickerInMetatrader.Equals(response.Instrument) && f.StrategyNr == response.StrategyType);
 
-                                // Is current time within the sessions of the app config ?
-                                if (IsCurrentUTCTimeInSession(ticker.Sessions, currentUtcTime))
-                                {
-                                    // Add to the list
-                                    mtRequests.Add(mtRequest);
-
-                                    // Add to the log
-                                    if (!_logPairs.Any(f => f.AccountID == mtRequest.AccountID
-                                                                && f.ClientID == mtRequest.ClientID
-                                                                && f.TickerInMetatrader == mtRequest.TickerInMetatrader
-                                                                && f.TickerInTradingview == mtRequest.TickerInTradingview
-                                                                && f.StrategyType == mtRequest.StrategyType))
+                                    // If this broker is listening to this signal and the account size is greater then zero
+                                    if (ticker != null && api.AccountInfo != null && api.AccountInfo.Balance > 0)
                                     {
-                                        lock (myLock)
-                                        {
-                                            _logPairs.Add(mtRequest);
-                                        }
-
-                                        // Print on the screen
-                                        Print(Environment.NewLine);
-                                        Print("------------- START LISTENING TO NEW MARKET ----------------");
-                                        Print("Broker    : " + _appConfig.Brokers.First(f => f.ClientId == mtRequest.ClientID).Name);
-                                        Print("Time      : " + DateTime.UtcNow);
-                                        Print("Symbol    : " + mtRequest.TickerInTradingview);
-                                        Print("------------------------------------------------");
-
-                                        // Send to the server
-                                        new AzureFunctionApiClient().SendLog(new LogRequest()
-                                        {
-                                            AccountID = _appConfig.AccountId,
-                                            ClientID = mtRequest.ClientID,
-                                            Message = string.Format($"Symbol={mtRequest.TickerInTradingview}"),
-                                            Type = "CONSOLE - START LISTENING TO MARKET",
-                                        });
-                                    }
-                                }
-                                else
-                                {
-                                    // Add to the log
-                                    if (_logPairs.Any(f => f.AccountID == mtRequest.AccountID
-                                                                && f.ClientID == mtRequest.ClientID
-                                                                && f.TickerInMetatrader == mtRequest.TickerInMetatrader
-                                                                && f.TickerInTradingview == mtRequest.TickerInTradingview
-                                                                && f.StrategyType == mtRequest.StrategyType))
-                                    {
-                                        lock (myLock)
-                                        {
-                                            _logPairs.Remove(_logPairs.First(f => f.AccountID == mtRequest.AccountID
-                                                                && f.ClientID == mtRequest.ClientID
-                                                                && f.TickerInMetatrader == mtRequest.TickerInMetatrader
-                                                                && f.TickerInTradingview == mtRequest.TickerInTradingview
-                                                                && f.StrategyType == mtRequest.StrategyType));
-                                        }
-
-                                        // Print on the screen
-                                        Print(Environment.NewLine);
-                                        Print("------------- STOP LISTENING TO MARKET ----------------");
-                                        Print("Broker    : " + _appConfig.Brokers.First(f => f.ClientId == mtRequest.ClientID).Name);
-                                        Print("Time      : " + DateTime.UtcNow);
-                                        Print("Symbol    : " + mtRequest.TickerInTradingview);
-                                        Print("------------------------------------------------");
-
-                                        // Send to the server
-                                        new AzureFunctionApiClient().SendLog(new LogRequest()
-                                        {
-                                            AccountID = _appConfig.AccountId,
-                                            ClientID = mtRequest.ClientID,
-                                            Message = string.Format($"Symbol={mtRequest.TickerInTradingview}"),
-                                            Type = "CONSOLE - STOP LISTENING TO MARKET",
-                                        });
-                                    }
-                                }
-
-                            }
-                        }
-
-                        // Check if the markets are open, and we need to do a server call
-                        if (mtRequests.Count != 0)
-                        {
-                            // Send the information to the backend
-                            var mtResponse = await new AzureFunctionApiClient().GetMetatraderResponseAsync(mtRequests);
-
-                            // Do null reference check
-                            if (mtResponse != null && _api.OpenOrders != null && mtResponse.Count == mtRequests.Count)
-                            {
-                                // Ittirate through the mtResponse
-                                foreach (var response in mtResponse)
-                                {
-                                    // If mtResponse from server is BUY -> BUY in metatrader
-                                    if (response.Action == "BUY")
-                                    {
-                                        // Get the right ticker back from the local database
-                                        var ticker = new List<Pairs>(_appConfig.Brokers.Where(f => f.ClientId == _api.ClientId).SelectMany(f => f.Pairs)).FirstOrDefault(f => f.TickerInMetatrader.Equals(response.TickerInMetatrader));
-
                                         // Get the metadata tick
-                                        var metadataTick = _api.MarketData.FirstOrDefault(f => f.Key == response.TickerInMetatrader).Value;
+                                        var metadataTick = api.MarketData.FirstOrDefault(f => f.Key == ticker.TickerInMetatrader).Value;
 
-                                        // Do null reference check
-                                        if (ticker != null)
+                                        // Calculate spread
+                                        var spread = Math.Round(Math.Abs(metadataTick.Ask - metadataTick.Bid), 4, MidpointRounding.AwayFromZero);
+
+                                        // If is it a buy
+                                        if (response.OrderType == "BUY")
                                         {
-                                            // Make buy order
-                                            var lotSize = CalculateLotSize(_api.ClientId, _api.AccountInfo.Balance, ticker.Risk, metadataTick.Ask, response.StopLoss, metadataTick.TickValue, metadataTick.TickSize, metadataTick.LotStep, metadataTick.MinLotSize, metadataTick.MaxLotSize, metadataTick.Ask - metadataTick.Bid);
+                                            // Calculate the lot size
+                                            var lotSize = CalculateLotSize(api.ClientId, api.AccountInfo.Balance, ticker.Risk, metadataTick.Ask, response.StopLoss, metadataTick.TickValue, metadataTick.TickSize, metadataTick.LotStep, metadataTick.MinLotSize, metadataTick.MaxLotSize, metadataTick.Ask - metadataTick.Bid);
 
                                             // do 0.0 check
-                                            if(lotSize > 0.0)
+                                            if (lotSize > 0.0)
                                             {
+                                                // Calculate SL Price
+                                                var slPrice = CalculateSLForLong(
+                                                            mtPrice: metadataTick.Ask,
+                                                            mtATR: GetAtr(metadataTick.ATR5M, metadataTick.ATR15M, metadataTick.ATR1H, metadataTick.ATRD, response.StrategyType),
+                                                            mtSpread: spread,
+                                                            mtTickSize: metadataTick.TickSize,
+                                                            signalPrice: response.Price,
+                                                            signalSL: response.StopLoss,
+                                                            signalATR: GetAtr(response.ATR5M, response.ATR15M, response.ATR1H, response.ATRD, response.StrategyType)
+                                                            );
+
+                                                // Calculate TP Price
+                                                var tpPrice = CalculateTPForLong(
+                                                            mtPrice: metadataTick.Ask,
+                                                            mtATR: GetAtr(metadataTick.ATR5M, metadataTick.ATR15M, metadataTick.ATR1H, metadataTick.ATRD, response.StrategyType),
+                                                            mtTickSize: metadataTick.TickSize,
+                                                            signalPrice: response.Price,
+                                                            signalTP: response.TakeProfit,
+                                                            signalATR: GetAtr(response.ATR5M, response.ATR15M, response.ATR1H, response.ATRD, response.StrategyType)
+                                                            );
+
                                                 // Print on the screen
                                                 Print(Environment.NewLine);
                                                 Print("--------- SEND NEW ORDER TO METATRADER ---------");
-                                                Print("Broker      : " + _appConfig.Brokers.First(f => f.ClientId == _api.ClientId).Name);
+                                                Print("Broker      : " + _appConfig.Brokers.First(f => f.ClientId == api.ClientId).Name);
                                                 Print("Ticker      : " + ticker.TickerInMetatrader);
                                                 Print("Order       : BUY MARKET ORDER");
                                                 Print("Lot Size    : " + lotSize);
                                                 Print("Ask price   : " + metadataTick.Ask);
-                                                Print("Stop Loss   : " + response.StopLoss);
-                                                Print("Take Profit : " + response.TakeProfit);
-                                                Print("Tick value  : " + metadataTick.TickValue);
-                                                Print("Point size  : " + metadataTick.TickSize);
-                                                Print("Lot step    : " + metadataTick.LotStep);
+                                                Print("Stop Loss   : " + slPrice);
+                                                Print("Take Profit : " + tpPrice);
                                                 Print("Magic       : " + response.Magic);
                                                 Print("Strategy    : " + ticker.StrategyNr);
                                                 Print("------------------------------------------------");
 
 
+
                                                 // Open order
-                                                _api.ExecuteOrder(ticker.TickerInMetatrader, OrderType.Buy, lotSize, 0, response.StopLoss, response.TakeProfit, (int)response.Magic);
+                                                api.ExecuteOrder(ticker.TickerInMetatrader, OrderType.Buy, lotSize, 0, slPrice, tpPrice, (int)response.Magic);
                                             }
                                         }
-                                    }
 
-                                    // If mtResponse from server is BUY -> BUY in metatrader
-                                    else if (response.Action == "SELL")
-                                    {
-                                        // Get the right ticker back from the local database
-                                        var ticker = new List<Pairs>(_appConfig.Brokers.Where(f => f.ClientId == _api.ClientId).SelectMany(f => f.Pairs)).FirstOrDefault(f => f.TickerInMetatrader.Equals(response.TickerInMetatrader));
-
-                                        // Get the metadata tick
-                                        var metadataTick = _api.MarketData.FirstOrDefault(f => f.Key == response.TickerInMetatrader).Value;
-
-                                        // Do null reference check
-                                        if (ticker != null)
+                                        // If is it a sell
+                                        else if (response.OrderType == "SELL")
                                         {
-                                            // Make buy order
-                                            var lotSize = CalculateLotSize(_api.ClientId, _api.AccountInfo.Balance, ticker.Risk, metadataTick.Ask, response.StopLoss, metadataTick.TickValue, metadataTick.TickSize, metadataTick.LotStep, metadataTick.MinLotSize, metadataTick.MaxLotSize, metadataTick.Ask - metadataTick.Bid);
+                                            // Calculate the lot size
+                                            var lotSize = CalculateLotSize(api.ClientId, api.AccountInfo.Balance, ticker.Risk, metadataTick.Ask, response.StopLoss, metadataTick.TickValue, metadataTick.TickSize, metadataTick.LotStep, metadataTick.MinLotSize, metadataTick.MaxLotSize, metadataTick.Ask - metadataTick.Bid);
 
                                             // do 0.0 check
                                             if (lotSize > 0.0)
                                             {
+                                                // Calculate SL Price
+                                                var slPrice = CalculateSLForLong(
+                                                            mtPrice: metadataTick.Ask,
+                                                            mtATR: GetAtr(metadataTick.ATR5M, metadataTick.ATR15M, metadataTick.ATR1H, metadataTick.ATRD, response.StrategyType),
+                                                            mtSpread: spread,
+                                                            mtTickSize: metadataTick.TickSize,
+                                                            signalPrice: response.Price,
+                                                            signalSL: response.StopLoss,
+                                                            signalATR: GetAtr(response.ATR5M, response.ATR15M, response.ATR1H, response.ATRD, response.StrategyType)
+                                                            );
+
+                                                // Calculate TP Price
+                                                var tpPrice = CalculateTPForLong(
+                                                            mtPrice: metadataTick.Ask,
+                                                            mtATR: GetAtr(metadataTick.ATR5M, metadataTick.ATR15M, metadataTick.ATR1H, metadataTick.ATRD, response.StrategyType),
+                                                            mtTickSize: metadataTick.TickSize,
+                                                            signalPrice: response.Price,
+                                                            signalTP: response.TakeProfit,
+                                                            signalATR: GetAtr(response.ATR5M, response.ATR15M, response.ATR1H, response.ATRD, response.StrategyType)
+                                                            );
+
                                                 // Print on the screen
                                                 Print(Environment.NewLine);
                                                 Print("--------- SEND NEW ORDER TO METATRADER ---------");
-                                                Print("Broker      : " + _appConfig.Brokers.First(f => f.ClientId == _api.ClientId).Name);
+                                                Print("Broker      : " + _appConfig.Brokers.First(f => f.ClientId == api.ClientId).Name);
                                                 Print("Ticker      : " + ticker.TickerInMetatrader);
                                                 Print("Order       : SELL MARKET ORDER");
                                                 Print("Lot Size    : " + lotSize);
@@ -276,41 +206,30 @@ namespace JCTG.Client
 
 
                                                 // Open order
-                                                _api.ExecuteOrder(ticker.TickerInMetatrader, OrderType.Sell, lotSize, 0, response.StopLoss, response.TakeProfit, (int)response.Magic);
+                                                api.ExecuteOrder(ticker.TickerInMetatrader, OrderType.Sell, lotSize, 0, slPrice, tpPrice, (int)response.Magic);
                                             }
                                         }
-                                    }
 
-                                    // If mtResponse from server is MODIFYSLTOBE -> MODIFY SL TO BE order in metatrader
-                                    else if (response.Action == "MODIFYSLTOBE")
-                                    {
-                                        // Get the right ticker back from the local database
-                                        var ticker = new List<Pairs>(_appConfig.Brokers.Where(f => f.ClientId == _api.ClientId).SelectMany(f => f.Pairs)).FirstOrDefault(f => f.TickerInMetatrader.Equals(response.TickerInMetatrader));
-
-                                        // Do null reference check
-                                        if (ticker != null && response.TicketId.HasValue)
+                                        // Modify Stop Loss to Break Even
+                                        else if (response.OrderType == "MODIFYSLTOBE" && response.TicketId.HasValue)
                                         {
                                             // Check if the ticket still exist as open order
-                                            var ticketId = _api.OpenOrders.FirstOrDefault(f => f.Key == response.TicketId.Value);
-
-                                            // Get the metadata tick
-                                            var metadataTick = _api.MarketData.FirstOrDefault(f => f.Key == response.TickerInMetatrader).Value;
+                                            var ticketId = api.OpenOrders.FirstOrDefault(f => f.Key == response.TicketId.Value);
 
                                             // Null reference check
                                             if (ticketId.Key > 0 && ticketId.Value.Type != null)
                                             {
                                                 // If type is SELL, the SL should be set as BE minus Spread
                                                 var sl = ticketId.Value.OpenPrice;
-                                                if (ticketId.Value.Type.ToUpper() == "SELL")
+                                                if (ticketId.Value.Type.Equals("SELL", StringComparison.CurrentCultureIgnoreCase))
                                                 {
-                                                    var spread = Math.Abs(metadataTick.Ask - metadataTick.Bid);
                                                     sl = ticketId.Value.OpenPrice + spread;
                                                 }
 
                                                 // Print on the screen
                                                 Print(Environment.NewLine);
                                                 Print("--------- SEND MODIFY SL TO BE ORDER TO METATRADER ---------");
-                                                Print("Broker      : " + _appConfig.Brokers.First(f => f.ClientId == _api.ClientId).Name);
+                                                Print("Broker      : " + _appConfig.Brokers.First(f => f.ClientId == api.ClientId).Name);
                                                 Print("Ticker      : " + ticker.TickerInMetatrader);
                                                 Print("Order       : MODIFY SL TO BE ORDER");
                                                 Print("Lot Size    : " + ticketId.Value.Lots);
@@ -323,22 +242,15 @@ namespace JCTG.Client
                                                 Print("------------------------------------------------");
 
                                                 // Modify order
-                                                _api.ModifyOrder(ticketId.Key, ticketId.Value.Lots, 0, sl, ticketId.Value.TakeProfit);
+                                                api.ModifyOrder(ticketId.Key, ticketId.Value.Lots, 0, sl, ticketId.Value.TakeProfit);
                                             }
                                         }
-                                    }
 
-                                    // If mtResponse from server is MODIFY SL -> MODIFY SL order in metatrader
-                                    else if (response.Action == "MODIFYSL")
-                                    {
-                                        // Get the right ticker back from the local database
-                                        var ticker = new List<Pairs>(_appConfig.Brokers.Where(f => f.ClientId == _api.ClientId).SelectMany(f => f.Pairs)).FirstOrDefault(f => f.TickerInMetatrader.Equals(response.TickerInMetatrader));
-
-                                        // Do null reference check
-                                        if (ticker != null && response.TicketId.HasValue)
+                                        // Modify Stop Loss
+                                        else if (response.OrderType == "MODIFYSL" && response.TicketId.HasValue)
                                         {
                                             // Check if the ticket still exist as open order
-                                            var ticketId = _api.OpenOrders.FirstOrDefault(f => f.Key == response.TicketId.Value);
+                                            var ticketId = api.OpenOrders.FirstOrDefault(f => f.Key == response.TicketId.Value);
 
                                             // Null reference check
                                             if (ticketId.Key > 0)
@@ -352,7 +264,7 @@ namespace JCTG.Client
                                                 // Print on the screen
                                                 Print(Environment.NewLine);
                                                 Print("--------- SEND MODIFY SL TO BE ORDER TO METATRADER ---------");
-                                                Print("Broker      : " + _appConfig.Brokers.First(f => f.ClientId == _api.ClientId).Name);
+                                                Print("Broker      : " + _appConfig.Brokers.First(f => f.ClientId == api.ClientId).Name);
                                                 Print("Ticker      : " + ticker.TickerInMetatrader);
                                                 Print("Order       : MODIFY SL TO BE ORDER");
                                                 Print("Lot Size    : " + ticketId.Value.Lots);
@@ -365,22 +277,16 @@ namespace JCTG.Client
                                                 Print("------------------------------------------------");
 
                                                 // Modify order
-                                                _api.ModifyOrder(ticketId.Key, ticketId.Value.Lots, 0, response.StopLoss, ticketId.Value.TakeProfit);
+                                                api.ModifyOrder(ticketId.Key, ticketId.Value.Lots, 0, response.StopLoss, ticketId.Value.TakeProfit);
                                             }
                                         }
-                                    }
 
-                                    // If mtResponse from server is CLOSE_ALL -> CLOSE_ALL order in metatrader
-                                    else if (response.Action == "CLOSE")
-                                    {
-                                        // Get the right ticker back from the local database
-                                        var ticker = new List<Pairs>(_appConfig.Brokers.Where(f => f.ClientId == _api.ClientId).SelectMany(f => f.Pairs)).FirstOrDefault(f => f.TickerInMetatrader.Equals(response.TickerInMetatrader));
-
-                                        // Do null reference check
-                                        if (ticker != null && response.TicketId.HasValue)
+                                        // Close trade
+                                        else if (response.OrderType == "CLOSE" && response.TicketId.HasValue)
                                         {
+
                                             // Check if the ticket still exist as open order
-                                            var ticketId = _api.OpenOrders.FirstOrDefault(f => f.Key == response.TicketId.Value);
+                                            var ticketId = api.OpenOrders.FirstOrDefault(f => f.Key == response.TicketId.Value);
 
                                             // Null reference check
                                             if (ticketId.Key > 0)
@@ -388,7 +294,7 @@ namespace JCTG.Client
                                                 // Print on the screen
                                                 Print(Environment.NewLine);
                                                 Print("--------- SEND CLOSE ORDER TO METATRADER ---------");
-                                                Print("Broker      : " + _appConfig.Brokers.First(f => f.ClientId == _api.ClientId).Name);
+                                                Print("Broker      : " + _appConfig.Brokers.First(f => f.ClientId == api.ClientId).Name);
                                                 Print("Ticker      : " + ticker.TickerInMetatrader);
                                                 Print("Order       : CLOSE ORDER");
                                                 Print("Magic       : " + response.Magic);
@@ -396,51 +302,16 @@ namespace JCTG.Client
                                                 Print("------------------------------------------------");
 
                                                 // Modify order
-                                                _api.CloseOrder(ticketId.Key);
+                                                api.CloseOrder(ticketId.Key);
                                             }
                                         }
                                     }
                                 }
                             }
-                            else
-                            {
-                                OnLogEvent(_api.ClientId, 0, new Log()
-                                {
-                                    Type = "ERROR",
-                                    ErrorType = "error",
-                                    Time = DateTime.UtcNow,
-                                    Message = "There is an error with receiving information from the server."
-                                });
-                            }
                         }
-                    }
-                });
-
-                // Wait a little bit
-                await Task.Delay(_appConfig.SleepDelay);
-                await ListenToTheServerAsync();
-            }
-        }
-
-        public async Task ListenToAzureWebPubSubAsync()
-        {
-            // Do null reference checks
-            if (_appConfig != null && _apis != null)
-            {
-                // Either generate the URL or fetch it from server or fetch a temp one from the portal
-                var serviceClient = new WebPubSubServiceClient(_pubsubConnectionString, "a" +  _appConfig.AccountId.ToString());
-                var url = serviceClient.GetClientAccessUri();
-
-                using (var client = new WebsocketClient(url))
-                {
-                    // Disable the auto disconnect and reconnect because the sample would like the client to stay online even no data comes in
-                    client.ReconnectTimeout = null;
-                    client.MessageReceived.Subscribe(msg => 
-                    {
-                        Print("------------------- WEBSOCKET !!! ------------------------");
-                        Print("------------------- WEBSOCKET !!! ------------------------");
-                        Print("------------------- WEBSOCKET !!! ------------------------");
                     });
+
+                    // Start the web socket
                     await client.Start();
                 }
             }
@@ -486,44 +357,126 @@ namespace JCTG.Client
                 return adjustedLotSize;
         }
 
-        public bool IsCurrentUTCTimeInSession(Dictionary<string, SessionTimes> sessions, DateTime utcNow)
+
+        /// <summary>
+        /// Calculate the stop loss price for long positions based on the specified parameters
+        /// </summary>
+        /// <param name="mtPrice">MetaTrader ASK price</param>
+        /// <param name="mtATR">MetaTrader ATR</param>
+        /// <param name="mtSpread">Spread value</param>
+        /// <param name="mtTickSize">Tick size</param>
+        /// <param name="signalPrice">Signal ENTRY price</param>
+        /// <param name="signalSL">Signal SL price</param>
+        /// <param name="signalATR">Signal ATR</param>
+        /// <returns>Stop loss price</returns>
+        public static double CalculateSLForLong(double mtPrice, double mtATR, double mtSpread, double mtTickSize, double signalPrice, double signalSL, double signalATR)
         {
-            // Get the current day of the week
-            string dayOfWeek = utcNow.DayOfWeek.ToString();
+            // Calculate the ATR multiplier based on the difference between MetaTrader's ATR and TradingView's ATR
+            var atrMultiplier = mtATR > 0 && signalATR > 0 && mtATR > signalATR ? 1.1 : 1.0;
 
-            // Check if the day of the week is in the config file + the day of the week in the config file can not be null
-            if (sessions.ContainsKey(dayOfWeek) && sessions[dayOfWeek] != null)
-            {
-                // Get current session
-                var sessionToday = sessions[dayOfWeek];
+            // Calculate SL price using MetaTrader price minus risk to take
+            var slPrice = mtPrice - ((signalPrice - signalSL) * atrMultiplier);
 
-                // Get open and close time
-                var openTime = sessionToday.Open ?? TimeSpan.Zero;
-                var closeTime = sessionToday.Close ?? new TimeSpan(23, 59, 59);
+            // Calculate the number of ticks
+            var numberOfTicks = Math.Floor(slPrice / mtTickSize);
 
-                // Get the datetime based on the open or close settings in the app config
-                var openDateTime = new DateTime(utcNow.Year, utcNow.Month, utcNow.Day) + openTime;
-                var closeDateTime = new DateTime(utcNow.Year, utcNow.Month, utcNow.Day) + closeTime;
+            // Multiply back to get the rounded value
+            slPrice = numberOfTicks * mtTickSize;
 
-                // Handling case where session ends on the next day
-                if (closeTime < openTime)
-                {
-                    openDateTime = openDateTime.AddDays(-1);
-                }
+            // Check if SL is not higher then entry price
+            if (slPrice > mtPrice)
+                slPrice = mtPrice;
 
-                // Compare
-                if (utcNow >= openDateTime && utcNow <= closeDateTime)
-                {
-                    return true;
-                }
-                else
-                {
-                    return false;
-                }
-            }
+            // Return SL Price minus spread
+            return slPrice - (2 * mtSpread);
+        }
 
-            // Always return false
-            return false;
+
+        /// <summary>
+        /// Calculate the stop loss price for long positions based on the specified parameters
+        /// </summary>
+        /// <param name="mtPrice">MetaTrader ASK price</param>
+        /// <param name="mtATR">MetaTrader ATR5M</param>
+        /// <param name="mtSpread">The spread value</param>
+        /// <param name="signalPrice">Signal ENTRY price</param>
+        /// <param name="signalSL">Signal SL price</param>
+        /// <param name="signalATR">Signal ATR5M</param>
+        /// <returns>Stop loss price</returns>
+        public static double CalculateSLForShort(double mtPrice, double mtATR, double mtSpread, double mtTickSize, double signalPrice, double signalSL, double signalATR)
+        {
+            // Calculate the ATR multiplier based on the difference between MetaTrader's ATR and TradingView's ATR
+            var atrMultiplier = mtATR > 0 && signalATR > 0 && mtATR > signalATR ? 1.1 : 1.0;
+
+            // Calculate SL price using MetaTrader price minus risk to take
+            var slPrice = mtPrice + ((signalSL - signalPrice) * atrMultiplier);
+
+            // Calculate the number of ticks
+            var numberOfTicks = Math.Ceiling(slPrice / mtTickSize);
+
+            // Multiply back to get the rounded value
+            slPrice = numberOfTicks * mtTickSize;
+
+            // Check if SL is not lower then entry price
+            if (slPrice < mtPrice)
+                slPrice = mtPrice;
+
+            // Return SL Price plus spread
+            return slPrice + (2 * mtSpread);
+        }
+
+        /// <summary>
+        /// Calculate the take profit price for long positions based on the specified parameters
+        /// </summary>
+        /// <param name="mtPrice">MetaTrader ASK price</param>
+        /// <param name="mtATR">MetaTrader ATR</param>
+        /// <param name="mtTickSize">Tick size</param>
+        /// <param name="signalPrice">Signal ENTRY price</param>
+        /// <param name="signalTP">Signal TP price</param>
+        /// <param name="signalATR">Signal ATR</param>
+        /// <returns>Take profit price</returns>
+        public static double CalculateTPForLong(double mtPrice, double mtATR, double mtTickSize, double signalPrice, double signalTP, double signalATR)
+        {
+            // Calculate the ATR multiplier based on the difference between MetaTrader's ATR and TradingView's ATR
+            var atrMultiplier = mtATR > 0 && signalATR > 0 && mtATR > signalATR ? 1.1 : 1.0;
+
+            // Calculate TP price using MetaTrader price minus risk to take
+            var tpPrice = mtPrice + ((signalTP - signalPrice) * atrMultiplier);
+
+            // Calculate the number of ticks
+            var numberOfTicks = Math.Floor(tpPrice / mtTickSize);
+
+            // Multiply back to get the rounded value
+            tpPrice = numberOfTicks * mtTickSize;
+
+            // Return SL Price minus spread
+            return tpPrice;
+        }
+
+        /// <summary>
+        /// Calculate the take profit price for long positions based on the specified parameters
+        /// </summary>
+        /// <param name="mtPrice">MetaTrader ASK price</param>
+        /// <param name="mtATR">MetaTrader ATR</param>
+        /// <param name="signalPrice">Signal ENTRY price</param>
+        /// <param name="signalTP">Signal TP price</param>
+        /// <param name="signalATR">Signal ATR</param>
+        /// <returns>Take profit price</returns>
+        public static double CalculateTPForShort(double mtPrice, double mtATR,  double mtTickSize, double signalPrice, double signalTP, double signalATR)
+        {
+            // Calculate the ATR multiplier based on the difference between MetaTrader's ATR and TradingView's ATR
+            var atrMultiplier = mtATR > 0 && signalATR > 0 && mtATR > signalATR ? 1.1 : 1.0;
+
+            // Calculate TP price using MetaTrader price minus risk to take
+            var tpPrice = mtPrice - ((signalPrice - signalTP) * atrMultiplier);
+
+            // Calculate the number of ticks
+            var numberOfTicks = Math.Ceiling(tpPrice / mtTickSize);
+
+            // Multiply back to get the rounded value
+            tpPrice = numberOfTicks * mtTickSize;
+
+            // Return SL Price plus spread
+            return tpPrice;
         }
 
         private void OnLogEvent(long clientId, long id, Log log)
@@ -538,7 +491,7 @@ namespace JCTG.Client
                 Print("Time      : " + log.Time);
                 Print("Type      : " + log.Type);
                 if (!string.IsNullOrEmpty(log.Message))
-                    Print("Message   : " + log.Message);
+                    Print("Object   : " + log.Message);
                 if (!string.IsNullOrEmpty(log.ErrorType))
                     Print("Error Type : " + log.ErrorType);
                 if (!string.IsNullOrEmpty(log.Description))
@@ -693,6 +646,21 @@ namespace JCTG.Client
                     });
                 }
             }
+        }
+
+        private double GetAtr(double atr5M, double atr15M, double atr1H, double atrD, StrategyType type)
+        {
+            if (type == StrategyType.Strategy1) // SWING - STOCKS
+                return atr1H; // 4H
+            else if (type == StrategyType.Strategy2) // SWING - INDICES
+                return atr1H;
+            else if (type == StrategyType.Strategy3)
+                return atr5M;
+            else if (type == StrategyType.Strategy4) // DAYTRADE - INDICES
+                return atr5M;
+            else if (type == StrategyType.Strategy5) // DAYTRADE - CRYPTO
+                return atr5M;
+            return atr15M;
         }
     }
 }
