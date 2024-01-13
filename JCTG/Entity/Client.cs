@@ -8,7 +8,6 @@ namespace JCTG
         public Client()
         {
             DateCreated = DateTime.UtcNow;
-            Trades = [];
         }
 
         [Key]
@@ -17,7 +16,6 @@ namespace JCTG
         public Account? Account { get; set; }
         public int AccountID { get; set; }
         public required string Name { get; set; }
-        public List<SignalExecuted> Trades { get; set; }
         public List<TradeJournal> TradeJournals { get; set; }
         public List<Log> Logs { get; set; }
     }

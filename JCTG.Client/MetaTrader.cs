@@ -11,15 +11,12 @@ namespace JCTG.Client
 
         private readonly AppConfig? _appConfig;
         private readonly List<MetatraderApi> _apis;
-        private readonly List<MetatraderRequest> _logPairs;
-        object myLock = new object();
 
         public Metatrader(AppConfig appConfig)
         {
             // Init APP Config + API
             _appConfig = appConfig;
             _apis = [];
-            _logPairs = [];
 
             // Foreach broker, init the API
             foreach (var api in _appConfig.Brokers)

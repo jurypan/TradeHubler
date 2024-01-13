@@ -7,7 +7,6 @@ namespace JCTG
         public Signal()
         {
             DateCreated = DateTime.UtcNow;
-            SignalExecuted = [];
         }
 
         [Key]
@@ -31,8 +30,6 @@ namespace JCTG
         public double Atr1H { get; set; }
         public double AtrD { get; set; }
 
-
-        public List<SignalExecuted> SignalExecuted { get; set; }
 
         public static Signal Parse(string input)
         {
