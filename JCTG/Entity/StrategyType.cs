@@ -2,6 +2,7 @@
 {
     public enum StrategyType
     {
+        None = 0,
         Strategy1 = 1,
         Strategy2 = 2,
         Strategy3 = 3,

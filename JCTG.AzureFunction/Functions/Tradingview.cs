@@ -7,6 +7,7 @@ using Azure.Messaging.WebPubSub;
 using Azure.Core;
 using Newtonsoft.Json;
 using JCTG.Entity;
+using Microsoft.EntityFrameworkCore;
 
 namespace JCTG.AzureFunction
 {
@@ -46,41 +47,34 @@ namespace JCTG.AzureFunction
                     _logger.LogInformation($"Parse object to Signal : AccountID={signal.AccountID}, Type={signal.OrderType}, TickerInMetatrader={signal.Instrument}, CurrentPrice={signal.CurrentPrice}, SL={signal.StopLoss}, TP={signal.TakeProfit}, Magic={signal.Magic}", signal);
 
                     // Save into the database
-                    if (signal.OrderType != "SLHIT" && signal.OrderType != "TPHIT")
+                    await _dbContext.Signal.AddAsync(signal);
+                    await _dbContext.SaveChangesAsync();
+
+                    // Add log
+                    _logger.LogInformation($"Added to database in table Signal with ID : {signal.ID}", signal);
+
+                    // Init Azure Web PubSub
+                    var serviceClient = new WebPubSubServiceClient("Endpoint=https://justcalltheguy.webpubsub.azure.com;AccessKey=BdxAvvoxX7+nkCq/lQDNe2LAy41lwDfJD8bCPiNuY/k=;Version=1.0;", "a" + signal.AccountID.ToString());
+
+                    // Create model
+                    var model = new MetatraderMessage()
                     {
-                        await _dbContext.Signal.AddAsync(signal);
-                        await _dbContext.SaveChangesAsync();
+                        SignalID = signal.ID,
+                        AccountID = signal.AccountID,
+                        Instrument = signal.Instrument,
+                        Magic = signal.Magic,
+                        OrderType = signal.OrderType,
+                        Price = signal.EntryPrice,
+                        StopLoss = signal.StopLoss,
+                        StrategyType = signal.StrategyType,
+                        TakeProfit = signal.TakeProfit,
+                    };
 
-                        // Add log
-                        _logger.LogInformation($"Added to database in table Signal with ID : {signal.ID}", signal);
+                    // Send to all clients
+                    var resp = await serviceClient.SendToAllAsync(JsonConvert.SerializeObject(model), ContentType.ApplicationJson);
 
-                        // Init Azure Web PubSub
-                        var serviceClient = new WebPubSubServiceClient("Endpoint=https://justcalltheguy.webpubsub.azure.com;AccessKey=BdxAvvoxX7+nkCq/lQDNe2LAy41lwDfJD8bCPiNuY/k=;Version=1.0;", "a" + signal.AccountID.ToString());
-
-                        // Send signal
-                        var model = new MetatraderMessage()
-                        {
-                            SignalID = signal.ID,
-                            AccountID = signal.AccountID,
-                            ATR15M = signal.Atr15M,
-                            ATR1H = signal.Atr1H,
-                            ATR5M = signal.Atr5M,
-                            ATRD = signal.AtrD,
-                            Instrument = signal.Instrument,
-                            Magic = signal.Magic,
-                            OrderType = signal.OrderType,
-                            Price = signal.EntryPrice,
-                            StopLoss = signal.StopLoss,
-                            StrategyType = signal.StrategyType,
-                            TakeProfit = signal.TakeProfit,
-                        };
-
-
-                        var resp = await serviceClient.SendToAllAsync(JsonConvert.SerializeObject(model), ContentType.ApplicationJson);
-
-                        // Add log
-                        _logger.LogInformation($"Send to Azure Web PubSub with response client request id : {resp.ClientRequestId}", resp);
-                    }
+                    // Add log
+                    _logger.LogInformation($"Send to Azure Web PubSub with response client request id : {resp.ClientRequestId}", resp);
                 }
                 catch (Exception ex)
                 {

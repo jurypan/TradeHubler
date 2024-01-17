@@ -13,7 +13,7 @@ namespace JCTG.AzureFunction.Functions
         }
 
         [Function("TimerTriggered")]
-        public async Task RunAsync([TimerTrigger("0 */1 * * * *")] TimerInfo myTimer)
+        public async Task RunAsync([TimerTrigger("0 */5 * * * *")] TimerInfo myTimer)
         {
             _logger.LogDebug($"C# Timer trigger function executed at: {DateTime.Now}");
 

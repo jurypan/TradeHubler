@@ -25,6 +25,7 @@ namespace JCTG.Client
         public Brokers()
         {
             Pairs = [];
+            Risk = [];
             MetaTraderDirPath = string.Empty;
             Name = string.Empty;
         }
@@ -33,6 +34,7 @@ namespace JCTG.Client
         public string Name { get; set; }
         public string MetaTraderDirPath { get; set; }
         public List<Pairs> Pairs { get; set; }
+        public List<Risk> Risk { get; set; }
     }
     public class Pairs
     {
@@ -49,5 +51,15 @@ namespace JCTG.Client
         public StrategyType StrategyNr { get; set; }
         public double Risk { get; set; }
         public int SLtoBEafterR { get; set; }
+    }
+
+    public class Risk
+    {
+        public Risk()
+        {
+
+        }
+        public double Procent { get; set; }
+        public double Multiplier { get; set; }
     }
 }

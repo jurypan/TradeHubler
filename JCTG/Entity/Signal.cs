@@ -13,9 +13,6 @@ namespace JCTG
         public long ID { get; set; }
         public DateTime DateCreated { get; set; }
         public StrategyType StrategyType { get; set; }
-        public bool Executed { get; set; }
-        public DateTime? DateExecuted { get; set; }
-        public double? ExecutedPrice { get; set; }
         public Account Account { get; set; }
         public int AccountID { get; set; }
         public string OrderType { get; set; }
@@ -24,18 +21,14 @@ namespace JCTG
         public double EntryPrice { get; set; }
         public double StopLoss { get; set; }
         public double TakeProfit { get; set; }
-        public int Magic { get; set; }
-        public double Atr5M { get; set; }
-        public double Atr15M { get; set; }
-        public double Atr1H { get; set; }
-        public double AtrD { get; set; }
+        public long Magic { get; set; }
 
 
         public static Signal Parse(string input)
         {
             var parts = input.Split(',');
 
-            if (parts.Length != 13)
+            if (parts.Length < 9)
             {
                 throw new ArgumentException("Input string does not have the correct format.");
             }
@@ -97,43 +90,11 @@ namespace JCTG
 
             // Parse strategy type
             var strParts = parts[8].Split('=');
-            if (tpParts.Length != 2 || !int.TryParse(strParts[1], out int strategy))
+            if (strParts.Length != 2 || !int.TryParse(strParts[1], out int strategy))
             {
                 throw new ArgumentException("Invalid StrategyType format.");
             }
             order.StrategyType = (StrategyType)strategy;
-
-            // Parse ATR5M 5 minute
-            var atr5MParts = parts[9].Split('=');
-            if (atr5MParts.Length != 2 || !double.TryParse(atr5MParts[1], out double atr5M))
-            {
-                throw new ArgumentException("Invalid Atr 5 minute format.");
-            }
-            order.Atr5M = atr5M;
-
-            // Parse Atr 15 minute
-            var atr15MParts = parts[10].Split('=');
-            if (atr15MParts.Length != 2 || !double.TryParse(atr15MParts[1], out double atr15M))
-            {
-                throw new ArgumentException("Invalid Atr 15 minute format.");
-            }
-            order.Atr15M = atr15M;
-
-            // Parse Atr 1 hour
-            var atr1HParts = parts[11].Split('=');
-            if (atr5MParts.Length != 2 || !double.TryParse(atr1HParts[1], out double atr1H))
-            {
-                throw new ArgumentException("Invalid Atr 1 hour format.");
-            }
-            order.Atr1H = atr1H;
-
-            // Parse Atr day
-            var atrDParts = parts[12].Split('=');
-            if (atrDParts.Length != 2 || !double.TryParse(atrDParts[1], out double atrD))
-            {
-                throw new ArgumentException("Invalid Atr day format.");
-            }
-            order.AtrD = atrD;
 
             return order;
         }

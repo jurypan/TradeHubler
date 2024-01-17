@@ -5,6 +5,28 @@
       "Name": "Darwinex Zero - MT4",
       "MetaTraderDirPath": "C:\\Users\\joeri.pansaerts\\AppData\\Roaming\\MetaQuotes\\Terminal\\3B534B10135CFEDF8CD1AAB8BD994B13\\MQL4\\Files\\",
       "ClientId": 2100108109,
+      "Risk": [
+        {
+          "Procent": 2.0,
+          "Multiplier": 25.0
+        },
+        {
+          "Procent": 4.0,
+          "Multiplier": 50.0
+        },
+        {
+          "Procent": -2.0,
+          "Multiplier": -25.0
+        },
+        {
+          "Procent": -4.0,
+          "Multiplier": -50.0
+        },
+        {
+          "Procent": -6.0,
+          "Multiplier": -75.0
+        }
+      ],
       "Pairs": [
         {
           "TickerInTradingView": "XJO",
@@ -36,13 +58,35 @@
       "Name": "FTMO - MT4",
       "MetaTraderDirPath": "C:\\Users\\joeri.pansaerts\\AppData\\Roaming\\MetaQuotes\\Terminal\\2C68BEE3A904BDCEE3EEF5A5A77EC162\\MQL4\\Files\\",
       "ClientId": 1300587646,
+      "Risk": [
+        {
+          "Procent": 2.0,
+          "Multiplier": 25.0
+        },
+        {
+          "Procent": 4.0,
+          "Multiplier": 50.0
+        },
+        {
+          "Procent": -2.0,
+          "Multiplier": -25.0
+        },
+        {
+          "Procent": -4.0,
+          "Multiplier": -50.0
+        },
+        {
+          "Procent": -6.0,
+          "Multiplier": -75.0
+        }
+      ],
       "Pairs": [
         {
           "TickerInTradingView": "TSLA",
           "TickerInMetatrader": "TSLA",
           "Timeframe": "H4",
           "StrategyNr": 1,
-          "Risk": 0.5,
+          "Risk": 0.1,
           "SLtoBEafterR": 1
         },
         {
@@ -50,7 +94,7 @@
           "TickerInMetatrader": "NVDA",
           "Timeframe": "H4",
           "StrategyNr": 1,
-          "Risk": 0.5,
+          "Risk": 0.2,
           "SLtoBEafterR": 1
         },
         {
@@ -58,7 +102,7 @@
           "TickerInMetatrader": "AAPL",
           "Timeframe": "H4",
           "StrategyNr": 1,
-          "Risk": 0.5,
+          "Risk": 0.2,
           "SLtoBEafterR": 1
         },
         {
@@ -66,7 +110,7 @@
           "TickerInMetatrader": "META",
           "Timeframe": "H4",
           "StrategyNr": 1,
-          "Risk": 0.5,
+          "Risk": 0.2,
           "SLtoBEafterR": 1
         },
         {
@@ -74,7 +118,7 @@
           "TickerInMetatrader": "MSFT",
           "Timeframe": "H4",
           "StrategyNr": 1,
-          "Risk": 0.5,
+          "Risk": 0.2,
           "SLtoBEafterR": 1
         },
         {
@@ -82,7 +126,7 @@
           "TickerInMetatrader": "AMZN",
           "Timeframe": "H4",
           "StrategyNr": 1,
-          "Risk": 0.5,
+          "Risk": 0.2,
           "SLtoBEafterR": 1
         },
         {
@@ -90,7 +134,7 @@
           "TickerInMetatrader": "NFLX",
           "Timeframe": "H4",
           "StrategyNr": 1,
-          "Risk": 0.5,
+          "Risk": 0.2,
           "SLtoBEafterR": 1
         },
         {
@@ -98,7 +142,7 @@
           "TickerInMetatrader": "RACE",
           "Timeframe": "H4",
           "StrategyNr": 1,
-          "Risk": 0.5,
+          "Risk": 0.2,
           "SLtoBEafterR": 1
         },
         {
@@ -106,7 +150,7 @@
           "TickerInMetatrader": "JP225.cash",
           "Timeframe": "H1",
           "StrategyNr": 2,
-          "Risk": 0.45,
+          "Risk": 0.15,
           "SLtoBEafterR": 1
         },
         {
@@ -114,7 +158,7 @@
           "TickerInMetatrader": "AUS200.cash",
           "Timeframe": "H1",
           "StrategyNr": 2,
-          "Risk": 0.45,
+          "Risk": 0.15,
           "SLtoBEafterR": 1
         },
         {
@@ -122,7 +166,7 @@
           "TickerInMetatrader": "EU50.cash",
           "Timeframe": "H1",
           "StrategyNr": 2,
-          "Risk": 0.45,
+          "Risk": 0.15,
           "SLtoBEafterR": 1
         },
         {
@@ -130,7 +174,7 @@
           "TickerInMetatrader": "FRA40.cash",
           "Timeframe": "H1",
           "StrategyNr": 2,
-          "Risk": 0.45,
+          "Risk": 0.15,
           "SLtoBEafterR": 1
         },
         {
@@ -138,7 +182,7 @@
           "TickerInMetatrader": "UK100.cash",
           "Timeframe": "H1",
           "StrategyNr": 2,
-          "Risk": 0.45,
+          "Risk": 0.15,
           "SLtoBEafterR": 1
         },
         {
@@ -146,7 +190,7 @@
           "TickerInMetatrader": "US500.cash",
           "Timeframe": "H1",
           "StrategyNr": 2,
-          "Risk": 0.45,
+          "Risk": 0.15,
           "SLtoBEafterR": 1
         },
         {
@@ -154,7 +198,7 @@
           "TickerInMetatrader": "US30.cash",
           "Timeframe": "H1",
           "StrategyNr": 2,
-          "Risk": 0.45,
+          "Risk": 0.15,
           "SLtoBEafterR": 1
         }
       ]
@@ -194,21 +238,197 @@
       "Name": "FXIFY - MT5",
       "MetaTraderDirPath": "C:\\Users\\joeri.pansaerts\\AppData\\Roaming\\MetaQuotes\\Terminal\\E4502BE8BEB5B3D03E12C99F54D8C04C\\MQL5\\Files",
       "ClientId": 7006712,
+      "Risk": [
+        {
+          "Procent": 2.0,
+          "Multiplier": 25.0
+        },
+        {
+          "Procent": 4.0,
+          "Multiplier": 50.0
+        },
+        {
+          "Procent": -2.0,
+          "Multiplier": -25.0
+        },
+        {
+          "Procent": -4.0,
+          "Multiplier": -50.0
+        },
+        {
+          "Procent": -6.0,
+          "Multiplier": -75.0
+        }
+      ],
+      "Pairs": [
+        {
+          "TickerInTradingView": "XJO",
+          "TickerInMetatrader": "AUS200.r",
+          "Timeframe": "M5",
+          "StrategyNr": 4,
+          "Risk": 0.1,
+          "SLtoBEafterR": 1
+        },
+        {
+          "TickerInTradingView": "UKX",
+          "TickerInMetatrader": "UK100.r",
+          "Timeframe": "M5",
+          "StrategyNr": 4,
+          "Risk": 0.1,
+          "SLtoBEafterR": 1
+        },
+        {
+          "TickerInTradingView": "SPX",
+          "TickerInMetatrader": "US500.r",
+          "Timeframe": "M5",
+          "StrategyNr": 4,
+          "Risk": 0.1,
+          "SLtoBEafterR": 1
+        }
+      ]
+    },
+    {
+      "Name": "CRYPTO FUND TRADERS - MT5",
+      "MetaTraderDirPath": "C:\\Users\\joeri.pansaerts\\AppData\\Roaming\\MetaQuotes\\Terminal\\1EC23421AF558490730707A48E5336B0\\MQL5\\Files",
+      "ClientId": 147966,
+      "Risk": [
+        {
+          "Procent": 2.0,
+          "Multiplier": 25.0
+        },
+        {
+          "Procent": 4.0,
+          "Multiplier": 50.0
+        },
+        {
+          "Procent": -2.0,
+          "Multiplier": -25.0
+        },
+        {
+          "Procent": -4.0,
+          "Multiplier": -50.0
+        },
+        {
+          "Procent": -6.0,
+          "Multiplier": -75.0
+        }
+      ],
       "Pairs": [
         {
           "TickerInTradingView": "BTCUSD",
-          "TickerInMetatrader": "BTCUSD.r",
+          "TickerInMetatrader": "BTCUSDT",
           "Timeframe": "M5",
           "StrategyNr": 5,
-          "Risk": 0.05,
+          "Risk": 0.07,
           "SLtoBEafterR": 1
         },
         {
           "TickerInTradingView": "ETHUSD",
-          "TickerInMetatrader": "ETHUSD.r",
+          "TickerInMetatrader": "ETHUSDT",
           "Timeframe": "M5",
           "StrategyNr": 5,
-          "Risk": 0.05,
+          "Risk": 0.07,
+          "SLtoBEafterR": 1
+        },
+        {
+          "TickerInTradingView": "LINKUSD",
+          "TickerInMetatrader": "LINKUSDT",
+          "Timeframe": "M5",
+          "StrategyNr": 5,
+          "Risk": 0.07,
+          "SLtoBEafterR": 1
+        },
+        {
+          "TickerInTradingView": "DOTUSD",
+          "TickerInMetatrader": "DOTUSDT",
+          "Timeframe": "M5",
+          "StrategyNr": 5,
+          "Risk": 0.07,
+          "SLtoBEafterR": 1
+        },
+        {
+          "TickerInTradingView": "MATICUSD",
+          "TickerInMetatrader": "MATICUSDT",
+          "Timeframe": "M5",
+          "StrategyNr": 5,
+          "Risk": 0.07,
+          "SLtoBEafterR": 1
+        },
+        {
+          "TickerInTradingView": "FTMUSD",
+          "TickerInMetatrader": "FTMUSDT",
+          "Timeframe": "M5",
+          "StrategyNr": 5,
+          "Risk": 0.07,
+          "SLtoBEafterR": 1
+        }
+      ]
+    },
+    {
+      "Name": "CITY TRADERES IMPERIUM - MT5",
+      "MetaTraderDirPath": "C:\\Users\\joeri.pansaerts\\AppData\\Roaming\\MetaQuotes\\Terminal\\F0D7FA73F4CD7B6D5C2C93B25659B70C\\MQL5\\Files",
+      "ClientId": 1002135,
+      "Risk": [
+        {
+          "Procent": 2.0,
+          "Multiplier": 25.0
+        },
+        {
+          "Procent": 4.0,
+          "Multiplier": 50.0
+        },
+        {
+          "Procent": -2.0,
+          "Multiplier": -25.0
+        },
+        {
+          "Procent": -4.0,
+          "Multiplier": -50.0
+        },
+        {
+          "Procent": -6.0,
+          "Multiplier": -75.0
+        }
+      ],
+      "Pairs": [
+        {
+          "TickerInTradingView": "BTCUSD",
+          "TickerInMetatrader": "BTCUSD",
+          "Timeframe": "M5",
+          "StrategyNr": 3,
+          "Risk": 0.1,
+          "SLtoBEafterR": 1
+        },
+        {
+          "TickerInTradingView": "ETHUSD",
+          "TickerInMetatrader": "ETHUSD",
+          "Timeframe": "M5",
+          "StrategyNr": 3,
+          "Risk": 0.1,
+          "SLtoBEafterR": 1
+        },
+        {
+          "TickerInTradingView": "XJO",
+          "TickerInMetatrader": "AUS200",
+          "Timeframe": "M5",
+          "StrategyNr": 4,
+          "Risk": 0.1,
+          "SLtoBEafterR": 1
+        },
+        {
+          "TickerInTradingView": "UKX",
+          "TickerInMetatrader": "UK100",
+          "Timeframe": "M5",
+          "StrategyNr": 4,
+          "Risk": 0.1,
+          "SLtoBEafterR": 1
+        },
+        {
+          "TickerInTradingView": "SPX",
+          "TickerInMetatrader": "US500",
+          "Timeframe": "M5",
+          "StrategyNr": 4,
+          "Risk": 0.1,
           "SLtoBEafterR": 1
         }
       ]

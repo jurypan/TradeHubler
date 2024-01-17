@@ -10,11 +10,6 @@
         public double Price { get; set; }
         public double StopLoss { get; set; }
         public double TakeProfit { get; set; }
-        public int Magic { get; set; }
-        public double ATR5M { get; set; }
-        public double ATR15M { get; set; }
-        public double ATR1H { get; set; }
-        public double ATRD { get; set; }
-        public long? TicketId { get; set; }
+        public long Magic { get; set; }
     }
 }

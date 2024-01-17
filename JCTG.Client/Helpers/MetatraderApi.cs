@@ -139,6 +139,7 @@ namespace JCTG.Client
         }
 
 
+
         /// <summary>
         /// Regularly checks the file for open orders and triggers the eventHandler.OnOrderCreateEvent() function.
         /// </summary>
@@ -385,6 +386,10 @@ namespace JCTG.Client
                             }
                         }
                     }
+                }
+                else
+                {
+
                 }
             }
         }
