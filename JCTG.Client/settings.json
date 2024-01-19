@@ -2,9 +2,9 @@
   "AccountId": 692803787,
   "Brokers": [
     {
-      "Name": "Darwinex Zero - MT4",
-      "MetaTraderDirPath": "C:\\Users\\joeri.pansaerts\\AppData\\Roaming\\MetaQuotes\\Terminal\\3B534B10135CFEDF8CD1AAB8BD994B13\\MQL4\\Files\\",
-      "ClientId": 2100108109,
+      "Name": "Darwinex Zero - MT5",
+      "MetaTraderDirPath": "C:\\Users\\joeri.pansaerts\\AppData\\Roaming\\MetaQuotes\\Terminal\\6C3C6A11D1C3791DD4DBF45421BF8028\\MQL5\\Files\\",
+      "ClientId": 4000024705,
       "Risk": [
         {
           "Procent": 2.0,
@@ -339,8 +339,8 @@
           "SLtoBEafterR": 1
         },
         {
-          "TickerInTradingView": "DOTUSD",
-          "TickerInMetatrader": "DOTUSDT",
+          "TickerInTradingView": "DASHUSD",
+          "TickerInMetatrader": "DASHUSDT",
           "Timeframe": "M5",
           "StrategyNr": 5,
           "Risk": 0.07,
@@ -355,8 +355,16 @@
           "SLtoBEafterR": 1
         },
         {
-          "TickerInTradingView": "FTMUSD",
-          "TickerInMetatrader": "FTMUSDT",
+          "TickerInTradingView": "LTCUSD",
+          "TickerInMetatrader": "LTCUSDT",
+          "Timeframe": "M5",
+          "StrategyNr": 5,
+          "Risk": 0.07,
+          "SLtoBEafterR": 1
+        },
+        {
+          "TickerInTradingView": "NEARUSD",
+          "TickerInMetatrader": "NEARUSDT",
           "Timeframe": "M5",
           "StrategyNr": 5,
           "Risk": 0.07,

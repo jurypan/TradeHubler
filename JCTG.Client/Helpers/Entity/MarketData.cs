@@ -31,9 +31,13 @@ namespace JCTG.Client
         [JsonProperty("tick_size")]
         public double TickSize { get; set; }
 
-
-        [JsonProperty("digits")]
-        public int Digits { get; set; }
+        public int Digits 
+        {
+            get
+            {
+                return CountSignificantDigits(this.TickSize);
+            }
+        }
 
         [JsonProperty("atr_M5")]
         public double ATR5M { get; set; }
@@ -53,5 +57,19 @@ namespace JCTG.Client
 
         [JsonProperty("magic")]
         public int Magic { get; set; }
+
+        private int CountSignificantDigits(double number)
+        {
+            string numberAsString = number.ToString().TrimEnd('0');
+
+            int decimalPointIndex = numberAsString.IndexOf('.');
+            if (decimalPointIndex == -1)
+            {
+                // No decimal point, so no significant digits after the decimal.
+                return 0;
+            }
+
+            return numberAsString.Length - decimalPointIndex - 1;
+        }
     }
 }

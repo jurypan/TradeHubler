@@ -465,7 +465,7 @@ namespace JCTG.Client
                                     High = newBarData.High,
                                     Low = newBarData.Low,
                                     Close = newBarData.Close,
-                                    TickVolume = newBarData.TickVolume,
+                                    TickVolume = newBarData.TickVolume
                                 };
 
                                 // Invoke the event
@@ -483,7 +483,7 @@ namespace JCTG.Client
                                 High = newBarData.High,
                                 Low = newBarData.Low,
                                 Close = newBarData.Close,
-                                TickVolume = newBarData.TickVolume,
+                                TickVolume = newBarData.TickVolume
                             });
 
                             // Invoke the event

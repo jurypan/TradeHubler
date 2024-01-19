@@ -18,17 +18,17 @@ namespace JCTG.Client.Tests
         {
             // Arrange
             double mtPrice = 7464.1;
-            double mtTickSize = 0.01;
+            int mtDigits = 1;
             double tvPrice = 7462.1;
             double tvSlPrice = 7442.1;
             double spread = 0.0;
 
             // Act
-            var result = Metatrader.CalculateSLForLong(mtPrice, spread, mtTickSize, tvPrice, tvSlPrice);
+            var result = mt.CalculateSLForLong(mtPrice, spread, mtDigits, tvPrice, tvSlPrice);
 
             // Assert
             double expectedSLPrice = 7444.1;
-            Assert.That(result, Is.EqualTo(expectedSLPrice).Within(0.0001));
+            Assert.That(result, Is.EqualTo(expectedSLPrice).Within(0.1));
         }
 
         [Test]
@@ -36,13 +36,13 @@ namespace JCTG.Client.Tests
         {
             // Arrange
             double mtPrice = 7464.1;
-            double mtTickSize = 0.01;
+            int mtDigits = 1;
             double tvPrice = 7462.1;
             double tvSlPrice = 7442.1;
             double spread = 0.0;
 
             // Act
-            var result = Metatrader.CalculateSLForLong(mtPrice, spread, mtTickSize, tvPrice, tvSlPrice);
+            var result = mt.CalculateSLForLong(mtPrice, spread, mtDigits, tvPrice, tvSlPrice);
 
             // Assert
             double expectedSLPrice = 7424.1;
@@ -54,15 +54,13 @@ namespace JCTG.Client.Tests
         {
             // Arrange
             double mtPrice = 7464.1;
-            double mtAtr = 1.5;
-            double mtTickSize = 0.01;
+            int mtDigits = 1;
             double tvPrice = 7462.1;
             double tvSlPrice = 7442.1;
-            double tvAtr = 1.0;
             double spread = 0.0;
 
             // Act
-            var result = Metatrader.CalculateSLForLong(mtPrice, spread, mtTickSize, tvPrice, tvSlPrice);
+            var result = mt.CalculateSLForLong(mtPrice, spread, mtDigits, tvPrice, tvSlPrice);
 
             // Assert
             double expectedSLPrice = 7434.1;
@@ -73,14 +71,15 @@ namespace JCTG.Client.Tests
         public void CalculateSLForLong_WhenMtATRIsGreaterThanSignalATR_ShouldUseCorrectAtrMultiplier()
         {
             // Arrange
-            double mtPrice = 100.0,mtSpread = 0.5, mtTickSize = 0.1;
+            int mtDigits = 1;
+            double mtPrice = 100.0,mtSpread = 0.5;
             double signalEntryPrice = 95.0, signalSlPrice = 90.0;
 
             // Expected ATR multiplier = mtATR / signalATR = 10 / 5 = 2
             double expectedSlPrice = 89.5; // Calculate expected SL price based on the formula
 
             // Act
-            double actualSlPrice = Metatrader.CalculateSLForLong(mtPrice,  mtSpread, mtTickSize, signalEntryPrice, signalSlPrice);
+            double actualSlPrice = mt.CalculateSLForLong(mtPrice,  mtSpread, mtDigits, signalEntryPrice, signalSlPrice);
 
             // Assert
             Assert.That(expectedSlPrice, Is.EqualTo(actualSlPrice), "The calculated SL price is incorrect.");

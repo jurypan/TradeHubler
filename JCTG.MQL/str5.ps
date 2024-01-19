@@ -11,9 +11,12 @@ i_takeLongOrShort           = input.string("Long", title="Direction",group = "Ge
 
 i_pyramiding                = input.bool(false,title = "Pyramiding?", group = "Risk / Reward")
 i_positionSize              = input.string("Fixed 1%", title = "Position Size", options = ["Fixed 1%", "Compound 1%", "1 Unit", "Auto"], group = "Risk / Reward")
-i_rewardRatio               = input.float(3.0, title = "Reward Ratio", group = "Risk / Reward") 
+i_rewardRatio               = input.float(5.0, title = "Reward Ratio", group = "Risk / Reward") 
 i_moveSLtoBEafterR          = input.float(1.0, title="Move SL to BE after xR",group = "Risk / Reward") 
-i_cancellimit               = input.int(10, title = "Cancel limit order after (x) bars", group = "Risk / Reward") 
+i_cancellimit               = input.int(0, title = "Cancel stop order after (x) bars", group = "Risk / Reward") 
+i_thresholdPct              = input.float(75.00, title="Treshold average percentage OB", minval=0, maxval=100,group = "Risk / Reward") 
+i_cancellimitNewSignal      = input.bool(false, title="Cancel stop order when new signal",group = "Risk / Reward") 
+
 
 i_pcLicenseID               = input.string("692803787",title="License ID",group = "Account")
 
@@ -24,6 +27,11 @@ var float longTP = na, var float longSL = na, var float longEntryPrice = na
 var float shortTP = na, var float shortSL = na, var float shortEntryPrice = na
 var float risk = na
 var int orderBar = na
+
+// Variables to accumulate highs and count bars
+var float sumSignalCandle = 0.0
+var int countSignalCandle = 0
+
 
 //FUNCTIONS
 bullishOutsideBar() => 
@@ -54,18 +62,29 @@ positionSize(entryPrice, diff) =>
     else if i_positionSize == "1 Unit"
         posSize := 1
 
+// Accumulate highs and count for bullish outside bars
+if isSignalCandle()
+    sumSignalCandle := sumSignalCandle + math.abs(high - low)
+    countSignalCandle := countSignalCandle + 1
+
+avgSignalCandle = countSignalCandle > 0 ? sumSignalCandle / countSignalCandle : na
+
+
+isHighAboveAverage() =>
+    i_thresholdPct > 0 ? math.abs(high - low) >= avgSignalCandle * (i_thresholdPct / 100.00) : true
 
 
 //long
-if isSignalCandle() and i_takeLongOrShort == "Long" and barstate.isconfirmed
-    if not i_pyramiding
+if isSignalCandle() and isHighAboveAverage() and i_takeLongOrShort == "Long" and barstate.isconfirmed
+    if i_cancellimitNewSignal
         strategy.cancel(idTrade())
     id := time("") / 100000
     longEntryPrice := open
     longSL := longEntryPrice - (1.5 * (open - close))
     risk := longEntryPrice - longSL
     longTP := longEntryPrice + (i_rewardRatio * risk)
-    orderBar := bar_index
+    if i_cancellimit > 0
+        orderBar := bar_index
 
     // Position Size
     positionSize = positionSize(longEntryPrice, risk)
@@ -89,15 +108,16 @@ if i_takeLongOrShort == "Long" and strategy.position_size > 0 and longEntryPrice
     
 
 // Short    
-if isSignalCandle() and i_takeLongOrShort == "Short" and barstate.isconfirmed
-    if not i_pyramiding
+if isSignalCandle() and isHighAboveAverage() and i_takeLongOrShort == "Short" and barstate.isconfirmed
+    if i_cancellimitNewSignal
         strategy.cancel(idTrade())
     id := time("") / 100000
     shortEntryPrice := open
     shortSL := shortEntryPrice + (1.5 * (close - open))
     risk := shortSL - shortEntryPrice
     shortTP := shortEntryPrice - (i_rewardRatio * risk)
-    orderBar := bar_index
+    if i_cancellimit > 0
+        orderBar := bar_index
 
     // Position Size
     positionSize = positionSize(shortEntryPrice, risk)
@@ -120,17 +140,17 @@ if i_takeLongOrShort == "Short" and strategy.position_size < 0 and shortEntryPri
     
 
 //CANCEL PENDING ORDER
-if i_cancellimit > 0 and not na(orderBar) and bar_index - orderBar >= i_cancellimit and barstate.isconfirmed
+if strategy.position_size == 0 and not na(orderBar) and bar_index - orderBar >= i_cancellimit and barstate.isconfirmed
     strategy.cancel(idTrade())
-
-if strategy.position_size != 0 or bar_index - orderBar >= i_cancellimit and barstate.isconfirmed
     orderBar := na
 
 if strategy.position_size == 0 and low < shortTP and barstate.isconfirmed
     strategy.cancel(idTrade()) 
+    orderBar := na
 
 if strategy.position_size == 0 and high > longTP and barstate.isconfirmed
     strategy.cancel(idTrade())
+    orderBar := na
 
 //PLOTS
 barcolor(isSignalCandle() ? color.blue  : na, title = "Signal Candle")
