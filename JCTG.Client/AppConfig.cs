@@ -34,6 +34,7 @@ namespace JCTG.Client
         public string Name { get; set; }
         public string MetaTraderDirPath { get; set; }
         public List<Pairs> Pairs { get; set; }
+        public double StartBalance { get; set; }
         public List<Risk> Risk { get; set; }
     }
     public class Pairs

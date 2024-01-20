@@ -5,26 +5,31 @@
       "Name": "Darwinex Zero - MT5",
       "MetaTraderDirPath": "C:\\Users\\joeri.pansaerts\\AppData\\Roaming\\MetaQuotes\\Terminal\\6C3C6A11D1C3791DD4DBF45421BF8028\\MQL5\\Files\\",
       "ClientId": 4000024705,
+      "StartBalance": 100000,
       "Risk": [
         {
+          "Procent": 0,
+          "Multiplier": 1
+        },
+        {
           "Procent": 2.0,
-          "Multiplier": 25.0
+          "Multiplier": 1.25
         },
         {
           "Procent": 4.0,
-          "Multiplier": 50.0
+          "Multiplier": 1.50
         },
         {
           "Procent": -2.0,
-          "Multiplier": -25.0
+          "Multiplier": 0.75
         },
         {
           "Procent": -4.0,
-          "Multiplier": -50.0
+          "Multiplier": 0.50
         },
         {
           "Procent": -6.0,
-          "Multiplier": -75.0
+          "Multiplier": 0.25
         }
       ],
       "Pairs": [
@@ -58,26 +63,31 @@
       "Name": "FTMO - MT4",
       "MetaTraderDirPath": "C:\\Users\\joeri.pansaerts\\AppData\\Roaming\\MetaQuotes\\Terminal\\2C68BEE3A904BDCEE3EEF5A5A77EC162\\MQL4\\Files\\",
       "ClientId": 1300587646,
+      "StartBalance": 160000,
       "Risk": [
         {
+          "Procent": 0,
+          "Multiplier": 1
+        },
+        {
           "Procent": 2.0,
-          "Multiplier": 25.0
+          "Multiplier": 1.25
         },
         {
           "Procent": 4.0,
-          "Multiplier": 50.0
+          "Multiplier": 1.50
         },
         {
           "Procent": -2.0,
-          "Multiplier": -25.0
+          "Multiplier": 0.75
         },
         {
           "Procent": -4.0,
-          "Multiplier": -50.0
+          "Multiplier": 0.50
         },
         {
           "Procent": -6.0,
-          "Multiplier": -75.0
+          "Multiplier": 0.25
         }
       ],
       "Pairs": [
@@ -207,6 +217,7 @@
       "Name": "LUX - MT5",
       "MetaTraderDirPath": "C:\\Users\\joeri.pansaerts\\AppData\\Roaming\\MetaQuotes\\Terminal\\E46BFC7165B351C46E7FD4997F5A8EFB\\MQL5\\Files\\",
       "ClientId": 54031,
+      "StartBalance": 200000,
       "Pairs": [
         {
           "TickerInTradingView": "XJO",
@@ -238,26 +249,31 @@
       "Name": "FXIFY - MT5",
       "MetaTraderDirPath": "C:\\Users\\joeri.pansaerts\\AppData\\Roaming\\MetaQuotes\\Terminal\\E4502BE8BEB5B3D03E12C99F54D8C04C\\MQL5\\Files",
       "ClientId": 7006712,
+      "StartBalance": 15000,
       "Risk": [
         {
+          "Procent": 0,
+          "Multiplier": 1
+        },
+        {
           "Procent": 2.0,
-          "Multiplier": 25.0
+          "Multiplier": 1.25
         },
         {
           "Procent": 4.0,
-          "Multiplier": 50.0
+          "Multiplier": 1.50
         },
         {
           "Procent": -2.0,
-          "Multiplier": -25.0
+          "Multiplier": 0.75
         },
         {
           "Procent": -4.0,
-          "Multiplier": -50.0
+          "Multiplier": 0.50
         },
         {
           "Procent": -6.0,
-          "Multiplier": -75.0
+          "Multiplier": 0.25
         }
       ],
       "Pairs": [
@@ -291,26 +307,31 @@
       "Name": "CRYPTO FUND TRADERS - MT5",
       "MetaTraderDirPath": "C:\\Users\\joeri.pansaerts\\AppData\\Roaming\\MetaQuotes\\Terminal\\1EC23421AF558490730707A48E5336B0\\MQL5\\Files",
       "ClientId": 147966,
+      "StartBalance": 5000,
       "Risk": [
         {
+          "Procent": 0,
+          "Multiplier": 1
+        },
+        {
           "Procent": 2.0,
-          "Multiplier": 25.0
+          "Multiplier": 1.25
         },
         {
           "Procent": 4.0,
-          "Multiplier": 50.0
+          "Multiplier": 1.50
         },
         {
           "Procent": -2.0,
-          "Multiplier": -25.0
+          "Multiplier": 0.75
         },
         {
           "Procent": -4.0,
-          "Multiplier": -50.0
+          "Multiplier": 0.50
         },
         {
           "Procent": -6.0,
-          "Multiplier": -75.0
+          "Multiplier": 0.25
         }
       ],
       "Pairs": [
@@ -369,6 +390,30 @@
           "StrategyNr": 5,
           "Risk": 0.07,
           "SLtoBEafterR": 1
+        },
+        {
+          "TickerInTradingView": "AAVEUSD",
+          "TickerInMetatrader": "AAVEUSDT",
+          "Timeframe": "M5",
+          "StrategyNr": 5,
+          "Risk": 0.07,
+          "SLtoBEafterR": 1
+        },
+        {
+          "TickerInTradingView": "DOTUSD",
+          "TickerInMetatrader": "DOTUSDT",
+          "Timeframe": "M5",
+          "StrategyNr": 5,
+          "Risk": 0.07,
+          "SLtoBEafterR": 1
+        },
+        {
+          "TickerInTradingView": "FTMUSD",
+          "TickerInMetatrader": "FTMUSDT",
+          "Timeframe": "M5",
+          "StrategyNr": 5,
+          "Risk": 0.07,
+          "SLtoBEafterR": 1
         }
       ]
     },
@@ -376,26 +421,31 @@
       "Name": "CITY TRADERES IMPERIUM - MT5",
       "MetaTraderDirPath": "C:\\Users\\joeri.pansaerts\\AppData\\Roaming\\MetaQuotes\\Terminal\\F0D7FA73F4CD7B6D5C2C93B25659B70C\\MQL5\\Files",
       "ClientId": 1002135,
+      "StartBalance": 2500,
       "Risk": [
         {
+          "Procent": 0,
+          "Multiplier": 1
+        },
+        {
           "Procent": 2.0,
-          "Multiplier": 25.0
+          "Multiplier": 1.25
         },
         {
           "Procent": 4.0,
-          "Multiplier": 50.0
+          "Multiplier": 1.50
         },
         {
           "Procent": -2.0,
-          "Multiplier": -25.0
+          "Multiplier": 0.75
         },
         {
           "Procent": -4.0,
-          "Multiplier": -50.0
+          "Multiplier": 0.50
         },
         {
           "Procent": -6.0,
-          "Multiplier": -75.0
+          "Multiplier": 0.25
         }
       ],
       "Pairs": [

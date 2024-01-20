@@ -103,8 +103,11 @@ namespace JCTG.Client
                                     // Get the right pair back from the local database
                                     var pair = new List<Pairs>(_appConfig.Brokers.Where(f => f.ClientId == api.ClientId).SelectMany(f => f.Pairs)).FirstOrDefault(f => f.TickerInTradingView.Equals(response.Instrument) && f.StrategyNr == response.StrategyType);
 
+                                    // Start balance
+                                    var startbalance = _appConfig.Brokers.First(f => f.ClientId == api.ClientId).StartBalance;
+
                                     // Get dynamic risk
-                                    var dynRisk = new List<Risk>(_appConfig.Brokers
+                                   var dynRisk = new List<Risk>(_appConfig.Brokers
                                                                              .Where(f => f.ClientId == api.ClientId)
                                                                              .SelectMany(f => f.Risk ?? []));
 
@@ -132,7 +135,7 @@ namespace JCTG.Client
                                                             );
 
                                                 // Calculate the lot size
-                                                var lotSize = CalculateLotSize(api.AccountInfo.Balance, pair.Risk, metadataTick.Ask, slPrice, metadataTick.TickValue, metadataTick.TickSize, metadataTick.LotStep, metadataTick.MinLotSize, metadataTick.MaxLotSize, dynRisk);
+                                                var lotSize = CalculateLotSize(startbalance, api.AccountInfo.Balance, pair.Risk, metadataTick.Ask, slPrice, metadataTick.TickValue, metadataTick.TickSize, metadataTick.LotStep, metadataTick.MinLotSize, metadataTick.MaxLotSize, dynRisk);
 
                                                 // do 0.0 check
                                                 if (lotSize > 0.0)
@@ -187,7 +190,7 @@ namespace JCTG.Client
                                                             );
 
                                                 // Calculate the lot size
-                                                var lotSize = CalculateLotSize(api.AccountInfo.Balance, pair.Risk, metadataTick.Ask, slPrice, metadataTick.TickValue, metadataTick.TickSize, metadataTick.LotStep, metadataTick.MinLotSize, metadataTick.MaxLotSize, dynRisk);
+                                                var lotSize = CalculateLotSize(startbalance, api.AccountInfo.Balance, pair.Risk, metadataTick.Ask, slPrice, metadataTick.TickValue, metadataTick.TickSize, metadataTick.LotStep, metadataTick.MinLotSize, metadataTick.MaxLotSize, dynRisk);
 
                                                 // do 0.0 check
                                                 if (lotSize > 0.0)
@@ -429,7 +432,7 @@ namespace JCTG.Client
         /// <param name="maxLotSizeAllowed"></param>
         /// <param name="spread"></param>
         /// <returns></returns>
-        public double CalculateLotSize(double accountBalance, double riskPercent, double openPrice, double stopLossPrice, double tickValue, double tickStep, double lotStep, double minLotSizeAllowed, double maxLotSizeAllowed, List<Risk>? riskData = null)
+        public double CalculateLotSize(double startBalance, double accountBalance, double riskPercent, double openPrice, double stopLossPrice, double tickValue, double tickStep, double lotStep, double minLotSizeAllowed, double maxLotSizeAllowed, List<Risk>? riskData = null)
         {
             // Throw exception when negative balance
             if (accountBalance <= 0)
@@ -437,7 +440,7 @@ namespace JCTG.Client
 
 
             // Calculate risk percentage
-            double dynamicRisk = GetClosestRiskPercentage(accountBalance, riskData);
+            double dynamicRisk = ChooseClosestMultiplier(startBalance, accountBalance, riskData);
 
             // Calculate the initial lot size
             double riskAmount = accountBalance * ((riskPercent * dynamicRisk) / 100.0);
@@ -864,22 +867,19 @@ namespace JCTG.Client
             }
         }
 
-        public static double GetClosestRiskPercentage(double accountBalance, List<Risk>? risks = null)
+        public static double ChooseClosestMultiplier(double startBalance, double accountBalance, List<Risk>? riskData = null)
         {
-            if (risks == null || risks.Count == 0)
-                return 1.0;
+            // Do null reference check
+            if (riskData == null)
+                return 1;
 
-            // Find the closest risk level to the account balance
-            var closestRisk = risks.OrderBy(risk => Math.Abs(accountBalance - risk.Procent)).First();
+            // Calculate the percentage change
+            double percentageChange = ((accountBalance - startBalance) / startBalance) * 100;
 
-            // Adjust the risk percentage
-            return AdjustRiskPercentage(closestRisk.Multiplier);
-        }
+            // Find the closest risk percentage
+            var closestRisk = riskData.OrderBy(risk => Math.Abs(risk.Procent - percentageChange)).First();
 
-        public static double AdjustRiskPercentage(double percent)
-        {
-            // Adjust the percentage as per the requirement
-            return percent >= 0 ? 1 + percent / 100 : 1 - Math.Abs(percent) / 100;
+            return closestRisk.Multiplier;
         }
     }
 }
