@@ -58,7 +58,7 @@ namespace JCTG.Client
         [JsonProperty("magic")]
         public int Magic { get; set; }
 
-        private int CountSignificantDigits(double number)
+        public static int CountSignificantDigits(double number)
         {
             string numberAsString = number.ToString().TrimEnd('0');
 

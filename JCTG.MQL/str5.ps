@@ -11,10 +11,10 @@ i_takeLongOrShort           = input.string("Long", title="Direction",group = "Ge
 
 i_pyramiding                = input.bool(false,title = "Pyramiding?", group = "Risk / Reward")
 i_positionSize              = input.string("Fixed 1%", title = "Position Size", options = ["Fixed 1%", "Compound 1%", "1 Unit", "Auto"], group = "Risk / Reward")
-i_rewardRatio               = input.float(5.0, title = "Reward Ratio", group = "Risk / Reward") 
+i_rewardRatio               = input.float(3.0, title = "Reward Ratio", group = "Risk / Reward") 
 i_moveSLtoBEafterR          = input.float(1.0, title="Move SL to BE after xR",group = "Risk / Reward") 
 i_cancellimit               = input.int(0, title = "Cancel stop order after (x) bars", group = "Risk / Reward") 
-i_thresholdPct              = input.float(75.00, title="Treshold average percentage OB", minval=0, maxval=100,group = "Risk / Reward") 
+i_thresholdPct              = input.float(50.00, title="Treshold average percentage OB", minval=0, maxval=100,group = "Risk / Reward") 
 i_cancellimitNewSignal      = input.bool(false, title="Cancel stop order when new signal",group = "Risk / Reward") 
 
 
@@ -22,7 +22,7 @@ i_pcLicenseID               = input.string("692803787",title="License ID",group 
 
 
 //VARS
-var int id = 0
+var int magic = 0
 var float longTP = na, var float longSL = na, var float longEntryPrice = na
 var float shortTP = na, var float shortSL = na, var float shortEntryPrice = na
 var float risk = na
@@ -47,7 +47,7 @@ isSignalCandle() =>
         false
 
 idTrade() =>
-	str.tostring(id)
+	str.tostring(magic)
 
 roundUp(number, decimals) =>
     factor = math.pow(10, decimals)
@@ -78,9 +78,9 @@ isHighAboveAverage() =>
 if isSignalCandle() and isHighAboveAverage() and i_takeLongOrShort == "Long" and barstate.isconfirmed
     if i_cancellimitNewSignal
         strategy.cancel(idTrade())
-    id := time("") / 100000
+    magic := time("") / 100000
     longEntryPrice := open
-    longSL := longEntryPrice - (1.5 * (open - close))
+    longSL := longEntryPrice - (high - low)
     risk := longEntryPrice - longSL
     longTP := longEntryPrice + (i_rewardRatio * risk)
     if i_cancellimit > 0
@@ -111,9 +111,9 @@ if i_takeLongOrShort == "Long" and strategy.position_size > 0 and longEntryPrice
 if isSignalCandle() and isHighAboveAverage() and i_takeLongOrShort == "Short" and barstate.isconfirmed
     if i_cancellimitNewSignal
         strategy.cancel(idTrade())
-    id := time("") / 100000
+    magic := time("") / 100000
     shortEntryPrice := open
-    shortSL := shortEntryPrice + (1.5 * (close - open))
+    shortSL := shortEntryPrice + (high - low)
     risk := shortSL - shortEntryPrice
     shortTP := shortEntryPrice - (i_rewardRatio * risk)
     if i_cancellimit > 0

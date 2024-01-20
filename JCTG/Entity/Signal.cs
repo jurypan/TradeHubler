@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace JCTG
 {
@@ -23,6 +24,42 @@ namespace JCTG
         public double TakeProfit { get; set; }
         public long Magic { get; set; }
 
+        public static Signal Parse2(string input)
+        {
+            var parts = input.Split(',');
+            if (parts.Length < 3)
+            {
+                throw new ArgumentException("Insufficient data. ID, Action, and Symbol are mandatory.");
+            }
+
+            var tradeInfo = new Signal
+            {
+                ID = long.Parse(parts[0]),
+                OrderType = parts[1],
+                Instrument = parts[2]
+            };
+
+            var optionalParams = new Dictionary<string, Action<string>>
+            {
+                { "entryprice", value => tradeInfo.EntryPrice = double.Parse(value) },
+                { "currentprice", value => tradeInfo.CurrentPrice = double.Parse(value) },
+                { "sl", value => tradeInfo.StopLoss = double.Parse(value) },
+                { "tp", value => tradeInfo.TakeProfit = double.Parse(value) },
+                { "magic", value => tradeInfo.Magic = long.Parse(value) },
+                { "strategytype", value => tradeInfo.StrategyType = Enum.Parse<StrategyType>(value) }
+            };
+
+            foreach (var part in parts[3..])
+            {
+                var keyValue = part.Split('=');
+                if (keyValue.Length == 2 && optionalParams.TryGetValue(keyValue[0], out var setter))
+                {
+                    setter(keyValue[1]);
+                }
+            }
+
+            return tradeInfo;
+        }
 
         public static Signal Parse(string input)
         {

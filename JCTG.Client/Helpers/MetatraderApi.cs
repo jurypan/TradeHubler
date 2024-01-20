@@ -228,12 +228,12 @@ namespace JCTG.Client
                                 // Check if the order already exists
                                 if (OpenOrders.TryGetValue(orderId, out var previousData))
                                 {
-                                    // Check if the values have changed
-                                    if (newOrder.OpenTime != previousData.OpenTime || newOrder.StopLoss != previousData.StopLoss || newOrder.TakeProfit != previousData.TakeProfit)
-                                    {
-                                        // Update the previous values
-                                        OpenOrders[orderId] = newOrder;
+                                    // Update the previous values
+                                    OpenOrders[orderId] = newOrder;
 
+                                    // Check if the values have changed
+                                    if (newOrder.StopLoss != previousData.StopLoss || newOrder.TakeProfit != previousData.TakeProfit)
+                                    {
                                         // Invoke the event
                                         OnOrderUpdateEvent?.Invoke(ClientId, orderId, newOrder);
                                     }
@@ -368,12 +368,12 @@ namespace JCTG.Client
                             // Check if the ticker already has previous values
                             if (MarketData.TryGetValue(property.Key, out var previousData))
                             {
+                                // Update the previous values
+                                MarketData[property.Key] = property.Value;
+
                                 // Check if the values have changed
                                 if (property.Value.Bid != previousData.Bid || property.Value.Ask != previousData.Ask || property.Value.TickValue != previousData.TickValue)
                                 {
-                                    // Update the previous values
-                                    MarketData[property.Key] = property.Value;
-
                                     // Invoke the event
                                     OnTickEvent?.Invoke(ClientId, property.Key, property.Value.Bid, property.Value.Ask, property.Value.TickValue);
                                 }
@@ -453,21 +453,21 @@ namespace JCTG.Client
                         // Check if the ticker already has previous values
                         if (BarData.TryGetValue(property.Name, out var previousData))
                         {
+                            // Update the previous values
+                            BarData[property.Name] = new BarData
+                            {
+                                Timeframe = newBarData.Timeframe,
+                                Time = newBarData.Time,
+                                Open = newBarData.Open,
+                                High = newBarData.High,
+                                Low = newBarData.Low,
+                                Close = newBarData.Close,
+                                TickVolume = newBarData.TickVolume
+
+                            };
                             // Check if the values have changed
                             if (newBarData.Timeframe != previousData.Timeframe || newBarData.Time != previousData.Time || newBarData.Open != previousData.Open || newBarData.High != previousData.High || newBarData.Low != previousData.Low || newBarData.Close != previousData.Close)
                             {
-                                // Update the previous values
-                                BarData[property.Name] = new BarData
-                                {
-                                    Timeframe = newBarData.Timeframe,
-                                    Time = newBarData.Time,
-                                    Open = newBarData.Open,
-                                    High = newBarData.High,
-                                    Low = newBarData.Low,
-                                    Close = newBarData.Close,
-                                    TickVolume = newBarData.TickVolume
-                                };
-
                                 // Invoke the event
                                 OnBarDataEvent?.Invoke(ClientId, property.Name, newBarData.Timeframe, newBarData.Time, newBarData.Open, newBarData.High, newBarData.Low, newBarData.Close, newBarData.TickVolume);
                             }

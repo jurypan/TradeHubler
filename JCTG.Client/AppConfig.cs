@@ -36,6 +36,7 @@ namespace JCTG.Client
         public List<Pairs> Pairs { get; set; }
         public double StartBalance { get; set; }
         public List<Risk> Risk { get; set; }
+        
     }
     public class Pairs
     {
@@ -51,7 +52,9 @@ namespace JCTG.Client
         public required string Timeframe { get; set; }
         public StrategyType StrategyNr { get; set; }
         public double Risk { get; set; }
-        public int SLtoBEafterR { get; set; }
+        public double SLtoBEafterR { get; set; }
+        public double MaxSpread { get; set; }
+        public double SLMultiplier { get; set; }
     }
 
     public class Risk
