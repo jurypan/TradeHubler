@@ -6,12 +6,12 @@ namespace JCTG.Client
     {
         public string? Symbol { get; set; }
 
-        public double Lots { get; set; }
+        public decimal Lots { get; set; }
 
         public string? Type { get; set; }
 
         [JsonProperty("open_price")]
-        public double OpenPrice { get; set; }
+        public decimal OpenPrice { get; set; }
 
 
         [JsonProperty("open_time")]
@@ -19,10 +19,10 @@ namespace JCTG.Client
 
 
         [JsonProperty("sl")]
-        public double StopLoss { get; set; }
+        public decimal StopLoss { get; set; }
 
         [JsonProperty("tp")]
-        public double TakeProfit { get; set; }
+        public decimal TakeProfit { get; set; }
 
         public double Pnl { get; set; }
 

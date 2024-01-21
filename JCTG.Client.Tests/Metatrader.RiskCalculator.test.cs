@@ -48,7 +48,7 @@ namespace JCTG.Client.Tests
             double startBalance = 100000;
             double accountBalance = 101000; // 1% up
             var result = Metatrader.ChooseClosestMultiplier(startBalance, accountBalance, riskData);
-            Assert.That(result, Is.EqualTo(0));
+            Assert.That(result, Is.EqualTo(0M));
         }
 
         [Test]
@@ -57,7 +57,7 @@ namespace JCTG.Client.Tests
             double startBalance = 100000;
             double accountBalance = 102000; // 2% up
             var result = Metatrader.ChooseClosestMultiplier(startBalance, accountBalance, riskData);
-            Assert.That(result, Is.EqualTo(1.25));
+            Assert.That(result, Is.EqualTo(1.25M));
         }
     }
 }

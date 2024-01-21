@@ -12,7 +12,7 @@ namespace JCTG.Client.Tests
         public void CountSignificantDigits_WithOneTenth_ReturnsOne()
         {
             // Arrange
-            double input = 0.1;
+            decimal input = 0.1M;
 
             // Act
             int result = MarketData.CountSignificantDigits(input);
@@ -25,20 +25,20 @@ namespace JCTG.Client.Tests
         public void CountSignificantDigits_WithOneTenThousandth_ReturnsFour()
         {
             // Arrange
-            double input = 0.0001;
+            decimal input = 0.0000100000M;
 
             // Act
             int result = MarketData.CountSignificantDigits(input);
 
             // Assert
-            Assert.That(result, Is.EqualTo(4));
+            Assert.That(result, Is.EqualTo(5));
         }
 
         [Test]
         public void CountSignificantDigits_WithZero_ReturnsZero()
         {
             // Arrange
-            double input = 0;
+            decimal input = 0;
 
             // Act
             int result = MarketData.CountSignificantDigits(input);
@@ -51,7 +51,7 @@ namespace JCTG.Client.Tests
         public void CountSignificantDigits_WithWholeNumber_ReturnsZero()
         {
             // Arrange
-            double input = 123;
+            decimal input = 123;
 
             // Act
             int result = MarketData.CountSignificantDigits(input);
@@ -64,7 +64,7 @@ namespace JCTG.Client.Tests
         public void CountSignificantDigits_WithDecimalAndZeros_ReturnsCorrectCount()
         {
             // Arrange
-            double input = 123.00400;
+            decimal input = 123.00400M;
 
             // Act
             int result = MarketData.CountSignificantDigits(input);
@@ -77,7 +77,7 @@ namespace JCTG.Client.Tests
         public void CountSignificantDigits_WithNegativeNumber_ReturnsCorrectCount()
         {
             // Arrange
-            double input = -0.0056;
+            decimal input = -0.0056M;
 
             // Act
             int result = MarketData.CountSignificantDigits(input);

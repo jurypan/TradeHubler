@@ -17,11 +17,11 @@ namespace JCTG.Entity
 
         public long TicketId { get; set; }
 
-        public double Risk { get; set; }
+        public decimal Risk { get; set; }
 
         public required string Instrument { get; set; }
 
-        public double Lots { get; set; }
+        public decimal Lots { get; set; }
 
         public required string Type { get; set; }
 
@@ -29,19 +29,19 @@ namespace JCTG.Entity
 
         public DateTime? CloseTime { get; set; }
 
-        public double OpenPrice { get; set; }
+        public decimal OpenPrice { get; set; }
 
-        public double? ClosePrice { get; set; }
+        public decimal? ClosePrice { get; set; }
 
-        public double OpenSL { get; set; }
+        public decimal OpenSL { get; set; }
 
-        public double OpenTP { get; set; }
+        public decimal OpenTP { get; set; }
 
-        public double Spread { get; set; }
+        public decimal Spread { get; set; }
 
-        public double SL { get; set; }
+        public decimal SL { get; set; }
 
-        public double TP { get; set; }
+        public decimal TP { get; set; }
 
         public double Pnl { get; set; }
 
@@ -54,6 +54,6 @@ namespace JCTG.Entity
         public StrategyType StrategyType { get; set; }
 
         public required string Timeframe { get; set; }
-        public double RR { get; set; }
+        public decimal RR { get; set; }
     }
 }

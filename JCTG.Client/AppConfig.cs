@@ -51,10 +51,11 @@ namespace JCTG.Client
         public required string TickerInMetatrader { get; set; }
         public required string Timeframe { get; set; }
         public StrategyType StrategyNr { get; set; }
-        public double Risk { get; set; }
+        public decimal Risk { get; set; }
         public double SLtoBEafterR { get; set; }
-        public double MaxSpread { get; set; }
+        public decimal MaxSpread { get; set; }
         public double SLMultiplier { get; set; }
+        public int MaxLotSize { get; set; }
     }
 
     public class Risk

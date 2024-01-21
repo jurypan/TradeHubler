@@ -17,18 +17,18 @@ namespace JCTG.Client.Tests
         public void CalculateTPForLong_ReturnsCorrectValue()
         {
             // Arrange
-            double mtPrice = 0.3659;
+            var mtPrice = 0.3659M;
             int mtDigits = 4;
-            double tvPrice = 0.36554614;
-            double tvSlPrice = 0.36602357;
-            double spread = 0.0001;
+            var tvPrice = 0.36554614M;
+            var tvSlPrice = 0.36602357M;
+            var spread = 0.0001M;
 
             // Act
             var result = mt.CalculateSLForShort(mtPrice, spread, mtDigits, tvPrice, tvSlPrice);
 
             // Assert
-            double expectedSLPrice = 7444.1;
-            Assert.That(result, Is.EqualTo(expectedSLPrice).Within(0.1));
+            var expectedSLPrice = 7444.1M;
+            Assert.That(result, Is.EqualTo(expectedSLPrice).Within(0.1M));
         }
 
 

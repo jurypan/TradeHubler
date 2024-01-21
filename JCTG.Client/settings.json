@@ -41,7 +41,8 @@
           "Risk": 0.05, // 0.15
           "SLtoBEafterR": 1,
           "MaxSpread": 0.0,
-          "SLMultiplier": 1.2 
+          "SLMultiplier": 1.2,
+          "MaxLotSize": 0
         },
         {
           "TickerInTradingView": "UKX",
@@ -51,7 +52,8 @@
           "Risk": 0.05, // 0.15
           "SLtoBEafterR": 1,
           "MaxSpread": 0.0,
-          "SLMultiplier": 1.2
+          "SLMultiplier": 1.2,
+          "MaxLotSize": 0
         },
         {
           "TickerInTradingView": "SPX",
@@ -61,7 +63,8 @@
           "Risk": 0.05, // 0.15
           "SLtoBEafterR ": 1,
           "MaxSpread": 0.0,
-          "SLMultiplier": 1.2
+          "SLMultiplier": 1.2,
+          "MaxLotSize": 0
         }
       ]
     },
@@ -105,7 +108,8 @@
           "Risk": 0.1,
           "SLtoBEafterR": 1,
           "MaxSpread": 0.0,
-          "SLMultiplier": 1.1
+          "SLMultiplier": 1.1,
+          "MaxLotSize": 0
         },
         {
           "TickerInTradingView": "NVDA",
@@ -115,7 +119,8 @@
           "Risk": 0.2,
           "SLtoBEafterR": 1,
           "MaxSpread": 0.0,
-          "SLMultiplier": 1.1
+          "SLMultiplier": 1.1,
+          "MaxLotSize": 0
         },
         {
           "TickerInTradingView": "AAPL",
@@ -125,7 +130,8 @@
           "Risk": 0.2,
           "SLtoBEafterR": 1,
           "MaxSpread": 0.0,
-          "SLMultiplier": 1.1
+          "SLMultiplier": 1.1,
+          "MaxLotSize": 0
         },
         {
           "TickerInTradingView": "META",
@@ -135,7 +141,8 @@
           "Risk": 0.2,
           "SLtoBEafterR": 1,
           "MaxSpread": 0.0,
-          "SLMultiplier": 1.1
+          "SLMultiplier": 1.1,
+          "MaxLotSize": 0
         },
         {
           "TickerInTradingView": "MSFT",
@@ -145,7 +152,8 @@
           "Risk": 0.2,
           "SLtoBEafterR": 1,
           "MaxSpread": 0.0,
-          "SLMultiplier": 1.1
+          "SLMultiplier": 1.1,
+          "MaxLotSize": 0
         },
         {
           "TickerInTradingView": "AMZN",
@@ -154,7 +162,8 @@
           "StrategyNr": 1,
           "Risk": 0.2,
           "SLtoBEafterR": 1,
-          "SLMultiplier": 1.1
+          "SLMultiplier": 1.1,
+          "MaxLotSize": 0
         },
         {
           "TickerInTradingView": "NFLX",
@@ -164,7 +173,8 @@
           "Risk": 0.2,
           "SLtoBEafterR": 1,
           "MaxSpread": 0.0,
-          "SLMultiplier": 1.1
+          "SLMultiplier": 1.1,
+          "MaxLotSize": 0
         },
         {
           "TickerInTradingView": "RACE",
@@ -174,7 +184,8 @@
           "Risk": 0.2,
           "SLtoBEafterR": 1,
           "MaxSpread": 0.0,
-          "SLMultiplier": 1.1
+          "SLMultiplier": 1.1,
+          "MaxLotSize": 0
         },
         {
           "TickerInTradingView": "NKD1!",
@@ -184,7 +195,8 @@
           "Risk": 0.15,
           "SLtoBEafterR": 1,
           "MaxSpread": 0.0,
-          "SLMultiplier": 1.1
+          "SLMultiplier": 1.1,
+          "MaxLotSize": 0
         },
         {
           "TickerInTradingView": "XJO",
@@ -194,7 +206,8 @@
           "Risk": 0.15,
           "SLtoBEafterR": 1,
           "MaxSpread": 0.0,
-          "SLMultiplier": 1.1
+          "SLMultiplier": 1.1,
+          "MaxLotSize": 0
         },
         {
           "TickerInTradingView": "SX5E",
@@ -204,7 +217,8 @@
           "Risk": 0.15,
           "SLtoBEafterR": 1,
           "MaxSpread": 0.0,
-          "SLMultiplier": 1.1
+          "SLMultiplier": 1.1,
+          "MaxLotSize": 0
         },
         {
           "TickerInTradingView": "PX1",
@@ -214,7 +228,8 @@
           "Risk": 0.15,
           "SLtoBEafterR": 1,
           "MaxSpread": 0.0,
-          "SLMultiplier": 1.1
+          "SLMultiplier": 1.1,
+          "MaxLotSize": 0
         },
         {
           "TickerInTradingView": "UKX",
@@ -224,7 +239,8 @@
           "Risk": 0.15,
           "SLtoBEafterR": 1,
           "MaxSpread": 0.0,
-          "SLMultiplier": 1.1
+          "SLMultiplier": 1.1,
+          "MaxLotSize": 0
         },
         {
           "TickerInTradingView": "SPX",
@@ -233,7 +249,8 @@
           "StrategyNr": 2,
           "Risk": 0.15,
           "SLtoBEafterR": 1,
-          "SLMultiplier": 1.1
+          "SLMultiplier": 1.1,
+          "MaxLotSize": 0
         },
         {
           "TickerInTradingView": "DJI",
@@ -243,7 +260,8 @@
           "Risk": 0.15,
           "SLtoBEafterR": 1,
           "MaxSpread": 0.0,
-          "SLMultiplier": 1.1
+          "SLMultiplier": 1.1,
+          "MaxLotSize": 0
         }
       ]
     },
@@ -267,7 +285,8 @@
           "Risk": 0.15, // 0.15
           "SLtoBEafterR": 1,
           "MaxSpread": 0.0,
-          "SLMultiplier": 1.2
+          "SLMultiplier": 1.2,
+          "MaxLotSize": 0
         },
         {
           "TickerInTradingView": "UKX",
@@ -277,7 +296,8 @@
           "Risk": 0.15, // 0.15
           "SLtoBEafterR": 1,
           "MaxSpread": 0.0,
-          "SLMultiplier": 1.2
+          "SLMultiplier": 1.2,
+          "MaxLotSize": 0
         },
         {
           "TickerInTradingView": "SPX",
@@ -287,7 +307,8 @@
           "Risk": 0.15, // 0.15
           "SLtoBEafterR": 1,
           "MaxSpread": 0.0,
-          "SLMultiplier": 1.2
+          "SLMultiplier": 1.2,
+          "MaxLotSize": 0
         }
       ]
     },
@@ -331,7 +352,8 @@
           "Risk": 0.1,
           "SLtoBEafterR": 1,
           "MaxSpread": 0.0,
-          "SLMultiplier": 1.2
+          "SLMultiplier": 1.2,
+          "MaxLotSize": 0
         },
         {
           "TickerInTradingView": "UKX",
@@ -341,7 +363,8 @@
           "Risk": 0.1,
           "SLtoBEafterR": 1,
           "MaxSpread": 0.0,
-          "SLMultiplier": 1.2
+          "SLMultiplier": 1.2,
+          "MaxLotSize": 0
         },
         {
           "TickerInTradingView": "SPX",
@@ -351,7 +374,8 @@
           "Risk": 0.1,
           "SLtoBEafterR": 1,
           "MaxSpread": 0.0,
-          "SLMultiplier": 1.2
+          "SLMultiplier": 1.2,
+          "MaxLotSize": 0
         }
       ]
     },
@@ -395,7 +419,8 @@
           "Risk": 0.07,
           "SLtoBEafterR": 1,
           "MaxSpread": 0.1,
-          "SLMultiplier": 1.1
+          "SLMultiplier": 1.1,
+          "MaxLotSize": 0
         },
         {
           "TickerInTradingView": "ETHUSD",
@@ -405,7 +430,8 @@
           "Risk": 0.07,
           "SLtoBEafterR": 1,
           "MaxSpread": 0.1,
-          "SLMultiplier": 1.1
+          "SLMultiplier": 1.1,
+          "MaxLotSize": 0
         },
         {
           "TickerInTradingView": "LINKUSD",
@@ -415,7 +441,8 @@
           "Risk": 0.07,
           "SLtoBEafterR": 1,
           "MaxSpread": 0.1,
-          "SLMultiplier": 1.1
+          "SLMultiplier": 1.1,
+          "MaxLotSize": 0
         },
         {
           "TickerInTradingView": "DASHUSD",
@@ -425,7 +452,8 @@
           "Risk": 0.07,
           "SLtoBEafterR": 1,
           "MaxSpread": 0.1,
-          "SLMultiplier": 1.1
+          "SLMultiplier": 1.1,
+          "MaxLotSize": 0
         },
         {
           "TickerInTradingView": "MATICUSD",
@@ -435,7 +463,8 @@
           "Risk": 0.07,
           "SLtoBEafterR": 1,
           "MaxSpread": 0.1,
-          "SLMultiplier": 1.1
+          "SLMultiplier": 1.1,
+          "MaxLotSize": 0
         },
         {
           "TickerInTradingView": "LTCUSD",
@@ -445,7 +474,8 @@
           "Risk": 0.07,
           "SLtoBEafterR": 1,
           "MaxSpread": 0.1,
-          "SLMultiplier": 1.1
+          "SLMultiplier": 1.1,
+          "MaxLotSize": 0
         },
         {
           "TickerInTradingView": "NEARUSD",
@@ -455,7 +485,8 @@
           "Risk": 0.07,
           "SLtoBEafterR": 1,
           "MaxSpread": 0.1,
-          "SLMultiplier": 1.1
+          "SLMultiplier": 1.1,
+          "MaxLotSize": 0
         },
         {
           "TickerInTradingView": "AAVEUSD",
@@ -465,7 +496,8 @@
           "Risk": 0.07,
           "SLtoBEafterR": 1,
           "MaxSpread": 0.1,
-          "SLMultiplier": 1.1
+          "SLMultiplier": 1.1,
+          "MaxLotSize": 0
         },
         {
           "TickerInTradingView": "DOTUSD",
@@ -475,7 +507,8 @@
           "Risk": 0.07,
           "SLtoBEafterR": 1,
           "MaxSpread": 0.1,
-          "SLMultiplier": 1.1
+          "SLMultiplier": 1.1,
+          "MaxLotSize": 0
         },
         {
           "TickerInTradingView": "FTMUSD",
@@ -485,17 +518,19 @@
           "Risk": 0.07,
           "SLtoBEafterR": 1,
           "MaxSpread": 0.1,
-          "SLMultiplier": 1.1
+          "SLMultiplier": 1.1,
+          "MaxLotSize": 0
         },
         {
-          "TickerInTradingView": "AXSUSD",
-          "TickerInMetatrader": "AXSUSDT",
+          "TickerInTradingView": "SOLUSD",
+          "TickerInMetatrader": "SOLUSDT",
           "Timeframe": "M5",
           "StrategyNr": 5,
           "Risk": 0.07,
           "SLtoBEafterR": 1,
           "MaxSpread": 0.1,
-          "SLMultiplier": 1.1
+          "SLMultiplier": 1.1,
+          "MaxLotSize": 0
         },
         {
           "TickerInTradingView": "ADAUSD",
@@ -505,7 +540,8 @@
           "Risk": 0.07,
           "SLtoBEafterR": 1,
           "MaxSpread": 0.1,
-          "SLMultiplier": 1.1
+          "SLMultiplier": 1.1,
+          "MaxLotSize": 0
         },
         {
           "TickerInTradingView": "FILUSD",
@@ -515,7 +551,8 @@
           "Risk": 0.07,
           "SLtoBEafterR": 1,
           "MaxSpread": 0.1,
-          "SLMultiplier": 1.1
+          "SLMultiplier": 1.1,
+          "MaxLotSize": 0
         },
         {
           "TickerInTradingView": "GRTUSD",
@@ -525,7 +562,8 @@
           "Risk": 0.07,
           "SLtoBEafterR": 1,
           "MaxSpread": 0.1,
-          "SLMultiplier": 1.1
+          "SLMultiplier": 1.1,
+          "MaxLotSize": 0
         },
         {
           "TickerInTradingView": "MKRUSD",
@@ -534,8 +572,9 @@
           "StrategyNr": 5,
           "Risk": 0.07,
           "SLtoBEafterR": 1,
-          "MaxSpread": 0.0,
-          "SLMultiplier": 1.1
+          "MaxSpread": 3,
+          "SLMultiplier": 1.1,
+          "MaxLotSize": 0
         },
         {
           "TickerInTradingView": "SKLUSD",
@@ -545,7 +584,30 @@
           "Risk": 0.07,
           "SLtoBEafterR": 1,
           "MaxSpread": 0.1,
-          "SLMultiplier": 1.1
+          "SLMultiplier": 1.1,
+          "MaxLotSize": 0
+        },
+        {
+          "TickerInTradingView": "STORJUSD",
+          "TickerInMetatrader": "STORJUSDT",
+          "Timeframe": "M5",
+          "StrategyNr": 5,
+          "Risk": 0.07,
+          "SLtoBEafterR": 1,
+          "MaxSpread": 0.1,
+          "SLMultiplier": 1.15,
+          "MaxLotSize": 0
+        },
+        {
+          "TickerInTradingView": "UNIUSD",
+          "TickerInMetatrader": "UNIUSDT",
+          "Timeframe": "M5",
+          "StrategyNr": 5,
+          "Risk": 0.07,
+          "SLtoBEafterR": 1,
+          "MaxSpread": 0.1,
+          "SLMultiplier": 1.1,
+          "MaxLotSize": 0
         }
       ]
     },
@@ -589,7 +651,8 @@
           "Risk": 0.1,
           "SLtoBEafterR": 0.75,
           "MaxSpread": 30.0,
-          "SLMultiplier": 1.2
+          "SLMultiplier": 1.2,
+          "MaxLotSize": 0
         },
         {
           "TickerInTradingView": "ETHUSD",
@@ -599,7 +662,8 @@
           "Risk": 0.1,
           "SLtoBEafterR": 0.75,
           "MaxSpread": 3.0,
-          "SLMultiplier": 1.2
+          "SLMultiplier": 1.2,
+          "MaxLotSize": 0
         },
         {
           "TickerInTradingView": "XJO",
@@ -609,7 +673,8 @@
           "Risk": 0.1,
           "SLtoBEafterR": 1,
           "MaxSpread": 0.0,
-          "SLMultiplier": 1.2
+          "SLMultiplier": 1.2,
+          "MaxLotSize": 0
         },
         {
           "TickerInTradingView": "UKX",
@@ -618,7 +683,8 @@
           "StrategyNr": 4,
           "Risk": 0.1,
           "SLtoBEafterR": 1,
-          "MaxSpread": 0.0
+          "MaxSpread": 0.0,
+          "MaxLotSize": 0
         },
         {
           "TickerInTradingView": "SPX",
@@ -628,7 +694,8 @@
           "Risk": 0.1,
           "SLtoBEafterR": 1,
           "MaxSpread": 0.0,
-          "SLMultiplier": 1.2
+          "SLMultiplier": 1.2,
+          "MaxLotSize": 0
         }
       ]
     }

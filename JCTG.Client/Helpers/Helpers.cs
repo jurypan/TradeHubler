@@ -74,6 +74,11 @@ namespace JCTG.Client
             return value.ToString("G", CultureInfo.CreateSpecificCulture("en-US"));
         }
 
+        public static string Format(decimal value)
+        {
+            return value.ToString("G", CultureInfo.CreateSpecificCulture("en-US"));
+        }
+
         public static async Task<string> TryReadFileAsync(string path)
         {
             try

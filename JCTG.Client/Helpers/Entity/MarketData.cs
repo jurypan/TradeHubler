@@ -1,19 +1,20 @@
 ﻿using Newtonsoft.Json;
+using System.Globalization;
 
 namespace JCTG.Client
 {
     public class MarketData
     {
         [JsonProperty("ask")]
-        public double Ask { get; set; }
+        public decimal Ask { get; set; }
 
 
         [JsonProperty("bid")]
-        public double Bid { get; set; }
+        public decimal Bid { get; set; }
 
 
         [JsonProperty("tick_value")]
-        public double TickValue { get; set; }
+        public decimal TickValue { get; set; }
 
 
         [JsonProperty("min_lot_size")]
@@ -29,7 +30,7 @@ namespace JCTG.Client
 
 
         [JsonProperty("tick_size")]
-        public double TickSize { get; set; }
+        public decimal TickSize { get; set; }
 
         public int Digits 
         {
@@ -40,27 +41,27 @@ namespace JCTG.Client
         }
 
         [JsonProperty("atr_M5")]
-        public double ATR5M { get; set; }
+        public decimal ATR5M { get; set; }
 
 
         [JsonProperty("atr_M15")]
-        public double ATR15M { get; set; }
+        public decimal ATR15M { get; set; }
 
 
         [JsonProperty("atr_H1")]
-        public double ATR1H { get; set; }
+        public decimal ATR1H { get; set; }
 
 
         [JsonProperty("atr_D")]
-        public double ATRD { get; set; }
+        public decimal ATRD { get; set; }
 
 
         [JsonProperty("magic")]
         public int Magic { get; set; }
 
-        public static int CountSignificantDigits(double number)
+        public static int CountSignificantDigits(decimal number)
         {
-            string numberAsString = number.ToString().TrimEnd('0');
+            string numberAsString = number.ToString(CultureInfo.InvariantCulture).TrimEnd('0');
 
             int decimalPointIndex = numberAsString.IndexOf('.');
             if (decimalPointIndex == -1)

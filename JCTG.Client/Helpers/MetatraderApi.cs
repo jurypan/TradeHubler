@@ -67,10 +67,10 @@ namespace JCTG.Client
         public delegate void OnLogEventHandler(long clientId, long id, Log log);
         public event OnLogEventHandler? OnLogEvent;
 
-        public delegate void OnTickEventHandler(long clientId, string symbol, double bid, double ask, double tickValue);
+        public delegate void OnTickEventHandler(long clientId, string symbol, decimal bid, decimal ask, decimal tickValue);
         public event OnTickEventHandler? OnTickEvent;
 
-        public delegate void OnBarDataEventHandler(long clientId, string symbol, string timeFrame, DateTime time, double open, double high, double low, double close, int tickVolume);
+        public delegate void OnBarDataEventHandler(long clientId, string symbol, string timeFrame, DateTime time, decimal open, decimal high, decimal low, decimal close, int tickVolume);
         public event OnBarDataEventHandler? OnBarDataEvent;
 
         public delegate void OnHistoricDataEventHandler(long clientId, string symbol, string timeFrame, JObject data);
@@ -212,12 +212,12 @@ namespace JCTG.Client
                                 var newOrder = new Order
                                 {
                                     Symbol = value["symbol"].ToObject<string>(),
-                                    Lots = value["lots"].ToObject<double>(),
+                                    Lots = value["lots"].ToObject<decimal>(),
                                     Type = value["type"].ToObject<string>(),
-                                    OpenPrice = value["open_price"].ToObject<double>(),
+                                    OpenPrice = value["open_price"].ToObject<decimal>(),
                                     OpenTime = DateTime.ParseExact(value["open_time"].ToString(), "yyyy.MM.dd HH:mm:ss", CultureInfo.InvariantCulture),
-                                    StopLoss = value["SL"].ToObject<double>(),
-                                    TakeProfit = value["TP"].ToObject<double>(),
+                                    StopLoss = value["SL"].ToObject<decimal>(),
+                                    TakeProfit = value["TP"].ToObject<decimal>(),
                                     Pnl = value["pnl"].ToObject<double>(),
                                     Commission = value["commission"] != null ? value["commission"].ToObject<double>() : 0.0,
                                     Swap = value["swap"].ToObject<double>(),
@@ -443,10 +443,10 @@ namespace JCTG.Client
                         {
                             Timeframe = stSplit[1],
                             Time = value["time"].ToObject<DateTime>(),
-                            Open = value["open"].ToObject<double>(),
-                            High = value["high"].ToObject<double>(),
-                            Low = value["low"].ToObject<double>(),
-                            Close = value["close"].ToObject<double>(),
+                            Open = value["open"].ToObject<decimal>(),
+                            High = value["high"].ToObject<decimal>(),
+                            Low = value["low"].ToObject<decimal>(),
+                            Close = value["close"].ToObject<decimal>(),
                             TickVolume = value["tick_volume"].ToObject<int>()
                         };
 
@@ -714,7 +714,7 @@ namespace JCTG.Client
         /// <param name="magic">Magic number</param>
         /// <param name="comment">Order comment</param>
         /// <param name="expiration"> Expiration time given as timestamp in seconds. Can be zero if the order should not have an expiration time.  </param>
-        public void ExecuteOrder(string symbol, OrderType orderType, double lots, double price, double stopLoss, double takeProfit, int magic = 0, string? comment = null, long expiration = 0)
+        public void ExecuteOrder(string symbol, OrderType orderType, decimal lots, decimal price, decimal stopLoss, decimal takeProfit, int magic = 0, string? comment = null, long expiration = 0)
         {
             string orderT = GetDescription(orderType);
 
@@ -732,7 +732,7 @@ namespace JCTG.Client
         /// <param name="stopLoss">New stop loss price</param>
         /// <param name="takeProfit">New take profit price</param>
         /// <param name="expiration">New expiration time given as timestamp in seconds. Can be zero if the order should not have an expiration time</param>
-        public void ModifyOrder(long ticket, double lots, double price, double stopLoss, double takeProfit, long expiration = 0)
+        public void ModifyOrder(long ticket, decimal lots, decimal price, decimal stopLoss, decimal takeProfit, long expiration = 0)
         {
             string content = $"{ticket},{Format(lots)},{Format(price)},{Format(stopLoss)},{Format(takeProfit)},{expiration}";
             SendCommand("MODIFY_ORDER", content);

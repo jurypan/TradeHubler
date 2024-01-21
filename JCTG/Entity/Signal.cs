@@ -18,10 +18,10 @@ namespace JCTG
         public int AccountID { get; set; }
         public string OrderType { get; set; }
         public string Instrument { get; set; }
-        public double CurrentPrice { get; set; }
-        public double EntryPrice { get; set; }
-        public double StopLoss { get; set; }
-        public double TakeProfit { get; set; }
+        public decimal CurrentPrice { get; set; }
+        public decimal EntryPrice { get; set; }
+        public decimal StopLoss { get; set; }
+        public decimal TakeProfit { get; set; }
         public long Magic { get; set; }
 
         public static Signal Parse2(string input)
@@ -41,10 +41,10 @@ namespace JCTG
 
             var optionalParams = new Dictionary<string, Action<string>>
             {
-                { "entryprice", value => tradeInfo.EntryPrice = double.Parse(value) },
-                { "currentprice", value => tradeInfo.CurrentPrice = double.Parse(value) },
-                { "sl", value => tradeInfo.StopLoss = double.Parse(value) },
-                { "tp", value => tradeInfo.TakeProfit = double.Parse(value) },
+                { "entryprice", value => tradeInfo.EntryPrice = decimal.Parse(value) },
+                { "currentprice", value => tradeInfo.CurrentPrice = decimal.Parse(value) },
+                { "sl", value => tradeInfo.StopLoss = decimal.Parse(value) },
+                { "tp", value => tradeInfo.TakeProfit = decimal.Parse(value) },
                 { "magic", value => tradeInfo.Magic = long.Parse(value) },
                 { "strategytype", value => tradeInfo.StrategyType = Enum.Parse<StrategyType>(value) }
             };
@@ -87,7 +87,7 @@ namespace JCTG
 
             // Parsing EntryPrice
             var entryPriceParts = parts[3].Split('=');
-            if (entryPriceParts.Length != 2 || !double.TryParse(entryPriceParts[1], out double entryPrice))
+            if (entryPriceParts.Length != 2 || !decimal.TryParse(entryPriceParts[1], out decimal entryPrice))
             {
                 throw new ArgumentException("Invalid EntryPrice format.");
             }
@@ -95,7 +95,7 @@ namespace JCTG
 
             // Parsing CurrentPrice
             var currentPriceParts = parts[4].Split('=');
-            if (currentPriceParts.Length != 2 || !double.TryParse(currentPriceParts[1], out double currentPrice))
+            if (currentPriceParts.Length != 2 || !decimal.TryParse(currentPriceParts[1], out decimal currentPrice))
             {
                 throw new ArgumentException("Invalid CurrentPrice format.");
             }
@@ -103,7 +103,7 @@ namespace JCTG
 
             // Parsing Stop Loss
             var slParts = parts[5].Split('=');
-            if (slParts.Length != 2 || !double.TryParse(slParts[1], out double stopLoss))
+            if (slParts.Length != 2 || !decimal.TryParse(slParts[1], out decimal stopLoss))
             {
                 throw new ArgumentException("Invalid Stop Loss format.");
             }
@@ -111,7 +111,7 @@ namespace JCTG
 
             // Take profit
             var tpParts = parts[6].Split('=');
-            if (tpParts.Length != 2 || !double.TryParse(tpParts[1], out double tp))
+            if (tpParts.Length != 2 || !decimal.TryParse(tpParts[1], out decimal tp))
             {
                 throw new ArgumentException("Invalid Risk format.");
             }

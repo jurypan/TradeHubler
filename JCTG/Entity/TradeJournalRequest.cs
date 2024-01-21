@@ -18,19 +18,19 @@
 
         public string Symbol { get; set; }
 
-        public double Lots { get; set; }
+        public decimal Lots { get; set; }
 
         public string Type { get; set; }
 
         public DateTime OpenTime { get; set; }
 
-        public double OpenPrice { get; set; }
-        public double CurrentPrice { get; set; }
-        public double Spread { get; set; }
+        public decimal OpenPrice { get; set; }
+        public decimal CurrentPrice { get; set; }
+        public decimal Spread { get; set; }
 
-        public double SL { get; set; }
+        public decimal SL { get; set; }
 
-        public double TP { get; set; }
+        public decimal TP { get; set; }
 
         public double Pnl { get; set; }
 
@@ -44,7 +44,7 @@
 
         public string? Comment { get; set; }
 
-        public double Risk { get; set; }
+        public decimal Risk { get; set; }
         public bool IsTradeClosed { get; set; }
     }
 }

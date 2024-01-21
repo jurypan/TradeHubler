@@ -139,7 +139,7 @@ namespace JCTG.Client
                                                 var lotSize = CalculateLotSize(startbalance, api.AccountInfo.Balance, pair.Risk, metadataTick.Ask, slPrice, metadataTick.TickValue, metadataTick.TickSize, metadataTick.LotStep, metadataTick.MinLotSize, metadataTick.MaxLotSize, dynRisk);
 
                                                 // do 0.0 check
-                                                if (lotSize > 0.0 && slPrice > 0.0)
+                                                if (lotSize > 0.0M && slPrice > 0.0M && (pair.MaxLotSize == 0 || pair.MaxLotSize > 0 && lotSize <= pair.MaxLotSize))
                                                 {
                                                     // Calculate TP Price
                                                     var tpPrice = CalculateTPForLong(
@@ -195,7 +195,7 @@ namespace JCTG.Client
                                                 var lotSize = CalculateLotSize(startbalance, api.AccountInfo.Balance, pair.Risk, metadataTick.Ask, slPrice, metadataTick.TickValue, metadataTick.TickSize, metadataTick.LotStep, metadataTick.MinLotSize, metadataTick.MaxLotSize, dynRisk);
 
                                                 // do 0.0 check
-                                                if (lotSize > 0.0 && slPrice > 0.0)
+                                                if (lotSize > 0.0M && slPrice > 0.0M && (pair.MaxLotSize == 0 || pair.MaxLotSize > 0 && lotSize <= pair.MaxLotSize))
                                                 {
                                                     // Calculate TP Price
                                                     var tpPrice = CalculateTPForShort(
@@ -246,7 +246,7 @@ namespace JCTG.Client
                                                 {
                                                     // Get the strategy number from the comment field
                                                     string[] components = ticketId.Value.Comment != null ? ticketId.Value.Comment.Split('/') : [];
-                                                    var offset = 0.0;
+                                                    var offset = 0.0M;
                                                     if (components != null && components.Length == 4)
                                                     {
                                                         _ = decimal.TryParse(components[1], out decimal signalEntryPrice);
@@ -254,7 +254,7 @@ namespace JCTG.Client
                                                         // LONG
                                                         // Signal Price : 1.2
                                                         // Open Price : 1.3
-                                                        offset = decimal.ToDouble(signalEntryPrice) - ticketId.Value.OpenPrice;
+                                                        offset = signalEntryPrice - ticketId.Value.OpenPrice;
                                                     }
 
                                                     // If type is SELL, the SL should be set as BE minus Spread
@@ -444,31 +444,31 @@ namespace JCTG.Client
         /// <param name="maxLotSizeAllowed"></param>
         /// <param name="spread"></param>
         /// <returns></returns>
-        public double CalculateLotSize(double startBalance, double accountBalance, double riskPercent, double openPrice, double stopLossPrice, double tickValue, double tickStep, double lotStep, double minLotSizeAllowed, double maxLotSizeAllowed, List<Risk>? riskData = null)
+        public decimal CalculateLotSize(double startBalance, double accountBalance, decimal riskPercent, decimal openPrice, decimal stopLossPrice, decimal tickValue, decimal tickStep, double lotStep, double minLotSizeAllowed, double maxLotSizeAllowed, List<Risk>? riskData = null)
         {
             // Throw exception when negative balance
             if (accountBalance <= 0)
-                return 0.0;
+                return 0.0M;
 
 
             // Calculate risk percentage
-            double dynamicRisk = ChooseClosestMultiplier(startBalance, accountBalance, riskData);
+            var dynamicRisk = ChooseClosestMultiplier(startBalance, accountBalance, riskData);
 
             // Calculate the initial lot size
-            double riskAmount = accountBalance * ((riskPercent * dynamicRisk) / 100.0);
-            double stopLossDistance = Math.Abs(openPrice - stopLossPrice);
-            double stopLossDistanceInTicks = stopLossDistance / tickStep;
-            double lotSize = riskAmount / (stopLossDistanceInTicks * tickValue);
+            var riskAmount = Convert.ToDecimal(accountBalance) * ((riskPercent * dynamicRisk) / 100.0M);
+            var stopLossDistance = Math.Abs(openPrice - stopLossPrice);
+            var stopLossDistanceInTicks = stopLossDistance / tickStep;
+            var lotSize = Convert.ToDecimal(riskAmount) / (stopLossDistanceInTicks * tickValue);
 
 
 
             // Adjusting for lot step
-            double remainder = lotSize % lotStep;
-            double adjustedLotSize = remainder == 0 ? lotSize : lotSize - remainder + (remainder >= lotStep / 2 ? lotStep : 0);
+            var remainder = lotSize % Convert.ToDecimal(lotStep);
+            var adjustedLotSize = remainder == 0 ? lotSize : lotSize - remainder + (remainder >= Convert.ToDecimal(lotStep) / 2 ? Convert.ToDecimal(lotStep) : 0);
             adjustedLotSize = Math.Round(adjustedLotSize, 2);
 
             // Bounds checking
-            return Math.Clamp(adjustedLotSize, minLotSizeAllowed, maxLotSizeAllowed);
+            return Math.Clamp(adjustedLotSize, Convert.ToDecimal(minLotSizeAllowed), Convert.ToDecimal(maxLotSizeAllowed));
         }
 
         /// <summary>
@@ -482,10 +482,10 @@ namespace JCTG.Client
         /// <param name="signalSL">Signal SL signalEntryPrice</param>
         /// <param name="signalATR">Signal ATR</param>
         /// <returns>Stop loss signalEntryPrice</returns>
-        public double CalculateSLForLong(double mtPrice, double mtSpread, int mtDigits, double signalPrice, double signalSL, double pairSlMultiplier = 1.0)
+        public decimal CalculateSLForLong(decimal mtPrice, decimal mtSpread, int mtDigits, decimal signalPrice, decimal signalSL, double pairSlMultiplier = 1.0)
         {
             // Calculate SL signalEntryPrice using MetaTrader signalEntryPrice minus risk to take
-            var slPrice = mtPrice - ((signalPrice - signalSL) * pairSlMultiplier);
+            var slPrice = mtPrice - ((signalPrice - signalSL) * Convert.ToDecimal(pairSlMultiplier));
 
             // Round
             slPrice = Math.Round(slPrice, mtDigits, MidpointRounding.AwayFromZero);
@@ -504,10 +504,10 @@ namespace JCTG.Client
         /// <param name="signalSL">Signal SL signalEntryPrice</param>
         /// <param name="signalATR">Signal ATR5M</param>
         /// <returns>Stop loss signalEntryPrice</returns>
-        public double CalculateSLForShort(double mtPrice, double mtSpread, int mtDigits, double signalPrice, double signalSL, double pairSlMultiplier = 1.0)
+        public decimal CalculateSLForShort(decimal mtPrice, decimal mtSpread, int mtDigits, decimal signalPrice, decimal signalSL, double pairSlMultiplier = 1.0)
         {
             // Calculate SL signalEntryPrice using MetaTrader signalEntryPrice minus risk to take
-            var slPrice = mtPrice + ((signalSL - signalPrice) * pairSlMultiplier);
+            var slPrice = mtPrice + ((signalSL - signalPrice) * Convert.ToDecimal(pairSlMultiplier));
 
             // Round
             slPrice = Math.Round(slPrice, mtDigits, MidpointRounding.AwayFromZero);
@@ -526,14 +526,12 @@ namespace JCTG.Client
         /// <param name="signalTP">Signal TP signalEntryPrice</param>
         /// <param name="signalATR">Signal ATR</param>
         /// <returns>Take profit signalEntryPrice</returns>
-        public double CalculateTPForLong(double mtPrice, int mtDigits, double signalPrice, double signalTP)
+        public decimal CalculateTPForLong(decimal mtPrice, int mtDigits, decimal signalPrice, decimal signalTP)
         {
-            // Calculate the ATR multiplier based on the difference between MetaTrader's ATR and TradingView's ATR
-            //var atrMultiplier = mtATR > 0 && signalATR > 0 && mtATR > signalATR ? 1.1 : 1.0;
-            var atrMultiplier = 1.0;
+            var multiplier = 1.0M;
 
             // Calculate TP signalEntryPrice using MetaTrader signalEntryPrice minus risk to take
-            var tpPrice = mtPrice + ((signalTP - signalPrice) * atrMultiplier);
+            var tpPrice = mtPrice + ((signalTP - signalPrice) * multiplier);
 
             // Round
             tpPrice = Math.Round(tpPrice, mtDigits, MidpointRounding.AwayFromZero);
@@ -551,14 +549,12 @@ namespace JCTG.Client
         /// <param name="signalTP">Signal TP signalEntryPrice</param>
         /// <param name="signalATR">Signal ATR</param>
         /// <returns>Take profit signalEntryPrice</returns>
-        public double CalculateTPForShort(double mtPrice, int mtDigits, double signalPrice, double signalTP)
+        public decimal CalculateTPForShort(decimal mtPrice, int mtDigits, decimal signalPrice, decimal signalTP)
         {
-            // Calculate the ATR multiplier based on the difference between MetaTrader's ATR and TradingView's ATR
-            //var atrMultiplier = mtATR > 0 && signalATR > 0 && mtATR > signalATR ? 1.1 : 1.0;
-            var atrMultiplier = 1.0;
+            var multiplier = 1.0M;
 
             // Calculate TP signalEntryPrice using MetaTrader signalEntryPrice minus risk to take
-            var tpPrice = mtPrice - ((signalPrice - signalTP) * atrMultiplier);
+            var tpPrice = mtPrice - ((signalPrice - signalTP) * multiplier);
 
             // Round
             tpPrice = Math.Round(tpPrice, mtDigits, MidpointRounding.AwayFromZero);
@@ -570,7 +566,7 @@ namespace JCTG.Client
 
 
 
-        private void OnBarDataEvent(long clientId, string symbol, string timeFrame, DateTime time, double open, double high, double low, double close, int tickVolume)
+        private void OnBarDataEvent(long clientId, string symbol, string timeFrame, DateTime time, decimal open, decimal high, decimal low, decimal close, int tickVolume)
         {
             // Make sure we have the instrument name right
             var instrument = symbol.Replace("_" + timeFrame.ToUpper(), string.Empty);
@@ -587,7 +583,7 @@ namespace JCTG.Client
                     {
                         // Get the strategy number from the comment field
                         string[] components = order.Value.Comment != null ? order.Value.Comment.Split('/') : [];
-                        var offset = 0.0;
+                        var offset = 0.0M;
                         var signalEntryPrice = 0.0M;
                         var signalStopLoss = 0.0M;
                         var spread = 0.0M;
@@ -602,11 +598,11 @@ namespace JCTG.Client
                             // LONG
                             // Signal Price : 1.2
                             // Open Price : 1.3
-                            offset = decimal.ToDouble(signalEntryPrice) - order.Value.OpenPrice;
+                            offset = signalEntryPrice - order.Value.OpenPrice;
                         }
 
                         // Get the right pair back from the local database
-                        var ticker = new List<Pairs>(_appConfig.Brokers.Where(f => f.ClientId == api.ClientId).SelectMany(f => f.Pairs)).FirstOrDefault(f => f.TickerInTradingView.Equals(order.Value.Symbol) && f.StrategyNr == strategyType && f.Timeframe.Equals(timeFrame));
+                        var ticker = new List<Pairs>(_appConfig.Brokers.Where(f => f.ClientId == api.ClientId).SelectMany(f => f.Pairs)).FirstOrDefault(f => f.TickerInMetatrader.Equals(order.Value.Symbol) && f.StrategyNr == strategyType && f.Timeframe.Equals(timeFrame));
 
                         // If this broker is listening to this signal and the account size is greater then zero
                         if (ticker != null && signalEntryPrice > 0 && api.MarketData != null && signalStopLoss > 0 && strategyType != StrategyType.None)
@@ -627,10 +623,10 @@ namespace JCTG.Client
                                     if (order.Value.Type?.ToUpper() == "BUY")
                                     {
                                         // If the current ASK signalEntryPrice is greater then x times the risk
-                                        if (close >= order.Value.OpenPrice + (ticker.SLtoBEafterR * decimal.ToDouble(risk)))
+                                        if (close >= (order.Value.OpenPrice + (Convert.ToDecimal(ticker.SLtoBEafterR) * risk) + offset))
                                         {
                                             // Set SL to BE
-                                            var slPrice = order.Value.OpenPrice - decimal.ToDouble(spread) + offset;
+                                            var slPrice = order.Value.OpenPrice - spread + offset;
 
                                             // Round
                                             slPrice = Math.Round(slPrice, marketdata.Value.Digits, MidpointRounding.AwayFromZero);
@@ -645,7 +641,7 @@ namespace JCTG.Client
                                                 Print("Ticker      : " + ticker.TickerInMetatrader);
                                                 Print("Order       : MODIFY SL TO BE ORDER");
                                                 Print("Lot Size    : " + order.Value.Lots);
-                                                Print("Ask       : " + order.Value.OpenPrice);
+                                                Print("Ask         : " + order.Value.OpenPrice);
                                                 Print("Stop Loss   : " + slPrice);
                                                 Print("Take Profit : " + order.Value.TakeProfit);
                                                 Print("Magic       : " + order.Value.Magic);
@@ -661,10 +657,10 @@ namespace JCTG.Client
                                     else if (order.Value.Type?.ToUpper() == "SELL")
                                     {
                                         // If the current BID signalEntryPrice is smaller then x times the risk
-                                        if (close <= order.Value.OpenPrice - (ticker.SLtoBEafterR * decimal.ToDouble(risk)))
+                                        if (close <= (order.Value.OpenPrice - (Convert.ToDecimal(ticker.SLtoBEafterR) * risk)) + offset)
                                         {
                                             // Set SL to BE
-                                            var slPrice = order.Value.OpenPrice + decimal.ToDouble(spread) + offset;
+                                            var slPrice = order.Value.OpenPrice + spread + offset;
 
                                             // Round
                                             slPrice = Math.Round(slPrice, marketdata.Value.Digits, MidpointRounding.AwayFromZero);
@@ -679,7 +675,7 @@ namespace JCTG.Client
                                                 Print("Ticker      : " + ticker.TickerInMetatrader);
                                                 Print("Order       : MODIFY SL TO BE ORDER");
                                                 Print("Lot Size    : " + order.Value.Lots);
-                                                Print("Ask       : " + order.Value.OpenPrice);
+                                                Print("Ask         : " + order.Value.OpenPrice);
                                                 Print("Stop Loss   : " + slPrice);
                                                 Print("Take Profit : " + order.Value.TakeProfit);
                                                 Print("Magic       : " + order.Value.Magic);
@@ -700,7 +696,7 @@ namespace JCTG.Client
             }
         }
 
-        private void OnTickEvent(long clientId, string symbol, double bid, double ask, double tickValue)
+        private void OnTickEvent(long clientId, string symbol, decimal bid, decimal ask, decimal tickValue)
         {
 
         }
@@ -875,11 +871,11 @@ namespace JCTG.Client
             }
         }
 
-        public static double ChooseClosestMultiplier(double startBalance, double accountBalance, List<Risk>? riskData = null)
+        public static decimal ChooseClosestMultiplier(double startBalance, double accountBalance, List<Risk>? riskData = null)
         {
             // Do null reference check
             if (startBalance <= 0 || accountBalance <= 0 || riskData == null)
-                return 1;
+                return 1M;
 
             // Calculate the percentage change
             double percentageChange = ((accountBalance - startBalance) / startBalance) * 100;
@@ -887,7 +883,7 @@ namespace JCTG.Client
             // Find the closest risk percentage
             var closestRisk = riskData.OrderBy(risk => Math.Abs(risk.Procent - percentageChange)).First();
 
-            return closestRisk.Multiplier;
+            return Convert.ToDecimal(closestRisk.Multiplier);
         }
     }
 }
