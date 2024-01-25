@@ -122,16 +122,21 @@ namespace JCTG.Client
                                             // Calculate spread
                                             var spread = Math.Round(Math.Abs(metadataTick.Ask - metadataTick.Bid), metadataTick.Digits, MidpointRounding.AwayFromZero);
 
-                                            // If is it a buy
-                                            if ((pair.MaxSpread == 0 || (pair.MaxSpread > 0 && spread < pair.MaxSpread)) && response.OrderType == "BUY")
+                                            // BUY
+                                            if ((pair.MaxSpread == 0 || (pair.MaxSpread > 0 && spread < pair.MaxSpread)) 
+                                                        && response.OrderType == "BUY" 
+                                                        && response.Price.HasValue
+                                                        && response.StopLoss.HasValue
+                                                        && response.TakeProfit.HasValue
+                                            )
                                             {
                                                 // Calculate SL Price
                                                 var slPrice = CalculateSLForLong(
                                                             mtPrice: metadataTick.Ask,
                                                             mtSpread: spread,
                                                             mtDigits: metadataTick.Digits,
-                                                            signalPrice: response.Price,
-                                                            signalSL: response.StopLoss,
+                                                            signalPrice: response.Price.Value,
+                                                            signalSL: response.StopLoss.Value,
                                                             pairSlMultiplier: pair.SLMultiplier
                                                             );
 
@@ -145,8 +150,8 @@ namespace JCTG.Client
                                                     var tpPrice = CalculateTPForLong(
                                                                 mtPrice: metadataTick.Ask,
                                                                 mtDigits: metadataTick.Digits,
-                                                                signalPrice: response.Price,
-                                                                signalTP: response.TakeProfit
+                                                                signalPrice: response.Price.Value,
+                                                                signalTP: response.TakeProfit.Value
                                                                 );
 
                                                     // Round
@@ -173,21 +178,26 @@ namespace JCTG.Client
                                                     Print("------------------------------------------------");
 
                                                     // Open order
-                                                    var comment = string.Format($"{response.SignalID}/{Math.Round(response.Price, metadataTick.Digits, MidpointRounding.AwayFromZero)}/{Math.Round(response.StopLoss, metadataTick.Digits, MidpointRounding.AwayFromZero)}/{(int)pair.StrategyNr}/{spread}");
+                                                    var comment = string.Format($"{response.SignalID}/{Math.Round(response.Price.Value, metadataTick.Digits, MidpointRounding.AwayFromZero)}/{Math.Round(response.StopLoss.Value, metadataTick.Digits, MidpointRounding.AwayFromZero)}/{(int)pair.StrategyNr}/{spread}");
                                                     api.ExecuteOrder(pair.TickerInMetatrader, OrderType.Buy, lotSize, 0, slPrice, tpPrice, (int)response.Magic, comment);
                                                 }
                                             }
 
-                                            // If is it a sell
-                                            else if ((pair.MaxSpread == 0 || (pair.MaxSpread > 0 && spread < pair.MaxSpread)) && response.OrderType == "SELL")
+                                            // SELL
+                                            else if ((pair.MaxSpread == 0 || (pair.MaxSpread > 0 && spread < pair.MaxSpread)) 
+                                                                && response.OrderType == "SELL"
+                                                                && response.Price.HasValue
+                                                                && response.StopLoss.HasValue
+                                                                && response.TakeProfit.HasValue
+                                                                )
                                             {
                                                 // Calculate SL Price
                                                 var slPrice = CalculateSLForShort(
                                                             mtPrice: metadataTick.Ask,
                                                             mtSpread: spread,
                                                             mtDigits: metadataTick.Digits,
-                                                            signalPrice: response.Price,
-                                                            signalSL: response.StopLoss,
+                                                            signalPrice: response.Price.Value,
+                                                            signalSL: response.StopLoss.Value,
                                                             pairSlMultiplier: pair.SLMultiplier
                                                             );
 
@@ -201,8 +211,8 @@ namespace JCTG.Client
                                                     var tpPrice = CalculateTPForShort(
                                                                 mtPrice: metadataTick.Ask,
                                                                 mtDigits: metadataTick.Digits,
-                                                                signalPrice: response.Price,
-                                                                signalTP: response.TakeProfit
+                                                                signalPrice: response.Price.Value,
+                                                                signalTP: response.TakeProfit.Value
                                                                 );
 
                                                     // Round
@@ -230,12 +240,12 @@ namespace JCTG.Client
 
 
                                                     // Open order
-                                                    var comment = string.Format($"{response.SignalID}/{Math.Round(response.Price, metadataTick.Digits, MidpointRounding.AwayFromZero)}/{Math.Round(response.StopLoss, metadataTick.Digits, MidpointRounding.AwayFromZero)}/{(int)pair.StrategyNr}/{spread}");
+                                                    var comment = string.Format($"{response.SignalID}/{Math.Round(response.Price.Value, metadataTick.Digits, MidpointRounding.AwayFromZero)}/{Math.Round(response.StopLoss.Value, metadataTick.Digits, MidpointRounding.AwayFromZero)}/{(int)pair.StrategyNr}/{spread}");
                                                     api.ExecuteOrder(pair.TickerInMetatrader, OrderType.Sell, lotSize, 0, slPrice, tpPrice, (int)response.Magic, comment);
                                                 }
                                             }
 
-                                            // Modify Stop Loss to Break Even
+                                            // MODIFYSLTOBE
                                             else if (response.OrderType == "MODIFYSLTOBE" && response.Magic > 0)
                                             {
                                                 // Check if the ticket still exist as open order
@@ -296,7 +306,11 @@ namespace JCTG.Client
                                             }
 
                                             // Modify Stop Loss
-                                            else if (response.OrderType == "MODIFYSL" && response.Magic > 0)
+                                            else if (response.OrderType == "MODIFYSL" 
+                                                            && response.Magic > 0
+                                                            && response.Price.HasValue
+                                                            && response.StopLoss.HasValue
+                                                            )
                                             {
                                                 // Check if the ticket still exist as open order
                                                 var ticketId = api.OpenOrders.FirstOrDefault(f => f.Value.Magic == response.Magic);
@@ -311,10 +325,10 @@ namespace JCTG.Client
                                                     if (marketdata.Key != null)
                                                     {
                                                         // Calculate offset
-                                                        var offset = Math.Round(response.Price - marketdata.Value.Ask, 4, MidpointRounding.AwayFromZero);
+                                                        var offset = Math.Round(response.Price.Value - marketdata.Value.Ask, 4, MidpointRounding.AwayFromZero);
 
                                                         // Signal minus offset
-                                                        var sl = response.StopLoss - offset;
+                                                        var sl = response.StopLoss.Value - offset;
 
                                                         // If SL is 
                                                         if (ticketId.Value.Type?.ToUpper() == "BUY" && response.StopLoss > ticketId.Value.OpenPrice)
@@ -357,7 +371,9 @@ namespace JCTG.Client
                                             }
 
                                             // Close trade
-                                            else if (response.OrderType == "CLOSE" && response.Magic > 0)
+                                            else if (response.OrderType == "CLOSE" 
+                                                            && response.Magic > 0
+                                                            )
                                             {
                                                 // Check if the ticket still exist as open order
                                                 var ticketId = api.OpenOrders.FirstOrDefault(f => f.Value.Magic == response.Magic);

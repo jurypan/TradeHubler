@@ -16,27 +16,28 @@ namespace JCTG
         public StrategyType StrategyType { get; set; }
         public Account Account { get; set; }
         public int AccountID { get; set; }
+        public long Magic { get; set; }
         public string OrderType { get; set; }
         public string Instrument { get; set; }
-        public decimal CurrentPrice { get; set; }
-        public decimal EntryPrice { get; set; }
-        public decimal StopLoss { get; set; }
-        public decimal TakeProfit { get; set; }
-        public long Magic { get; set; }
+        public decimal? CurrentPrice { get; set; }
+        public decimal? EntryPrice { get; set; }
+        public decimal? StopLoss { get; set; }
+        public decimal? TakeProfit { get; set; }
+        
 
-        public static Signal Parse2(string input)
+        public static Signal Parse(string input)
         {
             var parts = input.Split(',');
             if (parts.Length < 3)
             {
-                throw new ArgumentException("Insufficient data. ID, Action, and Symbol are mandatory.");
+                throw new ArgumentException("Insufficient data. AccountID, Order Type, and Symbol are mandatory.");
             }
 
             var tradeInfo = new Signal
             {
-                ID = long.Parse(parts[0]),
-                OrderType = parts[1],
-                Instrument = parts[2]
+                AccountID = int.Parse(parts[0]),
+                OrderType = parts[1].ToUpper(),
+                Instrument = parts[2].ToUpper()
             };
 
             var optionalParams = new Dictionary<string, Action<string>>
@@ -59,81 +60,6 @@ namespace JCTG
             }
 
             return tradeInfo;
-        }
-
-        public static Signal Parse(string input)
-        {
-            var parts = input.Split(',');
-
-            if (parts.Length < 9)
-            {
-                throw new ArgumentException("Input string does not have the correct format.");
-            }
-
-            var order = new Signal();
-
-            // Parsing ID
-            if (!int.TryParse(parts[0], out int id))
-            {
-                throw new ArgumentException("Invalid ID format.");
-            }
-            order.AccountID = id;
-
-            // Parsing OrderType
-            order.OrderType = parts[1].ToUpper();
-
-            // Parsing TickerInMetatrader
-            order.Instrument = parts[2].ToUpper();
-
-            // Parsing EntryPrice
-            var entryPriceParts = parts[3].Split('=');
-            if (entryPriceParts.Length != 2 || !decimal.TryParse(entryPriceParts[1], out decimal entryPrice))
-            {
-                throw new ArgumentException("Invalid EntryPrice format.");
-            }
-            order.EntryPrice = entryPrice;
-
-            // Parsing CurrentPrice
-            var currentPriceParts = parts[4].Split('=');
-            if (currentPriceParts.Length != 2 || !decimal.TryParse(currentPriceParts[1], out decimal currentPrice))
-            {
-                throw new ArgumentException("Invalid CurrentPrice format.");
-            }
-            order.CurrentPrice = currentPrice;
-
-            // Parsing Stop Loss
-            var slParts = parts[5].Split('=');
-            if (slParts.Length != 2 || !decimal.TryParse(slParts[1], out decimal stopLoss))
-            {
-                throw new ArgumentException("Invalid Stop Loss format.");
-            }
-            order.StopLoss = stopLoss;
-
-            // Take profit
-            var tpParts = parts[6].Split('=');
-            if (tpParts.Length != 2 || !decimal.TryParse(tpParts[1], out decimal tp))
-            {
-                throw new ArgumentException("Invalid Risk format.");
-            }
-            order.TakeProfit = tp;
-
-            // Parsing magic
-            var magicPars = parts[7].Split('=');
-            if (magicPars.Length != 2 || !int.TryParse(magicPars[1], out int magic))
-            {
-                throw new ArgumentException("Invalid Magic format.");
-            }
-            order.Magic = magic;
-
-            // Parse strategy type
-            var strParts = parts[8].Split('=');
-            if (strParts.Length != 2 || !int.TryParse(strParts[1], out int strategy))
-            {
-                throw new ArgumentException("Invalid StrategyType format.");
-            }
-            order.StrategyType = (StrategyType)strategy;
-
-            return order;
         }
     }
 }
