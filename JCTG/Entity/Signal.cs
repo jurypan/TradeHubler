@@ -20,10 +20,18 @@ namespace JCTG
         public string OrderType { get; set; }
         public string Instrument { get; set; }
         public decimal? CurrentPrice { get; set; }
+
+        // Optional BUY or SELL
         public decimal? EntryPrice { get; set; }
         public decimal? StopLoss { get; set; }
         public decimal? TakeProfit { get; set; }
-        
+
+
+        // Optional BUYSTOP or SELLSTOP
+        public string? EntryExpression { get; set; }
+        public decimal? Risk { get; set; }
+        public decimal? RiskRewardRatio { get; set; }
+
 
         public static Signal Parse(string input)
         {
@@ -47,7 +55,10 @@ namespace JCTG
                 { "sl", value => tradeInfo.StopLoss = decimal.Parse(value) },
                 { "tp", value => tradeInfo.TakeProfit = decimal.Parse(value) },
                 { "magic", value => tradeInfo.Magic = long.Parse(value) },
-                { "strategytype", value => tradeInfo.StrategyType = Enum.Parse<StrategyType>(value) }
+                { "strategytype", value => tradeInfo.StrategyType = Enum.Parse<StrategyType>(value) },
+                { "entryexpr", value => tradeInfo.EntryExpression = value },
+                { "risk", value => tradeInfo.Risk = decimal.Parse(value) },
+                { "rr", value => tradeInfo.RiskRewardRatio = decimal.Parse(value)  },
             };
 
             foreach (var part in parts[3..])

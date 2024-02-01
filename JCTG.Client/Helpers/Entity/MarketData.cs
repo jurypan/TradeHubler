@@ -5,12 +5,22 @@ namespace JCTG.Client
 {
     public class MarketData
     {
-        [JsonProperty("ask")]
-        public decimal Ask { get; set; }
+        private decimal _ask;
+        private decimal _bid;
 
+        [JsonProperty("ask")]
+        public decimal Ask
+        {
+            get { return Math.Round(_ask, Digits, MidpointRounding.AwayFromZero); }
+            set { _ask = value; }
+        }
 
         [JsonProperty("bid")]
-        public decimal Bid { get; set; }
+        public decimal Bid
+        {
+            get { return Math.Round(_bid, Digits, MidpointRounding.AwayFromZero); }
+            set { _bid = value; }
+        }
 
 
         [JsonProperty("tick_value")]

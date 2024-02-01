@@ -44,7 +44,7 @@ namespace JCTG.AzureFunction
                     var signal = Signal.Parse(requestBody);
 
                     // TradeJournal item
-                    _logger.LogInformation($"Parse object to Signal : AccountID={signal.AccountID}, Type={signal.OrderType}, TickerInMetatrader={signal.Instrument}, CurrentPrice={signal.CurrentPrice}, SL={signal.StopLoss}, TP={signal.TakeProfit}, Magic={signal.Magic}", signal);
+                    _logger.LogInformation($"Parse object to Signal : AccountID={signal.AccountID}, Type={signal.OrderType}, TickerInMetatrader={signal.Instrument}, CurrentPrice={signal.CurrentPrice}, SL={signal.StopLoss}, TP={signal.TakeProfit}, EntryExpr={signal.EntryExpression}, Risk={signal.Risk}, RRR={signal.RiskRewardRatio}, Magic={signal.Magic}", signal);
 
                     // Save into the database
                     await _dbContext.Signal.AddAsync(signal);
@@ -65,9 +65,16 @@ namespace JCTG.AzureFunction
                         Magic = signal.Magic,
                         OrderType = signal.OrderType,
                         Price = signal.EntryPrice,
+
+                        // Optional BUY or SELL
                         StopLoss = signal.StopLoss,
                         StrategyType = signal.StrategyType,
                         TakeProfit = signal.TakeProfit,
+
+                        // Optional BUYSTOP or SELLSTOP
+                        EntryExpression = signal.EntryExpression,
+                        Risk = signal.Risk,
+                        RiskRewardRatio = signal.RiskRewardRatio,
                     };
 
                     // Send to all clients

@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 
 namespace JCTG.Client
 {
@@ -56,6 +57,8 @@ namespace JCTG.Client
         public decimal MaxSpread { get; set; }
         public double SLMultiplier { get; set; }
         public int MaxLotSize { get; set; }
+        [JsonConverter(typeof(StringEnumConverter))]
+        public OrderExecType OrderExecType { get; set; }
     }
 
     public class Risk

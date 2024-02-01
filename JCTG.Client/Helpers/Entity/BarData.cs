@@ -1,4 +1,6 @@
-﻿namespace JCTG.Client
+﻿using Newtonsoft.Json;
+
+namespace JCTG.Client
 {
     public class BarData
     {

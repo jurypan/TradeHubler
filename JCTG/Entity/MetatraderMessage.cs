@@ -11,10 +11,15 @@
         public long Magic { get; set; }
 
 
-        // Optional
+        // Optional BUY or SELL
         public decimal? Price { get; set; }
         public decimal? StopLoss { get; set; }
         public decimal? TakeProfit { get; set; }
-        
+
+
+        // Optional BUYSTOP or SELLSTOP
+        public string? EntryExpression { get; set; }
+        public decimal? Risk { get; set; }
+        public decimal? RiskRewardRatio { get; set; }
     }
 }

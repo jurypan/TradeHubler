@@ -1,4 +1,6 @@
+using System.Diagnostics.Metrics;
 using System.Globalization;
+using System.Runtime.InteropServices;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using static JCTG.Client.Helpers;
@@ -8,6 +10,8 @@ namespace JCTG.Client
 {
     public class MetatraderApi
     {
+        private AutoResetEvent _resetHistoricBarDataEvent = new AutoResetEvent(false);
+
         private readonly string MetaTraderDirPath;
         private readonly int sleepDelay;
         private readonly int maxRetryCommandSeconds;
@@ -17,7 +21,7 @@ namespace JCTG.Client
         private readonly string pathOrders;
         private readonly string pathMessages;
         private readonly string pathMarketData;
-        private readonly string pathBarData;
+        private readonly string pathCandleCloseData;
         private readonly string pathHistoricData;
         private readonly string pathHistoricTrades;
         private readonly string pathOrdersStored;
@@ -30,7 +34,7 @@ namespace JCTG.Client
         private string lastOpenOrdersStr = "";
         private string lastMessagesStr = "";
         private string lastMarketDataStr = "";
-        private string lastBarDataStr = "";
+        private string lastCandleCloseStr = "";
         private string lastHistoricDataStr = "";
         private string lastHistoricTradesStr = "";
 
@@ -38,11 +42,9 @@ namespace JCTG.Client
         public Dictionary<long, Order> OpenOrders { get; set; }
         public AccountInfo? AccountInfo { get; set; }
         public Dictionary<string, MarketData> MarketData { get; set; }
-        public Dictionary<string, BarData> BarData { get; set; }
+        public Dictionary<string, BarData> LastBarData { get; set; }
 
-
-        public JObject HistoricData = new JObject();
-        public Dictionary<string, TradeData> Trades { get; set; }
+        public Dictionary<string, HistoricBarData> HistoricData { get; set; }
         public long ClientId { get; set; }
 
         public bool ACTIVE = true;
@@ -70,14 +72,12 @@ namespace JCTG.Client
         public delegate void OnTickEventHandler(long clientId, string symbol, decimal bid, decimal ask, decimal tickValue);
         public event OnTickEventHandler? OnTickEvent;
 
-        public delegate void OnBarDataEventHandler(long clientId, string symbol, string timeFrame, DateTime time, decimal open, decimal high, decimal low, decimal close, int tickVolume);
-        public event OnBarDataEventHandler? OnBarDataEvent;
+        public delegate void OnCandleCloseEventHandler(long clientId, string symbol, string timeFrame, DateTime time, decimal open, decimal high, decimal low, decimal close, int tickVolume);
+        public event OnCandleCloseEventHandler? OnCandleCloseEvent;
 
-        public delegate void OnHistoricDataEventHandler(long clientId, string symbol, string timeFrame, JObject data);
-        public event OnHistoricDataEventHandler? OnTradeDataEvent;
+        public delegate void OnHistoricDataEventHandler(long clientId);
+        public event OnHistoricDataEventHandler? OnHistoricDataEvent;
 
-        public delegate void OnTradeEventHandler(long clientId);
-        public event OnTradeEventHandler? OnTradeEvent;
 
 
         public MetatraderApi(string MetaTraderDirPath, long clientId, int sleepDelay, int maxRetryCommandSeconds, bool loadOrdersFromFile, bool verbose)
@@ -98,7 +98,7 @@ namespace JCTG.Client
             this.pathOrders = Path.Join(MetaTraderDirPath, "DWX", "DWX_Orders.txt");
             this.pathMessages = Path.Join(MetaTraderDirPath, "DWX", "DWX_Messages.txt");
             this.pathMarketData = Path.Join(MetaTraderDirPath, "DWX", "DWX_Market_Data.txt");
-            this.pathBarData = Path.Join(MetaTraderDirPath, "DWX", "DWX_Bar_Data.txt");
+            this.pathCandleCloseData = Path.Join(MetaTraderDirPath, "DWX", "DWX_Bar_Data.txt");
             this.pathHistoricData = Path.Join(MetaTraderDirPath, "DWX", "DWX_Historic_Data.txt");
             this.pathHistoricTrades = Path.Join(MetaTraderDirPath, "DWX", "DWX_Historic_Trades.txt");
             this.pathOrdersStored = Path.Join(MetaTraderDirPath, "DWX", "DWX_Orders_Stored.txt");
@@ -127,7 +127,7 @@ namespace JCTG.Client
             this.marketDataThread = new Thread(async () => await CheckMarketDataAsync());
             this.marketDataThread?.Start();
 
-            this.barDataThread = new Thread(async () => await CheckBarDataAsync());
+            this.barDataThread = new Thread(async () => await CheckCandleCloseAsync());
             this.barDataThread?.Start();
 
             this.historicDataThread = new Thread(async () => await CheckHistoricDataAsync());
@@ -397,7 +397,7 @@ namespace JCTG.Client
         /// <summary>
         /// Regularly checks the file for bar data and triggers the eventHandler.OnBarData() function.
         /// </summary>
-        private async Task CheckBarDataAsync()
+        private async Task CheckCandleCloseAsync()
         {
             while (ACTIVE)
             {
@@ -406,12 +406,12 @@ namespace JCTG.Client
                 if (!START)
                     continue;
 
-                string text = await TryReadFileAsync(pathBarData);
+                string text = await TryReadFileAsync(pathCandleCloseData);
 
-                if (text.Length == 0 || text.Equals(lastBarDataStr))
+                if (text.Length == 0 || text.Equals(lastCandleCloseStr))
                     continue;
 
-                lastBarDataStr = text;
+                lastCandleCloseStr = text;
 
                 JObject data;
 
@@ -427,8 +427,8 @@ namespace JCTG.Client
                 if (data == null)
                     continue;
 
-                if (BarData == null)
-                    BarData = new Dictionary<string, BarData>();
+                if (LastBarData == null)
+                    LastBarData = [];
 
                 foreach (var property in data.Properties())
                 {
@@ -438,6 +438,8 @@ namespace JCTG.Client
                         string[] stSplit = property.Name.Split("_");
                         if (stSplit.Length != 2)
                             continue;
+
+                        var instrument = stSplit[0];
 
                         var newBarData = new BarData
                         {
@@ -451,10 +453,10 @@ namespace JCTG.Client
                         };
 
                         // Check if the ticker already has previous values
-                        if (BarData.TryGetValue(property.Name, out var previousData))
+                        if (LastBarData.TryGetValue(property.Name, out var previousData))
                         {
                             // Update the previous values
-                            BarData[property.Name] = new BarData
+                            LastBarData[property.Name] = new BarData
                             {
                                 Timeframe = newBarData.Timeframe,
                                 Time = newBarData.Time,
@@ -465,17 +467,14 @@ namespace JCTG.Client
                                 TickVolume = newBarData.TickVolume
 
                             };
-                            // Check if the values have changed
-                            if (newBarData.Timeframe != previousData.Timeframe || newBarData.Time != previousData.Time || newBarData.Open != previousData.Open || newBarData.High != previousData.High || newBarData.Low != previousData.Low || newBarData.Close != previousData.Close)
-                            {
-                                // Invoke the event
-                                OnBarDataEvent?.Invoke(ClientId, property.Name, newBarData.Timeframe, newBarData.Time, newBarData.Open, newBarData.High, newBarData.Low, newBarData.Close, newBarData.TickVolume);
-                            }
+
+                            // Invoke the event
+                            OnCandleCloseEvent?.Invoke(ClientId, property.Name, newBarData.Timeframe, newBarData.Time, newBarData.Open, newBarData.High, newBarData.Low, newBarData.Close, newBarData.TickVolume);
                         }
                         else
                         {
                             // If it's a new ticker, add it to the dictionary and invoke the event
-                            BarData.Add(property.Name, new BarData
+                            LastBarData.Add(property.Name, new BarData
                             {
                                 Timeframe = newBarData.Timeframe,
                                 Time = newBarData.Time,
@@ -487,7 +486,25 @@ namespace JCTG.Client
                             });
 
                             // Invoke the event
-                            OnBarDataEvent?.Invoke(ClientId, property.Name, newBarData.Timeframe, newBarData.Time, newBarData.Open, newBarData.High, newBarData.Low, newBarData.Close, newBarData.TickVolume);
+                            OnCandleCloseEvent?.Invoke(ClientId, property.Name, newBarData.Timeframe, newBarData.Time, newBarData.Open, newBarData.High, newBarData.Low, newBarData.Close, newBarData.TickVolume);
+                        }
+
+                        // Update the historic data
+                        if (HistoricData == null)
+                            HistoricData = new Dictionary<string, HistoricBarData>();
+
+                        // Update historic candles
+                        if (HistoricData.ContainsKey(instrument))
+                        {
+                            // Update the previous values
+                            if (!HistoricData[instrument].BarData.Any(f => f.Time == newBarData.Time && f.Timeframe == newBarData.Timeframe))
+                                HistoricData[instrument].BarData.Add(newBarData);
+                        }
+                        else
+                        {
+                            var hbd = new HistoricBarData();
+                            hbd.BarData.Add(newBarData);
+                            HistoricData.Add(instrument, hbd);
                         }
                     }
                 }
@@ -508,11 +525,14 @@ namespace JCTG.Client
                 if (!START)
                     continue;
 
+                // Read file
                 string text = await TryReadFileAsync(pathHistoricData);
 
-                if (text.Length > 0 && !text.Equals(lastHistoricDataStr))
+                // Make sure the import is new
+                if (text.Length > 0 && !text.Equals(lastHistoricTradesStr))
                 {
-                    lastHistoricDataStr = text;
+                    // Set new text file to the variable
+                    lastHistoricTradesStr = text;
 
                     JObject data;
 
@@ -522,64 +542,74 @@ namespace JCTG.Client
                     }
                     catch
                     {
-                        data = null;
+                        continue;
                     }
 
-                    if (data != null)
+                    if (data == null)
+                        continue;
+
+                    if (HistoricData == null)
+                        HistoricData = new Dictionary<string, HistoricBarData>();
+
+                    foreach (var property in data.Properties())
                     {
-                        foreach (var x in data)
+                        var items = property.Value as JArray;
+                        if (items != null)
                         {
-                            HistoricData[x.Key] = data[x.Key];
-                        }
+                            string[] stSplit = property.Name.Split("_");
+                            if (stSplit.Length != 2)
+                                continue;
 
-                        //TryDeleteFile(pathHistoricData);
+                            var instrument = stSplit[0];
 
-                        if (OnTradeDataEvent != null)
-                        {
-                            foreach (var x in data)
+                            foreach (var item in items)
                             {
-                                string st = x.Key;
-                                string[] stSplit = st.Split("_");
-                                if (stSplit.Length != 2)
-                                    continue;
-                                // JObject jo = (JObject)BarData[symbol];
-                                OnTradeDataEvent?.Invoke(ClientId, stSplit[0], stSplit[1], (JObject)data[x.Key]);
+                                if (HistoricData.ContainsKey(instrument))
+                                {
+                                    var obj = new BarData
+                                    {
+                                        Timeframe = stSplit[1],
+                                        Time = item["time"].ToObject<DateTime>(),
+                                        Open = item["open"].ToObject<decimal>(),
+                                        High = item["high"].ToObject<decimal>(),
+                                        Low = item["low"].ToObject<decimal>(),
+                                        Close = item["close"].ToObject<decimal>(),
+                                        TickVolume = item["tick_volume"].ToObject<int>()
+                                    };
+                                    // Update the previous values
+                                    if (!HistoricData[instrument].BarData.Any(f => f.Time == obj.Time && f.Timeframe == obj.Timeframe))
+                                        HistoricData[instrument].BarData.Add(obj);
+                                }
+                                else
+                                {
+                                    var hbd = new HistoricBarData();
+                                    hbd.BarData.Add(new BarData
+                                    {
+                                        Timeframe = stSplit[1],
+                                        Time = item["time"].ToObject<DateTime>(),
+                                        Open = item["open"].ToObject<decimal>(),
+                                        High = item["high"].ToObject<decimal>(),
+                                        Low = item["low"].ToObject<decimal>(),
+                                        Close = item["close"].ToObject<decimal>(),
+                                        TickVolume = item["tick_volume"].ToObject<int>()
+                                    });
+                                    HistoricData.Add(instrument, hbd);
+                                }
                             }
                         }
                     }
 
+                    // Trigger event
+                    OnHistoricDataEvent?.Invoke(ClientId);
 
-                }
+                    // Signal that the current data processing is complete
+                    _resetHistoricBarDataEvent.Set();
 
-                // Read file
-                text = await TryReadFileAsync(pathHistoricTrades);
-
-                // Make sure the import is new
-                if (text.Length > 0 && !text.Equals(lastHistoricTradesStr))
-                {
-                    // Set new text file to the variable
-                    lastHistoricTradesStr = text;
-
-                    // Deserialize
-                    var data = JsonConvert.DeserializeObject<Dictionary<string, TradeData>>(text);
-
-                    // Null reference check
-                    if (data != null)
-                    {
-                        // Set the objects to the property
-                        Trades = data;
-
-                        // Delete the file on the disk
-                        //TryDeleteFile(pathHistoricTrades);
-
-                        // Invoke event
-                        OnTradeEvent?.Invoke(ClientId);
-                    }
+                    // Delete file
+                    TryDeleteFile(pathHistoricData);
                 }
             }
         }
-
-
 
         /// <summary>
         /// Loads stored orders from file (in case of a restart). 
@@ -642,7 +672,7 @@ namespace JCTG.Client
 
             lastMessagesStr = text;
 
-            //here we don't have to sort because we just need the latest millis value. 
+            //here we don't have to sort because we just need the latest millis items. 
             foreach (var x in data)
             {
                 long millis = Int64.Parse(x.Key);
@@ -676,6 +706,27 @@ namespace JCTG.Client
             SendCommand("SUBSCRIBE_SYMBOLS_BAR_DATA", content);
         }
 
+        /// <summary>
+        /// Sends a GET_HISTORIC_DATA command to request historic data.
+        /// </summary>
+        /// <param name="symbol"> Symbol to get historic data</param>
+        /// <param name="timeFrame">Time frame for the requested data</param>
+        /// <param name="start">Start timestamp (seconds since epoch) of the requested data</param>
+        /// <param name="end">End timestamp of the requested data</param>
+        public void GetHistoricData(List<KeyValuePair<string, string>> symbols)
+        {
+            foreach (var sym in symbols)
+            {
+                // Send the command
+                GetHistoricData(sym.Key, sym.Value, DateTimeOffset.UtcNow.AddDays(-1), DateTimeOffset.UtcNow);
+
+                // Wait for the event to be triggered
+                _resetHistoricBarDataEvent.WaitOne();
+
+                // Sleep 500ms
+                Thread.Sleep(500);
+            }
+        }
 
         /// <summary>
         /// Sends a GET_HISTORIC_DATA command to request historic data.
@@ -689,8 +740,6 @@ namespace JCTG.Client
             string content = symbol + "," + timeFrame + "," + start.ToUnixTimeSeconds() + "," + end.ToUnixTimeSeconds();
             SendCommand("GET_HISTORIC_DATA", content);
         }
-
-
 
         /// <summary>
         /// Sends a GET_HISTORIC_TRADES command to request historic trades. The data will be stored in HistoricTrades.  On receiving the data the eventHandler.OnHistoricTrades()  function will be triggered.

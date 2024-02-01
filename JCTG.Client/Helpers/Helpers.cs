@@ -89,7 +89,14 @@ namespace JCTG.Client
             {
                 if(ex.Message.Contains("Could not find file"))
                 {
-                    File.Create(path).Close();
+                    try
+                    {
+                        File.Create(path).Close();
+                    }
+                    catch
+                    {
+                        return string.Empty;
+                    }
                 }
                 return string.Empty;
             }
