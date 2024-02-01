@@ -61,7 +61,7 @@ namespace JCTG.Client
                         // Subscribe foreach pair
                         _api.SubscribeForTicks(broker.Pairs.Select(f => f.TickerInMetatrader).ToList());
                         _api.SubscribeForBarData(broker.Pairs.Select(p => new KeyValuePair<string, string>(p.TickerInMetatrader, p.Timeframe)).ToList());
-                        _api.GetHistoricData(broker.Pairs.Where(f => f.OrderExecType == OrderExecType.Passive).Select(p => new KeyValuePair<string, string>(p.TickerInMetatrader, p.Timeframe)).ToList());
+                        _api.GetHistoricData(broker.Pairs.Select(p => new KeyValuePair<string, string>(p.TickerInMetatrader, p.Timeframe)).ToList());
                     }
                 }
             }
@@ -238,7 +238,7 @@ namespace JCTG.Client
                                                     var price = await DynamicEvaluator.EvaluateExpressionAsync(response.EntryExpression, api.HistoricData.Where(f => f.Key == pair.TickerInMetatrader).SelectMany(f => f.Value.BarData).ToList());
 
                                                     // Get the Stop Loss price
-                                                    var sl = price - response.Risk.Value - spread;
+                                                    var sl = ((price - response.Risk.Value) * Convert.ToDecimal(pair.SLMultiplier)) - spread;
 
                                                     // Get the Take Profit Price
                                                     var tp = price + (response.Risk.Value * response.RiskRewardRatio.Value);
@@ -400,9 +400,10 @@ namespace JCTG.Client
                                                 {
                                                     // Get the entry price
                                                     var price = await DynamicEvaluator.EvaluateExpressionAsync(response.EntryExpression, api.HistoricData.Where(f => f.Key == pair.TickerInMetatrader).SelectMany(f => f.Value.BarData).ToList());
+                                                    price -= spread;
 
                                                     // Get the Stop Loss price
-                                                    var sl = price + response.Risk.Value + spread;
+                                                    var sl = ((price + response.Risk.Value) * Convert.ToDecimal(pair.SLMultiplier)) + spread;
 
                                                     // Get the Take Profit Price
                                                     var tp = price - (response.Risk.Value * response.RiskRewardRatio.Value);

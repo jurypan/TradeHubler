@@ -7,7 +7,12 @@ namespace JCTG.Client
     {
         public static async Task<decimal> EvaluateExpressionAsync(string expression, List<BarData> bars)
         {
-            bars = bars.OrderByDescending(f => f.Time).ToList();
+            // Convert the timestamps in bars to UTC (or any common timezone)
+            var barsDictionary = bars.OrderByDescending(f => f.Time)
+                                     .ToDictionary(
+                                         bar => bar.Epoch,
+                                         bar => bar);
+
 
             var options = ScriptOptions.Default
                 .AddReferences(typeof(BarData).Assembly)
@@ -22,7 +27,7 @@ namespace JCTG.Client
 
             try
             {
-                var result = await script.RunAsync(new ScriptContext { Bar = bars });
+                var result = await script.RunAsync(new ScriptContext { Bar = barsDictionary });
                 return result.ReturnValue;
             }
             catch (CompilationErrorException ex)
@@ -41,7 +46,8 @@ namespace JCTG.Client
 
         public class ScriptContext
         {
-            public List<BarData> Bar { get; set; }
+            // Dictionary to access BarData by Unix timestamp
+            public Dictionary<long, BarData> Bar { get; set; }
         }
     }
 }

@@ -1,6 +1,4 @@
-using System.Diagnostics.Metrics;
 using System.Globalization;
-using System.Runtime.InteropServices;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using static JCTG.Client.Helpers;
@@ -39,13 +37,13 @@ namespace JCTG.Client
         private string lastHistoricTradesStr = "";
 
 
-        public Dictionary<long, Order> OpenOrders { get; set; }
-        public AccountInfo? AccountInfo { get; set; }
-        public Dictionary<string, MarketData> MarketData { get; set; }
-        public Dictionary<string, BarData> LastBarData { get; set; }
+        public Dictionary<long, Order> OpenOrders { get; private set; }
+        public AccountInfo? AccountInfo { get; private set; }
+        public Dictionary<string, MarketData> MarketData { get; private set; }
+        public Dictionary<string, BarData> LastBarData { get; private set; }
 
-        public Dictionary<string, HistoricBarData> HistoricData { get; set; }
-        public long ClientId { get; set; }
+        public Dictionary<string, HistoricBarData> HistoricData { get; private set; }
+        public long ClientId { get; private set; }
 
         public bool ACTIVE = true;
         private bool START = false;
@@ -183,7 +181,7 @@ namespace JCTG.Client
                     OpenOrders = new Dictionary<long, Order>();
 
                 // Iterate over each order in the JSON
-                if (ordersData != null)
+                if (this.AccountInfo != null && ordersData != null)
                 {
                     // Next, handle removal of orders not in ordersData
                     List<long> ordersToRemove = new List<long>();
@@ -215,7 +213,7 @@ namespace JCTG.Client
                                     Lots = value["lots"].ToObject<decimal>(),
                                     Type = value["type"].ToObject<string>(),
                                     OpenPrice = value["open_price"].ToObject<decimal>(),
-                                    OpenTime = DateTime.ParseExact(value["open_time"].ToString(), "yyyy.MM.dd HH:mm:ss", CultureInfo.InvariantCulture),
+                                    OpenTime = DateTime.ParseExact(value["open_time"].ToString(), "yyyy.MM.dd HH:mm:ss", CultureInfo.InvariantCulture).AddHours(-(this.AccountInfo == null ? 0.0 : this.AccountInfo.TimezoneOffset)),
                                     StopLoss = value["SL"].ToObject<decimal>(),
                                     TakeProfit = value["TP"].ToObject<decimal>(),
                                     Pnl = value["pnl"].ToObject<double>(),
@@ -324,6 +322,7 @@ namespace JCTG.Client
 
                 // Assuming TryWriteToFileAsync is a method that takes a path and a string
                 await TryWriteToFileAsync(pathMessagesStored, JsonConvert.SerializeObject(data));
+
             }
         }
 
@@ -408,103 +407,109 @@ namespace JCTG.Client
 
                 string text = await TryReadFileAsync(pathCandleCloseData);
 
-                if (text.Length == 0 || text.Equals(lastCandleCloseStr))
-                    continue;
-
-                lastCandleCloseStr = text;
-
-                JObject data;
-
-                try
+                // Make sure the import is new
+                if (this.AccountInfo != null && text.Length > 0 && !text.Equals(lastCandleCloseStr))
                 {
-                    data = JObject.Parse(text);
-                }
-                catch
-                {
-                    continue;
-                }
+                    lastCandleCloseStr = text;
 
-                if (data == null)
-                    continue;
+                    JObject data;
 
-                if (LastBarData == null)
-                    LastBarData = [];
-
-                foreach (var property in data.Properties())
-                {
-                    var value = property.Value as JObject;
-                    if (value != null && value["time"] != null && value["open"] != null && value["high"] != null && value["low"] != null && value["close"] != null && value["tick_volume"] != null)
+                    try
                     {
-                        string[] stSplit = property.Name.Split("_");
-                        if (stSplit.Length != 2)
-                            continue;
+                        data = JObject.Parse(text);
+                    }
+                    catch
+                    {
+                        continue;
+                    }
 
-                        var instrument = stSplit[0];
+                    if (data == null)
+                        continue;
 
-                        var newBarData = new BarData
+                    if (LastBarData == null)
+                        LastBarData = [];
+
+                    foreach (var property in data.Properties())
+                    {
+                        var value = property.Value as JObject;
+                        if (value != null && value["time"] != null && value["open"] != null && value["high"] != null && value["low"] != null && value["close"] != null && value["tick_volume"] != null)
                         {
-                            Timeframe = stSplit[1],
-                            Time = value["time"].ToObject<DateTime>(),
-                            Open = value["open"].ToObject<decimal>(),
-                            High = value["high"].ToObject<decimal>(),
-                            Low = value["low"].ToObject<decimal>(),
-                            Close = value["close"].ToObject<decimal>(),
-                            TickVolume = value["tick_volume"].ToObject<int>()
-                        };
+                            string[] stSplit = property.Name.Split("_");
+                            if (stSplit.Length != 2)
+                                continue;
 
-                        // Check if the ticker already has previous values
-                        if (LastBarData.TryGetValue(property.Name, out var previousData))
-                        {
-                            // Update the previous values
-                            LastBarData[property.Name] = new BarData
+                            var instrument = stSplit[0];
+
+                            var newBarData = new BarData
                             {
-                                Timeframe = newBarData.Timeframe,
-                                Time = newBarData.Time,
-                                Open = newBarData.Open,
-                                High = newBarData.High,
-                                Low = newBarData.Low,
-                                Close = newBarData.Close,
-                                TickVolume = newBarData.TickVolume
-
+                                Timeframe = stSplit[1],
+                                Time = value["time"].ToObject<DateTime>().AddHours(-(this.AccountInfo == null ? 0.0 : this.AccountInfo.TimezoneOffset)),
+                                Open = value["open"].ToObject<decimal>(),
+                                High = value["high"].ToObject<decimal>(),
+                                Low = value["low"].ToObject<decimal>(),
+                                Close = value["close"].ToObject<decimal>(),
+                                TickVolume = value["tick_volume"].ToObject<int>()
                             };
 
-                            // Invoke the event
-                            OnCandleCloseEvent?.Invoke(ClientId, property.Name, newBarData.Timeframe, newBarData.Time, newBarData.Open, newBarData.High, newBarData.Low, newBarData.Close, newBarData.TickVolume);
-                        }
-                        else
-                        {
-                            // If it's a new ticker, add it to the dictionary and invoke the event
-                            LastBarData.Add(property.Name, new BarData
+                            // Check if the ticker already has previous values
+                            if (LastBarData.TryGetValue(property.Name, out var previousData))
                             {
-                                Timeframe = newBarData.Timeframe,
-                                Time = newBarData.Time,
-                                Open = newBarData.Open,
-                                High = newBarData.High,
-                                Low = newBarData.Low,
-                                Close = newBarData.Close,
-                                TickVolume = newBarData.TickVolume
-                            });
+                                // Update the previous values
+                                LastBarData[property.Name] = new BarData
+                                {
+                                    Timeframe = newBarData.Timeframe,
+                                    Time = newBarData.Time,
+                                    Open = newBarData.Open,
+                                    High = newBarData.High,
+                                    Low = newBarData.Low,
+                                    Close = newBarData.Close,
+                                    TickVolume = newBarData.TickVolume
 
-                            // Invoke the event
-                            OnCandleCloseEvent?.Invoke(ClientId, property.Name, newBarData.Timeframe, newBarData.Time, newBarData.Open, newBarData.High, newBarData.Low, newBarData.Close, newBarData.TickVolume);
-                        }
+                                };
 
-                        // Update the historic data
-                        if (HistoricData == null)
-                            HistoricData = new Dictionary<string, HistoricBarData>();
+                                // Invoke the event
+                                OnCandleCloseEvent?.Invoke(ClientId, property.Name, newBarData.Timeframe, newBarData.Time, newBarData.Open, newBarData.High, newBarData.Low, newBarData.Close, newBarData.TickVolume);
+                            }
+                            else
+                            {
+                                // If it's a new ticker, add it to the dictionary and invoke the event
+                                LastBarData.Add(property.Name, new BarData
+                                {
+                                    Timeframe = newBarData.Timeframe,
+                                    Time = newBarData.Time,
+                                    Open = newBarData.Open,
+                                    High = newBarData.High,
+                                    Low = newBarData.Low,
+                                    Close = newBarData.Close,
+                                    TickVolume = newBarData.TickVolume
+                                });
 
-                        // Update historic candles
-                        if (HistoricData.ContainsKey(instrument))
-                        {
-                            // Update the previous values
-                            if (!HistoricData[instrument].BarData.Any(f => f.Time == newBarData.Time && f.Timeframe == newBarData.Timeframe))
-                                HistoricData[instrument].BarData.Add(newBarData);
-                        }
-                        else
-                        {
-                            var hbd = new HistoricBarData();
-                            hbd.BarData.Add(newBarData);
-                            HistoricData.Add(instrument, hbd);
+                                // Invoke the event
+                                OnCandleCloseEvent?.Invoke(ClientId, property.Name, newBarData.Timeframe, newBarData.Time, newBarData.Open, newBarData.High, newBarData.Low, newBarData.Close, newBarData.TickVolume);
+                            }
+
+                            // Update the historic data
+                            if (HistoricData == null)
+                                HistoricData = new Dictionary<string, HistoricBarData>();
+
+                            // Update historic candles
+                            if (HistoricData.ContainsKey(instrument))
+                            {
+                                // Update the previous values
+                                if (!HistoricData[instrument].BarData.Any(f => f.Time == newBarData.Time && f.Timeframe == newBarData.Timeframe))
+                                    HistoricData[instrument].BarData.Add(newBarData);
+                            }
+                            else
+                            {
+                                var hbd = new HistoricBarData();
+                                hbd.BarData.Add(newBarData);
+                                HistoricData.Add(instrument, hbd);
+                            }
+
+                            foreach(var valueBD in HistoricData.Values)
+                            {
+                                valueBD.BarData = valueBD.BarData.OrderBy(f => f.Time).ToList();
+                            }
                         }
                     }
                 }
@@ -529,7 +534,7 @@ namespace JCTG.Client
                 string text = await TryReadFileAsync(pathHistoricData);
 
                 // Make sure the import is new
-                if (text.Length > 0 && !text.Equals(lastHistoricTradesStr))
+                if (this.AccountInfo != null && text.Length > 0 && !text.Equals(lastHistoricTradesStr))
                 {
                     // Set new text file to the variable
                     lastHistoricTradesStr = text;
@@ -569,7 +574,7 @@ namespace JCTG.Client
                                     var obj = new BarData
                                     {
                                         Timeframe = stSplit[1],
-                                        Time = item["time"].ToObject<DateTime>(),
+                                        Time = item["time"].ToObject<DateTime>().AddHours(-(this.AccountInfo == null ? 0.0 : this.AccountInfo.TimezoneOffset)),
                                         Open = item["open"].ToObject<decimal>(),
                                         High = item["high"].ToObject<decimal>(),
                                         Low = item["low"].ToObject<decimal>(),
@@ -586,7 +591,7 @@ namespace JCTG.Client
                                     hbd.BarData.Add(new BarData
                                     {
                                         Timeframe = stSplit[1],
-                                        Time = item["time"].ToObject<DateTime>(),
+                                        Time = item["time"].ToObject<DateTime>().AddHours(-(this.AccountInfo == null ? 0.0 : this.AccountInfo.TimezoneOffset)),
                                         Open = item["open"].ToObject<decimal>(),
                                         High = item["high"].ToObject<decimal>(),
                                         Low = item["low"].ToObject<decimal>(),
@@ -597,6 +602,11 @@ namespace JCTG.Client
                                 }
                             }
                         }
+                    }
+
+                    foreach (var valueBD in HistoricData.Values)
+                    {
+                        valueBD.BarData = valueBD.BarData.OrderBy(f => f.Time).ToList();
                     }
 
                     // Trigger event
@@ -641,6 +651,12 @@ namespace JCTG.Client
             if (OpenOrders == null)
                 OpenOrders = new Dictionary<long, Order>();
             AccountInfo = data["account_info"]?.ToObject<AccountInfo>();
+
+            // Set the dates in UTC
+            foreach(var order in OpenOrders)
+            {
+                order.Value.OpenTime = order.Value.OpenTime.AddHours(-(this.AccountInfo == null ? 0.0 : this.AccountInfo.TimezoneOffset));
+            }
         }
 
 
@@ -715,10 +731,20 @@ namespace JCTG.Client
         /// <param name="end">End timestamp of the requested data</param>
         public void GetHistoricData(List<KeyValuePair<string, string>> symbols)
         {
+            int maxRetries = 5; // Max retries to wait for AccountInfo
+            int retryCount = 0;
+
+            while (AccountInfo == null && retryCount < maxRetries)
+            {
+                Thread.Sleep(2000); // Wait for 1 second before retrying
+                retryCount++;
+            }
+
+
             foreach (var sym in symbols)
             {
                 // Send the command
-                GetHistoricData(sym.Key, sym.Value, DateTimeOffset.UtcNow.AddDays(-1), DateTimeOffset.UtcNow);
+                GetHistoricData(sym.Key, sym.Value, DateTimeOffset.UtcNow.AddHours(this.AccountInfo == null ? 0.0 : this.AccountInfo.TimezoneOffset).AddDays(-1), DateTimeOffset.UtcNow.AddHours(this.AccountInfo == null ? 0.0 : this.AccountInfo.TimezoneOffset));
 
                 // Wait for the event to be triggered
                 _resetHistoricBarDataEvent.WaitOne();

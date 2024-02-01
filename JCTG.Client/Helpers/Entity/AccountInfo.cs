@@ -12,5 +12,7 @@ namespace JCTG.Client
         public double FreeMargin { get; set; }
         public double Balance { get; set; }
         public double Equity { get; set; }
+        [JsonProperty("tmz")]
+        public double TimezoneOffset { get; set; }
     }
 }
