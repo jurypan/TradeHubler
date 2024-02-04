@@ -41,12 +41,13 @@ namespace JCTG.Client
         public AccountInfo? AccountInfo { get; private set; }
         public Dictionary<string, MarketData> MarketData { get; private set; }
         public Dictionary<string, BarData> LastBarData { get; private set; }
-
         public Dictionary<string, HistoricBarData> HistoricData { get; private set; }
+
         public long ClientId { get; private set; }
 
         public bool ACTIVE = true;
         private bool START = false;
+
 
         private Thread? openOrdersThread;
         private Thread? messageThread;
@@ -506,7 +507,7 @@ namespace JCTG.Client
                                 HistoricData.Add(instrument, hbd);
                             }
 
-                            foreach(var valueBD in HistoricData.Values)
+                            foreach (var valueBD in HistoricData.Values)
                             {
                                 valueBD.BarData = valueBD.BarData.OrderBy(f => f.Time).ToList();
                             }
@@ -547,11 +548,15 @@ namespace JCTG.Client
                     }
                     catch
                     {
+                        _resetHistoricBarDataEvent.Set();
                         continue;
                     }
 
                     if (data == null)
+                    {
+                        _resetHistoricBarDataEvent.Set();
                         continue;
+                    }
 
                     if (HistoricData == null)
                         HistoricData = new Dictionary<string, HistoricBarData>();
@@ -609,14 +614,14 @@ namespace JCTG.Client
                         valueBD.BarData = valueBD.BarData.OrderBy(f => f.Time).ToList();
                     }
 
+                    // Delete file
+                    TryDeleteFile(pathHistoricData);
+
                     // Trigger event
                     OnHistoricDataEvent?.Invoke(ClientId);
 
                     // Signal that the current data processing is complete
                     _resetHistoricBarDataEvent.Set();
-
-                    // Delete file
-                    TryDeleteFile(pathHistoricData);
                 }
             }
         }
@@ -653,7 +658,7 @@ namespace JCTG.Client
             AccountInfo = data["account_info"]?.ToObject<AccountInfo>();
 
             // Set the dates in UTC
-            foreach(var order in OpenOrders)
+            foreach (var order in OpenOrders)
             {
                 order.Value.OpenTime = order.Value.OpenTime.AddHours(-(this.AccountInfo == null ? 0.0 : this.AccountInfo.TimezoneOffset));
             }
@@ -701,7 +706,7 @@ namespace JCTG.Client
         /// <summary>
         /// Sends a SUBSCRIBE_SYMBOLS command to subscribe to market (tick) data.
         /// </summary>
-        /// <param name="symbols"> List of symbols to subscribe to.</param>
+        /// <param name="symbols"> List of pairs to subscribe to.</param>
         public void SubscribeForTicks(List<string> symbols)
         {
             SendCommand("SUBSCRIBE_SYMBOLS", string.Join(",", symbols.Distinct().ToList()));
@@ -725,33 +730,66 @@ namespace JCTG.Client
         /// <summary>
         /// Sends a GET_HISTORIC_DATA command to request historic data.
         /// </summary>
-        /// <param name="symbol"> Symbol to get historic data</param>
-        /// <param name="timeFrame">Time frame for the requested data</param>
-        /// <param name="start">Start timestamp (seconds since epoch) of the requested data</param>
-        /// <param name="end">End timestamp of the requested data</param>
-        public void GetHistoricData(List<KeyValuePair<string, string>> symbols)
+        /// <param name="pairs"> Symbol to get historic data</param>
+        public void GetHistoricData(List<Pairs> pairs)
         {
-            int maxRetries = 5; // Max retries to wait for AccountInfo
-            int retryCount = 0;
-
-            while (AccountInfo == null && retryCount < maxRetries)
+            Thread thread = new(() =>
             {
-                Thread.Sleep(2000); // Wait for 1 second before retrying
-                retryCount++;
-            }
+                int maxRetries = 5; // Max retries to wait for AccountInfo
+                int retryCount = 0;
 
+                while (AccountInfo == null && retryCount < maxRetries)
+                {
+                    Thread.Sleep(2000); // Wait for 1 second before retrying
+                    retryCount++;
+                }
 
-            foreach (var sym in symbols)
-            {
-                // Send the command
-                GetHistoricData(sym.Key, sym.Value, DateTimeOffset.UtcNow.AddHours(this.AccountInfo == null ? 0.0 : this.AccountInfo.TimezoneOffset).AddDays(-1), DateTimeOffset.UtcNow.AddHours(this.AccountInfo == null ? 0.0 : this.AccountInfo.TimezoneOffset));
+                foreach (var sym in pairs)
+                {
+                    // Determine the duration of a single bar in minutes
+                    int durationInMinutes = sym.Timeframe switch
+                    {
+                        "M1" => 1,
+                        "M2" => 2,
+                        "M3" => 3,
+                        "M4" => 4,
+                        "M5" => 5,
+                        "M6" => 6,
+                        "M10" => 10,
+                        "M12" => 12,
+                        "M15" => 15,
+                        "M20" => 20,
+                        "M30" => 30,
+                        "H1" => 60,
+                        "H2" => 120,
+                        "H3" => 180,
+                        "H4" => 240,
+                        "H6" => 360,
+                        "H8" => 480,
+                        "H12" => 720,
+                        "D1" => 1440,
+                        "W1" => 10080,
+                        "MN1" => 43200, // Assuming 30 days in a month for simplicity
+                        _ => throw new ArgumentException("Unknown timeframe", nameof(MetatraderApi)),
+                    };
 
-                // Wait for the event to be triggered
-                _resetHistoricBarDataEvent.WaitOne();
+                    // Calculate total duration for all bars
+                    int totalDurationInMinutes = sym.NumberOfHistoricalBarsRequested * durationInMinutes;
 
-                // Sleep 500ms
-                Thread.Sleep(500);
-            }
+                    // Calculate and return the start date
+                    var startDate = DateTime.UtcNow.AddMinutes(-totalDurationInMinutes);
+
+                    // Send the command
+                    GetHistoricData(sym.TickerInMetatrader, sym.Timeframe, startDate.AddHours(this.AccountInfo == null ? 0.0 : this.AccountInfo.TimezoneOffset).AddDays(-1), DateTimeOffset.UtcNow.AddHours(this.AccountInfo == null ? 0.0 : this.AccountInfo.TimezoneOffset));
+
+                    // Wait for the event to be triggered
+                    _resetHistoricBarDataEvent.WaitOne();
+
+                    // Sleep 500ms
+                    Thread.Sleep(500);
+                }
+            });
+            thread.Start();
         }
 
         /// <summary>

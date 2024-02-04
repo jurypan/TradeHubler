@@ -91,21 +91,6 @@ namespace JCTG.Client
             {
                 return await File.ReadAllTextAsync(path);
             }
-            catch (IOException ex)
-            {
-                if(ex.Message.Contains("Could not find file"))
-                {
-                    try
-                    {
-                        File.Create(path).Close();
-                    }
-                    catch
-                    {
-                        return string.Empty;
-                    }
-                }
-                return string.Empty;
-            }
             catch
             {
                 return string.Empty;

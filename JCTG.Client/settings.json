@@ -38,36 +38,45 @@
           "TickerInMetatrader": "AUS200",
           "Timeframe": "M5",
           "StrategyNr": 4,
-          "Risk": 0.1, // 0.15
+          "Risk": 0.15,
           "SLtoBEafterR": 1.0,
           "MaxSpread": 2.0,
           "SLMultiplier": 1.05,
-          "MaxLotSize": 0,
-          "OrderExecType": "Passive"
+          "MaxLotSize": 1000,
+          "OrderExecType": "Active",
+          "CancelStopOrLimitOrderWhenNewSignal": false,
+          "NumberOfHistoricalBarsRequested": 100,
+          "CloseAllTradesAt":  "05:00"
         },
         {
           "TickerInTradingView": "UKX",
           "TickerInMetatrader": "UK100",
           "Timeframe": "M5",
           "StrategyNr": 4,
-          "Risk": 0.1, // 0.15
+          "Risk": 0.15,
           "SLtoBEafterR": 1.0,
           "MaxSpread": 1.5,
           "SLMultiplier": 1.05,
-          "MaxLotSize": 0,
-          "OrderExecType": "Passive"
+          "MaxLotSize": 1000,
+          "OrderExecType": "Active",
+          "CancelStopOrLimitOrderWhenNewSignal": false,
+          "NumberOfHistoricalBarsRequested": 100,
+          "CloseAllTradesAt": "16:30"
         },
         {
           "TickerInTradingView": "SPX",
           "TickerInMetatrader": "SP500",
           "Timeframe": "M5",
           "StrategyNr": 4,
-          "Risk": 0.1, // 0.15
+          "Risk": 0.15,
           "SLtoBEafterR": 1.0,
           "MaxSpread": 1.5,
           "SLMultiplier": 1.05,
-          "MaxLotSize": 0,
-          "OrderExecType": "Passive"
+          "MaxLotSize": 1000,
+          "OrderExecType": "Active",
+          "CancelStopOrLimitOrderWhenNewSignal": false,
+          "NumberOfHistoricalBarsRequested": 100,
+          "CloseAllTradesAt": "21:00"
         }
       ]
     },
@@ -112,8 +121,11 @@
           "SLtoBEafterR": 1.0,
           "MaxSpread": 0.0,
           "SLMultiplier": 1.05,
-          "MaxLotSize": 0,
-          "OrderExecType": "Active"
+          "MaxLotSize": 1000,
+          "OrderExecType": "Active",
+          "CancelStopOrLimitOrderWhenNewSignal": false,
+          "NumberOfHistoricalBarsRequested": 100,
+          "CloseAllTradesAt": null
         },
         {
           "TickerInTradingView": "NVDA",
@@ -124,8 +136,11 @@
           "SLtoBEafterR": 1.0,
           "MaxSpread": 0.0,
           "SLMultiplier": 1.05,
-          "MaxLotSize": 0,
-          "OrderExecType": "Active"
+          "MaxLotSize": 1000,
+          "OrderExecType": "Active",
+          "CancelStopOrLimitOrderWhenNewSignal": false,
+          "NumberOfHistoricalBarsRequested": 100,
+          "CloseAllTradesAt": null
         },
         {
           "TickerInTradingView": "AAPL",
@@ -136,8 +151,11 @@
           "SLtoBEafterR": 1.0,
           "MaxSpread": 0.0,
           "SLMultiplier": 1.05,
-          "MaxLotSize": 0,
-          "OrderExecType": "Active"
+          "MaxLotSize": 1000,
+          "OrderExecType": "Active",
+          "CancelStopOrLimitOrderWhenNewSignal": false,
+          "NumberOfHistoricalBarsRequested": 100,
+          "CloseAllTradesAt": null
         },
         {
           "TickerInTradingView": "META",
@@ -148,8 +166,11 @@
           "SLtoBEafterR": 1.0,
           "MaxSpread": 0.0,
           "SLMultiplier": 1.05,
-          "MaxLotSize": 0,
-          "OrderExecType": "Active"
+          "MaxLotSize": 1000,
+          "OrderExecType": "Active",
+          "CancelStopOrLimitOrderWhenNewSignal": false,
+          "NumberOfHistoricalBarsRequested": 100,
+          "CloseAllTradesAt": null
         },
         {
           "TickerInTradingView": "MSFT",
@@ -160,8 +181,11 @@
           "SLtoBEafterR": 1.0,
           "MaxSpread": 0.0,
           "SLMultiplier": 1.05,
-          "MaxLotSize": 0,
-          "OrderExecType": "Active"
+          "MaxLotSize": 1000,
+          "OrderExecType": "Active",
+          "CancelStopOrLimitOrderWhenNewSignal": false,
+          "NumberOfHistoricalBarsRequested": 100,
+          "CloseAllTradesAt": null
         },
         {
           "TickerInTradingView": "AMZN",
@@ -172,8 +196,11 @@
           "SLtoBEafterR": 1.0,
           "MaxSpread": 1.0,
           "SLMultiplier": 1.05,
-          "MaxLotSize": 0,
-          "OrderExecType": "Active"
+          "MaxLotSize": 1000,
+          "OrderExecType": "Active",
+          "CancelStopOrLimitOrderWhenNewSignal": false,
+          "NumberOfHistoricalBarsRequested": 100,
+          "CloseAllTradesAt": null
         },
         {
           "TickerInTradingView": "NFLX",
@@ -184,8 +211,11 @@
           "SLtoBEafterR": 1.0,
           "MaxSpread": 0.0,
           "SLMultiplier": 1.05,
-          "MaxLotSize": 0,
-          "OrderExecType": "Active"
+          "MaxLotSize": 1000,
+          "OrderExecType": "Active",
+          "CancelStopOrLimitOrderWhenNewSignal": false,
+          "NumberOfHistoricalBarsRequested": 100,
+          "CloseAllTradesAt": null
         },
         {
           "TickerInTradingView": "RACE",
@@ -196,8 +226,11 @@
           "SLtoBEafterR": 1.0,
           "MaxSpread": 0.0,
           "SLMultiplier": 1.05,
-          "MaxLotSize": 0,
-          "OrderExecType": "Active"
+          "MaxLotSize": 1000,
+          "OrderExecType": "Active",
+          "CancelStopOrLimitOrderWhenNewSignal": false,
+          "NumberOfHistoricalBarsRequested": 100,
+          "CloseAllTradesAt": null
         },
         {
           "TickerInTradingView": "NKD1!",
@@ -208,8 +241,11 @@
           "SLtoBEafterR": 1.0,
           "MaxSpread": 10.0,
           "SLMultiplier": 1.05,
-          "MaxLotSize": 0,
-          "OrderExecType": "Active"
+          "MaxLotSize": 1000,
+          "OrderExecType": "Active",
+          "CancelStopOrLimitOrderWhenNewSignal": false,
+          "NumberOfHistoricalBarsRequested": 100,
+          "CloseAllTradesAt": null
         },
         {
           "TickerInTradingView": "XJO",
@@ -220,8 +256,11 @@
           "SLtoBEafterR": 1.0,
           "MaxSpread": 2.0,
           "SLMultiplier": 1.05,
-          "MaxLotSize": 0,
-          "OrderExecType": "Active"
+          "MaxLotSize": 1000,
+          "OrderExecType": "Active",
+          "CancelStopOrLimitOrderWhenNewSignal": false,
+          "NumberOfHistoricalBarsRequested": 100,
+          "CloseAllTradesAt": null
         },
         {
           "TickerInTradingView": "SX5E",
@@ -232,8 +271,11 @@
           "SLtoBEafterR": 1.0,
           "MaxSpread": 2.0,
           "SLMultiplier": 1.05,
-          "MaxLotSize": 0,
-          "OrderExecType": "Active"
+          "MaxLotSize": 1000,
+          "OrderExecType": "Active",
+          "CancelStopOrLimitOrderWhenNewSignal": false,
+          "NumberOfHistoricalBarsRequested": 100,
+          "CloseAllTradesAt": null
         },
         {
           "TickerInTradingView": "PX1",
@@ -244,8 +286,11 @@
           "SLtoBEafterR": 1.0,
           "MaxSpread": 0.0,
           "SLMultiplier": 1.05,
-          "MaxLotSize": 0,
-          "OrderExecType": "Active"
+          "MaxLotSize": 1000,
+          "OrderExecType": "Active",
+          "CancelStopOrLimitOrderWhenNewSignal": false,
+          "NumberOfHistoricalBarsRequested": 100,
+          "CloseAllTradesAt": null
         },
         {
           "TickerInTradingView": "UKX",
@@ -256,8 +301,11 @@
           "SLtoBEafterR": 1.0,
           "MaxSpread": 0.0,
           "SLMultiplier": 1.05,
-          "MaxLotSize": 0,
-          "OrderExecType": "Active"
+          "MaxLotSize": 1000,
+          "OrderExecType": "Active",
+          "CancelStopOrLimitOrderWhenNewSignal": false,
+          "NumberOfHistoricalBarsRequested": 100,
+          "CloseAllTradesAt": null
         },
         {
           "TickerInTradingView": "SPX",
@@ -267,7 +315,11 @@
           "Risk": 0.15,
           "SLtoBEafterR": 1.0,
           "SLMultiplier": 1.05,
-          "MaxLotSize": 0
+          "MaxLotSize": 1000,
+          "OrderExecType": "Active",
+          "CancelStopOrLimitOrderWhenNewSignal": false,
+          "NumberOfHistoricalBarsRequested": 100,
+          "CloseAllTradesAt": null
         },
         {
           "TickerInTradingView": "DJI",
@@ -278,8 +330,41 @@
           "SLtoBEafterR": 1.0,
           "MaxSpread": 0.0,
           "SLMultiplier": 1.05,
-          "MaxLotSize": 0,
-          "OrderExecType": "Active"
+          "MaxLotSize": 1000,
+          "OrderExecType": "Active",
+          "CancelStopOrLimitOrderWhenNewSignal": false,
+          "NumberOfHistoricalBarsRequested": 100,
+          "CloseAllTradesAt": null
+        },
+        {
+          "TickerInTradingView": "BTCUSD",
+          "TickerInMetatrader": "BTCUSD",
+          "Timeframe": "M15",
+          "StrategyNr": 3,
+          "Risk": 0.15,
+          "SLtoBEafterR": 1.0,
+          "MaxSpread": 15.0,
+          "SLMultiplier": 1.05,
+          "MaxLotSize": 1000,
+          "OrderExecType": "Active",
+          "CancelStopOrLimitOrderWhenNewSignal": false,
+          "NumberOfHistoricalBarsRequested": 100,
+          "CloseAllTradesAt": null
+        },
+        {
+          "TickerInTradingView": "ETHUSD",
+          "TickerInMetatrader": "ETHUSD",
+          "Timeframe": "M15",
+          "StrategyNr": 3,
+          "Risk": 0.15,
+          "SLtoBEafterR": 1.0,
+          "MaxSpread": 1.0,
+          "SLMultiplier": 1.05,
+          "MaxLotSize": 1000,
+          "OrderExecType": "Active",
+          "CancelStopOrLimitOrderWhenNewSignal": false,
+          "NumberOfHistoricalBarsRequested": 100,
+          "CloseAllTradesAt": null
         }
       ]
     },
@@ -300,36 +385,45 @@
           "TickerInMetatrader": "ASXAUD",
           "Timeframe": "M5",
           "StrategyNr": 4,
-          "Risk": 0.15, // 0.15
+          "Risk": 0.15,
           "SLtoBEafterR": 1.0,
           "MaxSpread": 2.0,
           "SLMultiplier": 1.05,
-          "MaxLotSize": 0,
-          "OrderExecType": "Passive"
+          "MaxLotSize": 1000,
+          "OrderExecType": "Active",
+          "CancelStopOrLimitOrderWhenNewSignal": false,
+          "NumberOfHistoricalBarsRequested": 100,
+          "CloseAllTradesAt": "05:00"
         },
         {
           "TickerInTradingView": "UKX",
           "TickerInMetatrader": "FTSGBP",
           "Timeframe": "M5",
           "StrategyNr": 4,
-          "Risk": 0.15, // 0.15
+          "Risk": 0.15,
           "SLtoBEafterR": 1.0,
           "MaxSpread": 1.5,
           "SLMultiplier": 1.05,
-          "MaxLotSize": 0,
-          "OrderExecType": "Passive"
+          "MaxLotSize": 1000,
+          "OrderExecType": "Active",
+          "CancelStopOrLimitOrderWhenNewSignal": false,
+          "NumberOfHistoricalBarsRequested": 100,
+          "CloseAllTradesAt": "16:30"
         },
         {
           "TickerInTradingView": "SPX",
           "TickerInMetatrader": "SPXUSD",
           "Timeframe": "M5",
           "StrategyNr": 4,
-          "Risk": 0.15, // 0.15
+          "Risk": 0.15,
           "SLtoBEafterR": 1.0,
           "MaxSpread": 1.5,
           "SLMultiplier": 1.05,
-          "MaxLotSize": 0,
-          "OrderExecType": "Passive"
+          "MaxLotSize": 1000,
+          "OrderExecType": "Active",
+          "CancelStopOrLimitOrderWhenNewSignal": false,
+          "NumberOfHistoricalBarsRequested": 100,
+          "CloseAllTradesAt": "21:00"
         }
       ]
     },
@@ -370,60 +464,90 @@
           "TickerInMetatrader": "AUS200.r",
           "Timeframe": "M5",
           "StrategyNr": 4,
-          "Risk": 0.1,
+          "Risk": 0.15,
           "SLtoBEafterR": 1.0,
           "MaxSpread": 2.0,
           "SLMultiplier": 1.2,
-          "MaxLotSize": 0,
-          "OrderExecType": "Passive"
+          "MaxLotSize": 1000,
+          "OrderExecType": "Active",
+          "CancelStopOrLimitOrderWhenNewSignal": false,
+          "NumberOfHistoricalBarsRequested": 100,
+          "CloseAllTradesAt": "05:00"
         },
         {
           "TickerInTradingView": "UKX",
           "TickerInMetatrader": "UK100.r",
           "Timeframe": "M5",
           "StrategyNr": 4,
-          "Risk": 0.1,
+          "Risk": 0.15,
           "SLtoBEafterR": 1.0,
           "MaxSpread": 1.5,
           "SLMultiplier": 1.05,
-          "MaxLotSize": 0,
-          "OrderExecType": "Passive"
+          "MaxLotSize": 1000,
+          "OrderExecType": "Active",
+          "CancelStopOrLimitOrderWhenNewSignal": false,
+          "NumberOfHistoricalBarsRequested": 100,
+          "CloseAllTradesAt": "16:30"
         },
         {
           "TickerInTradingView": "SPX",
           "TickerInMetatrader": "US500.r",
           "Timeframe": "M5",
           "StrategyNr": 4,
-          "Risk": 0.1,
+          "Risk": 0.15,
           "SLtoBEafterR": 1.0,
           "MaxSpread": 1.5,
           "SLMultiplier": 1.05,
-          "MaxLotSize": 0,
-          "OrderExecType": "Passive"
+          "MaxLotSize": 1000,
+          "OrderExecType": "Active",
+          "CancelStopOrLimitOrderWhenNewSignal": false,
+          "NumberOfHistoricalBarsRequested": 100,
+          "CloseAllTradesAt": "21:00"
         },
         {
           "TickerInTradingView": "BTCUSD",
           "TickerInMetatrader": "BTCUSD.r",
           "Timeframe": "M15",
           "StrategyNr": 3,
-          "Risk": 0.1,
+          "Risk": 0.15,
           "SLtoBEafterR": 1.0,
-          "MaxSpread": 20.0,
+          "MaxSpread": 15.0,
           "SLMultiplier": 1.05,
-          "MaxLotSize": 0,
-          "OrderExecType": "Passive"
+          "MaxLotSize": 1000,
+          "OrderExecType": "Active",
+          "CancelStopOrLimitOrderWhenNewSignal": false,
+          "NumberOfHistoricalBarsRequested": 100,
+          "CloseAllTradesAt": null
         },
         {
           "TickerInTradingView": "ETHUSD",
           "TickerInMetatrader": "ETHUSD.r",
           "Timeframe": "M15",
           "StrategyNr": 3,
-          "Risk": 0.1,
+          "Risk": 0.15,
           "SLtoBEafterR": 1.0,
-          "MaxSpread": 3.0,
+          "MaxSpread": 1.0,
           "SLMultiplier": 1.05,
-          "MaxLotSize": 0,
-          "OrderExecType": "Passive"
+          "MaxLotSize": 1000,
+          "OrderExecType": "Active",
+          "CancelStopOrLimitOrderWhenNewSignal": false,
+          "NumberOfHistoricalBarsRequested": 100,
+          "CloseAllTradesAt": null
+        },
+        {
+          "TickerInTradingView": "SOLUSD",
+          "TickerInMetatrader": "SOLUSD.r",
+          "Timeframe": "M15",
+          "StrategyNr": 3,
+          "Risk": 0.15,
+          "SLtoBEafterR": 1.0,
+          "MaxSpread": 0.5,
+          "SLMultiplier": 1.05,
+          "MaxLotSize": 1000,
+          "OrderExecType": "Active",
+          "CancelStopOrLimitOrderWhenNewSignal": false,
+          "NumberOfHistoricalBarsRequested": 100,
+          "CloseAllTradesAt": null
         }
       ]
     },
@@ -466,10 +590,13 @@
           "StrategyNr": 5,
           "Risk": 0.15,
           "SLtoBEafterR": 1.0,
-          "MaxSpread": 1.0,
+          "MaxSpread": 0.5,
           "SLMultiplier": 1.05,
-          "MaxLotSize": 0,
-          "OrderExecType": "Passive"
+          "MaxLotSize": 1000,
+          "OrderExecType": "Active",
+          "CancelStopOrLimitOrderWhenNewSignal": true,
+          "NumberOfHistoricalBarsRequested": 100,
+          "CloseAllTradesAt": null
         },
         {
           "TickerInTradingView": "MATICUSD",
@@ -480,8 +607,11 @@
           "SLtoBEafterR": 1.0,
           "MaxSpread": 0.1,
           "SLMultiplier": 1.05,
-          "MaxLotSize": 0,
-          "OrderExecType": "Passive"
+          "MaxLotSize": 1000,
+          "OrderExecType": "Active",
+          "CancelStopOrLimitOrderWhenNewSignal": true,
+          "NumberOfHistoricalBarsRequested": 100,
+          "CloseAllTradesAt": null
         },
         {
           "TickerInTradingView": "ETHUSD",
@@ -492,8 +622,11 @@
           "SLtoBEafterR": 1.0,
           "MaxSpread": 0.1,
           "SLMultiplier": 1.05,
-          "MaxLotSize": 0,
-          "OrderExecType": "Passive"
+          "MaxLotSize": 1000,
+          "OrderExecType": "Active",
+          "CancelStopOrLimitOrderWhenNewSignal": true,
+          "NumberOfHistoricalBarsRequested": 100,
+          "CloseAllTradesAt": null
         },
         {
           "TickerInTradingView": "UNIUSD",
@@ -504,8 +637,26 @@
           "SLtoBEafterR": 1.0,
           "MaxSpread": 0.1,
           "SLMultiplier": 1.05,
-          "MaxLotSize": 0,
-          "OrderExecType": "Passive"
+          "MaxLotSize": 1000,
+          "OrderExecType": "Active",
+          "CancelStopOrLimitOrderWhenNewSignal": true,
+          "NumberOfHistoricalBarsRequested": 100,
+          "CloseAllTradesAt": null
+        },
+        {
+          "TickerInTradingView": "SOLUSD",
+          "TickerInMetatrader": "SOLUSDT",
+          "Timeframe": "M5",
+          "StrategyNr": 5,
+          "Risk": 0.15,
+          "SLtoBEafterR": 1.0,
+          "MaxSpread": 0.1,
+          "SLMultiplier": 1.05,
+          "MaxLotSize": 1000,
+          "OrderExecType": "Active",
+          "CancelStopOrLimitOrderWhenNewSignal": true,
+          "NumberOfHistoricalBarsRequested": 100,
+          "CloseAllTradesAt": null
         }
       ]
     },
@@ -546,24 +697,44 @@
           "TickerInMetatrader": "BTCUSD",
           "Timeframe": "M15",
           "StrategyNr": 3,
-          "Risk": 0.1,
+          "Risk": 0.15,
           "SLtoBEafterR": 1.0,
-          "MaxSpread": 20.0,
+          "MaxSpread": 15.0,
           "SLMultiplier": 1.05,
-          "MaxLotSize": 0,
-          "OrderExecType": "Passive"
+          "MaxLotSize": 1000,
+          "OrderExecType": "Active",
+          "CancelStopOrLimitOrderWhenNewSignal": false,
+          "NumberOfHistoricalBarsRequested": 100,
+          "CloseAllTradesAt": null
         },
         {
           "TickerInTradingView": "ETHUSD",
           "TickerInMetatrader": "ETHUSD",
           "Timeframe": "M15",
           "StrategyNr": 3,
-          "Risk": 0.1,
+          "Risk": 0.15,
           "SLtoBEafterR": 1.0,
-          "MaxSpread": 3.0,
+          "MaxSpread": 1.0,
           "SLMultiplier": 1.05,
-          "MaxLotSize": 0,
-          "OrderExecType": "Passive"
+          "MaxLotSize": 1000,
+          "OrderExecType": "Active",
+          "CancelStopOrLimitOrderWhenNewSignal": false,
+          "NumberOfHistoricalBarsRequested": 100,
+          "CloseAllTradesAt": null
+        },
+        {
+          "TickerInTradingView": "SOLUSD",
+          "TickerInMetatrader": "SOLUSD",
+          "Timeframe": "M15",
+          "StrategyNr": 3,
+          "Risk": 0.15,
+          "SLtoBEafterR": 1.0,
+          "MaxSpread": 0.5,
+          "SLMultiplier": 1.05,
+          "MaxLotSize": 1000,
+          "OrderExecType": "Active",
+          "CancelStopOrLimitOrderWhenNewSignal": false,
+          "NumberOfHistoricalBarsRequested": 100
         }
       ]
     }

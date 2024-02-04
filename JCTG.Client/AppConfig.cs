@@ -59,6 +59,9 @@ namespace JCTG.Client
         public int MaxLotSize { get; set; }
         [JsonConverter(typeof(StringEnumConverter))]
         public OrderExecType OrderExecType { get; set; }
+        public bool CancelStopOrLimitOrderWhenNewSignal { get; set; }
+        public int NumberOfHistoricalBarsRequested { get; set; }
+        public TimeSpan? CloseAllTradesAt { get; set; }
     }
 
     public class Risk
