@@ -1,9 +1,9 @@
 //+------------------------------------------------------------------+
 //| Expert initialization function                                   |
 //+------------------------------------------------s-----------------+
-#property copyright "Copyright 2023, JP.x BV"
+#property copyright "Copyright 2024, JP.x BV"
 #property link      "https://www.justcalltheguy.io"
-#property version   "2.005"
+#property version   "2.007"
 #property strict
 
 /*
@@ -34,6 +34,7 @@ input double MaximumLotSize = 1000; // Maximum lot size for 1 trade
 input int SlippagePoints = 3; // Maximum slippage in points
 input int lotSizeDigits = 2; // Amount of digits for the lot size 
 input bool OnlyOpenTradeWhenNoRisk = false;  // Only open a new trade when there is no risk
+input bool CheckForMarketCondAndAdjustIfNecessary = true;  // Check for market conditions and adjust order type if necessary
 input bool asyncMode = true;  // Run EA async
 
 int maxCommandFiles = 50;
@@ -54,7 +55,7 @@ string filePathHistoricData = folderName + "/DWX_Historic_Data.txt";
 string filePathHistoricTrades = folderName + "/DWX_Historic_Trades.txt";
 string filePathCommandsPrefix = folderName + "/DWX_Commands_";
 
-string lastOrderText = "", lastMarketDataText = "", lastMessageText = "";
+string lastOrderText = "", lastMarketDataText = "", lastMessageText = "", lastBarDataText = "";
 
 struct MESSAGE
 {
@@ -320,6 +321,18 @@ void OpenOrder(string orderStr) {
    }
    
    trade.SetExpertMagicNumber(magic);
+   
+   // Check for market conditions and adjust order type if necessary
+   if(CheckForMarketCondAndAdjustIfNecessary) {
+       double currentPrice = (orderType == ORDER_TYPE_BUY || orderType == ORDER_TYPE_BUY_STOP || orderType == ORDER_TYPE_BUY_LIMIT) ? ask(symbol) : bid(symbol);
+       if ((orderType == ORDER_TYPE_BUY_STOP && currentPrice > price) ||
+           (orderType == ORDER_TYPE_BUY_LIMIT && currentPrice < price) ||
+           (orderType == ORDER_TYPE_SELL_STOP && currentPrice < price) ||
+           (orderType == ORDER_TYPE_SELL_LIMIT && currentPrice > price)) {
+           // Adjust order to market order if conditions are met
+           orderType = (orderType == ORDER_TYPE_BUY_STOP || orderType == ORDER_TYPE_BUY_LIMIT) ? ORDER_TYPE_BUY : ORDER_TYPE_SELL;
+       }
+    }
    
    bool res = false;
    if (orderType == ORDER_TYPE_BUY)
@@ -734,14 +747,10 @@ void GetHistoricData(string dataStr) {
       if (rates_count > 0 || (errorCode != 4066 && errorCode != 4073)) break;
       Sleep(200);
    }
-   
-   if (rates_count <= 0) {
-      SendError("HISTORIC_DATA", "Could not get historic data for " + symbol + "_" + data[1] + ": " + ErrorDescription(GetLastError()));
-      return;
-   }
+
    
    bool first = true;
-   string text = "{\"" + symbol + "_" + TimeFrameToString(timeFrame) + "\": {";
+   string text = "{\"" + symbol + "_" + TimeFrameToString(timeFrame) + "\": [";
    
    for(int i=0; i<rates_count; i++) {
       
@@ -750,13 +759,13 @@ void GetHistoricData(string dataStr) {
          if ((timeFrame == PERIOD_MN1 && daysDifference > 33) || (timeFrame == PERIOD_W1 && daysDifference > 10) || (timeFrame < PERIOD_W1 && daysDifference > 3)) {
             SendInfo(StringFormat("The difference between requested start date and returned start date is relatively large (%.1f days). Maybe the data is not available on MetaTrader.", daysDifference));
          }
-         // Print(dateStart, " | ", rates_array[i].time, " | ", daysDifference);
+         //Print(dateStart, " | ", rates_array[i].time, " | ", daysDifference);
       } else {
-         text += ", ";
+         text += ",";
       }
       
       // maybe use integer instead of time string? IntegerToString(rates_array[i].time)
-      text += StringFormat("\"%s\": {\"open\": %.5f, \"high\": %.5f, \"low\": %.5f, \"close\": %.5f, \"tick_volume\": %.5f}", 
+      text += StringFormat("{\"time\": \"%s:00\", \"open\": %.5f, \"high\": %.5f, \"low\": %.5f, \"close\": %.5f, \"tick_volume\": %.5f}", 
                            TimeToString(rates_array[i].time), 
                            rates_array[i].open, 
                            rates_array[i].high, 
@@ -767,12 +776,17 @@ void GetHistoricData(string dataStr) {
       first = false;
    }
    
-   text += "}}";
+   text += "]}";
    for (int i=0; i<5; i++) {
       if (WriteToFile(filePathHistoricData, text)) break;
-      Sleep(100);
+      Sleep(500);
    }
-   SendInfo(StringFormat("Successfully read historic data for %s_%s.", symbol, data[1]));
+      
+   if (rates_count <= 0) {
+      SendError("HISTORIC_DATA", "Could not get historic data for " + symbol + "_" + data[1] + ": " + ErrorDescription(GetLastError()));
+   } else {
+      SendInfo(StringFormat("Successfully read historic data for %s_%s.", symbol, data[1]));
+   }
 }
 
 void GetHistoricTrades(string dataStr) {
@@ -829,7 +843,6 @@ double CalculateATR(string symbol, int shift, int period, string strTimeframe) {
 
     // Ensuring we have enough bars for calculation
     if (iBars(symbol, timeframe) <= period + shift) {
-        Print("Not enough bars to calculate ATR for ",  symbol);
         return(0);
     }
 
@@ -902,8 +915,6 @@ void CheckMarketData() {
 
 void CheckBarData() {
    
-   // Python clients can also subscribe to a rates feed for each tracked instrument
-   
    bool newData = false;
    string text = "{";
    
@@ -913,7 +924,7 @@ void CheckBarData() {
       
       int count = BarDataInstruments[s].GetRates(curr_rate, 1);
       // if last rate is returned and its timestamp is greater than the last published...
-      if(count > 0 && curr_rate[0].time > BarDataInstruments[s].getLastPublishTimestamp()) {
+      if(count > 0) {
          
          string rates = StringFormat("\"%s\": {\"time\": \"%s\", \"open\": %f, \"high\": %f, \"low\": %f, \"close\": %f, \"tick_volume\":%d}, ", 
                                      BarDataInstruments[s].name(), 
@@ -932,12 +943,14 @@ void CheckBarData() {
       
       }
    }
-   if (!newData) return;
    
    text = StringSubstr(text, 0, StringLen(text)-2) + "}";
-   for (int i=0; i<5; i++) {
-      if (WriteToFile(filePathBarData, text)) break;
-      Sleep(100);
+   
+    // only write to file if there was a change. 
+   if (text == lastBarDataText) return;
+   
+   if (WriteToFile(filePathBarData, text)) {
+      lastBarDataText = text;
    }
 }
 
@@ -1016,8 +1029,16 @@ int NumOpenOrdersWithMagic(int magic) {
 void CheckOpenOrders() {
    
    bool first = true;
-   string text = StringFormat("{\"account_info\": {\"name\": \"%s\", \"number\": %d, \"currency\": \"%s\", \"leverage\": %d, \"free_margin\": %f, \"balance\": %f, \"equity\": %f}, \"orders\": {", 
-                              AccountInfoString(ACCOUNT_NAME), AccountInfoInteger(ACCOUNT_LOGIN), AccountInfoString(ACCOUNT_CURRENCY), AccountInfoInteger(ACCOUNT_LEVERAGE), AccountInfoDouble(ACCOUNT_MARGIN_FREE), AccountInfoDouble(ACCOUNT_BALANCE), AccountInfoDouble(ACCOUNT_EQUITY));
+   string text = StringFormat("{\"account_info\": {\"name\": \"%s\", \"number\": %d, \"currency\": \"%s\", \"leverage\": %d, \"free_margin\": %f, \"balance\": %f, \"equity\": %f, \"tmz\": %f}, \"orders\": {", 
+                              AccountInfoString(ACCOUNT_NAME), 
+                              AccountInfoInteger(ACCOUNT_LOGIN), 
+                              AccountInfoString(ACCOUNT_CURRENCY), 
+                              AccountInfoInteger(ACCOUNT_LEVERAGE), 
+                              AccountInfoDouble(ACCOUNT_MARGIN_FREE), 
+                              AccountInfoDouble(ACCOUNT_BALANCE), 
+                              AccountInfoDouble(ACCOUNT_EQUITY),
+                              ((double)TimeTradeServer() - (double)TimeGMT()) / 3600.0
+                              );
    
    for (int i=PositionsTotal()-1; i>=0; i--) {
       ulong ticket = PositionGetTicket(i);
@@ -1134,44 +1155,71 @@ void SendMessage(string message) {
    if (WriteToFile(filePathMessages, text)) lastMessageText = text;
 }
 
+
 bool IsSafeToTrade()
 {
-   if(OnlyOpenTradeWhenNoRisk == false)
-     {
-      return true;
-     }
+    if(OnlyOpenTradeWhenNoRisk == false)
+    {
+        return true;
+    }
 
-   // MQL5 uses a different approach to access orders
-   int totalOrders = PositionsTotal();
-   bool canTrade = true;
+    // Correct spread calculation to ensure it's always a positive value
+    double askPrice = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
+    double bidPrice = SymbolInfoDouble(_Symbol, SYMBOL_BID);
+    double spread = MathAbs(askPrice - bidPrice); // Using MathAbs to ensure spread is positive
 
-   for(int i = 0; i < totalOrders; i++)
-     {
-      ulong ticket = PositionGetTicket(i);
-      if(PositionSelectByTicket(ticket))
+    int totalOrders = PositionsTotal();
+    bool canTrade = true;
+    bool oppositeTradeDetected = false;
+
+    int desiredDirection = -1; // -1 means no direction determined yet, 0 for buy, 1 for sell
+
+    for(int i = 0; i < totalOrders; i++)
+    {
+        ulong ticket = PositionGetTicket(i);
+        if(PositionSelectByTicket(ticket))
         {
-         if(PositionGetInteger(POSITION_TYPE) == POSITION_TYPE_BUY)
-           {
-            double breakEvenPoint = PositionGetDouble(POSITION_PRICE_OPEN); // Assuming break-even is at the open price
-            if(PositionGetDouble(POSITION_SL) < breakEvenPoint) // SL must be at or above break-even for buy orders
-              {
-               canTrade = false;
-               break;
-              }
-           }
-         else if(PositionGetInteger(POSITION_TYPE) == POSITION_TYPE_SELL)
-           {
-            double breakEvenPoint = PositionGetDouble(POSITION_PRICE_OPEN); // Assuming break-even is at the open price
-            if(PositionGetDouble(POSITION_SL) > breakEvenPoint) // SL must be at or below break-even for sell orders
-              {
-               canTrade = false;
-               break;
-              }
-           }
-        }
-     }
+            long positionType = PositionGetInteger(POSITION_TYPE);
+            double openPrice = PositionGetDouble(POSITION_PRICE_OPEN);
+            double slPrice = PositionGetDouble(POSITION_SL);
 
-   return canTrade;
+            if(positionType == POSITION_TYPE_BUY)
+            {
+                double adjustedBreakEven = openPrice + spread; // Adjusting for the spread for buy orders
+                if(slPrice < openPrice || slPrice < adjustedBreakEven) // Check SL against open price and adjusted break-even
+                {
+                    canTrade = false;
+                    break;
+                }
+            }
+            else if(positionType == POSITION_TYPE_SELL)
+            {
+                double adjustedBreakEven = openPrice - spread; // Adjusting for the spread for sell orders
+                if(slPrice > openPrice || slPrice > adjustedBreakEven) // Check SL against open price and adjusted break-even
+                {
+                    canTrade = false;
+                    break;
+                }
+            }
+
+            if(desiredDirection == -1)
+            {
+                desiredDirection = positionType == POSITION_TYPE_BUY ? 1 : 0; // Determine opposite direction
+            }
+            else if(desiredDirection != positionType)
+            {
+                oppositeTradeDetected = true; // Detected intention to trade in the opposite direction
+            }
+        }
+    }
+
+    // Allow trading if there's an intention for an opposite trade, overriding break-even constraints
+    if(oppositeTradeDetected)
+    {
+        canTrade = true;
+    }
+
+    return canTrade;
 }
 
 
@@ -1183,7 +1231,7 @@ bool OpenChartIfNotOpen(string symbol, ENUM_TIMEFRAMES timeFrame) {
    for(int i=0; i<maxNumberOfCharts; i++) {
       if (StringLen(ChartSymbol(chartID)) > 0) {
          if (ChartSymbol(chartID) == symbol && ChartPeriod(chartID) == timeFrame) {
-            Print(StringFormat("Chart already open (%s, %s).", symbol, TimeFrameToString(timeFrame)));
+            //Print(StringFormat("Chart already open (%s, %s).", symbol, TimeFrameToString(timeFrame)));
             return false;
          }
       }

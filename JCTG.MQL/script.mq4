@@ -35,7 +35,7 @@ string filePathHistoricData = folderName + "/DWX_Historic_Data.txt";
 string filePathHistoricTrades = folderName + "/DWX_Historic_Trades.txt";
 string filePathCommandsPrefix = folderName + "/DWX_Commands_";
 
-string lastOrderText = "", lastMarketDataText = "", lastMessageText = "";
+string lastOrderText = "", lastMarketDataText = "", lastMessageText = "", lastBarDataText = "";
 
 struct MESSAGE
 {
@@ -659,13 +659,9 @@ void GetHistoricData(string dataStr) {
       Sleep(200);
    }
    
-   if (rates_count <= 0) {
-      SendError("HISTORIC_DATA", "Could not get historic data for " + symbol + "_" + data[1] + ": " + ErrorDescription(GetLastError()));
-      return;
-   }
-   
+  
    bool first = true;
-   string text = "{\"" + symbol + "_" + TimeFrameToString(timeFrame) + "\": {";
+   string text = "{\"" + symbol + "_" + TimeFrameToString(timeFrame) + "\": [";
    
    for(int i=0; i<rates_count; i++) {
       
@@ -680,7 +676,7 @@ void GetHistoricData(string dataStr) {
       }
       
       // maybe use integer instead of time string? IntegerToString(rates_array[i].time)
-      text += StringFormat("\"%s\": {\"open\": %.5f, \"high\": %.5f, \"low\": %.5f, \"close\": %.5f, \"tick_volume\": %.5f}", 
+      text += StringFormat("{\"time\": \"%s:00\", \"open\": %.5f, \"high\": %.5f, \"low\": %.5f, \"close\": %.5f, \"tick_volume\": %.5f}", 
                            TimeToString(rates_array[i].time), 
                            rates_array[i].open, 
                            rates_array[i].high, 
@@ -691,12 +687,17 @@ void GetHistoricData(string dataStr) {
       first = false;
    }
    
-   text += "}}";
+   text += "]}";
    for (int i=0; i<5; i++) {
       if (WriteToFile(filePathHistoricData, text)) break;
       Sleep(100);
    }
-   SendInfo(StringFormat("Successfully read historic data for %s_%s.", symbol, data[1]));
+   
+    if (rates_count <= 0) {
+      SendError("HISTORIC_DATA", "Could not get historic data for " + symbol + "_" + data[1] + ": " + ErrorDescription(GetLastError()));
+   } else {
+      SendInfo(StringFormat("Successfully read historic data for %s_%s.", symbol, data[1]));
+   }
 }
 
 void GetHistoricTrades(string dataStr) {
@@ -833,7 +834,8 @@ void CheckBarData() {
       
       int count = BarDataInstruments[s].GetRates(curr_rate, 1);
       // if last rate is returned and its timestamp is greater than the last published...
-      if(count > 0 && curr_rate[0].time > BarDataInstruments[s].getLastPublishTimestamp()) {
+      //if(count > 0 && curr_rate[0].time > BarDataInstruments[s].getLastPublishTimestamp()) {
+      if(count > 0) {
          
          string rates = StringFormat("\"%s\": {\"time\": \"%s\", \"open\": %f, \"high\": %f, \"low\": %f, \"close\": %f, \"tick_volume\":%d}, ", 
                                      BarDataInstruments[s].name(), 
@@ -851,12 +853,13 @@ void CheckBarData() {
       
       }
    }
-   if (!newData) return;
-   
+
    text = StringSubstr(text, 0, StringLen(text)-2) + "}";
-   for (int i=0; i<5; i++) {
-      if (WriteToFile(filePathBarData, text)) break;
-      Sleep(100);
+
+   // only write to file if there was a change. 
+   if (text == lastBarDataText) return;
+   if (WriteToFile(filePathBarData, text)) {
+      lastBarDataText = text;
    }
 }
 
@@ -875,10 +878,18 @@ int NumOpenOrdersWithMagic(int _magic) {
 }
 
 void CheckOpenOrders() {
-   
+
    bool first = true;
-   string text = StringFormat("{\"account_info\": {\"name\": \"%s\", \"number\": %d, \"currency\": \"%s\", \"leverage\": %d, \"free_margin\": %f, \"balance\": %f, \"equity\": %f}, \"orders\": {", 
-                              AccountName(), AccountNumber(), AccountCurrency(), AccountLeverage(), AccountFreeMargin(), AccountBalance(), AccountEquity());
+   string text = StringFormat("{\"account_info\": {\"name\": \"%s\", \"number\": %d, \"currency\": \"%s\", \"leverage\": %d, \"free_margin\": %f, \"balance\": %f, \"equity\": %f, \"tmz\": %f}, \"orders\": {", 
+                              AccountName(), 
+                              AccountNumber(), 
+                              AccountCurrency(), 
+                              AccountLeverage(), 
+                              AccountFreeMargin(), 
+                              AccountBalance(), 
+                              AccountEquity(),
+                              TimeDaylightSavings() ?  MathRound((double)(TimeCurrent() - TimeLocal()) + 3600 / 3600) :  MathRound((double)(TimeCurrent() - TimeLocal()) / 3600)
+                              );
    
    for(int i=OrdersTotal()-1; i>=0; i--) {
    
@@ -978,7 +989,7 @@ bool OpenChartIfNotOpen(string symbol, ENUM_TIMEFRAMES timeFrame) {
    for(int i=0; i<maxNumberOfCharts; i++) {
       if (StringLen(ChartSymbol(chartID)) > 0) {
          if (ChartSymbol(chartID) == symbol && ChartPeriod(chartID) == timeFrame) {
-            Print(StringFormat("Chart already open (%s, %s).", symbol, TimeFrameToString(timeFrame)));
+            //Print(StringFormat("Chart already open (%s, %s).", symbol, TimeFrameToString(timeFrame)));
             return false;
          }
       }

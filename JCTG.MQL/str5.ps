@@ -1,5 +1,5 @@
 //@version=5
-strategy("STR5.1", overlay=true, process_orders_on_close = true, calc_on_every_tick = true, default_qty_type = strategy.percent_of_equity, default_qty_value = 100, pyramiding = 100, currency = currency.NONE, initial_capital = 10000000, close_entries_rule="ANY")
+strategy("STR5.2", overlay=true, process_orders_on_close = true, calc_on_every_tick = true, default_qty_type = strategy.percent_of_equity, default_qty_value = 100, pyramiding = 100, currency = currency.NONE, initial_capital = 10000000, close_entries_rule="ANY")
 import TradingView/ta/5
 
 
@@ -13,7 +13,7 @@ i_positionSize              = input.string("Fixed 1%", title = "Position Size", 
 i_rewardRatio               = input.float(3.0, title = "Reward Ratio", group = "Risk / Reward") 
 i_moveSLtoBEafterR          = input.float(1.0, title="Move SL to BE after xR",group = "Risk / Reward") 
 i_cancellimit               = input.int(0, title = "Cancel stop order after (x) bars", group = "Risk / Reward") 
-i_thresholdPct              = input.float(50.00, title="Treshold average percentage OB", minval=0, maxval=100,group = "Risk / Reward") 
+i_thresholdPct              = input.float(50.00, title="Treshold average percentage OB", minval=0, maxval=1000,group = "Risk / Reward") 
 i_cancellimitNewSignal      = input.bool(false, title="Cancel stop order when new signal",group = "Risk / Reward") 
 
 i_pcLicenseID               = input.string("692803787",title="License ID",group = "Account")
@@ -88,18 +88,14 @@ if isSignalCandle() and isHighAboveAverage() and i_takeLongOrShort == "Long" and
     positionSize = positionSize(longEntryPrice, risk)
 
     // Do entry
-    message = i_pcLicenseID + ',buy,' + syminfo.ticker + ',entryprice=' + str.tostring(longEntryPrice) + ',currentprice=' + str.tostring(close) + ',sl=' + str.tostring(longSL) + ',tp=' + str.tostring(longTP) + ',magic=' + idTrade() + ',strategytype=5'
-    strategy.entry(id = idTrade(), direction = strategy.long, comment = idTrade(), stop = longEntryPrice, qty = positionSize, alert_message = message)
-    messageTP = i_pcLicenseID + ',tphit,' + syminfo.ticker + ',strategytype=5,rr=' + str.tostring(i_rewardRatio)
-    messageSL = i_pcLicenseID + ',slhit,' + syminfo.ticker + ',strategytype=5,rr=-1'
-    strategy.exit(idTrade(), from_entry =  idTrade(), comment= idTrade(), comment_loss=str.tostring("-1"), comment_profit = str.tostring(i_rewardRatio), stop=longSL, limit=longTP, alert_loss = messageSL, alert_profit = messageTP)
+    strategy.entry(id = idTrade(), direction = strategy.long, comment = idTrade(), stop = longEntryPrice, qty = positionSize)
+    strategy.exit(idTrade(), from_entry =  idTrade(), comment= idTrade(), comment_loss=str.tostring("-1"), comment_profit = str.tostring(i_rewardRatio), stop=longSL, limit=longTP)
+    alert(i_pcLicenseID + ',buystop,' + syminfo.ticker + ',entryexpr=Bar[' + str.tostring(time[1]) + '].Low,risk=' + str.tostring(risk) + ',rr=' + str.tostring(i_rewardRatio) + ',magic=' + idTrade() + ',strategytype=5', alert.freq_once_per_bar_close)
 
 
 if i_takeLongOrShort == "Long" and strategy.position_size > 0 and longEntryPrice != longSL and i_moveSLtoBEafterR > 0 and close >= (longEntryPrice + (i_moveSLtoBEafterR * risk)) and barstate.isconfirmed
     longSL := longEntryPrice
-    messageTP = i_pcLicenseID + ',tphit,' + syminfo.ticker + ',strategytype=5,rr=' + str.tostring(i_rewardRatio)
-    messageSL = i_pcLicenseID + ',slhit,' + syminfo.ticker + ',strategytype=5,rr=0'
-    strategy.exit(idTrade(), from_entry = idTrade(), comment = idTrade(), comment_loss= str.tostring("0"), comment_profit = str.tostring(i_rewardRatio), stop = longSL, limit=longTP, alert_loss = messageSL, alert_profit = messageTP) 
+    strategy.exit(idTrade(), from_entry = idTrade(), comment = idTrade(), comment_loss= str.tostring("0"), comment_profit = str.tostring(i_rewardRatio), stop = longSL, limit=longTP) 
 
 // Short    
 if isSignalCandle() and isHighAboveAverage() and i_takeLongOrShort == "Short" and barstate.isconfirmed
@@ -117,18 +113,14 @@ if isSignalCandle() and isHighAboveAverage() and i_takeLongOrShort == "Short" an
     positionSize = positionSize(shortEntryPrice, risk)
     
     // Do entry
-    message = i_pcLicenseID + ',sell,' + syminfo.ticker + ',entryprice=' + str.tostring(shortEntryPrice) + ',currentprice=' + str.tostring(close) + ',sl=' + str.tostring(shortSL) + ',tp=' + str.tostring(shortTP) + ',strategytype=5'
-    strategy.entry(id = idTrade(), direction = strategy.short, comment = idTrade(), stop = shortEntryPrice, qty = positionSize, alert_message = message)
-    messageTP = i_pcLicenseID + ',tphit,' + syminfo.ticker + ',strategytype=5,rr=' + str.tostring(i_rewardRatio)
-    messageSL = i_pcLicenseID + ',slhit,' + syminfo.ticker + ',strategytype=5,rr=-1'
-    strategy.exit(idTrade(), from_entry =  idTrade(), comment= idTrade(), comment_loss=str.tostring("-1"), comment_profit = str.tostring(i_rewardRatio), stop=shortSL, limit=shortTP, alert_loss = messageSL, alert_profit = messageTP)
+    strategy.entry(id = idTrade(), direction = strategy.short, comment = idTrade(), stop = shortEntryPrice, qty = positionSize)
+    strategy.exit(idTrade(), from_entry =  idTrade(), comment= idTrade(), comment_loss=str.tostring("-1"), comment_profit = str.tostring(i_rewardRatio), stop=shortSL, limit=shortTP)
+    alert(i_pcLicenseID + ',sellstop,' + syminfo.ticker + ',entryexpr=Bar[' + str.tostring(time[1]) + '].High,risk=' + str.tostring(risk) + ',rr=' + str.tostring(i_rewardRatio) + ',magic=' + idTrade() + ',strategytype=5', alert.freq_once_per_bar_close)
 
 
 if i_takeLongOrShort == "Short" and strategy.position_size < 0 and shortEntryPrice != shortSL and i_moveSLtoBEafterR > 0 and close <= (shortEntryPrice - (i_moveSLtoBEafterR * risk)) and barstate.isconfirmed
     shortSL := shortEntryPrice
-    messageTP = i_pcLicenseID + ',tphit,' + syminfo.ticker + ',strategytype=5,rr=' + str.tostring(i_rewardRatio)
-    messageSL = i_pcLicenseID + ',slhit,' + syminfo.ticker + ',strategytype=5,rr=0'
-    strategy.exit(idTrade(), from_entry = idTrade(), comment = idTrade(), comment_loss= str.tostring("0"), comment_profit = str.tostring(i_rewardRatio), stop = shortSL, limit=shortTP, alert_loss = messageSL, alert_profit = messageTP) 
+    strategy.exit(idTrade(), from_entry = idTrade(), comment = idTrade(), comment_loss= str.tostring("0"), comment_profit = str.tostring(i_rewardRatio), stop = shortSL, limit=shortTP) 
 
 
 //CANCEL PENDING ORDER

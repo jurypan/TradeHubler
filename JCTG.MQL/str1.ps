@@ -55,7 +55,7 @@ positionSize(entryPrice, diff) =>
 
 //LONG
 if isSignalCandle() and i_takeLongOrShort == "Long" and barstate.isconfirmed
-    id := time("") / 100000
+    id := math.floor(time("") / 100000)
     longEntryPrice := close
     longSL := low
     risk := longEntryPrice - longSL
@@ -65,25 +65,23 @@ if isSignalCandle() and i_takeLongOrShort == "Long" and barstate.isconfirmed
     positionSize = positionSize(longEntryPrice, risk)
 
     // Do entry
-    message = i_pcLicenseID + ',buy,' + syminfo.ticker + ',entryprice=' + str.tostring(longEntryPrice) + ',currentprice=' + str.tostring(close) + ',sl=' + str.tostring(longSL) + ',tp=' + str.tostring(longTP) + ',magic=' + idTrade() + ',strategytype=1'
-    strategy.entry(id = idTrade(), direction = strategy.long, comment = idTrade(), limit = longEntryPrice, qty = positionSize, alert_message = message)
-    messageTP = i_pcLicenseID + ',tphit,' + syminfo.ticker + ',entryprice=' + str.tostring(longEntryPrice) + ',currentprice=' + str.tostring(close) + ',sl=' + str.tostring(longSL) + ',tp=' + str.tostring(longTP) + ',magic=' + idTrade() + ',strategytype=1'
-    messageSL = i_pcLicenseID + ',slhit,' + syminfo.ticker + ',entryprice=' + str.tostring(longEntryPrice) + ',currentprice=' + str.tostring(close) + ',sl=' + str.tostring(longSL) + ',tp=' + str.tostring(longTP) + ',magic=' + idTrade() + ',strategytype=1'
-    strategy.exit("EXIT" + idTrade(), from_entry =  idTrade(), comment= idTrade(), comment_loss=str.tostring("-1"), comment_profit = str.tostring(i_rewardRatio), stop=longSL, limit=longTP, alert_profit = messageTP, alert_loss = messageSL)
+    message = i_pcLicenseID + ',buy,' + syminfo.ticker + ',entryprice=' + str.tostring(longEntryPrice) + ',currentprice=' + str.tostring(close) + ',sl=' + str.tostring(longSL) + ',tp=' + str.tostring(longTP) + ',strategytype=1'
+    strategy.entry(id = idTrade(), direction = strategy.long, comment = idTrade(), qty = positionSize, alert_message = message)
+    messageTP = i_pcLicenseID + ',tphit,' + syminfo.ticker + ',entryprice=' + str.tostring(longEntryPrice) + ',currentprice=' + str.tostring(close) + ',sl=' + str.tostring(longSL) + ',tp=' + str.tostring(longTP) + ',strategytype=1'
+    messageSL = i_pcLicenseID + ',slhit,' + syminfo.ticker + ',entryprice=' + str.tostring(longEntryPrice) + ',currentprice=' + str.tostring(close) + ',sl=' + str.tostring(longSL) + ',tp=' + str.tostring(longTP) + ',strategytype=1'
+    strategy.exit(idTrade(), from_entry =  idTrade(), comment= idTrade(), comment_loss=str.tostring("-1"), comment_profit = str.tostring(i_rewardRatio), stop=longSL, limit=longTP, alert_profit = messageTP, alert_loss = messageSL)
 
 
 if i_takeLongOrShort == "Long" and strategy.position_size > 0 and longEntryPrice != longSL and i_moveSLtoBEafterR > 0 and close >= (longEntryPrice + (i_moveSLtoBEafterR * risk)) and barstate.isconfirmed
     longSL := longEntryPrice    
-    message = i_pcLicenseID + ',modifysltobe,' + syminfo.ticker + ',entrypriceice=' + str.tostring(longEntryPrice) + ',currentprice=' + str.tostring(close) + ',sl=' + str.tostring(longSL) + ',tp=' + str.tostring(longTP) + ',magic=' + idTrade() + ',strategytype=1'
-    messageTP = i_pcLicenseID + ',tphit,' + syminfo.ticker + ',entryprice=' + str.tostring(longEntryPrice) + ',currentprice=' + str.tostring(close) + ',sl=' + str.tostring(longSL) + ',tp=' + str.tostring(longTP) + ',magic=' + idTrade() + ',strategytype=1'
-    messageSL = i_pcLicenseID + ',slhit,' + syminfo.ticker + ',entryprice=' + str.tostring(longEntryPrice) + ',currentprice=' + str.tostring(close) + ',sl=' + str.tostring(longSL) + ',tp=' + str.tostring(longTP) + ',magic=' + idTrade() + ',strategytype=1'
-    strategy.exit("EXIT" + idTrade(), from_entry = idTrade(), comment = idTrade(), comment_loss= str.tostring("0"), comment_profit = str.tostring(i_rewardRatio), stop = longSL, limit=longTP, alert_profit = messageTP, alert_loss = messageSL) 
-    alert(message)
+    messageTP = i_pcLicenseID + ',tphit,' + syminfo.ticker + ',entryprice=' + str.tostring(longEntryPrice) + ',currentprice=' + str.tostring(close) + ',sl=' + str.tostring(longSL) + ',tp=' + str.tostring(longTP) + ',strategytype=1'
+    messageSL = i_pcLicenseID + ',slhit,' + syminfo.ticker + ',entryprice=' + str.tostring(longEntryPrice) + ',currentprice=' + str.tostring(close) + ',sl=' + str.tostring(longSL) + ',tp=' + str.tostring(longTP) + ',strategytype=1'
+    strategy.exit(idTrade(), from_entry = idTrade(), comment = idTrade(), comment_loss= str.tostring("0"), comment_profit = str.tostring(i_rewardRatio), stop = longSL, limit=longTP, alert_profit = messageTP, alert_loss = messageSL) 
 
 
 //SHORT
 if isSignalCandle() and i_takeLongOrShort == "Short" and barstate.isconfirmed
-    id := time("") / 100000
+    id := math.floor(time("") / 100000)
     shortEntryPrice := close
     shortSL := high
     risk := shortSL - shortEntryPrice
@@ -93,17 +91,19 @@ if isSignalCandle() and i_takeLongOrShort == "Short" and barstate.isconfirmed
     positionSize = positionSize(shortEntryPrice, risk)
     
     // Do entry
-    strategy.entry(id = idTrade(), direction = strategy.short, comment = idTrade(), limit = longEntryPrice, qty = positionSize)
-    strategy.exit("EXIT" + idTrade(), from_entry =  idTrade(), comment= idTrade(), comment_loss=str.tostring("-1"), comment_profit = str.tostring(i_rewardRatio), stop=shortSL, limit=shortTP)
-    alert(i_pcLicenseID + ',sell,' + syminfo.ticker + ',entryprice=' + str.tostring(shortEntryPrice) + ',currentprice=' + str.tostring(close) + ',sl=' + str.tostring(shortSL) + ',tp=' + str.tostring(shortTP) + ',magic=' + idTrade() + ',strategytype=1', alert.freq_once_per_bar_close)
+    message = i_pcLicenseID + ',sell,' + syminfo.ticker + ',entryprice=' + str.tostring(shortEntryPrice) + ',currentprice=' + str.tostring(close) + ',sl=' + str.tostring(shortSL) + ',tp=' + str.tostring(shortTP) + ',strategytype=1'
+    strategy.entry(id = idTrade(), direction = strategy.short, comment = idTrade(), qty = positionSize, alert_message = message)
+    messageTP = i_pcLicenseID + ',tphit,' + syminfo.ticker + ',entryprice=' + str.tostring(shortEntryPrice) + ',currentprice=' + str.tostring(close) + ',sl=' + str.tostring(shortSL) + ',tp=' + str.tostring(shortTP) + ',strategytype=1'
+    messageSL = i_pcLicenseID + ',slhit,' + syminfo.ticker + ',entryprice=' + str.tostring(shortEntryPrice) + ',currentprice=' + str.tostring(close) + ',sl=' + str.tostring(shortSL) + ',tp=' + str.tostring(shortTP) + ',strategytype=1'
+    strategy.exit(idTrade(), from_entry =  idTrade(), comment= idTrade(), comment_loss=str.tostring("-1"), comment_profit = str.tostring(i_rewardRatio), stop=shortSL, limit=shortTP, alert_profit = messageTP, alert_loss = messageSL)
 
 
 if i_takeLongOrShort == "Short" and strategy.position_size < 0 and shortEntryPrice != shortSL and i_moveSLtoBEafterR > 0 and close <= (shortEntryPrice - (i_moveSLtoBEafterR * risk)) and barstate.isconfirmed
     shortSL := shortEntryPrice
-    strategy.exit("EXIT" + idTrade(), from_entry = idTrade(), comment = idTrade(), comment_loss= str.tostring("0"), comment_profit = str.tostring(i_rewardRatio), stop = shortEntryPrice, limit=shortTP) 
-    alert(i_pcLicenseID + ',modifysltobe,' + syminfo.ticker + ',entryprice=' + str.tostring(close) + ',currentprice=' + str.tostring(close) + ',sl=' + str.tostring(shortEntryPrice) + ',tp=' + str.tostring(shortTP) + ',magic=' + idTrade() + ',strategytype=1', alert.freq_once_per_bar_close)
+    messageTP = i_pcLicenseID + ',tphit,' + syminfo.ticker + ',entryprice=' + str.tostring(shortEntryPrice) + ',currentprice=' + str.tostring(close) + ',sl=' + str.tostring(shortSL) + ',tp=' + str.tostring(shortTP) + ',strategytype=1'
+    messageSL = i_pcLicenseID + ',slhit,' + syminfo.ticker + ',entryprice=' + str.tostring(shortEntryPrice) + ',currentprice=' + str.tostring(close) + ',sl=' + str.tostring(shortSL) + ',tp=' + str.tostring(shortTP) + ',strategytype=1'
+    strategy.exit(idTrade(), from_entry = idTrade(), comment = idTrade(), comment_loss= str.tostring("0"), comment_profit = str.tostring(i_rewardRatio), stop = shortSL, limit=shortTP, alert_profit = messageTP, alert_loss = messageSL) 
 
-    
 
 //PLOTS
 plotshape(isSignalCandle() and not i_showStrategy, title= "OB", location=location.abovebar, color=color.black, textcolor = color.black, style=shape.arrowdown, text= "OB")
