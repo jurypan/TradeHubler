@@ -20,6 +20,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JCTG.Client.Tests", "JCTG.C
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JCTG.AzureFunction.Tests", "JCTG.AzureFunction.Tests\JCTG.AzureFunction.Tests.csproj", "{BA0646A8-1FFC-4121-AAB7-A396372880B2}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JCTG.Terminal", "JCTG.Terminal\JCTG.Terminal.csproj", "{2B818FF7-FC7A-47D6-81F0-2F387CEAA28C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -50,6 +52,12 @@ Global
 		{BA0646A8-1FFC-4121-AAB7-A396372880B2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BA0646A8-1FFC-4121-AAB7-A396372880B2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BA0646A8-1FFC-4121-AAB7-A396372880B2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2B818FF7-FC7A-47D6-81F0-2F387CEAA28C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2B818FF7-FC7A-47D6-81F0-2F387CEAA28C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2B818FF7-FC7A-47D6-81F0-2F387CEAA28C}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{2B818FF7-FC7A-47D6-81F0-2F387CEAA28C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2B818FF7-FC7A-47D6-81F0-2F387CEAA28C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2B818FF7-FC7A-47D6-81F0-2F387CEAA28C}.Release|Any CPU.Deploy.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -14,7 +14,7 @@ namespace JCTG.Client
 
         public static void Print(object obj, bool color = false)
         {
-            if(color == true) 
+            if (color == true)
             {
                 // Set both foreground (text) color and background color
                 Console.ForegroundColor = ConsoleColor.Red;
@@ -63,7 +63,7 @@ namespace JCTG.Client
                 return false;
             }
         }
-		
+
         public static void TryDeleteFile(string path)
         {
             try
@@ -87,41 +87,47 @@ namespace JCTG.Client
 
         public static async Task<string> TryReadFileAsync(string path)
         {
-            try
+            int maxAttempts = 6;
+            for (int attempt = 1; attempt <= maxAttempts; attempt++)
             {
-                return await File.ReadAllTextAsync(path);
+                try
+                {
+                    return await File.ReadAllTextAsync(path);
+                }
+                catch (IOException)
+                {
+                    if (attempt == maxAttempts) return string.Empty;
+                    await Task.Delay(500); // Wait before retrying
+                }
             }
-            catch
+            return string.Empty; // Should not reach here
+        }
+
+        public static async Task TryWriteFileAsync(string fileName, string json)
+        {
+            int maxAttempts = 6;
+            for (int attempt = 1; attempt <= maxAttempts; attempt++)
             {
-                return string.Empty;
+                try
+                {
+                    await File.WriteAllTextAsync(fileName, json);
+                    break; // Success, exit the loop
+                }
+                catch (IOException)
+                {
+                    if (attempt != maxAttempts)
+                        await Task.Delay(500); // Wait before retrying
+                }
             }
         }
 
         public static string GetDescription(Enum value)
         {
             var field = value.GetType().GetField(value.ToString());
-            var attribute = Attribute.GetCustomAttribute(field, typeof(DescriptionAttribute)) as DescriptionAttribute;
-
-            return attribute == null ? value.ToString() : attribute.Description;
-        }
-
-        public static T GetValueFromDescription<T>(string description) where T : Enum
-        {
-            foreach (var field in typeof(T).GetFields())
-            {
-                if (Attribute.GetCustomAttribute(field, typeof(DescriptionAttribute)) is DescriptionAttribute attribute)
-                {
-                    if (attribute.Description == description)
-                        return (T)field.GetValue(null);
-                }
-                else
-                {
-                    if (field.Name == description)
-                        return (T)field.GetValue(null);
-                }
-            }
-
-            throw new ArgumentException("Not found.", nameof(description));
+            if (field != null)
+                return Attribute.GetCustomAttribute(field, typeof(DescriptionAttribute)) is not DescriptionAttribute attribute ? value.ToString() : attribute.Description;
+            else
+                return string.Empty;
         }
     }
 }

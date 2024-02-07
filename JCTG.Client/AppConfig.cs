@@ -18,8 +18,8 @@ namespace JCTG.Client
         public int MaxRetryCommandSeconds { get; set; }
         public bool LoadOrdersFromFile { get; set; }
         public int SleepDelay { get; set; }
-        public bool Verbose { get; set; }
-
+        public bool DropLogsInFile { get; set; }
+        public bool Debug { get; set; }
     }
     public class Brokers
     {
@@ -62,6 +62,14 @@ namespace JCTG.Client
         public bool CancelStopOrLimitOrderWhenNewSignal { get; set; }
         public int NumberOfHistoricalBarsRequested { get; set; }
         public TimeSpan? CloseAllTradesAt { get; set; }
+        [JsonConverter(typeof(StringEnumConverter))]
+        public SpreadExecType? SpreadEntry { get; set; }
+        [JsonConverter(typeof(StringEnumConverter))]
+        public SpreadExecType? SpreadSL { get; set; }
+        [JsonConverter(typeof(StringEnumConverter))]
+        public SpreadExecType? SpreadTP { get; set; }
+        public int RiskMinXTimesTheSpread { get; set; }
+
     }
 
     public class Risk

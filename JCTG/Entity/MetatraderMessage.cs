@@ -10,14 +10,21 @@
         public required string Instrument { get; set; }
         public long Magic { get; set; }
 
+        public MetatraderMessageMarketOrder? MarketOrder { get; set; }
 
-        // Optional BUY or SELL
+        public MetatraderMessagePassiveOrder? PassiveOrder { get; set; }
+
+    }
+
+    public class MetatraderMessageMarketOrder // BUY or SELL
+    {
         public decimal? Price { get; set; }
         public decimal? StopLoss { get; set; }
         public decimal? TakeProfit { get; set; }
+    }
 
-
-        // Optional BUYSTOP or SELLSTOP
+    public class MetatraderMessagePassiveOrder // BUYSTOP or SELLSTOP
+    {
         public string? EntryExpression { get; set; }
         public decimal? Risk { get; set; }
         public decimal? RiskRewardRatio { get; set; }

@@ -32,18 +32,21 @@
             var riskAmount = Convert.ToDecimal(accountBalance) * ((riskPercent * dynamicRisk) / 100.0M);
             var stopLossDistance = Math.Abs(openPrice - stopLossPrice);
             var stopLossDistanceInTicks = stopLossDistance / tickStep;
-            var lotSize = Convert.ToDecimal(riskAmount) / (stopLossDistanceInTicks * tickValue);
+            if(stopLossDistanceInTicks > 0) 
+            {
+                var lotSize = Convert.ToDecimal(riskAmount) / (stopLossDistanceInTicks * tickValue);
 
+                // Adjusting for lot step
+                var remainder = lotSize % Convert.ToDecimal(lotStep);
+                var adjustedLotSize = remainder == 0 ? lotSize : lotSize - remainder + (remainder >= Convert.ToDecimal(lotStep) / 2 ? Convert.ToDecimal(lotStep) : 0);
+                adjustedLotSize = Math.Round(adjustedLotSize, 2);
 
-
-            // Adjusting for lot step
-            var remainder = lotSize % Convert.ToDecimal(lotStep);
-            var adjustedLotSize = remainder == 0 ? lotSize : lotSize - remainder + (remainder >= Convert.ToDecimal(lotStep) / 2 ? Convert.ToDecimal(lotStep) : 0);
-            adjustedLotSize = Math.Round(adjustedLotSize, 2);
-
-            // Bounds checking
-            return Math.Clamp(adjustedLotSize, Convert.ToDecimal(minLotSizeAllowed), Convert.ToDecimal(maxLotSizeAllowed));
+                // Bounds checking
+                return Math.Clamp(adjustedLotSize, Convert.ToDecimal(minLotSizeAllowed), Convert.ToDecimal(maxLotSizeAllowed));
+            }
+            return 0.0M;
         }
+
 
         /// <summary>
         /// Calculate the stop loss signalEntryPrice for long positions based on the specified parameters
@@ -56,7 +59,7 @@
         /// <param name="signalSL">Signal SL signalEntryPrice</param>
         /// <param name="signalATR">Signal ATR</param>
         /// <returns>Stop loss signalEntryPrice</returns>
-        public static decimal SLForLong(decimal mtPrice, decimal mtSpread, int mtDigits, decimal signalPrice, decimal signalSL, double pairSlMultiplier = 1.0)
+        public static decimal SLForLong(decimal mtPrice, decimal mtSpread, int mtDigits, decimal signalPrice, decimal signalSL, SpreadExecType? spreadExecType = null, double pairSlMultiplier = 1.0)
         {
             // Calculate SL signalEntryPrice using MetaTrader signalEntryPrice minus risk to take
             var slPrice = mtPrice - ((signalPrice - signalSL) * Convert.ToDecimal(pairSlMultiplier));
@@ -64,8 +67,15 @@
             // Round
             slPrice = Math.Round(slPrice, mtDigits, MidpointRounding.AwayFromZero);
 
-            // Return SL Price minus spread
-            return slPrice - mtSpread;
+            // Return SL Price
+            if (spreadExecType.HasValue)
+            {
+                if(spreadExecType.Value == SpreadExecType.Add) 
+                    return slPrice + mtSpread;
+                else if(spreadExecType.Value == SpreadExecType.Subtract) 
+                    return slPrice - mtSpread;
+            }
+            return slPrice;
         }
 
         /// <summary>
@@ -78,7 +88,7 @@
         /// <param name="signalSL">Signal SL signalEntryPrice</param>
         /// <param name="signalATR">Signal ATR5M</param>
         /// <returns>Stop loss signalEntryPrice</returns>
-        public static decimal SLForShort(decimal mtPrice, decimal mtSpread, int mtDigits, decimal signalPrice, decimal signalSL, double pairSlMultiplier = 1.0)
+        public static decimal SLForShort(decimal mtPrice, decimal mtSpread, int mtDigits, decimal signalPrice, decimal signalSL, SpreadExecType? spreadExecType = null, double pairSlMultiplier = 1.0)
         {
             // Calculate SL signalEntryPrice using MetaTrader signalEntryPrice minus risk to take
             var slPrice = mtPrice + ((signalSL - signalPrice) * Convert.ToDecimal(pairSlMultiplier));
@@ -86,8 +96,15 @@
             // Round
             slPrice = Math.Round(slPrice, mtDigits, MidpointRounding.AwayFromZero);
 
-            // Return SL Price plus spread
-            return slPrice + mtSpread;
+            // Return SL Price
+            if (spreadExecType.HasValue)
+            {
+                if (spreadExecType.Value == SpreadExecType.Add)
+                    return slPrice - mtSpread;
+                else if (spreadExecType.Value == SpreadExecType.Subtract)
+                    return slPrice + mtSpread;
+            }
+            return slPrice;
         }
 
         /// <summary>
@@ -100,7 +117,7 @@
         /// <param name="signalTP">Signal TP signalEntryPrice</param>
         /// <param name="signalATR">Signal ATR</param>
         /// <returns>Take profit signalEntryPrice</returns>
-        public static decimal TPForLong(decimal mtPrice, int mtDigits, decimal signalPrice, decimal signalTP)
+        public static decimal TPForLong(decimal mtPrice, decimal mtSpread, int mtDigits, decimal signalPrice, decimal signalTP, SpreadExecType? spreadExecType = null)
         {
             var multiplier = 1.0M;
 
@@ -110,7 +127,14 @@
             // Round
             tpPrice = Math.Round(tpPrice, mtDigits, MidpointRounding.AwayFromZero);
 
-            // Return SL Price minus spread
+            // Return SL Price
+            if (spreadExecType.HasValue)
+            {
+                if (spreadExecType.Value == SpreadExecType.Add)
+                    return tpPrice + mtSpread;
+                else if (spreadExecType.Value == SpreadExecType.Subtract)
+                    return tpPrice - mtSpread;
+            }
             return tpPrice;
         }
 
@@ -123,7 +147,7 @@
         /// <param name="signalTP">Signal TP signalEntryPrice</param>
         /// <param name="signalATR">Signal ATR</param>
         /// <returns>Take profit signalEntryPrice</returns>
-        public static decimal TPForShort(decimal mtPrice, int mtDigits, decimal signalPrice, decimal signalTP)
+        public static decimal TPForShort(decimal mtPrice, decimal mtSpread, int mtDigits, decimal signalPrice, decimal signalTP, SpreadExecType? spreadExecType = null)
         {
             var multiplier = 1.0M;
 
@@ -133,7 +157,14 @@
             // Round
             tpPrice = Math.Round(tpPrice, mtDigits, MidpointRounding.AwayFromZero);
 
-            // Return SL Price plus spread
+            // Return SL Price
+            if (spreadExecType.HasValue)
+            {
+                if (spreadExecType.Value == SpreadExecType.Add)
+                    return tpPrice - mtSpread;
+                else if (spreadExecType.Value == SpreadExecType.Subtract)
+                    return tpPrice + mtSpread;
+            }
             return tpPrice;
         }
 

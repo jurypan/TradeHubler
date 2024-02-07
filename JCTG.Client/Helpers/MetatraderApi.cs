@@ -14,7 +14,6 @@ namespace JCTG.Client
         private readonly int sleepDelay;
         private readonly int maxRetryCommandSeconds;
         private readonly bool loadOrdersFromFile;
-        private readonly bool verbose;
 
         private readonly string pathOrders;
         private readonly string pathMessages;
@@ -79,14 +78,13 @@ namespace JCTG.Client
 
 
 
-        public MetatraderApi(string MetaTraderDirPath, long clientId, int sleepDelay, int maxRetryCommandSeconds, bool loadOrdersFromFile, bool verbose)
+        public MetatraderApi(string MetaTraderDirPath, long clientId, int sleepDelay, int maxRetryCommandSeconds, bool loadOrdersFromFile)
         {
             this.MetaTraderDirPath = MetaTraderDirPath;
             this.ClientId = clientId;
             this.sleepDelay = sleepDelay;
             this.maxRetryCommandSeconds = maxRetryCommandSeconds;
             this.loadOrdersFromFile = loadOrdersFromFile;
-            this.verbose = verbose;
 
             if (!Directory.Exists(MetaTraderDirPath))
             {

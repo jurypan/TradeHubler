@@ -64,17 +64,19 @@ namespace JCTG.AzureFunction
                         Instrument = signal.Instrument,
                         Magic = signal.Magic,
                         OrderType = signal.OrderType,
-                        Price = signal.EntryPrice,
-
-                        // Optional BUY or SELL
-                        StopLoss = signal.StopLoss,
                         StrategyType = signal.StrategyType,
-                        TakeProfit = signal.TakeProfit,
-
-                        // Optional BUYSTOP or SELLSTOP
-                        EntryExpression = signal.EntryExpression,
-                        Risk = signal.Risk,
-                        RiskRewardRatio = signal.RiskRewardRatio,
+                        MarketOrder = signal.OrderType == "BUY" || signal.OrderType == "SELL" ? new MetatraderMessageMarketOrder()
+                        {
+                            StopLoss = signal.StopLoss,
+                            Price = signal.EntryPrice,
+                            TakeProfit = signal.TakeProfit,
+                        } : null,
+                        PassiveOrder = signal.OrderType == "BUYSTOP" || signal.OrderType == "SELLSTOP" ? new MetatraderMessagePassiveOrder()
+                        {
+                            EntryExpression = signal.EntryExpression,
+                            Risk = signal.Risk,
+                            RiskRewardRatio = signal.RiskRewardRatio,
+                        } : null,
                     };
 
                     // Send to all clients
