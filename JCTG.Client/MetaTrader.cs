@@ -2,6 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using System.Collections.Concurrent;
+using System.Threading.Tasks;
 using static JCTG.Client.Helpers;
 
 namespace JCTG.Client
@@ -1122,7 +1123,18 @@ namespace JCTG.Client
 
 
                 // Send log to files
-                Task.Run(async () => await SendLogToFileAsync(clientId, log));
+                Task.Run(async () =>
+                {
+                    // Send the tradejournal to Azure PubSub server
+                    await new AzurePubSubServer(_terminalConfig.AccountId).SendOnLogEventAsync(new OnLogEvent()
+                    {
+                        ClientID = clientId,
+                        Log = log
+                    });
+
+                    // Send log to files
+                    await SendLogToFileAsync(clientId, log);
+                });
             }
         }
 
@@ -1146,7 +1158,6 @@ namespace JCTG.Client
                 // Send log to files
                 var message = string.Format($"Symbol={order.Symbol},Ticket={ticketId},Lots={order.Lots},Type={order.Type},Magic={order.Magic},Price={order.OpenPrice},TP={order.TakeProfit},SL={order.StopLoss},Comment={order.Comment}");
                 var log = new Log() { Time = DateTime.UtcNow, Type = "INFO", Description = "Create order", Message = message };
-                Task.Run(async () => await SendLogToFileAsync(clientId, log));
 
                 // Get the signal id from the comment field
                 string[] components = order.Comment != null ? order.Comment.Split('/') : [];
@@ -1154,11 +1165,27 @@ namespace JCTG.Client
                 if (components != null && components.Length == 5)
                     _ = long.TryParse(components[0], out signalId);
 
-                // Send log to the journal
-                Task.Run(async () => await SendLogToJournalFileAsync(clientId, signalId, log));
+                
+                Task.Run(async () => 
+                {
+                    // Send the tradejournal to Azure PubSub server
+                    await new AzurePubSubServer(_terminalConfig.AccountId).SendOnOrderCreateEventAsync(new OnOrderCreateEvent()
+                    {
+                        ClientID = clientId,
+                        SignalID = signalId,
+                        Order = order,
+                        Log = log
+                    });
 
-                // Send order to the journal
-                Task.Run(async () => await SendOrderToJournalFileAsync(clientId, signalId, order));
+                    // Send log to files
+                    await SendLogToFileAsync(clientId, log);
+
+                    // Send log to the journal
+                    await SendLogToJournalFileAsync(clientId, signalId, log);
+
+                    // Send order to the journal
+                    await SendOrderToJournalFileAsync(clientId, signalId, order);
+                });
             }
         }
 
@@ -1183,7 +1210,6 @@ namespace JCTG.Client
                 // Send log to files
                 var message = string.Format($"Symbol={order.Symbol},Ticket={ticketId},Lots={order.Lots},Type={order.Type},Magic={order.Magic},Price={order.OpenPrice},TP={order.TakeProfit},SL={order.StopLoss},Comment={order.Comment}");
                 var log = new Log() { Time = DateTime.UtcNow, Type = "INFO", Description = "Update order", Message = message };
-                Task.Run(async () => await SendLogToFileAsync(clientId, log));
 
                 // Get the signal id from the comment field
                 string[] components = order.Comment != null ? order.Comment.Split('/') : [];
@@ -1191,11 +1217,27 @@ namespace JCTG.Client
                 if (components != null && components.Length == 5)
                     _ = long.TryParse(components[0], out signalId);
 
-                // Send log to the journal
-                Task.Run(async () => await SendLogToJournalFileAsync(clientId, signalId, log));
 
-                // Send order to the journal
-                Task.Run(async () => await SendOrderToJournalFileAsync(clientId, signalId, order));
+                Task.Run(async () =>
+                {
+                    // Send the tradejournal to Azure PubSub server
+                    await new AzurePubSubServer(_terminalConfig.AccountId).SendOnOrderUpdateEventAsync(new OnOrderUpdateEvent()
+                    {
+                        ClientID = clientId,
+                        SignalID = signalId,
+                        Order = order,
+                        Log = log
+                    });
+
+                    // Send log to files
+                    await SendLogToFileAsync(clientId, log);
+
+                    // Send log to the journal
+                    await SendLogToJournalFileAsync(clientId, signalId, log);
+
+                    // Send order to the journal
+                    await SendOrderToJournalFileAsync(clientId, signalId, order);
+                });
             }
         }
 
@@ -1220,7 +1262,6 @@ namespace JCTG.Client
                 // Send log to files
                 var message = string.Format($"Symbol={order.Symbol},Ticket={ticketId},Lots={order.Lots},Type={order.Type},Magic={order.Magic},Price={order.OpenPrice},TP={order.TakeProfit},SL={order.StopLoss},Comment={order.Comment}");
                 var log = new Log() { Time = DateTime.UtcNow, Type = "INFO", Description = "Close order", Message = message };
-                Task.Run(async () => await SendLogToFileAsync(clientId, log));
 
                 // Get the signal id from the comment field
                 string[] components = order.Comment != null ? order.Comment.Split('/') : [];
@@ -1228,11 +1269,26 @@ namespace JCTG.Client
                 if (components != null && components.Length == 5)
                     _ = long.TryParse(components[0], out signalId);
 
-                // Send log to the journal
-                Task.Run(async () => await SendLogToJournalFileAsync(clientId, signalId, log));
+                Task.Run(async () =>
+                {
+                    // Send the tradejournal to Azure PubSub server
+                    await new AzurePubSubServer(_terminalConfig.AccountId).SendOnOrderCloseEventAsync(new OnOrderCloseEvent()
+                    {
+                        ClientID = clientId,
+                        SignalID = signalId,
+                        Order = order,
+                        Log = log
+                    });
 
-                // Send order to the journal
-                Task.Run(async () => await SendOrderToJournalFileAsync(clientId, signalId, order, true));
+                    // Send logs to file
+                    await SendLogToFileAsync(clientId, log);
+
+                    // Send log to the journal
+                    await SendLogToJournalFileAsync(clientId, signalId, log);
+
+                    // Send order to the journal
+                    await SendOrderToJournalFileAsync(clientId, signalId, order, true);
+                });
             }
         }
 
@@ -1317,12 +1373,9 @@ namespace JCTG.Client
                 // Do null reference check
                 if (journal != null)
                 {
-                    // Add the log
+                    // Add to journal
                     journal.Order = order;
                     journal.IsTradeClosed = isTradeClosed;
-
-                    // Send the tradejournal to Azure PubSub server
-                    await new AzurePubSubServer(_terminalConfig.AccountId).SendTradeJournalAsync(journal);
 
                     // Serialize and write the journal back to the file
                     string serializedContent = JsonConvert.SerializeObject(journals);

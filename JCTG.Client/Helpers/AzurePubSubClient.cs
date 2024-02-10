@@ -25,12 +25,12 @@ namespace JCTG.Client
                     {
                         using (var document = JsonDocument.Parse(msg.Text))
                         {
-                            var type = document.RootElement.GetProperty("type").GetString();
-                            var from = document.RootElement.GetProperty("from").GetString();
+                            var type = document.RootElement.GetProperty("Type").GetString();
+                            var from = document.RootElement.GetProperty("From").GetString();
                             if (type == Constants.WebsocketMessageType_Message && from == Constants.WebsocketMessageFrom_Server)
                             {
-                                var data = document.RootElement.GetProperty("data");
-                                if (data.ValueKind == JsonValueKind.Object && document.RootElement.TryGetProperty("typeName", out var typeNameProperty))
+                                var data = document.RootElement.GetProperty("Data");
+                                if (data.ValueKind == JsonValueKind.Object && document.RootElement.TryGetProperty("TypeName", out var typeNameProperty))
                                 {
                                     if (typeNameProperty.GetString() == "MetatraderMessage")
                                     {

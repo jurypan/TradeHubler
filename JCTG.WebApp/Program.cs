@@ -1,5 +1,7 @@
 using JCTG;
+using JCTG.Models;
 using JCTG.WebApp;
+using JCTG.WebApp.Helpers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Websocket.Client;
@@ -41,6 +43,8 @@ app.MapFallbackToPage("/_Host");
 app.MapControllers();
 app.UseWebSockets();
 
-
-
-app.Run();
+using (var serviceScope = app.Services.CreateScope())
+{
+    serviceScope.ServiceProvider.GetRequiredService<WebsocketService>().Run();
+    app.Run();
+}

@@ -11,6 +11,8 @@ namespace JCTG
 
         public DbSet<Signal> Signal { get; set; }
 
+        public DbSet<TradeJournal> TradeJournal { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
 
@@ -20,6 +22,11 @@ namespace JCTG
                 .WithMany(t => t.Signals)
                 .HasForeignKey(ta => ta.AccountID);
 
+            modelBuilder.Entity<TradeJournal>()
+                    .HasOne(e => e.Signal)
+                    .WithOne(e => e.TradeJournal)
+                    .HasForeignKey<Signal>(e => e.TradeJournalID)
+                    .IsRequired(false);
         }
     }
 }

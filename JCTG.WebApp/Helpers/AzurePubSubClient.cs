@@ -8,8 +8,10 @@ namespace JCTG.WebApp
     {
         private readonly WebsocketClient? _client = client;
 
-        public event Action<Log>? SubscribeOnLog;
-        public event Action<TradeJournal>? SubscribeOnTradeJournal;
+        public event Action<OnLogEvent>? OnLogEvent;
+        public event Action<OnOrderCreateEvent>? OnOrderCreateEvent;
+        public event Action<OnOrderUpdateEvent>? OnOrderUpdateEvent;
+        public event Action<OnOrderCloseEvent>? OnOrderCloseEvent;
 
         public void ListeningToServer()
         {
@@ -19,8 +21,8 @@ namespace JCTG.WebApp
                 // Disable the auto disconnect and reconnect because the sample would like the _client to stay online even no data comes in
                 _client.ReconnectTimeout = null;
 
-                // Enable the message receive
-                _ = _client.MessageReceived.Subscribe(msg =>
+                // Enable the event receive
+                _client.MessageReceived.Subscribe(msg =>
                 {
                     if (msg != null && msg.Text != null)
                     {
@@ -28,25 +30,41 @@ namespace JCTG.WebApp
                         {
                             var type = document.RootElement.GetProperty("type").GetString();
                             var from = document.RootElement.GetProperty("from").GetString();
-                            if (type == Constants.WebsocketMessageType_Message && from == Constants.WebsocketMessageFrom_Server)
+                            if (from == Constants.WebsocketMessageFrom_Server)
                             {
                                 var data = document.RootElement.GetProperty("data");
                                 if (data.ValueKind == JsonValueKind.Object && document.RootElement.TryGetProperty("typeName", out var typeNameProperty))
                                 {
-                                    if (typeNameProperty.GetString() == "Log")
+                                    if (type == Constants.WebsocketMessageType_OnOrderCreateEvent)
                                     {
-                                        var message = data.Deserialize<Log>(new JsonSerializerOptions(JsonSerializerDefaults.Web));
-                                        if (message != null)
+                                        var @event = data.Deserialize<OnOrderCreateEvent>(new JsonSerializerOptions(JsonSerializerDefaults.Web));
+                                        if (@event != null)
                                         {
-                                            SubscribeOnLog?.Invoke(message);
+                                            OnOrderCreateEvent?.Invoke(@event);
+                                        }  
+                                    }
+                                    else if (type == Constants.WebsocketMessageType_OnOrderUpdateEvent)
+                                    {
+                                        var @event = data.Deserialize<OnOrderUpdateEvent>(new JsonSerializerOptions(JsonSerializerDefaults.Web));
+                                        if (@event != null)
+                                        {
+                                            OnOrderUpdateEvent?.Invoke(@event);
                                         }
                                     }
-                                    else if (typeNameProperty.GetString() == "TradeJournal")
+                                    else if (type == Constants.WebsocketMessageType_OnOrderCloseEvent)
                                     {
-                                        var message = data.Deserialize<TradeJournal>(new JsonSerializerOptions(JsonSerializerDefaults.Web));
-                                        if (message != null)
+                                        var @event = data.Deserialize<OnOrderCloseEvent>(new JsonSerializerOptions(JsonSerializerDefaults.Web));
+                                        if (@event != null)
                                         {
-                                            SubscribeOnTradeJournal?.Invoke(message);
+                                            OnOrderCloseEvent?.Invoke(@event);
+                                        }
+                                    }
+                                    else if (type == Constants.WebsocketMessageType_OnLogEvent)
+                                    {
+                                        var @event = data.Deserialize<OnLogEvent>(new JsonSerializerOptions(JsonSerializerDefaults.Web));
+                                        if (@event != null)
+                                        {
+                                            OnLogEvent?.Invoke(@event);
                                         }
                                     }
                                 }

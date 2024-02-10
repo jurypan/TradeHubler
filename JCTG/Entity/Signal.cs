@@ -20,9 +20,10 @@ namespace JCTG.Entity
         public long Magic { get; set; }
         public string OrderType { get; set; }
         public string Instrument { get; set; }
-        public decimal? CurrentPrice { get; set; }
+
 
         // Optional BUY or SELL
+        public decimal? CurrentPrice { get; set; }
         public decimal? EntryPrice { get; set; }
         public decimal? StopLoss { get; set; }
         public decimal? TakeProfit { get; set; }
@@ -32,6 +33,10 @@ namespace JCTG.Entity
         public string? EntryExpression { get; set; }
         public decimal? Risk { get; set; }
         public decimal? RiskRewardRatio { get; set; }
+
+
+        public long? TradeJournalID { get; set; }
+        public TradeJournal? TradeJournal { get; set; }
 
 
         public static Signal Parse(string input)

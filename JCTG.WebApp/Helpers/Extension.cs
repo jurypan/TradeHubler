@@ -1,4 +1,5 @@
 ﻿using Azure.Messaging.WebPubSub;
+using JCTG.WebApp.Helpers;
 using Websocket.Client;
 
 namespace JCTG.WebApp
@@ -18,6 +19,9 @@ namespace JCTG.WebApp
 
             // Add as singleton
             service.AddSingleton(pubSub);
+
+            // Add as transitent
+            service.AddTransient<WebsocketService>();
 
             // Return
             return service;
