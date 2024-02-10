@@ -1,5 +1,5 @@
 ﻿using System.Text.Json;
-using JCTG.Models;
+using JCTG.Events;
 using Websocket.Client;
 
 namespace JCTG.Client
@@ -8,7 +8,7 @@ namespace JCTG.Client
     {
         private readonly WebsocketClient? _client = client;
 
-        public event Action<TradingviewSignal> SubscribeOnTradingviewSignal;
+        public event Action<OnTradingviewSignalEvent> OnTradingviewSignalEvent;
 
         public async Task StartAsync()
         {
@@ -25,20 +25,21 @@ namespace JCTG.Client
                     {
                         using (var document = JsonDocument.Parse(msg.Text))
                         {
+                            // Init
                             var type = document.RootElement.GetProperty("Type").GetString();
                             var from = document.RootElement.GetProperty("From").GetString();
-                            if (type == Constants.WebsocketMessageType_Message && from == Constants.WebsocketMessageFrom_Server)
+
+                            // If comes from the server
+                            if (from == Constants.WebsocketMessageFrom_Server)
                             {
-                                var data = document.RootElement.GetProperty("Data");
+                                var data = document.RootElement.GetProperty("data");
                                 if (data.ValueKind == JsonValueKind.Object && document.RootElement.TryGetProperty("TypeName", out var typeNameProperty))
                                 {
-                                    if (typeNameProperty.GetString() == "MetatraderMessage")
+                                    if (type == Constants.WebsocketMessageType_OnTradingviewSignalEvent)
                                     {
-                                        var message = data.Deserialize<TradingviewSignal>(new JsonSerializerOptions(JsonSerializerDefaults.Web));
-                                        if (message != null)
-                                        {
-                                            SubscribeOnTradingviewSignal?.Invoke(message);
-                                        }  
+                                        var @event = data.Deserialize<OnTradingviewSignalEvent>(new JsonSerializerOptions(JsonSerializerDefaults.Web));
+                                        if (@event != null)
+                                            OnTradingviewSignalEvent?.Invoke(@event);
                                     }
                                 }
                             }

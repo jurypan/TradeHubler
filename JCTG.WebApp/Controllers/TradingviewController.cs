@@ -1,6 +1,7 @@
 ﻿using Azure.Core;
 using Azure.Messaging.WebPubSub;
 using JCTG.Entity;
+using JCTG.Events;
 using JCTG.Models;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
@@ -59,7 +60,7 @@ namespace JCTG.WebApp.Controllers
                 _logger.LogInformation($"Added to database in table Signal with ID: {signal.ID}", signal);
 
                 // Create model
-                var id = await _server.SendTradingviewSignalAsync(new TradingviewSignal()
+                var id = await _server.SendOnTradingviewSignalEventAsync(new OnTradingviewSignalEvent()
                 {
                     SignalID = signal.ID,
                     AccountID = signal.AccountID,
@@ -67,13 +68,13 @@ namespace JCTG.WebApp.Controllers
                     Magic = signal.Magic,
                     OrderType = signal.OrderType,
                     StrategyType = signal.StrategyType,
-                    MarketOrder = signal.OrderType == "BUY" || signal.OrderType == "SELL" ? new TradingviewSignalMarketOrder()
+                    MarketOrder = signal.OrderType == "BUY" || signal.OrderType == "SELL" ? new OnTradingviewSignalEventMarketOrder()
                     {
                         StopLoss = signal.StopLoss,
                         Price = signal.EntryPrice,
                         TakeProfit = signal.TakeProfit,
                     } : null,
-                    PassiveOrder = signal.OrderType == "BUYSTOP" || signal.OrderType == "SELLSTOP" ? new TradingviewSignalPassiveOrder()
+                    PassiveOrder = signal.OrderType == "BUYSTOP" || signal.OrderType == "SELLSTOP" ? new OnTradingviewSignalEventPassiveOrder()
                     {
                         EntryExpression = signal.EntryExpression,
                         Risk = signal.Risk,

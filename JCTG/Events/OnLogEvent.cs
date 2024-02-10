@@ -1,4 +1,6 @@
-﻿namespace JCTG.Models
+﻿using JCTG.Models;
+
+namespace JCTG.Events
 {
     public class OnLogEvent
     {

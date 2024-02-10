@@ -1,4 +1,4 @@
-﻿using JCTG.Models;
+﻿using JCTG.Events;
 using System.Text.Json;
 using Websocket.Client;
 
@@ -12,6 +12,7 @@ namespace JCTG.WebApp
         public event Action<OnOrderCreateEvent>? OnOrderCreateEvent;
         public event Action<OnOrderUpdateEvent>? OnOrderUpdateEvent;
         public event Action<OnOrderCloseEvent>? OnOrderCloseEvent;
+        public event Action<OnOrderAutoMoveSlToBeEvent>? OnOrderAutoMoveSlToBeEvent;
 
         public void ListeningToServer()
         {
@@ -28,44 +29,45 @@ namespace JCTG.WebApp
                     {
                         using (var document = JsonDocument.Parse(msg.Text))
                         {
+                            // INit
                             var type = document.RootElement.GetProperty("type").GetString();
                             var from = document.RootElement.GetProperty("from").GetString();
-                            if (from == Constants.WebsocketMessageFrom_Server)
+
+                            // If comes from metatrader
+                            if (from == Constants.WebsocketMessageFrom_Metatrader)
                             {
                                 var data = document.RootElement.GetProperty("data");
-                                if (data.ValueKind == JsonValueKind.Object && document.RootElement.TryGetProperty("typeName", out var typeNameProperty))
+                                if (data.ValueKind == JsonValueKind.Object && document.RootElement.TryGetProperty("TypeName", out var typeNameProperty))
                                 {
                                     if (type == Constants.WebsocketMessageType_OnOrderCreateEvent)
                                     {
                                         var @event = data.Deserialize<OnOrderCreateEvent>(new JsonSerializerOptions(JsonSerializerDefaults.Web));
                                         if (@event != null)
-                                        {
                                             OnOrderCreateEvent?.Invoke(@event);
-                                        }  
                                     }
                                     else if (type == Constants.WebsocketMessageType_OnOrderUpdateEvent)
                                     {
                                         var @event = data.Deserialize<OnOrderUpdateEvent>(new JsonSerializerOptions(JsonSerializerDefaults.Web));
                                         if (@event != null)
-                                        {
                                             OnOrderUpdateEvent?.Invoke(@event);
-                                        }
                                     }
                                     else if (type == Constants.WebsocketMessageType_OnOrderCloseEvent)
                                     {
                                         var @event = data.Deserialize<OnOrderCloseEvent>(new JsonSerializerOptions(JsonSerializerDefaults.Web));
                                         if (@event != null)
-                                        {
                                             OnOrderCloseEvent?.Invoke(@event);
-                                        }
                                     }
                                     else if (type == Constants.WebsocketMessageType_OnLogEvent)
                                     {
                                         var @event = data.Deserialize<OnLogEvent>(new JsonSerializerOptions(JsonSerializerDefaults.Web));
                                         if (@event != null)
-                                        {
                                             OnLogEvent?.Invoke(@event);
-                                        }
+                                    }
+                                    else if (type == Constants.WebsocketMessageType_OnOrderAutoMoveSlToBeEvent)
+                                    {
+                                        var @event = data.Deserialize<OnOrderAutoMoveSlToBeEvent>(new JsonSerializerOptions(JsonSerializerDefaults.Web));
+                                        if (@event != null)
+                                            OnOrderAutoMoveSlToBeEvent?.Invoke(@event);
                                     }
                                 }
                             }

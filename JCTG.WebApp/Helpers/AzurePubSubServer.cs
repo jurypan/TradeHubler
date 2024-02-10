@@ -1,5 +1,5 @@
 using Azure.Messaging.WebPubSub;
-using JCTG.Models;
+using JCTG.Events;
 using Newtonsoft.Json;
 
 namespace JCTG.WebApp
@@ -15,17 +15,17 @@ namespace JCTG.WebApp
         }
 
 
-        public async Task<string> SendTradingviewSignalAsync(TradingviewSignal signal) 
+        public async Task<string> SendOnTradingviewSignalEventAsync(OnTradingviewSignalEvent signal) 
         {
             if(_serviceClient != null) 
             {
-                var resp = await _serviceClient.SendToAllAsync(JsonConvert.SerializeObject(new WebsocketMessage<TradingviewSignal>()
+                var resp = await _serviceClient.SendToAllAsync(JsonConvert.SerializeObject(new WebsocketMessage<OnTradingviewSignalEvent>()
                 {
                     Data = signal,
                     DataType = Constants.WebsocketMessageDatatype_JSON,
                     From = Constants.WebsocketMessageFrom_Server,
-                    Type = Constants.WebsocketMessageType_Message,
-                    TypeName = nameof(TradingviewSignal),
+                    Type = Constants.WebsocketMessageType_OnTradingviewSignalEvent,
+                    TypeName = nameof(OnTradingviewSignalEvent),
                 }), Azure.Core.ContentType.ApplicationJson);
 
                 return resp.ClientRequestId;
