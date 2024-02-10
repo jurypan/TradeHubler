@@ -41,6 +41,7 @@ namespace JCTG.Client
         public Dictionary<string, MarketData> MarketData { get; private set; }
         public Dictionary<string, BarData> LastBarData { get; private set; }
         public Dictionary<string, HistoricBarData> HistoricData { get; private set; }
+        public Dictionary<long, Order> HistoricTrades { get; private set; }
 
         public long ClientId { get; private set; }
 
@@ -53,6 +54,7 @@ namespace JCTG.Client
         private Thread? marketDataThread;
         private Thread? barDataThread;
         private Thread? historicDataThread;
+        private Thread? historicTradesThread;
 
         // Define the delegate for the event
         public delegate void OnOrderCreateEventHandler(long clientId, long ticketId, Order order);
@@ -61,8 +63,8 @@ namespace JCTG.Client
         public delegate void OnOrderUpdateEventHandler(long clientId, long ticketId, Order order);
         public event OnOrderUpdateEventHandler? OnOrderUpdateEvent;
 
-        public delegate void OnOrderRemoveEventHandler(long clientId, long ticketId, Order order);
-        public event OnOrderRemoveEventHandler? OnOrderRemoveEvent;
+        public delegate void OnOrderCloseEventHandler(long clientId, long ticketId, Order order);
+        public event OnOrderCloseEventHandler? OnOrderCloseEvent;
 
         public delegate void OnLogEventHandler(long clientId, long id, Log log);
         public event OnLogEventHandler? OnLogEvent;
@@ -105,7 +107,7 @@ namespace JCTG.Client
 
 
         /// <summary>
-        /// can be used to check if the client has been initialized.  
+        /// can be used to check if the _client has been initialized.  
         /// </summary>
         public async Task StartAsync()
         {
@@ -129,6 +131,9 @@ namespace JCTG.Client
 
             this.historicDataThread = new Thread(async () => await CheckHistoricDataAsync());
             this.historicDataThread?.Start();
+
+            this.historicTradesThread = new Thread(async () => await CheckHistoricTradesAsync());
+            this.historicTradesThread?.Start();
 
             await ResetCommandIDsAsync();
 
@@ -212,7 +217,7 @@ namespace JCTG.Client
                                     Lots = value["lots"].ToObject<decimal>(),
                                     Type = value["type"].ToObject<string>(),
                                     OpenPrice = value["open_price"].ToObject<decimal>(),
-                                    OpenTime = DateTime.ParseExact(value["open_time"].ToString(), "yyyy.MM.dd HH:mm:ss", CultureInfo.InvariantCulture).AddHours(-(this.AccountInfo == null ? 0.0 : this.AccountInfo.TimezoneOffset)),
+                                    OpenTime = DateTime.SpecifyKind(DateTime.ParseExact(value["open_time"].ToString(), "yyyy.MM.dd HH:mm:ss", CultureInfo.InvariantCulture).AddHours(-(this.AccountInfo == null ? 0.0 : this.AccountInfo.TimezoneOffset)), DateTimeKind.Utc),
                                     StopLoss = value["SL"].ToObject<decimal>(),
                                     TakeProfit = value["TP"].ToObject<decimal>(),
                                     Pnl = value["pnl"].ToObject<double>(),
@@ -249,8 +254,11 @@ namespace JCTG.Client
                     // Remove the marked orders
                     foreach (var orderId in ordersToRemove)
                     {
+                        // Set close date
+                        OpenOrders[orderId].CloseTime = DateTime.UtcNow;
+
                         // Invoke the event
-                        OnOrderRemoveEvent?.Invoke(ClientId, orderId, OpenOrders[orderId]);
+                        OnOrderCloseEvent?.Invoke(ClientId, orderId, OpenOrders[orderId]);
 
                         // Remove the order from the list
                         OpenOrders.Remove(orderId);
@@ -442,7 +450,7 @@ namespace JCTG.Client
                             var newBarData = new BarData
                             {
                                 Timeframe = stSplit[1],
-                                Time = value["time"].ToObject<DateTime>().AddHours(-(this.AccountInfo == null ? 0.0 : this.AccountInfo.TimezoneOffset)),
+                                Time = DateTime.SpecifyKind(value["time"].ToObject<DateTime>().AddHours(-(this.AccountInfo == null ? 0.0 : this.AccountInfo.TimezoneOffset)), DateTimeKind.Utc),
                                 Open = value["open"].ToObject<decimal>(),
                                 High = value["high"].ToObject<decimal>(),
                                 Low = value["low"].ToObject<decimal>(),
@@ -533,10 +541,10 @@ namespace JCTG.Client
                 string text = await TryReadFileAsync(pathHistoricData);
 
                 // Make sure the import is new
-                if (this.AccountInfo != null && text.Length > 0 && !text.Equals(lastHistoricTradesStr))
+                if (this.AccountInfo != null && text.Length > 0 && !text.Equals(lastHistoricDataStr))
                 {
                     // Set new text file to the variable
-                    lastHistoricTradesStr = text;
+                    lastHistoricDataStr = text;
 
                     JObject data;
 
@@ -577,7 +585,7 @@ namespace JCTG.Client
                                     var obj = new BarData
                                     {
                                         Timeframe = stSplit[1],
-                                        Time = item["time"].ToObject<DateTime>().AddHours(-(this.AccountInfo == null ? 0.0 : this.AccountInfo.TimezoneOffset)),
+                                        Time = DateTime.SpecifyKind(item["time"].ToObject<DateTime>().AddHours(-(this.AccountInfo == null ? 0.0 : this.AccountInfo.TimezoneOffset)), DateTimeKind.Utc),
                                         Open = item["open"].ToObject<decimal>(),
                                         High = item["high"].ToObject<decimal>(),
                                         Low = item["low"].ToObject<decimal>(),
@@ -594,7 +602,7 @@ namespace JCTG.Client
                                     hbd.BarData.Add(new BarData
                                     {
                                         Timeframe = stSplit[1],
-                                        Time = item["time"].ToObject<DateTime>().AddHours(-(this.AccountInfo == null ? 0.0 : this.AccountInfo.TimezoneOffset)),
+                                        Time = DateTime.SpecifyKind(item["time"].ToObject<DateTime>().AddHours(-(this.AccountInfo == null ? 0.0 : this.AccountInfo.TimezoneOffset)), DateTimeKind.Utc),
                                         Open = item["open"].ToObject<decimal>(),
                                         High = item["high"].ToObject<decimal>(),
                                         Low = item["low"].ToObject<decimal>(),
@@ -620,6 +628,52 @@ namespace JCTG.Client
 
                     // Signal that the current data processing is complete
                     _resetHistoricBarDataEvent.Set();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Regularly checks the file for historic data and triggers the eventHandler.OnHistoricData() function.
+        /// </summary>
+        private async Task CheckHistoricTradesAsync()
+        {
+            while (ACTIVE)
+            {
+
+                Thread.Sleep(sleepDelay);
+
+                if (!START)
+                    continue;
+
+                // Read file
+                string text = await TryReadFileAsync(pathHistoricData);
+
+                // Make sure the import is new
+                if (this.AccountInfo != null && text.Length > 0 && !text.Equals(lastHistoricTradesStr))
+                {
+                    // Set new text file to the variable
+                    lastHistoricTradesStr = text;
+
+                    JObject data;
+
+                    try
+                    {
+                        data = JObject.Parse(text);
+                    }
+                    catch
+                    {
+                        continue;
+                    }
+
+                    if (data == null)
+                    {
+                        continue;
+                    }
+
+                    if (HistoricTrades == null)
+                        HistoricTrades = new Dictionary<long, Order>();
+
+                    // TODO
                 }
             }
         }
@@ -658,7 +712,7 @@ namespace JCTG.Client
             // Set the dates in UTC
             foreach (var order in OpenOrders)
             {
-                order.Value.OpenTime = order.Value.OpenTime.AddHours(-(this.AccountInfo == null ? 0.0 : this.AccountInfo.TimezoneOffset));
+                order.Value.OpenTime = DateTime.SpecifyKind(order.Value.OpenTime.AddHours(-(this.AccountInfo == null ? 0.0 : this.AccountInfo.TimezoneOffset)), DateTimeKind.Utc);
             }
         }
 

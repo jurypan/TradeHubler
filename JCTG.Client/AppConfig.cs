@@ -34,6 +34,7 @@ namespace JCTG.Client
         public long ClientId { get; set; }
         public string Name { get; set; }
         public string MetaTraderDirPath { get; set; }
+        public bool IsEnable { get; set; }
         public List<Pairs> Pairs { get; set; }
         public double StartBalance { get; set; }
         public List<Risk> Risk { get; set; }
@@ -46,6 +47,7 @@ namespace JCTG.Client
             TickerInTradingView = string.Empty;
             TickerInMetatrader = string.Empty;
             Timeframe = string.Empty;
+            CorrelatedPairs = [];
         }
 
         public required string TickerInTradingView { get; set; }
@@ -69,7 +71,7 @@ namespace JCTG.Client
         [JsonConverter(typeof(StringEnumConverter))]
         public SpreadExecType? SpreadTP { get; set; }
         public int RiskMinXTimesTheSpread { get; set; }
-
+        public List<string> CorrelatedPairs { get; set; }
     }
 
     public class Risk

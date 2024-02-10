@@ -45,7 +45,7 @@ namespace JCTG.AzureFunction.Functions
                 var serviceClient = new WebPubSubServiceClient("Endpoint=https://justcalltheguy.webpubsub.azure.com;AccessKey=BdxAvvoxX7+nkCq/lQDNe2LAy41lwDfJD8bCPiNuY/k=;Version=1.0;", "a" + signal.AccountID.ToString());
 
                 // Create model
-                var model = new MetatraderMessage()
+                var model = new TradingviewSignal()
                 {
                     SignalID = signal.ID,
                     AccountID = signal.AccountID,
@@ -53,13 +53,13 @@ namespace JCTG.AzureFunction.Functions
                     Magic = signal.Magic,
                     OrderType = signal.OrderType,
                     StrategyType = signal.StrategyType,
-                    MarketOrder = signal.OrderType == "BUY" || signal.OrderType == "SELL" ? new MetatraderMessageMarketOrder()
+                    MarketOrder = signal.OrderType == "BUY" || signal.OrderType == "SELL" ? new TradingviewSignalMarketOrder()
                     {
                         StopLoss = signal.StopLoss,
                         Price = signal.EntryPrice,
                         TakeProfit = signal.TakeProfit,
                     } : null,
-                    PassiveOrder = signal.OrderType == "BUYSTOP" || signal.OrderType == "SELLSTOP" ? new MetatraderMessagePassiveOrder()
+                    PassiveOrder = signal.OrderType == "BUYSTOP" || signal.OrderType == "SELLSTOP" ? new TradingviewSignalPassiveOrder()
                     {
                         EntryExpression = signal.EntryExpression,
                         Risk = signal.Risk,

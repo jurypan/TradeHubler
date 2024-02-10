@@ -43,7 +43,6 @@ namespace JCTG.Client
 
             // Add other services
             services.AddTransient<Metatrader>();
-            services.AddTransient<AzureFunctionApiClient>();
 
             // Register configuration instance with DI container
             services.AddSingleton(config);

@@ -6,6 +6,7 @@
       "MetaTraderDirPath": "C:\\Users\\joeri.pansaerts\\AppData\\Roaming\\MetaQuotes\\Terminal\\6C3C6A11D1C3791DD4DBF45421BF8028\\MQL5\\Files\\",
       "ClientId": 4000024705,
       "StartBalance": 100000,
+      "IsEnable": true,
       "Risk": [
         {
           "Procent": 0,
@@ -50,14 +51,15 @@
           "SpreadEntry": "Add",
           "SpreadSL": "Subtract",
           "SpreadTP": "Add",
-          "RiskMinXTimesTheSpread": 4
+          "RiskMinXTimesTheSpread": 4,
+          "CorrelatedPairs": []
         },
         {
           "TickerInTradingView": "UKX",
           "TickerInMetatrader": "UK100",
           "Timeframe": "M5",
           "StrategyNr": 4,
-          "Risk": 0.05,
+          "Risk": 0.15,
           "SLtoBEafterR": 1.0,
           "MaxSpread": 1.2,
           "SLMultiplier": 1.02,
@@ -69,14 +71,15 @@
           "SpreadEntry": "Add",
           "SpreadSL": "Subtract",
           "SpreadTP": "Add",
-          "RiskMinXTimesTheSpread": 4
+          "RiskMinXTimesTheSpread": 4,
+          "CorrelatedPairs": []
         },
         {
           "TickerInTradingView": "SPX",
           "TickerInMetatrader": "SP500",
           "Timeframe": "M5",
           "StrategyNr": 4,
-          "Risk": 0.05,
+          "Risk": 0.15,
           "SLtoBEafterR": 1.0,
           "MaxSpread": 1.5,
           "SLMultiplier": 1.02,
@@ -88,7 +91,8 @@
           "SpreadEntry": "Add",
           "SpreadSL": "Subtract",
           "SpreadTP": "Add",
-          "RiskMinXTimesTheSpread": 4
+          "RiskMinXTimesTheSpread": 4,
+          "CorrelatedPairs": []
         }
       ]
     },
@@ -97,6 +101,7 @@
       "MetaTraderDirPath": "C:\\Users\\joeri.pansaerts\\AppData\\Roaming\\MetaQuotes\\Terminal\\2C68BEE3A904BDCEE3EEF5A5A77EC162\\MQL4\\Files\\",
       "ClientId": 1300587646,
       "StartBalance": 160000,
+      "IsEnable": true,
       "Risk": [
         {
           "Procent": 0,
@@ -141,7 +146,8 @@
           "SpreadEntry": null,
           "SpreadSL": null,
           "SpreadTP": null,
-          "RiskMinXTimesTheSpread": 4
+          "RiskMinXTimesTheSpread": 4,
+          "CorrelatedPairs": []
         },
         {
           "TickerInTradingView": "NVDA",
@@ -160,7 +166,8 @@
           "SpreadEntry": null,
           "SpreadSL": null,
           "SpreadTP": null,
-          "RiskMinXTimesTheSpread": 4
+          "RiskMinXTimesTheSpread": 4,
+          "CorrelatedPairs": []
         },
         {
           "TickerInTradingView": "AAPL",
@@ -179,7 +186,8 @@
           "SpreadEntry": null,
           "SpreadSL": null,
           "SpreadTP": null,
-          "RiskMinXTimesTheSpread": 4
+          "RiskMinXTimesTheSpread": 4,
+          "CorrelatedPairs": []
         },
         {
           "TickerInTradingView": "META",
@@ -198,7 +206,8 @@
           "SpreadEntry": null,
           "SpreadSL": null,
           "SpreadTP": null,
-          "RiskMinXTimesTheSpread": 4
+          "RiskMinXTimesTheSpread": 4,
+          "CorrelatedPairs": []
         },
         {
           "TickerInTradingView": "MSFT",
@@ -217,7 +226,8 @@
           "SpreadEntry": null,
           "SpreadSL": null,
           "SpreadTP": null,
-          "RiskMinXTimesTheSpread": 4
+          "RiskMinXTimesTheSpread": 4,
+          "CorrelatedPairs": []
         },
         {
           "TickerInTradingView": "AMZN",
@@ -236,7 +246,8 @@
           "SpreadEntry": null,
           "SpreadSL": null,
           "SpreadTP": null,
-          "RiskMinXTimesTheSpread": 4
+          "RiskMinXTimesTheSpread": 4,
+          "CorrelatedPairs": []
         },
         {
           "TickerInTradingView": "NFLX",
@@ -255,7 +266,8 @@
           "SpreadEntry": null,
           "SpreadSL": null,
           "SpreadTP": null,
-          "RiskMinXTimesTheSpread": 4
+          "RiskMinXTimesTheSpread": 4,
+          "CorrelatedPairs": []
         },
         {
           "TickerInTradingView": "RACE",
@@ -274,7 +286,8 @@
           "SpreadEntry": null,
           "SpreadSL": null,
           "SpreadTP": null,
-          "RiskMinXTimesTheSpread": 4
+          "RiskMinXTimesTheSpread": 4,
+          "CorrelatedPairs": []
         },
         {
           "TickerInTradingView": "NKD1!",
@@ -293,7 +306,8 @@
           "SpreadEntry": null,
           "SpreadSL": null,
           "SpreadTP": null,
-          "RiskMinXTimesTheSpread": 4
+          "RiskMinXTimesTheSpread": 4,
+          "CorrelatedPairs": []
         },
         {
           "TickerInTradingView": "XJO",
@@ -312,7 +326,8 @@
           "SpreadEntry": null,
           "SpreadSL": null,
           "SpreadTP": null,
-          "RiskMinXTimesTheSpread": 4
+          "RiskMinXTimesTheSpread": 4,
+          "CorrelatedPairs": []
         },
         {
           "TickerInTradingView": "SX5E",
@@ -331,7 +346,8 @@
           "SpreadEntry": null,
           "SpreadSL": null,
           "SpreadTP": null,
-          "RiskMinXTimesTheSpread": 4
+          "RiskMinXTimesTheSpread": 4,
+          "CorrelatedPairs": []
         },
         {
           "TickerInTradingView": "PX1",
@@ -350,7 +366,8 @@
           "SpreadEntry": null,
           "SpreadSL": null,
           "SpreadTP": null,
-          "RiskMinXTimesTheSpread": 4
+          "RiskMinXTimesTheSpread": 4,
+          "CorrelatedPairs": []
         },
         {
           "TickerInTradingView": "UKX",
@@ -369,7 +386,8 @@
           "SpreadEntry": null,
           "SpreadSL": null,
           "SpreadTP": null,
-          "RiskMinXTimesTheSpread": 4
+          "RiskMinXTimesTheSpread": 4,
+          "CorrelatedPairs": []
         },
         {
           "TickerInTradingView": "SPX",
@@ -387,7 +405,8 @@
           "SpreadEntry": null,
           "SpreadSL": null,
           "SpreadTP": null,
-          "RiskMinXTimesTheSpread": 4
+          "RiskMinXTimesTheSpread": 4,
+          "CorrelatedPairs": []
         },
         {
           "TickerInTradingView": "DJI",
@@ -406,7 +425,8 @@
           "SpreadEntry": null,
           "SpreadSL": null,
           "SpreadTP": null,
-          "RiskMinXTimesTheSpread": 4
+          "RiskMinXTimesTheSpread": 4,
+          "CorrelatedPairs": []
         },
         {
           "TickerInTradingView": "BTCUSD",
@@ -425,7 +445,8 @@
           "SpreadEntry": null,
           "SpreadSL": null,
           "SpreadTP": null,
-          "RiskMinXTimesTheSpread": 4
+          "RiskMinXTimesTheSpread": 4,
+          "CorrelatedPairs": []
         },
         {
           "TickerInTradingView": "ETHUSD",
@@ -444,105 +465,112 @@
           "SpreadEntry": null,
           "SpreadSL": null,
           "SpreadTP": null,
-          "RiskMinXTimesTheSpread": 4
+          "RiskMinXTimesTheSpread": 4,
+          "CorrelatedPairs": []
         }
       ]
     },
-    //{
-    //  "Name": "LUX - MT5",
-    //  "MetaTraderDirPath": "C:\\Users\\joeri.pansaerts\\AppData\\Roaming\\MetaQuotes\\Terminal\\E46BFC7165B351C46E7FD4997F5A8EFB\\MQL5\\Files\\",
-    //  "ClientId": 54031,
-    //  "StartBalance": 200000,
-    //  "Risk": [
-    //    {
-    //      "Procent": 0,
-    //      "Multiplier": 1
-    //    }
-    //  ],
-    //  "Pairs": [
-    //    {
-    //      "TickerInTradingView": "XJO",
-    //      "TickerInMetatrader": "ASXAUD",
-    //      "Timeframe": "M3",
-    //      "StrategyNr": 4,
-    //      "Risk": 0.15,
-    //      "SLtoBEafterR": 1.0,
-    //      "MaxSpread": 2.0,
-    //      "SLMultiplier": 1.1,
-    //      "MaxLotSize": 1000,
-    //      "OrderExecType": "Active",
-    //      "CancelStopOrLimitOrderWhenNewSignal": true,
-    //      "NumberOfHistoricalBarsRequested": 100,
-    //      "CloseAllTradesAt": "04:55",
-    //      "AddSpreadToEntry": true,
-    //      "AddSpreadToSL": true,
-    //      "AddSpreadToTP": true,
-    //      "RiskMinXTimesTheSpread": 4
-    //    },
-    //    {
-    //      "TickerInTradingView": "SX5E",
-    //      "TickerInMetatrader": "ESXEUR",
-    //      "Timeframe": "M3",
-    //      "StrategyNr": 4,
-    //      "Risk": 0.15,
-    //      "SLtoBEafterR": 1.0,
-    //      "MaxSpread": 1.2,
-    //      "SLMultiplier": 1.02,
-    //      "MaxLotSize": 1000,
-    //      "OrderExecType": "Active",
-    //      "CancelStopOrLimitOrderWhenNewSignal": true,
-    //      "NumberOfHistoricalBarsRequested": 100,
-    //      "CloseAllTradesAt": "17:25",
-    //      "SpreadEntry": "Add",
-    //      "SpreadSL": "Add",
-    //      "SpreadTP": null,
-    //      "RiskMinXTimesTheSpread": 4
-    //    },
-    //    {
-    //      "TickerInTradingView": "UKX",
-    //      "TickerInMetatrader": "FTSGBP",
-    //      "Timeframe": "M3",
-    //      "StrategyNr": 4,
-    //      "Risk": 0.15,
-    //      "SLtoBEafterR": 1.0,
-    //      "MaxSpread": 1.2,
-    //      "SLMultiplier": 1.02,
-    //      "MaxLotSize": 1000,
-    //      "OrderExecType": "Active",
-    //      "CancelStopOrLimitOrderWhenNewSignal": true,
-    //      "NumberOfHistoricalBarsRequested": 100,
-    //      "CloseAllTradesAt": "16:25",
-    //      "SpreadEntry": "Add",
-    //      "SpreadSL": "Add",
-    //      "SpreadTP": null,
-    //      "RiskMinXTimesTheSpread": 4
-    //    },
-    //    {
-    //      "TickerInTradingView": "SPX",
-    //      "TickerInMetatrader": "SPXUSD",
-    //      "Timeframe": "M3",
-    //      "StrategyNr": 4,
-    //      "Risk": 0.15,
-    //      "SLtoBEafterR": 1.0,
-    //      "MaxSpread": 1.5,
-    //      "SLMultiplier": 1.02,
-    //      "MaxLotSize": 1000,
-    //      "OrderExecType": "Active",
-    //      "CancelStopOrLimitOrderWhenNewSignal": true,
-    //      "NumberOfHistoricalBarsRequested": 100,
-    //      "CloseAllTradesAt": "20:55",
-    //      "SpreadEntry": "Add",
-    //      "SpreadSL": "Add",
-    //      "SpreadTP": null,
-    //      "RiskMinXTimesTheSpread": 4
-    //    }
-    //  ]
-    //},
+    {
+      "Name": "LUX - MT5",
+      "MetaTraderDirPath": "C:\\Users\\joeri.pansaerts\\AppData\\Roaming\\MetaQuotes\\Terminal\\E46BFC7165B351C46E7FD4997F5A8EFB\\MQL5\\Files\\",
+      "ClientId": 54031,
+      "StartBalance": 200000,
+      "IsEnable": false,
+      "Risk": [
+        {
+          "Procent": 0,
+          "Multiplier": 1
+        }
+      ],
+      "Pairs": [
+        {
+          "TickerInTradingView": "XJO",
+          "TickerInMetatrader": "ASXAUD",
+          "Timeframe": "M3",
+          "StrategyNr": 4,
+          "Risk": 0.15,
+          "SLtoBEafterR": 1.0,
+          "MaxSpread": 2.0,
+          "SLMultiplier": 1.1,
+          "MaxLotSize": 1000,
+          "OrderExecType": "Active",
+          "CancelStopOrLimitOrderWhenNewSignal": true,
+          "NumberOfHistoricalBarsRequested": 100,
+          "CloseAllTradesAt": "04:55",
+          "SpreadEntry": "Add",
+          "SpreadSL": "Add",
+          "SpreadTP": null,
+          "RiskMinXTimesTheSpread": 4,
+          "CorrelatedPairs": []
+        },
+        {
+          "TickerInTradingView": "SX5E",
+          "TickerInMetatrader": "ESXEUR",
+          "Timeframe": "M3",
+          "StrategyNr": 4,
+          "Risk": 0.15,
+          "SLtoBEafterR": 1.0,
+          "MaxSpread": 1.2,
+          "SLMultiplier": 1.02,
+          "MaxLotSize": 1000,
+          "OrderExecType": "Active",
+          "CancelStopOrLimitOrderWhenNewSignal": true,
+          "NumberOfHistoricalBarsRequested": 100,
+          "CloseAllTradesAt": "17:25",
+          "SpreadEntry": "Add",
+          "SpreadSL": "Add",
+          "SpreadTP": null,
+          "RiskMinXTimesTheSpread": 4,
+          "CorrelatedPairs": []
+        },
+        {
+          "TickerInTradingView": "UKX",
+          "TickerInMetatrader": "FTSGBP",
+          "Timeframe": "M3",
+          "StrategyNr": 4,
+          "Risk": 0.15,
+          "SLtoBEafterR": 1.0,
+          "MaxSpread": 1.2,
+          "SLMultiplier": 1.02,
+          "MaxLotSize": 1000,
+          "OrderExecType": "Active",
+          "CancelStopOrLimitOrderWhenNewSignal": true,
+          "NumberOfHistoricalBarsRequested": 100,
+          "CloseAllTradesAt": "16:25",
+          "SpreadEntry": "Add",
+          "SpreadSL": "Add",
+          "SpreadTP": null,
+          "RiskMinXTimesTheSpread": 4,
+          "CorrelatedPairs": []
+        },
+        {
+          "TickerInTradingView": "SPX",
+          "TickerInMetatrader": "SPXUSD",
+          "Timeframe": "M3",
+          "StrategyNr": 4,
+          "Risk": 0.15,
+          "SLtoBEafterR": 1.0,
+          "MaxSpread": 1.5,
+          "SLMultiplier": 1.02,
+          "MaxLotSize": 1000,
+          "OrderExecType": "Active",
+          "CancelStopOrLimitOrderWhenNewSignal": true,
+          "NumberOfHistoricalBarsRequested": 100,
+          "CloseAllTradesAt": "20:55",
+          "SpreadEntry": "Add",
+          "SpreadSL": "Add",
+          "SpreadTP": null,
+          "RiskMinXTimesTheSpread": 4,
+          "CorrelatedPairs": []
+        }
+      ]
+    },
     {
       "Name": "FXIFY - MT5",
       "MetaTraderDirPath": "C:\\Users\\joeri.pansaerts\\AppData\\Roaming\\MetaQuotes\\Terminal\\E4502BE8BEB5B3D03E12C99F54D8C04C\\MQL5\\Files",
       "ClientId": 7006712,
       "StartBalance": 15000,
+      "IsEnable": true,
       "Risk": [
         {
           "Procent": 0,
@@ -577,7 +605,7 @@
           "StrategyNr": 3,
           "Risk": 0.15,
           "SLtoBEafterR": 1.0,
-          "MaxSpread": 2.0,
+          "MaxSpread": 3.0,
           "SLMultiplier": 1.1,
           "MaxLotSize": 1000,
           "OrderExecType": "Active",
@@ -587,7 +615,8 @@
           "SpreadEntry": "Add",
           "SpreadSL": "Subtract",
           "SpreadTP": "Add",
-          "RiskMinXTimesTheSpread": 4
+          "RiskMinXTimesTheSpread": 4,
+          "CorrelatedPairs": []
         },
         {
           "TickerInTradingView": "SX5E",
@@ -596,7 +625,7 @@
           "StrategyNr": 3,
           "Risk": 0.15,
           "SLtoBEafterR": 1.0,
-          "MaxSpread": 1.5,
+          "MaxSpread": 3.0,
           "SLMultiplier": 1.02,
           "MaxLotSize": 1000,
           "OrderExecType": "Active",
@@ -606,7 +635,8 @@
           "SpreadEntry": "Add",
           "SpreadSL": "Subtract",
           "SpreadTP": "Add",
-          "RiskMinXTimesTheSpread": 4
+          "RiskMinXTimesTheSpread": 4,
+          "CorrelatedPairs": []
         },
         {
           "TickerInTradingView": "UKX",
@@ -615,7 +645,7 @@
           "StrategyNr": 3,
           "Risk": 0.15,
           "SLtoBEafterR": 1.0,
-          "MaxSpread": 1.5,
+          "MaxSpread": 3.0,
           "SLMultiplier": 1.02,
           "MaxLotSize": 1000,
           "OrderExecType": "Active",
@@ -625,7 +655,8 @@
           "SpreadEntry": "Add",
           "SpreadSL": "Subtract",
           "SpreadTP": "Add",
-          "RiskMinXTimesTheSpread": 4
+          "RiskMinXTimesTheSpread": 4,
+          "CorrelatedPairs": []
         },
         {
           "TickerInTradingView": "SPX",
@@ -634,7 +665,7 @@
           "StrategyNr": 3,
           "Risk": 0.15,
           "SLtoBEafterR": 1.0,
-          "MaxSpread": 1.5,
+          "MaxSpread": 3.0,
           "SLMultiplier": 1.02,
           "MaxLotSize": 1000,
           "OrderExecType": "Active",
@@ -644,7 +675,8 @@
           "SpreadEntry": "Add",
           "SpreadSL": "Subtract",
           "SpreadTP": "Add",
-          "RiskMinXTimesTheSpread": 4
+          "RiskMinXTimesTheSpread": 4,
+          "CorrelatedPairs": []
         },
         {
           "TickerInTradingView": "BTCUSD",
@@ -653,7 +685,7 @@
           "StrategyNr": 3,
           "Risk": 0.15,
           "SLtoBEafterR": 1.0,
-          "MaxSpread": 15.0,
+          "MaxSpread": 31.0,
           "SLMultiplier": 1.02,
           "MaxLotSize": 1000,
           "OrderExecType": "Active",
@@ -663,7 +695,8 @@
           "SpreadEntry": "Add",
           "SpreadSL": "Subtract",
           "SpreadTP": "Add",
-          "RiskMinXTimesTheSpread": 4
+          "RiskMinXTimesTheSpread": 4,
+          "CorrelatedPairs": []
         },
         {
           "TickerInTradingView": "ETHUSD",
@@ -672,7 +705,7 @@
           "StrategyNr": 3,
           "Risk": 0.15,
           "SLtoBEafterR": 1.0,
-          "MaxSpread": 1.0,
+          "MaxSpread": 5.0,
           "SLMultiplier": 1.02,
           "MaxLotSize": 1000,
           "OrderExecType": "Active",
@@ -682,7 +715,8 @@
           "SpreadEntry": "Add",
           "SpreadSL": "Subtract",
           "SpreadTP": "Add",
-          "RiskMinXTimesTheSpread": 4
+          "RiskMinXTimesTheSpread": 4,
+          "CorrelatedPairs": []
         }
       ]
     },
@@ -839,6 +873,7 @@
       "MetaTraderDirPath": "C:\\Users\\joeri.pansaerts\\AppData\\Roaming\\MetaQuotes\\Terminal\\F0D7FA73F4CD7B6D5C2C93B25659B70C\\MQL5\\Files",
       "ClientId": 1002135,
       "StartBalance": 2500,
+      "IsEnable": true,
       "Risk": [
         {
           "Procent": 0,
@@ -883,7 +918,8 @@
           "SpreadEntry": "Add",
           "SpreadSL": "Subtract",
           "SpreadTP": "Add",
-          "RiskMinXTimesTheSpread": 4
+          "RiskMinXTimesTheSpread": 4,
+          "CorrelatedPairs": []
         },
         {
           "TickerInTradingView": "SX5E",
@@ -902,7 +938,8 @@
           "SpreadEntry": "Add",
           "SpreadSL": "Subtract",
           "SpreadTP": "Add",
-          "RiskMinXTimesTheSpread": 4
+          "RiskMinXTimesTheSpread": 4,
+          "CorrelatedPairs": [ "UK100" ]
         },
         {
           "TickerInTradingView": "UKX",
@@ -921,7 +958,8 @@
           "SpreadEntry": "Add",
           "SpreadSL": "Subtract",
           "SpreadTP": "Add",
-          "RiskMinXTimesTheSpread": 4
+          "RiskMinXTimesTheSpread": 4,
+          "CorrelatedPairs": [ "STOXX50" ]
         },
         {
           "TickerInTradingView": "SPX",
@@ -940,7 +978,8 @@
           "SpreadEntry": "Add",
           "SpreadSL": "Subtract",
           "SpreadTP": "Add",
-          "RiskMinXTimesTheSpread": 4
+          "RiskMinXTimesTheSpread": 4,
+          "CorrelatedPairs": []
         },
         {
           "TickerInTradingView": "BTCUSD",
@@ -959,7 +998,8 @@
           "SpreadEntry": "Add",
           "SpreadSL": "Subtract",
           "SpreadTP": "Add",
-          "RiskMinXTimesTheSpread": 4
+          "RiskMinXTimesTheSpread": 4,
+          "CorrelatedPairs": [ "ETHUSD" ]
         },
         {
           "TickerInTradingView": "ETHUSD",
@@ -978,7 +1018,8 @@
           "SpreadEntry": "Add",
           "SpreadSL": "Subtract",
           "SpreadTP": "Add",
-          "RiskMinXTimesTheSpread": 4
+          "RiskMinXTimesTheSpread": 4,
+          "CorrelatedPairs": [ "BTCUSD" ]
         }
       ]
     }

@@ -17,6 +17,9 @@ namespace JCTG.Client
         [JsonProperty("open_time")]
         public DateTime OpenTime { get; set; }
 
+        [JsonProperty("close_time")]
+        public DateTime? CloseTime { get; set; }
+
 
         [JsonProperty("sl")]
         public decimal StopLoss { get; set; }

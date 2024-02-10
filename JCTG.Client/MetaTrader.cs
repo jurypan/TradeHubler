@@ -25,7 +25,7 @@ namespace JCTG.Client
             _appConfig = appConfig;
             _apis = [];
             _timing = new List<DailyTaskScheduler>();
-            _timer = new Timer(async _ => await FlushLogsToFile(), null, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(10));
+            _timer = new Timer(async _ => await FlushLogsToFileAsync(), null, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(10));
 
             // Foreach broker, init the API
             foreach (var api in _appConfig.Brokers)
@@ -51,7 +51,7 @@ namespace JCTG.Client
                 _ = Parallel.ForEach(_apis, async _api =>
                 {
                     // Get the broker from the local database
-                    var broker = _appConfig?.Brokers.FirstOrDefault(f => f.ClientId == _api.ClientId);
+                    var broker = _appConfig?.Brokers.FirstOrDefault(f => f.ClientId == _api.ClientId && f.IsEnable);
 
                     // do null reference checks
                     if (_api != null && broker != null && broker.Pairs.Count != 0)
@@ -62,7 +62,7 @@ namespace JCTG.Client
                         // Init the events
                         _api.OnOrderCreateEvent += OnOrderCreateEvent;
                         _api.OnOrderUpdateEvent += OnOrderUpdateEvent;
-                        _api.OnOrderRemoveEvent += OnOrderRemoveEvent;
+                        _api.OnOrderCloseEvent += OnOrderCloseEvent;
                         _api.OnLogEvent += OnLogEvent;
                         _api.OnCandleCloseEvent += OnCandleCloseEvent;
                         _api.OnTickEvent += OnTickEvent;
@@ -102,13 +102,13 @@ namespace JCTG.Client
             // Do null reference checks
             if (_appConfig != null && _apis != null)
             {
-                // Get web socket client
+                // Get web socket _client
                 var client = Program.Service?.GetService<WebsocketClient>();
 
                 // Do null reference check
                 if (client != null)
                 {
-                    // Disable the auto disconnect and reconnect because the sample would like the client to stay online even no data comes in
+                    // Disable the auto disconnect and reconnect because the sample would like the _client to stay online even no data comes in
                     client.ReconnectTimeout = null;
 
                     // Enable the message receive
@@ -121,7 +121,7 @@ namespace JCTG.Client
                             SendLogToFile(0, new Log() { Time = DateTime.UtcNow, Type = "INFO", Message = msg.Text });
 
                             // Get response
-                            var response = JsonConvert.DeserializeObject<MetatraderMessage>(msg.Text);
+                            var response = JsonConvert.DeserializeObject<TradingviewSignal>(msg.Text);
 
                             // Do null reference check
                             if (response != null)
@@ -216,7 +216,7 @@ namespace JCTG.Client
                                                                     // Send to logs
                                                                     if (_appConfig.Debug)
                                                                     {
-                                                                        var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={response.OrderType},Magic={response.Magic},StrategyType={response.StrategyType},Price={response.MarketOrder.Price},TP={response.MarketOrder.TakeProfit},SL={response.MarketOrder.StopLoss},EntryExpr={response.PassiveOrder.EntryExpression},Risk={response.PassiveOrder.Risk},RR={response.PassiveOrder.RiskRewardRatio}");
+                                                                        var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={response.OrderType},Magic={response.Magic},StrategyType={response.StrategyType},Price={response.MarketOrder.Price},TP={response.MarketOrder.TakeProfit},SL={response.MarketOrder.StopLoss}");
                                                                         var description = string.Format($"TPForLong: Ask={metadataTick.Ask},Spread={spread},Digits={metadataTick.Digits},SignalPrice={response.MarketOrder.Price},SignalTP={response.MarketOrder.TakeProfit}");
                                                                         SendLogToFile(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description });
                                                                     }
@@ -242,7 +242,7 @@ namespace JCTG.Client
                                                                     // Send to logs
                                                                     if (_appConfig.Debug)
                                                                     {
-                                                                        var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={response.OrderType},Magic={response.Magic},StrategyType={response.StrategyType},Price={response.MarketOrder.Price},TP={response.MarketOrder.TakeProfit},SL={response.MarketOrder.StopLoss},EntryExpr={response.PassiveOrder.EntryExpression},Risk={response.PassiveOrder.Risk},RR={response.PassiveOrder.RiskRewardRatio}");
+                                                                        var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={response.OrderType},Magic={response.Magic},StrategyType={response.StrategyType},Price={response.MarketOrder.Price},TP={response.MarketOrder.TakeProfit},SL={response.MarketOrder.StopLoss}");
                                                                         var description = string.Format($"ExecuteOrder: Symbol={pair.TickerInMetatrader},OrderType={orderType},LotSize={lotSize},Price=,SL={slPrice},TP={tpPrice},Magic={response.Magic},Comment={comment}");
                                                                         SendLogToFile(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description });
                                                                     }
@@ -376,7 +376,7 @@ namespace JCTG.Client
                                                                             // Send to logs
                                                                             if (_appConfig.Debug)
                                                                             {
-                                                                                var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={response.OrderType},Magic={response.Magic},StrategyType={response.StrategyType},Price={response.MarketOrder.Price},TP={response.MarketOrder.TakeProfit},SL={response.MarketOrder.StopLoss},EntryExpr={response.PassiveOrder.EntryExpression},Risk={response.PassiveOrder.Risk},RR={response.PassiveOrder.RiskRewardRatio}");
+                                                                                var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={response.OrderType},Magic={response.Magic},StrategyType={response.StrategyType},EntryExpr={response.PassiveOrder.EntryExpression},Risk={response.PassiveOrder.Risk},RR={response.PassiveOrder.RiskRewardRatio}");
                                                                                 var description = string.Format($"CancelStopOrLimitOrderWhenNewSignal: Symbol={pair.TickerInMetatrader}");
                                                                                 SendLogToFile(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description });
                                                                             }
@@ -871,6 +871,8 @@ namespace JCTG.Client
                                                         }
                                                     }
 
+
+
                                                     if (pair.MaxSpread > 0 && spread > pair.MaxSpread)
                                                     {
                                                         // Print on the screen
@@ -879,6 +881,14 @@ namespace JCTG.Client
                                                         Print("Broker      : " + _appConfig.Brokers.First(f => f.ClientId == api.ClientId).Name);
                                                         Print("Ticker      : " + pair.TickerInMetatrader);
                                                         Print("------------------------------------------------");
+
+                                                        var message = string.Format($"Symbol={response.Instrument},Type={response.OrderType},Magic={response.Magic},StrategyType={response.StrategyType}");
+                                                        SendLogToFile(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = $"Spread is too high. Current spread is {spread} and expect max {pair.MaxSpread}" });
+                                                    }
+                                                    else
+                                                    {
+                                                        // Send signal to log file
+                                                        await SendSignalToJournalFileAsync(api.ClientId, response);
                                                     }
                                                 }
                                                 else
@@ -959,6 +969,11 @@ namespace JCTG.Client
 
                             // Modify order
                             api.CloseOrder(order.Key, decimal.ToDouble(order.Value.Lots));
+
+                            // Send log to files
+                            var message = string.Format($"Symbol={order.Value.Symbol},Ticket={order.Key},Lots={order.Value.Lots},Type={order.Value.Type},Magic={order.Value.Magic},Price={order.Value.OpenPrice},TP={order.Value.TakeProfit},SL={order.Value.StopLoss},Comment={order.Value.Comment}");
+                            var log = new Log() { Time = DateTime.UtcNow, Type = "INFO", Description = $"Close all trades at {DateTime.UtcNow}", Message = message };
+                            Task.Run(() => SendLogToFile(clientId, log));
                         }
                     }
                 }
@@ -1052,7 +1067,7 @@ namespace JCTG.Client
                                                 api.ModifyOrder(order.Key, order.Value.Lots, 0, slPrice, order.Value.TakeProfit);
 
                                                 var message = string.Format($"Symbol={order.Value.Symbol},Ticket={order.Key},Lots={order.Value.Lots},Type={order.Value.Type},Magic={order.Value.Magic},Price={order.Value.OpenPrice},TP={order.Value.TakeProfit},SL={order.Value.StopLoss}");
-                                                Task.Run(async () => SendLogToFile(clientId, new Log() { Time = DateTime.UtcNow, Type = "Auto move SL to BE", Message = message }));
+                                                Task.Run(() => SendLogToFile(clientId, new Log() { Time = DateTime.UtcNow, Type = "Auto move SL to BE", Message = message }));
                                             }
                                         }
                                     }
@@ -1090,7 +1105,7 @@ namespace JCTG.Client
 
                                                 // Send log to files
                                                 var message = string.Format($"Symbol={order.Value.Symbol},Ticket={order.Key},Lots={order.Value.Lots},Type={order.Value.Type},Magic={order.Value.Magic},Price={order.Value.OpenPrice},TP={order.Value.TakeProfit},SL={order.Value.StopLoss}");
-                                                Task.Run(async () => SendLogToFile(clientId, new Log() { Time = DateTime.UtcNow, Type = "Auto move SL to BE", Message = message }));
+                                                Task.Run(() => SendLogToFile(clientId, new Log() { Time = DateTime.UtcNow, Type = "Auto move SL to BE", Message = message }));
                                             }
                                         }
                                     }
@@ -1129,18 +1144,8 @@ namespace JCTG.Client
                 Print("------------------------------------------------");
 
 
-                // Send to the server
-                new AzureFunctionApiClient().SendLog(new LogRequest()
-                {
-                    AccountID = _appConfig.AccountId,
-                    ClientID = clientId,
-                    Message = log.Message,
-                    ErrorType = log.ErrorType,
-                    Type = string.Format($"MT - {log.Type}"),
-                });
-
                 // Send log to files
-                Task.Run(async () => SendLogToFile(clientId, log));
+                Task.Run(() => SendLogToFile(clientId, log));
             }
         }
 
@@ -1161,21 +1166,22 @@ namespace JCTG.Client
                 Print("Magic     : " + order.Magic);
                 Print("------------------------------------------------");
 
-                // Send log to the server
-                var message = string.Format($"Symbol={order.Symbol},Ticket={ticketId},Lots={order.Lots},Type={order.Type},Magic={order.Magic},Price={order.OpenPrice},TP={order.TakeProfit},SL={order.StopLoss}");
-                new AzureFunctionApiClient().SendLog(new LogRequest()
-                {
-                    AccountID = _appConfig.AccountId,
-                    ClientID = clientId,
-                    Message = message,
-                    Type = "MT - CREATE ORDER",
-                });
-
-                // Send to tradingjournal
-                SendOrderToBackend(clientId, ticketId, order, false);
-
                 // Send log to files
-                Task.Run(async () => SendLogToFile(clientId, new Log() { Time = DateTime.UtcNow, Type = "INFO", Description = "Create order", Message = message }));
+                var message = string.Format($"Symbol={order.Symbol},Ticket={ticketId},Lots={order.Lots},Type={order.Type},Magic={order.Magic},Price={order.OpenPrice},TP={order.TakeProfit},SL={order.StopLoss},Comment={order.Comment}");
+                var log = new Log() { Time = DateTime.UtcNow, Type = "INFO", Description = "Create order", Message = message };
+                SendLogToFile(clientId, log);
+
+                // Get the signal id from the comment field
+                string[] components = order.Comment != null ? order.Comment.Split('/') : [];
+                long signalId = 0;
+                if (components != null && components.Length == 5)
+                    _ = long.TryParse(components[0], out signalId);
+
+                // Send log to the journal
+                Task.Run(async () => await SendLogToJournalFileAsync(clientId, signalId, log));
+
+                // Send order to the journal
+                Task.Run(async () => await SendOrderToJournalFileAsync(clientId, signalId, order));
             }
         }
 
@@ -1197,25 +1203,26 @@ namespace JCTG.Client
                 Print("Magic     : " + order.Magic);
                 Print("------------------------------------------------");
 
-                // Send to the server
-                var message = string.Format($"Symbol={order.Symbol},Ticket={ticketId},Lots={order.Lots},Type={order.Type},Magic={order.Magic},Price={order.OpenPrice},TP={order.TakeProfit},SL={order.StopLoss}");
-                new AzureFunctionApiClient().SendLog(new LogRequest()
-                {
-                    AccountID = _appConfig.AccountId,
-                    ClientID = clientId,
-                    Message = message,
-                    Type = "MT - UDPATE ORDER",
-                });
-
-                // Send to tradingjournal
-                SendOrderToBackend(clientId, ticketId, order, false);
-
                 // Send log to files
-                Task.Run(async () => SendLogToFile(clientId, new Log() { Time = DateTime.UtcNow, Type = "INFO", Description = "Update order", Message = message }));
+                var message = string.Format($"Symbol={order.Symbol},Ticket={ticketId},Lots={order.Lots},Type={order.Type},Magic={order.Magic},Price={order.OpenPrice},TP={order.TakeProfit},SL={order.StopLoss},Comment={order.Comment}");
+                var log = new Log() { Time = DateTime.UtcNow, Type = "INFO", Description = "Update order", Message = message };
+                SendLogToFile(clientId, log);
+
+                // Get the signal id from the comment field
+                string[] components = order.Comment != null ? order.Comment.Split('/') : [];
+                long signalId = 0;
+                if (components != null && components.Length == 5)
+                    _ = long.TryParse(components[0], out signalId);
+
+                // Send log to the journal
+                Task.Run(async () => await SendLogToJournalFileAsync(clientId, signalId, log));
+
+                // Send order to the journal
+                Task.Run(async () => await SendOrderToJournalFileAsync(clientId, signalId, order));
             }
         }
 
-        private void OnOrderRemoveEvent(long clientId, long ticketId, Order order)
+        private void OnOrderCloseEvent(long clientId, long ticketId, Order order)
         {
             // Do null reference check
             if (_appConfig != null)
@@ -1233,63 +1240,22 @@ namespace JCTG.Client
                 Print("Magic     : " + order.Magic);
                 Print("------------------------------------------------");
 
-                // Send to the server
-                var message = string.Format($"Symbol={order.Symbol},Ticket={ticketId},Lots={order.Lots},Type={order.Type},Magic={order.Magic},Price={order.OpenPrice},TP={order.TakeProfit},SL={order.StopLoss}");
-                new AzureFunctionApiClient().SendLog(new LogRequest()
-                {
-                    AccountID = _appConfig.AccountId,
-                    ClientID = clientId,
-                    Message = message,
-                    Type = "MT - CLOSE ORDER",
-                });
-
-                // Send to tradingjournal
-                SendOrderToBackend(clientId, ticketId, order, true);
-
                 // Send log to files
-                Task.Run(async () => SendLogToFile(clientId, new Log() { Time = DateTime.UtcNow, Type = "INFO", Description = "Close order", Message = message }));
-            }
-        }
+                var message = string.Format($"Symbol={order.Symbol},Ticket={ticketId},Lots={order.Lots},Type={order.Type},Magic={order.Magic},Price={order.OpenPrice},TP={order.TakeProfit},SL={order.StopLoss},Comment={order.Comment}");
+                var log = new Log() { Time = DateTime.UtcNow, Type = "INFO", Description = "Close order", Message = message };
+                SendLogToFile(clientId, log);
 
-        private void SendOrderToBackend(long clientId, long ticketId, Order order, bool isTradeClosed)
-        {
-            if (_appConfig != null && _apis != null && _apis.Count(f => f.ClientId == clientId && f.MarketData != null) == 1)
-            {
-                // Add to the trading journal
-                var marketdata = _apis.First(f => f.ClientId == clientId).MarketData.FirstOrDefault(f => f.Key == order.Symbol);
+                // Get the signal id from the comment field
+                string[] components = order.Comment != null ? order.Comment.Split('/') : [];
+                long signalId = 0;
+                if (components != null && components.Length == 5)
+                    _ = long.TryParse(components[0], out signalId);
 
-                // Get setup from appconfig
-                var pair = _appConfig.Brokers.Where(f => f.ClientId == clientId).SelectMany(f => f.Pairs).Where(f => f.TickerInMetatrader == order.Symbol).FirstOrDefault();
+                // Send log to the journal
+                Task.Run(async () => await SendLogToJournalFileAsync(clientId, signalId, log));
 
-                // Do null reference check
-                if (pair != null && !string.IsNullOrEmpty(marketdata.Key))
-                {
-                    // Init object
-                    new AzureFunctionApiClient().SendTradeJournal(new TradeJournalRequest()
-                    {
-                        AccountID = _appConfig.AccountId,
-                        ClientID = clientId,
-                        Comment = order.Comment,
-                        Commission = order.Commission,
-                        CurrentPrice = marketdata.Value.Ask,
-                        Lots = order.Lots,
-                        Magic = order.Magic,
-                        OpenPrice = order.OpenPrice,
-                        OpenTime = order.OpenTime,
-                        Pnl = order.Pnl,
-                        SL = order.StopLoss,
-                        StrategyType = pair.StrategyNr,
-                        Spread = Math.Round(Math.Abs(marketdata.Value.Bid - marketdata.Value.Ask), 4, MidpointRounding.AwayFromZero),
-                        Swap = order.Swap,
-                        Symbol = order.Symbol ?? "NONE",
-                        TicketId = ticketId,
-                        Timeframe = pair.Timeframe,
-                        TP = order.TakeProfit,
-                        Type = order.Type != null ? order.Type.ToUpper() : "NONE",
-                        Risk = pair.Risk,
-                        IsTradeClosed = isTradeClosed,
-                    });
-                }
+                // Send order to the journal
+                Task.Run(async () => await SendOrderToJournalFileAsync(clientId, signalId, order, true));
             }
         }
 
@@ -1326,7 +1292,7 @@ namespace JCTG.Client
         private void SendLogToFile(long clientId, Log log)
         {
             // Do null reference check
-            if (_appConfig != null && _apis != null && _apis.Count(f => f.ClientId == clientId) == 1 && _appConfig.DropLogsInFile)
+            if (_appConfig != null && _apis != null && (_apis.Count(f => f.ClientId == clientId) == 1 || clientId == 0) && _appConfig.DropLogsInFile)
             {
                 // Buffer log
                 var logs = _buffers.GetOrAdd(clientId, []);
@@ -1337,20 +1303,192 @@ namespace JCTG.Client
             }
         }
 
-        private async Task FlushLogsToFile()
+        private async Task SendOrderToFileAsync(long clientId, Order order)
         {
-            foreach (var clientId in _buffers.Keys)
+            // Do null reference check
+            if (_appConfig != null && _apis != null && _apis.Count(f => f.ClientId == clientId) == 1)
             {
-                List<Log> logsToWrite;
-                // Safely retrieve and clear the buffer for the current clientId
+                // Follow similar logic for writing logs to file
+                // Filename
+                string fileName = $"Tradejournal-{clientId}.json";
+
+                try
+                {
+                    // Write file back
+                    await TryWriteFileAsync(fileName, JsonConvert.SerializeObject(order));
+                }
+                finally
+                {
+
+                }
+            }
+        }
+
+        private async Task SendOrderToJournalFileAsync(long clientId, long signalId, Order order, bool isTradeClosed = false)
+        {
+            // Ensure dependencies are not null
+            if (_appConfig == null || _apis == null || !_apis.Any(f => f.ClientId == clientId))
+                return;
+
+            string fileName = $"Tradejournal-{clientId}.json";
+            List<TradeJournal> journals;
+
+            // Attempt to enter the semaphore (wait if necessary)
+            await _semaphore.WaitAsync();
+            try
+            {
+                // Check if the file exists and load its content
+                if (File.Exists(fileName))
+                {
+                    string fileContent = await File.ReadAllTextAsync(fileName);
+                    journals = JsonConvert.DeserializeObject<List<TradeJournal>>(fileContent) ?? [];
+
+                    // Make sure the last item is on top
+                    journals = [.. journals.OrderByDescending(f => f.DateCreated)];
+                }
+                else
+                {
+                    journals = [];
+                }
+
+                // Add the new signal to the journal
+                var journal = journals.FirstOrDefault(f => f.Signal.SignalID == signalId);
+
+                // Do null reference check
+                if (journal != null)
+                {
+                    // Add the log
+                    journal.Order = order;
+                    journal.IsTradeClosed = isTradeClosed;
+
+                    // Serialize and write the journal back to the file
+                    string serializedContent = JsonConvert.SerializeObject(journals);
+                    await TryWriteFileAsync(fileName, serializedContent);
+                }
+
+
+            }
+            finally
+            {
+                // Release the semaphore to allow another operation to proceed
+                _semaphore.Release();
+            }
+
+        }
+
+        private async Task SendLogToJournalFileAsync(long clientId, long signalId, Log log)
+        {
+            // Ensure dependencies are not null
+            if (_appConfig == null || _apis == null || !_apis.Any(f => f.ClientId == clientId))
+                return;
+
+            string fileName = $"Tradejournal-{clientId}.json";
+            List<TradeJournal> journals;
+
+            // Attempt to enter the semaphore (wait if necessary)
+            await _semaphore.WaitAsync();
+            try
+            {
+                // Check if the file exists and load its content
+                if (File.Exists(fileName))
+                {
+                    string fileContent = await File.ReadAllTextAsync(fileName);
+                    journals = JsonConvert.DeserializeObject<List<TradeJournal>>(fileContent) ?? [];
+
+                    // Make sure the last item is on top
+                    journals = [.. journals.OrderByDescending(f => f.DateCreated)];
+                }
+                else
+                {
+                    journals = [];
+                }
+
+                // Add the new signal to the journal
+                var journal = journals.FirstOrDefault(f => f.Signal.SignalID == signalId);
+
+                // Do null reference check
+                if(journal != null)
+                {
+                    // Add the log
+                    journal.Logs.Add(log);
+
+                    // Serialize and write the journal back to the file
+                    string serializedContent = JsonConvert.SerializeObject(journals);
+                    await TryWriteFileAsync(fileName, serializedContent);
+                }
+
+               
+            }
+            finally
+            {
+                // Release the semaphore to allow another operation to proceed
+                _semaphore.Release();
+            }
+        }
+
+        private async Task SendSignalToJournalFileAsync(long clientId, TradingviewSignal signal)
+        {
+            // Ensure dependencies are not null
+            if (_appConfig == null || _apis == null || !_apis.Any(f => f.ClientId == clientId))
+                return;
+
+            string fileName = $"Tradejournal-{clientId}.json";
+            List<TradeJournal> journals;
+
+            // Attempt to enter the semaphore (wait if necessary)
+            await _semaphore.WaitAsync();
+            try
+            {
+                // Check if the file exists and load its content
+                if (File.Exists(fileName))
+                {
+                    string fileContent = await File.ReadAllTextAsync(fileName);
+                    journals = JsonConvert.DeserializeObject<List<TradeJournal>>(fileContent) ?? [];
+
+                    // Make sure the last item is on top
+                    journals = [.. journals.OrderByDescending(f => f.DateCreated)];
+                }
+                else
+                {
+                    journals = [];
+                }
+
+                // Add the new signal to the journal
+                journals.Add(new TradeJournal { Signal = signal });
+
+                // Serialize and write the journal back to the file
+                string serializedContent = JsonConvert.SerializeObject(journals);
+                await TryWriteFileAsync(fileName, serializedContent);
+            }
+            finally
+            {
+                // Release the semaphore to allow another operation to proceed
+                _semaphore.Release();
+            }
+        }
+
+        private async Task FlushLogsToFileAsync()
+        {
+            foreach (var clientId in _buffers.Keys.ToList()) // ToList to avoid collection modification issues
+            {
+                List<Log> logsToWrite = [];
+                bool logsAvailable = false;
+
+                // Attempt to safely retrieve and clear the buffer for the current clientId
                 if (_buffers.TryGetValue(clientId, out var logs))
                 {
                     lock (logs) // Ensure thread-safety for list modification
                     {
-                        logsToWrite = new List<Log>(logs);
+                        if (logs.Count > 0)
+                        {
+                            logsToWrite = new List<Log>(logs);
+                            logsAvailable = true;
+                        }
                     }
+                }
 
-                    // Follow similar logic for writing logs to file
+                if (logsAvailable)
+                {
                     // Filename
                     string fileName = $"Log-{clientId}.json";
 
@@ -1359,18 +1497,24 @@ namespace JCTG.Client
 
                     try
                     {
+                        // Perform log processing only if there are logs to write
                         // Filter logs to keep only the last month's logs
-                        logsToWrite = logsToWrite.Where(f => f.Time >= DateTime.UtcNow.AddMonths(-1)).ToList();
+                        logsToWrite = logsToWrite.Where(log => log.Time >= DateTime.UtcNow.AddMonths(-1)).ToList();
 
                         // Make sure the last item is on top
-                        logsToWrite = logsToWrite.OrderByDescending(f => f.Time).ToList();
+                        logsToWrite.Sort((x, y) => y.Time.CompareTo(x.Time));
 
                         // Write file back
                         await TryWriteFileAsync(fileName, JsonConvert.SerializeObject(logsToWrite));
                     }
+                    catch (Exception ex)
+                    {
+                        // Consider logging the exception or handling it as needed
+                        Console.WriteLine($"Error writing logs for clientId {clientId}: {ex.Message}");
+                    }
                     finally
                     {
-                        // Release the lock
+                        // Always release the semaphore
                         _semaphore.Release();
                     }
                 }

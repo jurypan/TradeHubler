@@ -7,8 +7,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JCTG", "JCTG\JCTG.csproj", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JCTG.Client", "JCTG.Client\JCTG.Client.csproj", "{50F0537F-2A28-448E-B98F-A581F0E3B0B3}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JCTG.AzureFunction", "JCTG.AzureFunction\JCTG.AzureFunction.csproj", "{C11D5EC5-D871-4B8D-AD42-9400F72CE966}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{62FA93D0-A7BF-4EA8-BF87-1896CEE8BAD5}"
 	ProjectSection(SolutionItems) = preProject
 		README.md = README.md
@@ -18,9 +16,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JCTG.MQL", "JCTG.MQL\JCTG.M
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JCTG.Client.Tests", "JCTG.Client.Tests\JCTG.Client.Tests.csproj", "{487F0F1E-A16F-4168-BB33-F41D47DC46E0}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JCTG.AzureFunction.Tests", "JCTG.AzureFunction.Tests\JCTG.AzureFunction.Tests.csproj", "{BA0646A8-1FFC-4121-AAB7-A396372880B2}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JCTG.Terminal", "JCTG.Terminal\JCTG.Terminal.csproj", "{2B818FF7-FC7A-47D6-81F0-2F387CEAA28C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JCTG.WebApp", "JCTG.WebApp\JCTG.WebApp.csproj", "{73CCB396-D064-4892-8CD6-091EF8B38FBC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -36,10 +32,6 @@ Global
 		{50F0537F-2A28-448E-B98F-A581F0E3B0B3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{50F0537F-2A28-448E-B98F-A581F0E3B0B3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{50F0537F-2A28-448E-B98F-A581F0E3B0B3}.Release|Any CPU.Build.0 = Release|Any CPU
-		{C11D5EC5-D871-4B8D-AD42-9400F72CE966}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C11D5EC5-D871-4B8D-AD42-9400F72CE966}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C11D5EC5-D871-4B8D-AD42-9400F72CE966}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C11D5EC5-D871-4B8D-AD42-9400F72CE966}.Release|Any CPU.Build.0 = Release|Any CPU
 		{A030AF57-8C34-48D5-8B95-1E82146F66AC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{A030AF57-8C34-48D5-8B95-1E82146F66AC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A030AF57-8C34-48D5-8B95-1E82146F66AC}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -48,16 +40,10 @@ Global
 		{487F0F1E-A16F-4168-BB33-F41D47DC46E0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{487F0F1E-A16F-4168-BB33-F41D47DC46E0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{487F0F1E-A16F-4168-BB33-F41D47DC46E0}.Release|Any CPU.Build.0 = Release|Any CPU
-		{BA0646A8-1FFC-4121-AAB7-A396372880B2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{BA0646A8-1FFC-4121-AAB7-A396372880B2}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{BA0646A8-1FFC-4121-AAB7-A396372880B2}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{BA0646A8-1FFC-4121-AAB7-A396372880B2}.Release|Any CPU.Build.0 = Release|Any CPU
-		{2B818FF7-FC7A-47D6-81F0-2F387CEAA28C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{2B818FF7-FC7A-47D6-81F0-2F387CEAA28C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{2B818FF7-FC7A-47D6-81F0-2F387CEAA28C}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
-		{2B818FF7-FC7A-47D6-81F0-2F387CEAA28C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{2B818FF7-FC7A-47D6-81F0-2F387CEAA28C}.Release|Any CPU.Build.0 = Release|Any CPU
-		{2B818FF7-FC7A-47D6-81F0-2F387CEAA28C}.Release|Any CPU.Deploy.0 = Release|Any CPU
+		{73CCB396-D064-4892-8CD6-091EF8B38FBC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{73CCB396-D064-4892-8CD6-091EF8B38FBC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{73CCB396-D064-4892-8CD6-091EF8B38FBC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{73CCB396-D064-4892-8CD6-091EF8B38FBC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
