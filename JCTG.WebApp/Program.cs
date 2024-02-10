@@ -15,7 +15,9 @@ builder.Services.AddDbContext<JCTGDbContext>(
     .UseLoggerFactory(LoggerFactory.Create(builder =>
        builder.AddFilter((category, level) =>
            category != DbLoggerCategory.Database.Command.Name || level > LogLevel.Information))));
-builder.Services.AddSingleton<PairService>();
+
+
+builder.Services.AddSingleton<TerminalService>();
 
 var app = builder.Build();
 

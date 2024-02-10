@@ -1,4 +1,6 @@
-﻿namespace JCTG.Client.Tests
+﻿using JCTG.Models;
+
+namespace JCTG.Client.Tests
 {
     public class DynamicExpressionTests
     {

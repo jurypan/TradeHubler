@@ -1,7 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using JCTG.Models;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
-namespace JCTG
+namespace JCTG.Entity
 {
     public class Signal
     {

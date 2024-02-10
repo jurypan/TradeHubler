@@ -1,11 +1,12 @@
-﻿using Newtonsoft.Json;
+﻿using JCTG.Models;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
-namespace JCTG.Client
+namespace JCTG.Models
 {
-    public class AppConfig
+    public class TerminalConfig
     {
-        public AppConfig() 
+        public TerminalConfig() 
         {
             Brokers = new List<Brokers>();
         }
@@ -82,5 +83,17 @@ namespace JCTG.Client
         }
         public double Procent { get; set; }
         public double Multiplier { get; set; }
+    }
+
+    public enum SpreadExecType
+    {
+        Add = 0,
+        Subtract = 1
+    }
+
+    public enum OrderExecType
+    {
+        Active = 0,
+        Passive = 1,
     }
 }

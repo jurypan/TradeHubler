@@ -1,4 +1,4 @@
-﻿namespace JCTG
+﻿namespace JCTG.Models
 {
     public enum StrategyType
     {

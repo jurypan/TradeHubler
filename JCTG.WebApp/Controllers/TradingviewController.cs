@@ -1,6 +1,7 @@
 ﻿using Azure.Core;
 using Azure.Messaging.WebPubSub;
 using JCTG.Entity;
+using JCTG.Models;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using System.Net.Mime;
@@ -9,7 +10,7 @@ using System.Net.Mime;
 namespace JCTG.WebApp.Controllers
 {
     [ApiController]
-    [Route("API")]
+    [Route("api")]
     public class TradingviewController : ControllerBase
     {
         private readonly ILogger<TradingviewController> _logger;
@@ -21,9 +22,8 @@ namespace JCTG.WebApp.Controllers
             _dbContext = dbContext;
         }
 
-        [HttpGet("Tradingview")]
-        [HttpPost("Tradingview")]
-        [Consumes(MediaTypeNames.Application.Json)]
+        [HttpGet("tradingview")]
+        [HttpPost("tradingview")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> TradingView()

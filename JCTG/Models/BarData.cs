@@ -1,10 +1,10 @@
-﻿namespace JCTG.Client
+﻿namespace JCTG.Models
 {
     public class BarData
     {
         public required string Timeframe { get; set; }
         public DateTime Time { get; set; }
-        public long Epoch 
+        public long Epoch
         {
             get
             {

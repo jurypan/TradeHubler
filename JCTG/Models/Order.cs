@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace JCTG.Client
+namespace JCTG.Models
 {
     public class Order
     {

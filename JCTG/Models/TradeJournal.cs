@@ -1,10 +1,8 @@
-﻿using JCTG.Entity;
-
-namespace JCTG.Client
+﻿namespace JCTG.Models
 {
     public class TradeJournal
     {
-        public TradeJournal() 
+        public TradeJournal()
         {
             DateCreated = DateTime.UtcNow;
             Logs = [];

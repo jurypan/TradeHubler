@@ -1,3 +1,4 @@
+using JCTG.Models;
 using NUnit.Framework;
 
 namespace JCTG.Client.Tests

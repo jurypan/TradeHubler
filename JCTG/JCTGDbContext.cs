@@ -11,10 +11,6 @@ namespace JCTG
 
         public DbSet<Signal> Signal { get; set; }
 
-        public DbSet<TradeJournal> TradeJournal { get; set; }
-
-        public DbSet<Log> Log { get; set; }
-
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
 
@@ -24,29 +20,6 @@ namespace JCTG
                 .WithMany(t => t.Signals)
                 .HasForeignKey(ta => ta.AccountID);
 
-            // Log - Account
-            modelBuilder.Entity<Log>()
-                .HasOne(ta => ta.Account)
-                .WithMany(t => t.Logs)
-                .HasForeignKey(ta => ta.AccountID);
-
-            // Log - Client
-            modelBuilder.Entity<Log>()
-                .HasOne(ta => ta.Client)
-                .WithMany(t => t.Logs)
-                .HasForeignKey(ta => ta.ClientID);
-
-            // Tradejournal - Client
-            modelBuilder.Entity<TradeJournal>()
-                .HasOne(ta => ta.Client)
-                .WithMany(t => t.TradeJournals)
-                .HasForeignKey(ta => ta.ClientID);
-
-            // Tradejournal - Account
-            modelBuilder.Entity<TradeJournal>()
-                .HasOne(ta => ta.Account)
-                .WithMany(t => t.TradeJournals)
-                .HasForeignKey(ta => ta.AccountID);
         }
     }
 }

@@ -1,9 +1,8 @@
-﻿using Azure;
-using JCTG.Entity;
+﻿using JCTG.Entity;
+using JCTG.Models;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using System.Collections.Concurrent;
-using System.Diagnostics;
 using Websocket.Client;
 using static JCTG.Client.Helpers;
 
@@ -12,26 +11,26 @@ namespace JCTG.Client
     public class Metatrader : IDisposable
     {
 
-        private readonly AppConfig? _appConfig;
+        private readonly TerminalConfig? _terminalConfig;
         private readonly List<MetatraderApi> _apis;
         private readonly List<DailyTaskScheduler> _timing;
         private SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1); // Initial count 1, maximum count 1
         private readonly ConcurrentDictionary<long, List<Log>> _buffers = new ConcurrentDictionary<long, List<Log>>();
         private Timer _timer;
 
-        public Metatrader(AppConfig appConfig)
+        public Metatrader(TerminalConfig terminalConfig)
         {
             // Init APP Config + API
-            _appConfig = appConfig;
+            _terminalConfig = terminalConfig;
             _apis = [];
             _timing = new List<DailyTaskScheduler>();
             _timer = new Timer(async _ => await FlushLogsToFileAsync(), null, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(10));
 
             // Foreach broker, init the API
-            foreach (var api in _appConfig.Brokers)
+            foreach (var api in _terminalConfig.Brokers)
             {
                 // Init API
-                var _api = new MetatraderApi(api.MetaTraderDirPath, api.ClientId, appConfig.SleepDelay, appConfig.MaxRetryCommandSeconds, appConfig.LoadOrdersFromFile);
+                var _api = new MetatraderApi(api.MetaTraderDirPath, api.ClientId, terminalConfig.SleepDelay, terminalConfig.MaxRetryCommandSeconds, terminalConfig.LoadOrdersFromFile);
 
                 // Add to the list
                 _apis.Add(_api);
@@ -45,13 +44,13 @@ namespace JCTG.Client
         public async Task ListToTheClientsAsync()
         {
             // Check if app config is not null
-            if (_appConfig != null)
+            if (_terminalConfig != null)
             {
                 // Start the system
                 _ = Parallel.ForEach(_apis, async _api =>
                 {
                     // Get the broker from the local database
-                    var broker = _appConfig?.Brokers.FirstOrDefault(f => f.ClientId == _api.ClientId && f.IsEnable);
+                    var broker = _terminalConfig?.Brokers.FirstOrDefault(f => f.ClientId == _api.ClientId && f.IsEnable);
 
                     // do null reference checks
                     if (_api != null && broker != null && broker.Pairs.Count != 0)
@@ -100,7 +99,7 @@ namespace JCTG.Client
         public async Task ListenToTheServerAsync()
         {
             // Do null reference checks
-            if (_appConfig != null && _apis != null)
+            if (_terminalConfig != null && _apis != null)
             {
                 // Get web socket _client
                 var azurePubSub = Program.Service?.GetService<AzurePubSub>();
@@ -112,19 +111,19 @@ namespace JCTG.Client
                     // When message receive
                     azurePubSub.SubscribeOnTradingviewSignal += async (response) =>
                     {
-                        if (response != null && response.SignalID > 0 && response.AccountID == _appConfig.AccountId)
+                        if (response != null && response.SignalID > 0 && response.AccountID == _terminalConfig.AccountId)
                         {
                             // Iterate through the api's
                             foreach (var api in _apis)
                             {
                                 // Get the right pair back from the local database
-                                var pair = new List<Pairs>(_appConfig.Brokers.Where(f => f.ClientId == api.ClientId).SelectMany(f => f.Pairs)).FirstOrDefault(f => f.TickerInTradingView.Equals(response.Instrument) && f.StrategyNr == response.StrategyType);
+                                var pair = new List<Pairs>(_terminalConfig.Brokers.Where(f => f.ClientId == api.ClientId).SelectMany(f => f.Pairs)).FirstOrDefault(f => f.TickerInTradingView.Equals(response.Instrument) && f.StrategyNr == response.StrategyType);
 
                                 // Start balance
-                                var startbalance = _appConfig.Brokers.First(f => f.ClientId == api.ClientId).StartBalance;
+                                var startbalance = _terminalConfig.Brokers.First(f => f.ClientId == api.ClientId).StartBalance;
 
                                 // Get dynamic risk
-                                var dynRisk = new List<Risk>(_appConfig.Brokers
+                                var dynRisk = new List<Risk>(_terminalConfig.Brokers
                                                                           .Where(f => f.ClientId == api.ClientId)
                                                                           .SelectMany(f => f.Risk ?? []));
 
@@ -164,7 +163,7 @@ namespace JCTG.Client
                                                             );
 
                                                     // Send to logs
-                                                    if (_appConfig.Debug)
+                                                    if (_terminalConfig.Debug)
                                                     {
                                                         var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={response.OrderType},Magic={response.Magic},StrategyType={response.StrategyType},Price={response.MarketOrder.Price},TP={response.MarketOrder.TakeProfit},SL={response.MarketOrder.StopLoss}");
                                                         var description = string.Format($"SLForLong: Ask={metadataTick.Ask},Spread={spread},Digits={metadataTick.Digits},SignalPrice={response.MarketOrder.Price},SignalSL={response.MarketOrder.StopLoss}");
@@ -175,7 +174,7 @@ namespace JCTG.Client
                                                     var lotSize = RiskCalculator.LotSize(startbalance, api.AccountInfo.Balance, pair.Risk, metadataTick.Ask, slPrice, metadataTick.TickValue, metadataTick.TickSize, metadataTick.LotStep, metadataTick.MinLotSize, metadataTick.MaxLotSize, dynRisk);
 
                                                     // Send to logs
-                                                    if (_appConfig.Debug)
+                                                    if (_terminalConfig.Debug)
                                                     {
                                                         var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={response.OrderType},Magic={response.Magic},StrategyType={response.StrategyType},Price={response.MarketOrder.Price},TP={response.MarketOrder.TakeProfit},SL={response.MarketOrder.StopLoss}");
                                                         var description = string.Format($"LotSize: StartBalance={startbalance},Balance={api.AccountInfo.Balance},Risk={pair.Risk},AskPrice={metadataTick.Ask},SlPrice={slPrice},TickValue={metadataTick.TickValue},TickSize={metadataTick.TickSize},LotStep={metadataTick.LotStep},MinLotSize={metadataTick.MinLotSize},MaxLotSize={metadataTick.MaxLotSize},DynRisk={dynRisk}");
@@ -202,7 +201,7 @@ namespace JCTG.Client
                                                                         );
 
                                                                 // Send to logs
-                                                                if (_appConfig.Debug)
+                                                                if (_terminalConfig.Debug)
                                                                 {
                                                                     var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={response.OrderType},Magic={response.Magic},StrategyType={response.StrategyType},Price={response.MarketOrder.Price},TP={response.MarketOrder.TakeProfit},SL={response.MarketOrder.StopLoss}");
                                                                     var description = string.Format($"TPForLong: Ask={metadataTick.Ask},Spread={spread},Digits={metadataTick.Digits},SignalPrice={response.MarketOrder.Price},SignalTP={response.MarketOrder.TakeProfit}");
@@ -212,7 +211,7 @@ namespace JCTG.Client
                                                                 // Print on the screen
                                                                 Print(Environment.NewLine);
                                                                 Print("--------- SEND NEW ORDER TO METATRADER ---------");
-                                                                Print("Broker      : " + _appConfig.Brokers.First(f => f.ClientId == api.ClientId).Name);
+                                                                Print("Broker      : " + _terminalConfig.Brokers.First(f => f.ClientId == api.ClientId).Name);
                                                                 Print("Date        : " + DateTime.UtcNow);
                                                                 Print("Ticker      : " + pair.TickerInMetatrader);
                                                                 Print("Order       : BUY MARKET ORDER");
@@ -228,7 +227,7 @@ namespace JCTG.Client
                                                                 api.ExecuteOrder(pair.TickerInMetatrader, orderType, lotSize, 0, slPrice, tpPrice, (int)response.Magic, comment);
 
                                                                 // Send to logs
-                                                                if (_appConfig.Debug)
+                                                                if (_terminalConfig.Debug)
                                                                 {
                                                                     var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={response.OrderType},Magic={response.Magic},StrategyType={response.StrategyType},Price={response.MarketOrder.Price},TP={response.MarketOrder.TakeProfit},SL={response.MarketOrder.StopLoss}");
                                                                     var description = string.Format($"ExecuteOrder: Symbol={pair.TickerInMetatrader},OrderType={orderType},LotSize={lotSize},Price=,SL={slPrice},TP={tpPrice},Magic={response.Magic},Comment={comment}");
@@ -306,7 +305,7 @@ namespace JCTG.Client
                                                     tp = Math.Round(tp, metadataTick.Digits, MidpointRounding.AwayFromZero);
 
                                                     // Send to logs
-                                                    if (_appConfig.Debug)
+                                                    if (_terminalConfig.Debug)
                                                     {
                                                         var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={response.OrderType},Magic={response.Magic},StrategyType={response.StrategyType},EntryExpr={response.PassiveOrder.EntryExpression},Risk={response.PassiveOrder.Risk},RR={response.PassiveOrder.RiskRewardRatio}");
                                                         var description = string.Format($"Price: Price={price},Spread={spread},EntryExpression={response.PassiveOrder.EntryExpression}");
@@ -323,7 +322,7 @@ namespace JCTG.Client
                                                     var lotSize = RiskCalculator.LotSize(startbalance, api.AccountInfo.Balance, pair.Risk, price, sl, metadataTick.TickValue, metadataTick.TickSize, metadataTick.LotStep, metadataTick.MinLotSize, metadataTick.MaxLotSize, dynRisk); ;
 
                                                     // Send to logs
-                                                    if (_appConfig.Debug)
+                                                    if (_terminalConfig.Debug)
                                                     {
                                                         var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={response.OrderType},Magic={response.Magic},StrategyType={response.StrategyType},EntryExpr={response.PassiveOrder.EntryExpression},Risk={response.PassiveOrder.Risk},RR={response.PassiveOrder.RiskRewardRatio}");
                                                         var description = string.Format($"LotSize: StartBalance={startbalance},Balance={api.AccountInfo.Balance},Risk={pair.Risk},AskPrice={metadataTick.Ask},SlPrice={sl},TickValue={metadataTick.TickValue},TickSize={metadataTick.TickSize},LotStep={metadataTick.LotStep},MinLotSize={metadataTick.MinLotSize},MaxLotSize={metadataTick.MaxLotSize},DynRisk={dynRisk}");
@@ -342,7 +341,7 @@ namespace JCTG.Client
                                                                 // Print on the screen
                                                                 Print(Environment.NewLine);
                                                                 Print("--------- SEND NEW ORDER TO METATRADER ---------");
-                                                                Print("Broker      : " + _appConfig.Brokers.First(f => f.ClientId == api.ClientId).Name);
+                                                                Print("Broker      : " + _terminalConfig.Brokers.First(f => f.ClientId == api.ClientId).Name);
                                                                 Print("Date        : " + DateTime.UtcNow);
                                                                 Print("Ticker      : " + pair.TickerInMetatrader);
                                                                 if (metadataTick.Ask > price)
@@ -362,7 +361,7 @@ namespace JCTG.Client
                                                                         api.CloseOrder(order.Key, decimal.ToDouble(order.Value.Lots));
 
                                                                         // Send to logs
-                                                                        if (_appConfig.Debug)
+                                                                        if (_terminalConfig.Debug)
                                                                         {
                                                                             var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={response.OrderType},Magic={response.Magic},StrategyType={response.StrategyType},EntryExpr={response.PassiveOrder.EntryExpression},Risk={response.PassiveOrder.Risk},RR={response.PassiveOrder.RiskRewardRatio}");
                                                                             var description = string.Format($"CancelStopOrLimitOrderWhenNewSignal: Symbol={pair.TickerInMetatrader}");
@@ -381,7 +380,7 @@ namespace JCTG.Client
                                                                 api.ExecuteOrder(pair.TickerInMetatrader, orderType, lotSize, price, sl, tp, (int)response.Magic, comment);
 
                                                                 // Send to logs
-                                                                if (_appConfig.Debug)
+                                                                if (_terminalConfig.Debug)
                                                                 {
                                                                     var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={response.OrderType},Magic={response.Magic},StrategyType={response.StrategyType},EntryExpr={response.PassiveOrder.EntryExpression},Risk={response.PassiveOrder.Risk},RR={response.PassiveOrder.RiskRewardRatio}");
                                                                     var description = string.Format($"ExecuteOrder: Symbol={pair.TickerInMetatrader},OrderType={orderType},LotSize={lotSize},Price={price},SL={sl},TP={tp},Magic={response.Magic},Comment={comment}");
@@ -428,7 +427,7 @@ namespace JCTG.Client
                                                             );
 
                                                     // Send to logs
-                                                    if (_appConfig.Debug)
+                                                    if (_terminalConfig.Debug)
                                                     {
                                                         var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={response.OrderType},Magic={response.Magic},StrategyType={response.StrategyType},Price={response.MarketOrder.Price},TP={response.MarketOrder.TakeProfit},SL={response.MarketOrder.StopLoss}");
                                                         var description = string.Format($"SLForShort: Ask={metadataTick.Ask},Spread={spread},Digits={metadataTick.Digits},SignalPrice={response.MarketOrder.Price},SignalSL={response.MarketOrder.StopLoss}");
@@ -439,7 +438,7 @@ namespace JCTG.Client
                                                     var lotSize = RiskCalculator.LotSize(startbalance, api.AccountInfo.Balance, pair.Risk, metadataTick.Ask, slPrice, metadataTick.TickValue, metadataTick.TickSize, metadataTick.LotStep, metadataTick.MinLotSize, metadataTick.MaxLotSize, dynRisk);
 
                                                     // Send to logs
-                                                    if (_appConfig.Debug)
+                                                    if (_terminalConfig.Debug)
                                                     {
                                                         var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={response.OrderType},Magic={response.Magic},StrategyType={response.StrategyType},Price={response.MarketOrder.Price},TP={response.MarketOrder.TakeProfit},SL={response.MarketOrder.StopLoss}");
                                                         var description = string.Format($"LotSize: StartBalance={startbalance},Balance={api.AccountInfo.Balance},Risk={pair.Risk},AskPrice={metadataTick.Ask},SlPrice={slPrice},TickValue={metadataTick.TickValue},TickSize={metadataTick.TickSize},LotStep={metadataTick.LotStep},MinLotSize={metadataTick.MinLotSize},MaxLotSize={metadataTick.MaxLotSize},DynRisk={dynRisk}");
@@ -466,7 +465,7 @@ namespace JCTG.Client
                                                                         );
 
                                                                 // Send to logs
-                                                                if (_appConfig.Debug)
+                                                                if (_terminalConfig.Debug)
                                                                 {
                                                                     var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={response.OrderType},Magic={response.Magic},StrategyType={response.StrategyType},Price={response.MarketOrder.Price},TP={response.MarketOrder.TakeProfit},SL={response.MarketOrder.StopLoss}");
                                                                     var description = string.Format($"TPForShort: Ask={metadataTick.Ask},Spread={spread},Digits={metadataTick.Digits},SignalPrice={response.MarketOrder.Price},SignalTP={response.MarketOrder.TakeProfit}");
@@ -476,7 +475,7 @@ namespace JCTG.Client
                                                                 // Print on the screen
                                                                 Print(Environment.NewLine);
                                                                 Print("--------- SEND NEW ORDER TO METATRADER ---------");
-                                                                Print("Broker      : " + _appConfig.Brokers.First(f => f.ClientId == api.ClientId).Name);
+                                                                Print("Broker      : " + _terminalConfig.Brokers.First(f => f.ClientId == api.ClientId).Name);
                                                                 Print("Date        : " + DateTime.UtcNow);
                                                                 Print("Ticker      : " + pair.TickerInMetatrader);
                                                                 Print("Order       : SELL MARKET ORDER");
@@ -497,7 +496,7 @@ namespace JCTG.Client
                                                                 api.ExecuteOrder(pair.TickerInMetatrader, orderType, lotSize, 0, slPrice, tpPrice, (int)response.Magic, comment);
 
                                                                 // Send to logs
-                                                                if (_appConfig.Debug)
+                                                                if (_terminalConfig.Debug)
                                                                 {
                                                                     var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={response.OrderType},Magic={response.Magic},StrategyType={response.StrategyType},Price={response.MarketOrder.Price},TP={response.MarketOrder.TakeProfit},SL={response.MarketOrder.StopLoss}");
                                                                     var description = string.Format($"ExecuteOrder: Symbol={pair.TickerInMetatrader},OrderType={orderType},LotSize={lotSize},Price=,SL={slPrice},TP={tpPrice},Magic={response.Magic},Comment={comment}");
@@ -573,7 +572,7 @@ namespace JCTG.Client
                                                     tp = Math.Round(tp, metadataTick.Digits, MidpointRounding.AwayFromZero);
 
                                                     // Send to logs
-                                                    if (_appConfig.Debug)
+                                                    if (_terminalConfig.Debug)
                                                     {
                                                         var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={response.OrderType},Magic={response.Magic},StrategyType={response.StrategyType},EntryExpr={response.PassiveOrder.EntryExpression},Risk={response.PassiveOrder.Risk},RR={response.PassiveOrder.RiskRewardRatio}");
                                                         var description = string.Format($"Price: Price={price},Spread={spread},EntryExpression={response.PassiveOrder.EntryExpression}");
@@ -590,7 +589,7 @@ namespace JCTG.Client
                                                     var lotSize = RiskCalculator.LotSize(startbalance, api.AccountInfo.Balance, pair.Risk, price, sl, metadataTick.TickValue, metadataTick.TickSize, metadataTick.LotStep, metadataTick.MinLotSize, metadataTick.MaxLotSize, dynRisk); ;
 
                                                     // Send to logs
-                                                    if (_appConfig.Debug)
+                                                    if (_terminalConfig.Debug)
                                                     {
                                                         var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={response.OrderType},Magic={response.Magic},StrategyType={response.StrategyType},EntryExpr={response.PassiveOrder.EntryExpression},Risk={response.PassiveOrder.Risk},RR={response.PassiveOrder.RiskRewardRatio}");
                                                         var description = string.Format($"LotSize: StartBalance={startbalance},Balance={api.AccountInfo.Balance},Risk={pair.Risk},AskPrice={metadataTick.Ask},SlPrice={sl},TickValue={metadataTick.TickValue},TickSize={metadataTick.TickSize},LotStep={metadataTick.LotStep},MinLotSize={metadataTick.MinLotSize},MaxLotSize={metadataTick.MaxLotSize},DynRisk={dynRisk}");
@@ -609,7 +608,7 @@ namespace JCTG.Client
                                                                 // Print on the screen
                                                                 Print(Environment.NewLine);
                                                                 Print("--------- SEND NEW ORDER TO METATRADER ---------");
-                                                                Print("Broker      : " + _appConfig.Brokers.First(f => f.ClientId == api.ClientId).Name);
+                                                                Print("Broker      : " + _terminalConfig.Brokers.First(f => f.ClientId == api.ClientId).Name);
                                                                 Print("Date        : " + DateTime.UtcNow);
                                                                 Print("Ticker      : " + pair.TickerInMetatrader);
                                                                 if (metadataTick.Ask < price)
@@ -629,7 +628,7 @@ namespace JCTG.Client
                                                                         api.CloseOrder(order.Key, decimal.ToDouble(order.Value.Lots));
 
                                                                         // Send to logs
-                                                                        if (_appConfig.Debug)
+                                                                        if (_terminalConfig.Debug)
                                                                         {
                                                                             var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={response.OrderType},Magic={response.Magic},StrategyType={response.StrategyType},EntryExpr={response.PassiveOrder.EntryExpression},Risk={response.PassiveOrder.Risk},RR={response.PassiveOrder.RiskRewardRatio}");
                                                                             var description = string.Format($"CancelStopOrLimitOrderWhenNewSignal: Symbol={pair.TickerInMetatrader}");
@@ -650,7 +649,7 @@ namespace JCTG.Client
                                                                 api.ExecuteOrder(pair.TickerInMetatrader, orderType, lotSize, price, sl, tp, (int)response.Magic, comment);
 
                                                                 // Send to logs
-                                                                if (_appConfig.Debug)
+                                                                if (_terminalConfig.Debug)
                                                                 {
                                                                     var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={response.OrderType},Magic={response.Magic},StrategyType={response.StrategyType},EntryExpr={response.PassiveOrder.EntryExpression},Risk={response.PassiveOrder.Risk},RR={response.PassiveOrder.RiskRewardRatio}");
                                                                     var description = string.Format($"ExecuteOrder: Symbol={pair.TickerInMetatrader},OrderType={orderType},LotSize={lotSize},Price={price},SL={sl},TP={tp},Magic={response.Magic},Comment={comment}");
@@ -733,7 +732,7 @@ namespace JCTG.Client
                                                         sl = Math.Round(sl, metadataTick.Digits, MidpointRounding.AwayFromZero);
 
                                                         // Send to logs
-                                                        if (_appConfig.Debug)
+                                                        if (_terminalConfig.Debug)
                                                         {
                                                             var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={response.OrderType},Magic={response.Magic},StrategyType={response.StrategyType}");
                                                             var description = string.Format($"SL: OpenPrice={ticketId.Value.OpenPrice},Spread={spread},Offset={offset},Digits={metadataTick.Digits}");
@@ -743,7 +742,7 @@ namespace JCTG.Client
                                                         // Print on the screen
                                                         Print(Environment.NewLine);
                                                         Print("--------- SEND MODIFY SL TO BE ORDER TO METATRADER ---------");
-                                                        Print("Broker      : " + _appConfig.Brokers.First(f => f.ClientId == api.ClientId).Name);
+                                                        Print("Broker      : " + _terminalConfig.Brokers.First(f => f.ClientId == api.ClientId).Name);
                                                         Print("Ticker      : " + pair.TickerInMetatrader);
                                                         Print("Order       : MODIFY SL TO BE ORDER");
                                                         Print("------------------------------------------------");
@@ -752,7 +751,7 @@ namespace JCTG.Client
                                                         api.ModifyOrder(ticketId.Key, ticketId.Value.Lots, 0, sl, ticketId.Value.TakeProfit);
 
                                                         // Send to logs
-                                                        if (_appConfig.Debug)
+                                                        if (_terminalConfig.Debug)
                                                         {
                                                             var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={response.OrderType},Magic={response.Magic},StrategyType={response.StrategyType}");
                                                             var description = string.Format($"ModifyOrder: TicketId={ticketId.Key},Lots={ticketId.Value.Lots},SL={sl},TP={ticketId.Value.TakeProfit}");
@@ -764,7 +763,7 @@ namespace JCTG.Client
                                                         // Print on the screen
                                                         Print(Environment.NewLine);
                                                         Print("--------- UNABLE TO FIND TRADE ---------");
-                                                        Print("Broker      : " + _appConfig.Brokers.First(f => f.ClientId == api.ClientId).Name);
+                                                        Print("Broker      : " + _terminalConfig.Brokers.First(f => f.ClientId == api.ClientId).Name);
                                                         Print("Ticker      : " + pair.TickerInMetatrader);
                                                         Print("Order       : MODIFY SL TO BE ORDER");
                                                         Print("------------------------------------------------");
@@ -786,7 +785,7 @@ namespace JCTG.Client
                                                         // Print on the screen
                                                         Print(Environment.NewLine);
                                                         Print("--------- SEND CLOSE ORDER TO METATRADER ---------");
-                                                        Print("Broker      : " + _appConfig.Brokers.First(f => f.ClientId == api.ClientId).Name);
+                                                        Print("Broker      : " + _terminalConfig.Brokers.First(f => f.ClientId == api.ClientId).Name);
                                                         Print("Ticker      : " + pair.TickerInMetatrader);
                                                         Print("Order       : CLOSE ORDER");
                                                         Print("Magic       : " + response.Magic);
@@ -797,7 +796,7 @@ namespace JCTG.Client
                                                         api.CloseOrder(ticketId.Key, decimal.ToDouble(ticketId.Value.Lots));
 
                                                         // Send to logs
-                                                        if (_appConfig.Debug)
+                                                        if (_terminalConfig.Debug)
                                                         {
                                                             var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={response.OrderType},Magic={response.Magic},StrategyType={response.StrategyType}");
                                                             var description = string.Format($"CloseOrder: TicketId={ticketId.Key},Lots={ticketId.Value.Lots}");
@@ -809,7 +808,7 @@ namespace JCTG.Client
                                                         // Print on the screen
                                                         Print(Environment.NewLine);
                                                         Print("--------- UNABLE TO FIND TRADE ---------");
-                                                        Print("Broker      : " + _appConfig.Brokers.First(f => f.ClientId == api.ClientId).Name);
+                                                        Print("Broker      : " + _terminalConfig.Brokers.First(f => f.ClientId == api.ClientId).Name);
                                                         Print("Ticker      : " + pair.TickerInMetatrader);
                                                         Print("Order       : CLOSE ORDER");
                                                         Print("------------------------------------------------");
@@ -838,7 +837,7 @@ namespace JCTG.Client
                                                             // Print on the screen
                                                             Print(Environment.NewLine);
                                                             Print("--------- SEND CLOSE ORDER TO METATRADER ---------");
-                                                            Print("Broker      : " + _appConfig.Brokers.First(f => f.ClientId == api.ClientId).Name);
+                                                            Print("Broker      : " + _terminalConfig.Brokers.First(f => f.ClientId == api.ClientId).Name);
                                                             Print("Ticker      : " + pair.TickerInMetatrader);
                                                             Print("Order       : CLOSE ORDER");
                                                             Print("Magic       : " + order.Value.Magic);
@@ -849,7 +848,7 @@ namespace JCTG.Client
                                                             api.CloseOrder(order.Key, decimal.ToDouble(order.Value.Lots));
 
                                                             // Send to logs
-                                                            if (_appConfig.Debug)
+                                                            if (_terminalConfig.Debug)
                                                             {
                                                                 var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={response.OrderType},Magic={response.Magic},StrategyType={response.StrategyType}");
                                                                 var description = string.Format($"CloseOrder: TicketId={order.Key},Lots={order.Value.Lots}");
@@ -866,7 +865,7 @@ namespace JCTG.Client
                                                     // Print on the screen
                                                     Print(Environment.NewLine);
                                                     Print("--------- !!!! SPREAD TOO HIGH !!!! ---------");
-                                                    Print("Broker      : " + _appConfig.Brokers.First(f => f.ClientId == api.ClientId).Name);
+                                                    Print("Broker      : " + _terminalConfig.Brokers.First(f => f.ClientId == api.ClientId).Name);
                                                     Print("Ticker      : " + pair.TickerInMetatrader);
                                                     Print("------------------------------------------------");
 
@@ -920,7 +919,7 @@ namespace JCTG.Client
         private void OnItsTimeToCloseTradeEvent(long clientId, string symbol, StrategyType strategyType)
         {
             // Check if app config is not null
-            if (_appConfig != null && _apis != null)
+            if (_terminalConfig != null && _apis != null)
             {
                 var api = _apis.FirstOrDefault(f => f.ClientId == clientId);
 
@@ -943,7 +942,7 @@ namespace JCTG.Client
                             // Print on the screen
                             Print(Environment.NewLine);
                             Print("--------- SEND CLOSE ORDER TO METATRADER ---------");
-                            Print("Broker      : " + _appConfig.Brokers.First(f => f.ClientId == api.ClientId).Name);
+                            Print("Broker      : " + _terminalConfig.Brokers.First(f => f.ClientId == api.ClientId).Name);
                             Print("Ticker      : " + order.Value.Symbol);
                             Print("Order       : CLOSE ORDER");
                             Print("Magic       : " + order.Value.Magic);
@@ -969,7 +968,7 @@ namespace JCTG.Client
             var instrument = symbol.Replace("_" + timeFrame.ToUpper(), string.Empty);
 
             // Check if app config is not null
-            if (_appConfig != null && _apis != null)
+            if (_terminalConfig != null && _apis != null)
             {
                 // Start the system
                 foreach (var api in _apis.Where(f => f.ClientId == clientId && f.OpenOrders != null && f.OpenOrders.Count > 0))
@@ -999,7 +998,7 @@ namespace JCTG.Client
                         }
 
                         // Get the right pair back from the local database
-                        var pair = new List<Pairs>(_appConfig.Brokers.Where(f => f.ClientId == api.ClientId).SelectMany(f => f.Pairs)).FirstOrDefault(f => f.TickerInMetatrader.Equals(order.Value.Symbol) && f.StrategyNr == strategyType && f.Timeframe.Equals(timeFrame));
+                        var pair = new List<Pairs>(_terminalConfig.Brokers.Where(f => f.ClientId == api.ClientId).SelectMany(f => f.Pairs)).FirstOrDefault(f => f.TickerInMetatrader.Equals(order.Value.Symbol) && f.StrategyNr == strategyType && f.Timeframe.Equals(timeFrame));
 
                         // If this broker is listening to this signal and the account size is greater then zero
                         if (pair != null && signalEntryPrice > 0 && api.MarketData != null && signalStopLoss > 0 && strategyType != StrategyType.None)
@@ -1034,7 +1033,7 @@ namespace JCTG.Client
                                                 // Print on the screen
                                                 Print(Environment.NewLine);
                                                 Print("------!!! AUTO !!! ------- SEND MODIFY SL TO BE ORDER TO METATRADER ------!!! AUTO !!! -------");
-                                                Print("Broker      : " + _appConfig.Brokers.First(f => f.ClientId == api.ClientId).Name);
+                                                Print("Broker      : " + _terminalConfig.Brokers.First(f => f.ClientId == api.ClientId).Name);
                                                 Print("Ticker      : " + pair.TickerInMetatrader);
                                                 Print("Order       : MODIFY SL TO BE ORDER");
                                                 Print("Lot Size    : " + order.Value.Lots);
@@ -1071,7 +1070,7 @@ namespace JCTG.Client
                                                 // Print on the screen
                                                 Print(Environment.NewLine);
                                                 Print("------!!! AUTO !!! ------- SEND MODIFY SL TO BE ORDER TO METATRADER ------!!! AUTO !!! -------");
-                                                Print("Broker      : " + _appConfig.Brokers.First(f => f.ClientId == api.ClientId).Name);
+                                                Print("Broker      : " + _terminalConfig.Brokers.First(f => f.ClientId == api.ClientId).Name);
                                                 Print("Ticker      : " + pair.TickerInMetatrader);
                                                 Print("Order       : MODIFY SL TO BE ORDER");
                                                 Print("Lot Size    : " + order.Value.Lots);
@@ -1110,12 +1109,12 @@ namespace JCTG.Client
         private void OnLogEvent(long clientId, long id, Log log)
         {
             // Do null reference check
-            if (_appConfig != null)
+            if (_terminalConfig != null)
             {
                 // Print on the screen
                 Print(Environment.NewLine);
                 Print("------------------- LOG ------------------------");
-                Print("Broker    : " + _appConfig.Brokers.First(f => f.ClientId == clientId).Name);
+                Print("Broker    : " + _terminalConfig.Brokers.First(f => f.ClientId == clientId).Name);
                 Print("Time      : " + log.Time);
                 Print("Type      : " + log.Type);
                 if (!string.IsNullOrEmpty(log.Message))
@@ -1135,12 +1134,12 @@ namespace JCTG.Client
         private void OnOrderCreateEvent(long clientId, long ticketId, Order order)
         {
             // Do null reference check
-            if (_appConfig != null)
+            if (_terminalConfig != null)
             {
                 // Print on the screen
                 Print(Environment.NewLine);
                 Print("-------------- CREATE ORDER ---------------------");
-                Print("Broker    : " + _appConfig.Brokers.First(f => f.ClientId == clientId).Name);
+                Print("Broker    : " + _terminalConfig.Brokers.First(f => f.ClientId == clientId).Name);
                 Print("Time      : " + DateTime.UtcNow);
                 Print("Symbol    : " + order.Symbol);
                 Print("Ticket    : " + ticketId);
@@ -1171,12 +1170,12 @@ namespace JCTG.Client
         private void OnOrderUpdateEvent(long clientId, long ticketId, Order order)
         {
             // Do null reference check
-            if (_appConfig != null)
+            if (_terminalConfig != null)
             {
                 // Print on the screen
                 Print(Environment.NewLine);
                 Print("-------------- UPDATE ORDER ---------------------");
-                Print("Broker    : " + _appConfig.Brokers.First(f => f.ClientId == clientId).Name);
+                Print("Broker    : " + _terminalConfig.Brokers.First(f => f.ClientId == clientId).Name);
                 Print("Time      : " + DateTime.UtcNow);
                 Print("Symbol    : " + order.Symbol);
                 Print("Ticket    : " + ticketId);
@@ -1208,12 +1207,12 @@ namespace JCTG.Client
         private void OnOrderCloseEvent(long clientId, long ticketId, Order order)
         {
             // Do null reference check
-            if (_appConfig != null)
+            if (_terminalConfig != null)
             {
                 // Print on the screen
                 Print(Environment.NewLine);
                 Print("-------------- CLOSED ORDER ---------------------");
-                Print("Broker    : " + _appConfig.Brokers.First(f => f.ClientId == clientId).Name);
+                Print("Broker    : " + _terminalConfig.Brokers.First(f => f.ClientId == clientId).Name);
                 Print("Time      : " + DateTime.UtcNow);
                 Print("Symbol    : " + order.Symbol);
                 Print("Ticket    : " + ticketId);
@@ -1275,7 +1274,7 @@ namespace JCTG.Client
         private void SendLogToFile(long clientId, Log log)
         {
             // Do null reference check
-            if (_appConfig != null && _apis != null && (_apis.Count(f => f.ClientId == clientId) == 1 || clientId == 0) && _appConfig.DropLogsInFile)
+            if (_terminalConfig != null && _apis != null && (_apis.Count(f => f.ClientId == clientId) == 1 || clientId == 0) && _terminalConfig.DropLogsInFile)
             {
                 // Buffer log
                 var logs = _buffers.GetOrAdd(clientId, []);
@@ -1289,7 +1288,7 @@ namespace JCTG.Client
         private async Task SendOrderToFileAsync(long clientId, Order order)
         {
             // Do null reference check
-            if (_appConfig != null && _apis != null && _apis.Count(f => f.ClientId == clientId) == 1)
+            if (_terminalConfig != null && _apis != null && _apis.Count(f => f.ClientId == clientId) == 1)
             {
                 // Follow similar logic for writing logs to file
                 // Filename
@@ -1310,7 +1309,7 @@ namespace JCTG.Client
         private async Task SendOrderToJournalFileAsync(long clientId, long signalId, Order order, bool isTradeClosed = false)
         {
             // Ensure dependencies are not null
-            if (_appConfig == null || _apis == null || !_apis.Any(f => f.ClientId == clientId))
+            if (_terminalConfig == null || _apis == null || !_apis.Any(f => f.ClientId == clientId))
                 return;
 
             string fileName = $"Tradejournal-{clientId}.json";
@@ -1362,7 +1361,7 @@ namespace JCTG.Client
         private async Task SendLogToJournalFileAsync(long clientId, long signalId, Log log)
         {
             // Ensure dependencies are not null
-            if (_appConfig == null || _apis == null || !_apis.Any(f => f.ClientId == clientId))
+            if (_terminalConfig == null || _apis == null || !_apis.Any(f => f.ClientId == clientId))
                 return;
 
             string fileName = $"Tradejournal-{clientId}.json";
@@ -1412,7 +1411,7 @@ namespace JCTG.Client
         private async Task SendSignalToJournalFileAsync(long clientId, TradingviewSignal signal)
         {
             // Ensure dependencies are not null
-            if (_appConfig == null || _apis == null || !_apis.Any(f => f.ClientId == clientId))
+            if (_terminalConfig == null || _apis == null || !_apis.Any(f => f.ClientId == clientId))
                 return;
 
             string fileName = $"Tradejournal-{clientId}.json";

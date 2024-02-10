@@ -1,12 +1,12 @@
 ﻿using Newtonsoft.Json;
 
-namespace JCTG.Client
+namespace JCTG.Models
 {
     public class HistoricBarData
     {
-        public HistoricBarData() 
+        public HistoricBarData()
         {
-            this.BarData = [];
+            BarData = [];
         }
 
         public List<BarData> BarData { get; set; }

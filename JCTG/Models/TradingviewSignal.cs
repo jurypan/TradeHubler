@@ -1,4 +1,4 @@
-﻿namespace JCTG.Entity
+﻿namespace JCTG.Models
 {
     public class TradingviewSignal
     {
@@ -15,7 +15,7 @@
 
         public TradingviewSignalPassiveOrder? PassiveOrder { get; set; }
 
-       
+
 
     }
 

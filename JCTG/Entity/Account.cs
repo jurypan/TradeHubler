@@ -1,5 +1,5 @@
-﻿using JCTG.Entity;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
+using JCTG.Entity;
 
 namespace JCTG
 {
@@ -16,7 +16,5 @@ namespace JCTG
         public string Name { get; set; }
         public List<Client> Clients { get; set; }
         public List<Signal> Signals { get; set; }
-        public List<TradeJournal> TradeJournals { get; set; }
-        public List<Log> Logs { get; set; }
     }
 }

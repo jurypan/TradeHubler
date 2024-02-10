@@ -1,4 +1,6 @@
-﻿namespace JCTG.Client
+﻿using JCTG.Models;
+
+namespace JCTG.Client
 {
     public class RiskCalculator
     {

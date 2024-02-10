@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel;
 
-namespace JCTG.Client
+namespace JCTG.Models
 {
     public enum OrderType
     {

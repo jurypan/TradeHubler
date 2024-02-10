@@ -1,4 +1,4 @@
-﻿namespace JCTG.Entity
+﻿namespace JCTG
 {
     public class WebsocketMessage<T>()
     {

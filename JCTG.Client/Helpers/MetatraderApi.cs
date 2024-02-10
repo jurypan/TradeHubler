@@ -1,4 +1,6 @@
 using System.Globalization;
+using JCTG.Entity;
+using JCTG.Models;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using static JCTG.Client.Helpers;

@@ -1,7 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System.Globalization;
 
-namespace JCTG.Client
+namespace JCTG.Models
 {
     public class MarketData
     {
@@ -42,11 +42,11 @@ namespace JCTG.Client
         [JsonProperty("tick_size")]
         public decimal TickSize { get; set; }
 
-        public int Digits 
+        public int Digits
         {
             get
             {
-                return CountSignificantDigits(this.TickSize);
+                return CountSignificantDigits(TickSize);
             }
         }
 

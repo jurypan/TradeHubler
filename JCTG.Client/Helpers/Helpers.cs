@@ -5,13 +5,6 @@ namespace JCTG.Client
 {
     public static class Helpers
     {
-        public static long ToUnixTimestamp(this DateTime dateTime)
-        {
-            DateTime epoch = new(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-            TimeSpan elapsedTime = dateTime.ToUniversalTime() - epoch;
-            return (long)elapsedTime.TotalMilliseconds;
-        }
-
         public static void Print(object obj, bool color = false)
         {
             if (color == true)

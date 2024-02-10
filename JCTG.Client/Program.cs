@@ -1,4 +1,5 @@
 ﻿using Azure.Messaging.WebPubSub;
+using JCTG.Models;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using Websocket.Client;
@@ -32,9 +33,9 @@ namespace JCTG.Client
 
         private static IServiceProvider ConfigureServices()
         {
-            // Load AppConfig 
+            // Load TerminalConfig 
             string json = File.ReadAllText("settings.json");
-            AppConfig? config = JsonConvert.DeserializeObject<AppConfig>(json);
+            TerminalConfig? config = JsonConvert.DeserializeObject<TerminalConfig>(json);
             if (config == null)
                 throw new Exception("Can not load config file");
 

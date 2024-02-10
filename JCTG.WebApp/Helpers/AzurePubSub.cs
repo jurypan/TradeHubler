@@ -1,14 +1,14 @@
-﻿using System.Text.Json;
-using JCTG.Models;
+﻿using JCTG.Models;
+using System.Text.Json;
 using Websocket.Client;
 
-namespace JCTG.Client
+namespace JCTG.WebApp
 {
     public class AzurePubSub(WebsocketClient client)
     {
         private readonly WebsocketClient? _client = client;
 
-        public event Action<TradingviewSignal> SubscribeOnTradingviewSignal;
+        public event Action<TerminalConfig> SubscribeOnTerminalConfig;
 
         public async Task StartAsync()
         {
@@ -32,12 +32,12 @@ namespace JCTG.Client
                                 var data = document.RootElement.GetProperty("data");
                                 if (data.ValueKind == JsonValueKind.Object && document.RootElement.TryGetProperty("typeName", out var typeNameProperty))
                                 {
-                                    if (typeNameProperty.GetString() == "MetatraderMessage")
+                                    if (typeNameProperty.GetString() == "TerminalConfig")
                                     {
-                                        var message = data.Deserialize<TradingviewSignal>(new JsonSerializerOptions(JsonSerializerDefaults.Web));
+                                        var message = data.Deserialize<TerminalConfig>(new JsonSerializerOptions(JsonSerializerDefaults.Web));
                                         if (message != null)
                                         {
-                                            SubscribeOnTradingviewSignal?.Invoke(message);
+                                            SubscribeOnTerminalConfig?.Invoke(message);
                                         }  
                                     }
                                 }
