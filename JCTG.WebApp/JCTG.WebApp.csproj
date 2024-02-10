@@ -7,7 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\JCTG.Client\JCTG.Client.csproj" />
     <ProjectReference Include="..\JCTG\JCTG.csproj" />
   </ItemGroup>
 

@@ -49,7 +49,7 @@ namespace JCTG.Client
 
             var serviceClient = new WebPubSubServiceClient(_pubsubConnectionString, "a" + config.AccountId.ToString());
             var url = serviceClient.GetClientAccessUri();
-            services.AddSingleton(new WebsocketClient(url));
+            services.AddSingleton(new AzurePubSub(new WebsocketClient(url)));
 
             return services.BuildServiceProvider();
         }

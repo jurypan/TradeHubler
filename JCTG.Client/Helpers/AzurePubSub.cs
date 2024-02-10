@@ -4,17 +4,11 @@ using Websocket.Client;
 
 namespace JCTG.Client
 {
-    public class AzurePubSub
+    public class AzurePubSub(WebsocketClient client)
     {
-        private readonly WebsocketClient? _client;
+        private readonly WebsocketClient? _client = client;
 
-        // Replacing event with an action
-        public Action<TradingviewSignal>? SubscribeOnTradingviewSignal;
-
-        public AzurePubSub(WebsocketClient client)
-        {
-            _client = client;
-        }
+        public event Action<TradingviewSignal> SubscribeOnTradingviewSignal;
 
         public async Task StartAsync()
         {
@@ -42,7 +36,9 @@ namespace JCTG.Client
                                     {
                                         var message = data.Deserialize<TradingviewSignal>(new JsonSerializerOptions(JsonSerializerDefaults.Web));
                                         if (message != null)
+                                        {
                                             SubscribeOnTradingviewSignal?.Invoke(message);
+                                        }  
                                     }
                                 }
                             }
