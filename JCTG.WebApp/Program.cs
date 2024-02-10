@@ -1,8 +1,9 @@
 using JCTG;
-using JCTG.WebApp.Data;
+using JCTG.WebApp;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Websocket.Client;
 
-var sqlConnectionString = "Server=tcp:justcalltheguy.database.windows.net,1433;Initial Catalog=justcalltheguy;Persist Security Info=False;User ID=joeri.pansaerts;Password=*4EJQPCuksV&!BG8;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30";
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,14 +11,15 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorPages();
 builder.Services.AddControllers();
 builder.Services.AddServerSideBlazor();
+
 builder.Services.AddDbContext<JCTGDbContext>(
-    options => options.UseSqlServer(sqlConnectionString)
+    options => options.UseSqlServer(builder.Configuration.GetConnectionString("AZURE_SQL_CONNECTIONSTRING"))
     .UseLoggerFactory(LoggerFactory.Create(builder =>
        builder.AddFilter((category, level) =>
            category != DbLoggerCategory.Database.Command.Name || level > LogLevel.Information))));
 
-
-builder.Services.AddSingleton<TerminalService>();
+builder.Services.AddAzurePubSubClient(builder.Configuration.GetConnectionString("AZURE_PUBSUB_CONNECTIONSTRING"));
+builder.Services.AddAzurePubSubServer();
 
 var app = builder.Build();
 
@@ -37,5 +39,8 @@ app.UseRouting();
 app.MapBlazorHub();
 app.MapFallbackToPage("/_Host");
 app.MapControllers();
+app.UseWebSockets();
+
+
 
 app.Run();

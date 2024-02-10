@@ -15,11 +15,13 @@ namespace JCTG.WebApp.Controllers
     {
         private readonly ILogger<TradingviewController> _logger;
         private readonly JCTGDbContext _dbContext;
+        private readonly AzurePubSubServer _server;
 
-        public TradingviewController(ILogger<TradingviewController> logger, JCTGDbContext dbContext)
+        public TradingviewController(ILogger<TradingviewController> logger, JCTGDbContext dbContext, AzurePubSubServer server)
         {
             _logger = logger;
             _dbContext = dbContext;
+            _server = server;
         }
 
         [HttpGet("tradingview")]
@@ -56,11 +58,8 @@ namespace JCTG.WebApp.Controllers
 
                 _logger.LogInformation($"Added to database in table Signal with ID: {signal.ID}", signal);
 
-                // Init Azure Web PubSub
-                var serviceClient = new WebPubSubServiceClient("Endpoint=https://justcalltheguy.webpubsub.azure.com;AccessKey=BdxAvvoxX7+nkCq/lQDNe2LAy41lwDfJD8bCPiNuY/k=;Version=1.0;", "a" + signal.AccountID.ToString());
-
                 // Create model
-                var model = new TradingviewSignal()
+                var id = await _server.SendTradingviewSignalAsync(new TradingviewSignal()
                 {
                     SignalID = signal.ID,
                     AccountID = signal.AccountID,
@@ -80,18 +79,9 @@ namespace JCTG.WebApp.Controllers
                         Risk = signal.Risk,
                         RiskRewardRatio = signal.RiskRewardRatio,
                     } : null,
-                };
+                });
 
-                var resp = await serviceClient.SendToAllAsync(JsonConvert.SerializeObject(new WebsocketMessage<TradingviewSignal>()
-                {
-                    Data = model,
-                    DataType = Constants.WebsocketMessageDatatype_JSON,
-                    From = Constants.WebsocketMessageFrom_Server,
-                    Type = Constants.WebsocketMessageType_Message,
-                    TypeName = nameof(TradingviewSignal),
-                }), Azure.Core.ContentType.ApplicationJson);
-
-                _logger.LogInformation($"Sent to Azure Web PubSub with response client request id: {resp.ClientRequestId}", resp);
+                _logger.LogInformation($"Sent to Azure Web PubSub with response client request id: {id}", id);
 
                 return Ok("Processed successfully");
             }

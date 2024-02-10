@@ -4,7 +4,7 @@ using Websocket.Client;
 
 namespace JCTG.Client
 {
-    public class AzurePubSub(WebsocketClient client)
+    public class AzurePubSubClient(WebsocketClient client)
     {
         private readonly WebsocketClient? _client = client;
 

@@ -4,13 +4,14 @@ using Websocket.Client;
 
 namespace JCTG.WebApp
 {
-    public class AzurePubSub(WebsocketClient client)
+    public class AzurePubSubClient(WebsocketClient client)
     {
         private readonly WebsocketClient? _client = client;
 
-        public event Action<TerminalConfig> SubscribeOnTerminalConfig;
+        public event Action<Log>? SubscribeOnLog;
+        public event Action<TradeJournal>? SubscribeOnTradeJournal;
 
-        public async Task StartAsync()
+        public void ListeningToServer()
         {
             // Do null reference check
             if (_client != null)
@@ -19,7 +20,7 @@ namespace JCTG.WebApp
                 _client.ReconnectTimeout = null;
 
                 // Enable the message receive
-                _client.MessageReceived.Subscribe(msg =>
+                _ = _client.MessageReceived.Subscribe(msg =>
                 {
                     if (msg != null && msg.Text != null)
                     {
@@ -32,13 +33,21 @@ namespace JCTG.WebApp
                                 var data = document.RootElement.GetProperty("data");
                                 if (data.ValueKind == JsonValueKind.Object && document.RootElement.TryGetProperty("typeName", out var typeNameProperty))
                                 {
-                                    if (typeNameProperty.GetString() == "TerminalConfig")
+                                    if (typeNameProperty.GetString() == "Log")
                                     {
-                                        var message = data.Deserialize<TerminalConfig>(new JsonSerializerOptions(JsonSerializerDefaults.Web));
+                                        var message = data.Deserialize<Log>(new JsonSerializerOptions(JsonSerializerDefaults.Web));
                                         if (message != null)
                                         {
-                                            SubscribeOnTerminalConfig?.Invoke(message);
-                                        }  
+                                            SubscribeOnLog?.Invoke(message);
+                                        }
+                                    }
+                                    else if (typeNameProperty.GetString() == "TradeJournal")
+                                    {
+                                        var message = data.Deserialize<TradeJournal>(new JsonSerializerOptions(JsonSerializerDefaults.Web));
+                                        if (message != null)
+                                        {
+                                            SubscribeOnTradeJournal?.Invoke(message);
+                                        }
                                     }
                                 }
                             }
@@ -47,17 +56,16 @@ namespace JCTG.WebApp
                 });
 
                 // Start the web socket
-                await _client.Start();
+                Task.Run(_client.Start);
             }
         }
 
-        public async Task<bool> StopAsync() 
+        public void StopListeningToServer() 
         {
             if (_client != null) 
             {
-                return await _client.StopOrFail(System.Net.WebSockets.WebSocketCloseStatus.NormalClosure, "shut down");
+                Task.Run(async () => await _client.StopOrFail(System.Net.WebSockets.WebSocketCloseStatus.NormalClosure, "shut down"));
             }
-            return false;
         }
     }
 }

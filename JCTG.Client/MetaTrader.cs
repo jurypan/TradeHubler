@@ -1,9 +1,7 @@
-﻿using JCTG.Entity;
-using JCTG.Models;
+﻿using JCTG.Models;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using System.Collections.Concurrent;
-using Websocket.Client;
 using static JCTG.Client.Helpers;
 
 namespace JCTG.Client
@@ -102,8 +100,7 @@ namespace JCTG.Client
             if (_terminalConfig != null && _apis != null)
             {
                 // Get web socket _client
-                var azurePubSub = Program.Service?.GetService<AzurePubSub>();
-                var wc = Program.Service?.GetService<WebsocketClient>();
+                var azurePubSub = Program.Service?.GetService<AzurePubSubClient>();
 
                 // Do null reference check
                 if (azurePubSub != null)
@@ -167,7 +164,7 @@ namespace JCTG.Client
                                                     {
                                                         var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={response.OrderType},Magic={response.Magic},StrategyType={response.StrategyType},Price={response.MarketOrder.Price},TP={response.MarketOrder.TakeProfit},SL={response.MarketOrder.StopLoss}");
                                                         var description = string.Format($"SLForLong: Ask={metadataTick.Ask},Spread={spread},Digits={metadataTick.Digits},SignalPrice={response.MarketOrder.Price},SignalSL={response.MarketOrder.StopLoss}");
-                                                        SendLogToFile(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description });
+                                                        await SendLogToFileAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description });
                                                     }
 
                                                     // Calculate the lot size
@@ -178,7 +175,7 @@ namespace JCTG.Client
                                                     {
                                                         var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={response.OrderType},Magic={response.Magic},StrategyType={response.StrategyType},Price={response.MarketOrder.Price},TP={response.MarketOrder.TakeProfit},SL={response.MarketOrder.StopLoss}");
                                                         var description = string.Format($"LotSize: StartBalance={startbalance},Balance={api.AccountInfo.Balance},Risk={pair.Risk},AskPrice={metadataTick.Ask},SlPrice={slPrice},TickValue={metadataTick.TickValue},TickSize={metadataTick.TickSize},LotStep={metadataTick.LotStep},MinLotSize={metadataTick.MinLotSize},MaxLotSize={metadataTick.MaxLotSize},DynRisk={dynRisk}");
-                                                        SendLogToFile(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description });
+                                                        await SendLogToFileAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description });
                                                     }
 
                                                     // do 0.0 check
@@ -205,7 +202,7 @@ namespace JCTG.Client
                                                                 {
                                                                     var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={response.OrderType},Magic={response.Magic},StrategyType={response.StrategyType},Price={response.MarketOrder.Price},TP={response.MarketOrder.TakeProfit},SL={response.MarketOrder.StopLoss}");
                                                                     var description = string.Format($"TPForLong: Ask={metadataTick.Ask},Spread={spread},Digits={metadataTick.Digits},SignalPrice={response.MarketOrder.Price},SignalTP={response.MarketOrder.TakeProfit}");
-                                                                    SendLogToFile(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description });
+                                                                    await SendLogToFileAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description });
                                                                 }
 
                                                                 // Print on the screen
@@ -231,25 +228,25 @@ namespace JCTG.Client
                                                                 {
                                                                     var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={response.OrderType},Magic={response.Magic},StrategyType={response.StrategyType},Price={response.MarketOrder.Price},TP={response.MarketOrder.TakeProfit},SL={response.MarketOrder.StopLoss}");
                                                                     var description = string.Format($"ExecuteOrder: Symbol={pair.TickerInMetatrader},OrderType={orderType},LotSize={lotSize},Price=,SL={slPrice},TP={tpPrice},Magic={response.Magic},Comment={comment}");
-                                                                    SendLogToFile(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description });
+                                                                    await SendLogToFileAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description });
                                                                 }
                                                             }
                                                             else
                                                             {
                                                                 var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={response.OrderType},Magic={response.Magic},StrategyType={response.StrategyType},Price={response.MarketOrder.Price},TP={response.MarketOrder.TakeProfit},SL={response.MarketOrder.StopLoss}");
-                                                                SendLogToFile(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = "Spread is too high in regards to the risk" });
+                                                                await SendLogToFileAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = "Spread is too high in regards to the risk" });
                                                             }
                                                         }
                                                         else
                                                         {
                                                             var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={response.OrderType},Magic={response.Magic},StrategyType={response.StrategyType},Price={response.MarketOrder.Price},TP={response.MarketOrder.TakeProfit},SL={response.MarketOrder.StopLoss}");
-                                                            SendLogToFile(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = "Max lot size exceeded" });
+                                                            await SendLogToFileAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = "Max lot size exceeded" });
                                                         }
                                                     }
                                                     else
                                                     {
                                                         var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={response.OrderType},Magic={response.Magic},StrategyType={response.StrategyType},Price={response.MarketOrder.Price},TP={response.MarketOrder.TakeProfit},SL={response.MarketOrder.StopLoss}");
-                                                        SendLogToFile(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = $"Unexpected error occurred with the calculation of the stop loss price" });
+                                                        await SendLogToFileAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = $"Unexpected error occurred with the calculation of the stop loss price" });
                                                     }
                                                 }
 
@@ -309,13 +306,13 @@ namespace JCTG.Client
                                                     {
                                                         var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={response.OrderType},Magic={response.Magic},StrategyType={response.StrategyType},EntryExpr={response.PassiveOrder.EntryExpression},Risk={response.PassiveOrder.Risk},RR={response.PassiveOrder.RiskRewardRatio}");
                                                         var description = string.Format($"Price: Price={price},Spread={spread},EntryExpression={response.PassiveOrder.EntryExpression}");
-                                                        SendLogToFile(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description });
+                                                        await SendLogToFileAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description });
 
                                                         description = string.Format($"SL: Price={price},Spread={spread},Risk={response.PassiveOrder.Risk.Value},SLMultiplier={pair.SLMultiplier}");
-                                                        SendLogToFile(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description });
+                                                        await SendLogToFileAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description });
 
                                                         description = string.Format($"TP: Price={price},Spread={spread},Risk={response.PassiveOrder.Risk.Value},RiskRewardRatio={response.PassiveOrder.RiskRewardRatio.Value}");
-                                                        SendLogToFile(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description });
+                                                        await SendLogToFileAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description });
                                                     }
 
                                                     // Calculate the lot size
@@ -326,7 +323,7 @@ namespace JCTG.Client
                                                     {
                                                         var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={response.OrderType},Magic={response.Magic},StrategyType={response.StrategyType},EntryExpr={response.PassiveOrder.EntryExpression},Risk={response.PassiveOrder.Risk},RR={response.PassiveOrder.RiskRewardRatio}");
                                                         var description = string.Format($"LotSize: StartBalance={startbalance},Balance={api.AccountInfo.Balance},Risk={pair.Risk},AskPrice={metadataTick.Ask},SlPrice={sl},TickValue={metadataTick.TickValue},TickSize={metadataTick.TickSize},LotStep={metadataTick.LotStep},MinLotSize={metadataTick.MinLotSize},MaxLotSize={metadataTick.MaxLotSize},DynRisk={dynRisk}");
-                                                        SendLogToFile(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description });
+                                                        await SendLogToFileAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description });
                                                     }
 
                                                     // do 0.0 check
@@ -365,7 +362,7 @@ namespace JCTG.Client
                                                                         {
                                                                             var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={response.OrderType},Magic={response.Magic},StrategyType={response.StrategyType},EntryExpr={response.PassiveOrder.EntryExpression},Risk={response.PassiveOrder.Risk},RR={response.PassiveOrder.RiskRewardRatio}");
                                                                             var description = string.Format($"CancelStopOrLimitOrderWhenNewSignal: Symbol={pair.TickerInMetatrader}");
-                                                                            SendLogToFile(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description });
+                                                                            await SendLogToFileAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description });
                                                                         }
                                                                     }
                                                                 }
@@ -384,25 +381,25 @@ namespace JCTG.Client
                                                                 {
                                                                     var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={response.OrderType},Magic={response.Magic},StrategyType={response.StrategyType},EntryExpr={response.PassiveOrder.EntryExpression},Risk={response.PassiveOrder.Risk},RR={response.PassiveOrder.RiskRewardRatio}");
                                                                     var description = string.Format($"ExecuteOrder: Symbol={pair.TickerInMetatrader},OrderType={orderType},LotSize={lotSize},Price={price},SL={sl},TP={tp},Magic={response.Magic},Comment={comment}");
-                                                                    SendLogToFile(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description });
+                                                                    await SendLogToFileAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description });
                                                                 }
                                                             }
                                                             else
                                                             {
                                                                 var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={response.OrderType},Magic={response.Magic},StrategyType={response.StrategyType},EntryExpr={response.PassiveOrder.EntryExpression},Risk={response.PassiveOrder.Risk},RR={response.PassiveOrder.RiskRewardRatio}");
-                                                                SendLogToFile(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = "Spread is too high in regards to the risk" });
+                                                                await SendLogToFileAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = "Spread is too high in regards to the risk" });
                                                             }
                                                         }
                                                         else
                                                         {
                                                             var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={response.OrderType},Magic={response.Magic},StrategyType={response.StrategyType},EntryExpr={response.PassiveOrder.EntryExpression},Risk={response.PassiveOrder.Risk},RR={response.PassiveOrder.RiskRewardRatio}");
-                                                            SendLogToFile(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = "Max lot size exceeded" });
+                                                            await SendLogToFileAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = "Max lot size exceeded" });
                                                         }
                                                     }
                                                     else
                                                     {
                                                         var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={response.OrderType},Magic={response.Magic},StrategyType={response.StrategyType},EntryExpr={response.PassiveOrder.EntryExpression},Risk={response.PassiveOrder.Risk},RR={response.PassiveOrder.RiskRewardRatio}");
-                                                        SendLogToFile(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = $"Can't find entry candle {response.PassiveOrder.EntryExpression}" });
+                                                        await SendLogToFileAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = $"Can't find entry candle {response.PassiveOrder.EntryExpression}" });
                                                     }
                                                 }
 
@@ -431,7 +428,7 @@ namespace JCTG.Client
                                                     {
                                                         var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={response.OrderType},Magic={response.Magic},StrategyType={response.StrategyType},Price={response.MarketOrder.Price},TP={response.MarketOrder.TakeProfit},SL={response.MarketOrder.StopLoss}");
                                                         var description = string.Format($"SLForShort: Ask={metadataTick.Ask},Spread={spread},Digits={metadataTick.Digits},SignalPrice={response.MarketOrder.Price},SignalSL={response.MarketOrder.StopLoss}");
-                                                        SendLogToFile(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description });
+                                                        await SendLogToFileAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description });
                                                     }
 
                                                     // Calculate the lot size
@@ -442,7 +439,7 @@ namespace JCTG.Client
                                                     {
                                                         var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={response.OrderType},Magic={response.Magic},StrategyType={response.StrategyType},Price={response.MarketOrder.Price},TP={response.MarketOrder.TakeProfit},SL={response.MarketOrder.StopLoss}");
                                                         var description = string.Format($"LotSize: StartBalance={startbalance},Balance={api.AccountInfo.Balance},Risk={pair.Risk},AskPrice={metadataTick.Ask},SlPrice={slPrice},TickValue={metadataTick.TickValue},TickSize={metadataTick.TickSize},LotStep={metadataTick.LotStep},MinLotSize={metadataTick.MinLotSize},MaxLotSize={metadataTick.MaxLotSize},DynRisk={dynRisk}");
-                                                        SendLogToFile(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description });
+                                                        await SendLogToFileAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description });
                                                     }
 
                                                     // do 0.0 check
@@ -469,7 +466,7 @@ namespace JCTG.Client
                                                                 {
                                                                     var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={response.OrderType},Magic={response.Magic},StrategyType={response.StrategyType},Price={response.MarketOrder.Price},TP={response.MarketOrder.TakeProfit},SL={response.MarketOrder.StopLoss}");
                                                                     var description = string.Format($"TPForShort: Ask={metadataTick.Ask},Spread={spread},Digits={metadataTick.Digits},SignalPrice={response.MarketOrder.Price},SignalTP={response.MarketOrder.TakeProfit}");
-                                                                    SendLogToFile(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description });
+                                                                    await SendLogToFileAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description });
                                                                 }
 
                                                                 // Print on the screen
@@ -500,25 +497,25 @@ namespace JCTG.Client
                                                                 {
                                                                     var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={response.OrderType},Magic={response.Magic},StrategyType={response.StrategyType},Price={response.MarketOrder.Price},TP={response.MarketOrder.TakeProfit},SL={response.MarketOrder.StopLoss}");
                                                                     var description = string.Format($"ExecuteOrder: Symbol={pair.TickerInMetatrader},OrderType={orderType},LotSize={lotSize},Price=,SL={slPrice},TP={tpPrice},Magic={response.Magic},Comment={comment}");
-                                                                    SendLogToFile(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description });
+                                                                    await SendLogToFileAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description });
                                                                 }
                                                             }
                                                             else
                                                             {
                                                                 var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={response.OrderType},Magic={response.Magic},StrategyType={response.StrategyType},Price={response.MarketOrder.Price},TP={response.MarketOrder.TakeProfit},SL={response.MarketOrder.StopLoss}");
-                                                                SendLogToFile(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = "The spread is too high in regards to the risk" });
+                                                                await SendLogToFileAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = "The spread is too high in regards to the risk" });
                                                             }
                                                         }
                                                         else
                                                         {
                                                             var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={response.OrderType},Magic={response.Magic},StrategyType={response.StrategyType},Price={response.MarketOrder.Price},TP={response.MarketOrder.TakeProfit},SL={response.MarketOrder.StopLoss}");
-                                                            SendLogToFile(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = "Max lot size exceeded" });
+                                                            await SendLogToFileAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = "Max lot size exceeded" });
                                                         }
                                                     }
                                                     else
                                                     {
                                                         var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={response.OrderType},Magic={response.Magic},StrategyType={response.StrategyType},Price={response.MarketOrder.Price},TP={response.MarketOrder.TakeProfit},SL={response.MarketOrder.StopLoss}");
-                                                        SendLogToFile(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = $"Unexpected error occurred with the calculation of the stop loss price" });
+                                                        await SendLogToFileAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = $"Unexpected error occurred with the calculation of the stop loss price" });
                                                     }
                                                 }
 
@@ -576,13 +573,13 @@ namespace JCTG.Client
                                                     {
                                                         var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={response.OrderType},Magic={response.Magic},StrategyType={response.StrategyType},EntryExpr={response.PassiveOrder.EntryExpression},Risk={response.PassiveOrder.Risk},RR={response.PassiveOrder.RiskRewardRatio}");
                                                         var description = string.Format($"Price: Price={price},Spread={spread},EntryExpression={response.PassiveOrder.EntryExpression}");
-                                                        SendLogToFile(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description });
+                                                        await SendLogToFileAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description });
 
                                                         description = string.Format($"SL: Price={price},Spread={spread},Risk={response.PassiveOrder.Risk.Value},SLMultiplier={pair.SLMultiplier}");
-                                                        SendLogToFile(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description });
+                                                        await SendLogToFileAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description });
 
                                                         description = string.Format($"TP: Price={price},Spread={spread},Risk={response.PassiveOrder.Risk.Value},RiskRewardRatio={response.PassiveOrder.RiskRewardRatio.Value}");
-                                                        SendLogToFile(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description });
+                                                        await SendLogToFileAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description });
                                                     }
 
                                                     // Calculate the lot size
@@ -593,7 +590,7 @@ namespace JCTG.Client
                                                     {
                                                         var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={response.OrderType},Magic={response.Magic},StrategyType={response.StrategyType},EntryExpr={response.PassiveOrder.EntryExpression},Risk={response.PassiveOrder.Risk},RR={response.PassiveOrder.RiskRewardRatio}");
                                                         var description = string.Format($"LotSize: StartBalance={startbalance},Balance={api.AccountInfo.Balance},Risk={pair.Risk},AskPrice={metadataTick.Ask},SlPrice={sl},TickValue={metadataTick.TickValue},TickSize={metadataTick.TickSize},LotStep={metadataTick.LotStep},MinLotSize={metadataTick.MinLotSize},MaxLotSize={metadataTick.MaxLotSize},DynRisk={dynRisk}");
-                                                        SendLogToFile(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description });
+                                                        await SendLogToFileAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description });
                                                     }
 
                                                     // do 0.0 check
@@ -632,7 +629,7 @@ namespace JCTG.Client
                                                                         {
                                                                             var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={response.OrderType},Magic={response.Magic},StrategyType={response.StrategyType},EntryExpr={response.PassiveOrder.EntryExpression},Risk={response.PassiveOrder.Risk},RR={response.PassiveOrder.RiskRewardRatio}");
                                                                             var description = string.Format($"CancelStopOrLimitOrderWhenNewSignal: Symbol={pair.TickerInMetatrader}");
-                                                                            SendLogToFile(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description });
+                                                                            await SendLogToFileAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description });
                                                                         }
                                                                     }
                                                                 }
@@ -653,25 +650,25 @@ namespace JCTG.Client
                                                                 {
                                                                     var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={response.OrderType},Magic={response.Magic},StrategyType={response.StrategyType},EntryExpr={response.PassiveOrder.EntryExpression},Risk={response.PassiveOrder.Risk},RR={response.PassiveOrder.RiskRewardRatio}");
                                                                     var description = string.Format($"ExecuteOrder: Symbol={pair.TickerInMetatrader},OrderType={orderType},LotSize={lotSize},Price={price},SL={sl},TP={tp},Magic={response.Magic},Comment={comment}");
-                                                                    SendLogToFile(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description });
+                                                                    await SendLogToFileAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description });
                                                                 }
                                                             }
                                                             else
                                                             {
                                                                 var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={response.OrderType},Magic={response.Magic},StrategyType={response.StrategyType},EntryExpr={response.PassiveOrder.EntryExpression},Risk={response.PassiveOrder.Risk},RR={response.PassiveOrder.RiskRewardRatio}");
-                                                                SendLogToFile(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = "Spread is too high in regards to the risk" });
+                                                                await SendLogToFileAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = "Spread is too high in regards to the risk" });
                                                             }
                                                         }
                                                         else
                                                         {
                                                             var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={response.OrderType},Magic={response.Magic},StrategyType={response.StrategyType},EntryExpr={response.PassiveOrder.EntryExpression},Risk={response.PassiveOrder.Risk},RR={response.PassiveOrder.RiskRewardRatio}");
-                                                            SendLogToFile(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = "Max lot size exceeded" });
+                                                            await SendLogToFileAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = "Max lot size exceeded" });
                                                         }
                                                     }
                                                     else
                                                     {
                                                         var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={response.OrderType},Magic={response.Magic},StrategyType={response.StrategyType},EntryExpr={response.PassiveOrder.EntryExpression},Risk={response.PassiveOrder.Risk},RR={response.PassiveOrder.RiskRewardRatio}");
-                                                        SendLogToFile(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = $"Can't find entry candle {response.PassiveOrder.EntryExpression}" });
+                                                        await SendLogToFileAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = $"Can't find entry candle {response.PassiveOrder.EntryExpression}" });
                                                     }
                                                 }
 
@@ -736,7 +733,7 @@ namespace JCTG.Client
                                                         {
                                                             var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={response.OrderType},Magic={response.Magic},StrategyType={response.StrategyType}");
                                                             var description = string.Format($"SL: OpenPrice={ticketId.Value.OpenPrice},Spread={spread},Offset={offset},Digits={metadataTick.Digits}");
-                                                            SendLogToFile(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description });
+                                                            await SendLogToFileAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description });
                                                         }
 
                                                         // Print on the screen
@@ -755,7 +752,7 @@ namespace JCTG.Client
                                                         {
                                                             var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={response.OrderType},Magic={response.Magic},StrategyType={response.StrategyType}");
                                                             var description = string.Format($"ModifyOrder: TicketId={ticketId.Key},Lots={ticketId.Value.Lots},SL={sl},TP={ticketId.Value.TakeProfit}");
-                                                            SendLogToFile(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description });
+                                                            await SendLogToFileAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description });
                                                         }
                                                     }
                                                     else
@@ -769,7 +766,7 @@ namespace JCTG.Client
                                                         Print("------------------------------------------------");
 
                                                         var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={response.OrderType},Magic={response.Magic},StrategyType={response.StrategyType}");
-                                                        SendLogToFile(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = "Unable to find trade" });
+                                                        await SendLogToFileAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = "Unable to find trade" });
                                                     }
                                                 }
 
@@ -800,7 +797,7 @@ namespace JCTG.Client
                                                         {
                                                             var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={response.OrderType},Magic={response.Magic},StrategyType={response.StrategyType}");
                                                             var description = string.Format($"CloseOrder: TicketId={ticketId.Key},Lots={ticketId.Value.Lots}");
-                                                            SendLogToFile(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description });
+                                                            await SendLogToFileAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description });
                                                         }
                                                     }
                                                     else
@@ -814,7 +811,7 @@ namespace JCTG.Client
                                                         Print("------------------------------------------------");
 
                                                         var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={response.OrderType},Magic={response.Magic},StrategyType={response.StrategyType}");
-                                                        SendLogToFile(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = "Unable to find trade" });
+                                                        await SendLogToFileAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = "Unable to find trade" });
                                                     }
                                                 }
 
@@ -852,13 +849,11 @@ namespace JCTG.Client
                                                             {
                                                                 var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={response.OrderType},Magic={response.Magic},StrategyType={response.StrategyType}");
                                                                 var description = string.Format($"CloseOrder: TicketId={order.Key},Lots={order.Value.Lots}");
-                                                                SendLogToFile(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description });
+                                                                await SendLogToFileAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description });
                                                             }
                                                         }
                                                     }
                                                 }
-
-
 
                                                 if (pair.MaxSpread > 0 && spread > pair.MaxSpread)
                                                 {
@@ -870,7 +865,7 @@ namespace JCTG.Client
                                                     Print("------------------------------------------------");
 
                                                     var message = string.Format($"Symbol={response.Instrument},Type={response.OrderType},Magic={response.Magic},StrategyType={response.StrategyType}");
-                                                    SendLogToFile(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = $"Spread is too high. Current spread is {spread} and expect max {pair.MaxSpread}" });
+                                                    await SendLogToFileAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = $"Spread is too high. Current spread is {spread} and expect max {pair.MaxSpread}" });
                                                 }
                                                 else
                                                 {
@@ -881,31 +876,31 @@ namespace JCTG.Client
                                             else
                                             {
                                                 var message = string.Format($"Symbol={response.Instrument},Type={response.OrderType},Magic={response.Magic},StrategyType={response.StrategyType}");
-                                                SendLogToFile(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = "No market data available for this metatrader. Bid or ask price is 0.0" });
+                                                await SendLogToFileAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = "No market data available for this metatrader. Bid or ask price is 0.0" });
                                             }
                                         }
                                         else
                                         {
                                             var message = string.Format($"Symbol={response.Instrument},Type={response.OrderType},Magic={response.Magic},StrategyType={response.StrategyType}");
-                                            SendLogToFile(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "WARNING", Message = message, ErrorType = "No subscription for this pair and strategy" });
+                                            await SendLogToFileAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "WARNING", Message = message, ErrorType = "No subscription for this pair and strategy" });
                                         }
                                     }
                                     else
                                     {
                                         var message = string.Format($"Symbol={response.Instrument},Type={response.OrderType},Magic={response.Magic},StrategyType={response.StrategyType}");
-                                        SendLogToFile(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = "No market data available for this metatrader" });
+                                        await SendLogToFileAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = "No market data available for this metatrader" });
                                     }
                                 }
                                 else
                                 {
                                     var message = string.Format($"Symbol={response.Instrument},Type={response.OrderType},Magic={response.Magic},StrategyType={response.StrategyType}");
-                                    SendLogToFile(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = "No account info available for this metatrader" });
+                                    await SendLogToFileAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = "No account info available for this metatrader" });
                                 }
                             }
                         }
                         else
                         {
-                            SendLogToFile(0, new Log() { Time = DateTime.UtcNow, Type = "ERROR", ErrorType = "Message received from the server that is null" });
+                            await SendLogToFileAsync(0, new Log() { Time = DateTime.UtcNow, Type = "ERROR", ErrorType = "Message received from the server that is null" });
                         }
                     };
 
@@ -955,7 +950,7 @@ namespace JCTG.Client
                             // Send log to files
                             var message = string.Format($"Symbol={order.Value.Symbol},Ticket={order.Key},Lots={order.Value.Lots},Type={order.Value.Type},Magic={order.Value.Magic},Price={order.Value.OpenPrice},TP={order.Value.TakeProfit},SL={order.Value.StopLoss},Comment={order.Value.Comment}");
                             var log = new Log() { Time = DateTime.UtcNow, Type = "INFO", Description = $"Close all trades at {DateTime.UtcNow}", Message = message };
-                            Task.Run(() => SendLogToFile(clientId, log));
+                            Task.Run(async () => await SendLogToFileAsync(clientId, log));
                         }
                     }
                 }
@@ -1049,7 +1044,7 @@ namespace JCTG.Client
                                                 api.ModifyOrder(order.Key, order.Value.Lots, 0, slPrice, order.Value.TakeProfit);
 
                                                 var message = string.Format($"Symbol={order.Value.Symbol},Ticket={order.Key},Lots={order.Value.Lots},Type={order.Value.Type},Magic={order.Value.Magic},Price={order.Value.OpenPrice},TP={order.Value.TakeProfit},SL={order.Value.StopLoss}");
-                                                Task.Run(() => SendLogToFile(clientId, new Log() { Time = DateTime.UtcNow, Type = "Auto move SL to BE", Message = message }));
+                                                Task.Run(async () => await SendLogToFileAsync(clientId, new Log() { Time = DateTime.UtcNow, Type = "Auto move SL to BE", Message = message }));
                                             }
                                         }
                                     }
@@ -1087,7 +1082,7 @@ namespace JCTG.Client
 
                                                 // Send log to files
                                                 var message = string.Format($"Symbol={order.Value.Symbol},Ticket={order.Key},Lots={order.Value.Lots},Type={order.Value.Type},Magic={order.Value.Magic},Price={order.Value.OpenPrice},TP={order.Value.TakeProfit},SL={order.Value.StopLoss}");
-                                                Task.Run(() => SendLogToFile(clientId, new Log() { Time = DateTime.UtcNow, Type = "Auto move SL to BE", Message = message }));
+                                                Task.Run(async () => await SendLogToFileAsync(clientId, new Log() { Time = DateTime.UtcNow, Type = "Auto move SL to BE", Message = message }));
                                             }
                                         }
                                     }
@@ -1127,7 +1122,7 @@ namespace JCTG.Client
 
 
                 // Send log to files
-                Task.Run(() => SendLogToFile(clientId, log));
+                Task.Run(async () => await SendLogToFileAsync(clientId, log));
             }
         }
 
@@ -1151,7 +1146,7 @@ namespace JCTG.Client
                 // Send log to files
                 var message = string.Format($"Symbol={order.Symbol},Ticket={ticketId},Lots={order.Lots},Type={order.Type},Magic={order.Magic},Price={order.OpenPrice},TP={order.TakeProfit},SL={order.StopLoss},Comment={order.Comment}");
                 var log = new Log() { Time = DateTime.UtcNow, Type = "INFO", Description = "Create order", Message = message };
-                SendLogToFile(clientId, log);
+                Task.Run(async () => await SendLogToFileAsync(clientId, log));
 
                 // Get the signal id from the comment field
                 string[] components = order.Comment != null ? order.Comment.Split('/') : [];
@@ -1188,7 +1183,7 @@ namespace JCTG.Client
                 // Send log to files
                 var message = string.Format($"Symbol={order.Symbol},Ticket={ticketId},Lots={order.Lots},Type={order.Type},Magic={order.Magic},Price={order.OpenPrice},TP={order.TakeProfit},SL={order.StopLoss},Comment={order.Comment}");
                 var log = new Log() { Time = DateTime.UtcNow, Type = "INFO", Description = "Update order", Message = message };
-                SendLogToFile(clientId, log);
+                Task.Run(async () => await SendLogToFileAsync(clientId, log));
 
                 // Get the signal id from the comment field
                 string[] components = order.Comment != null ? order.Comment.Split('/') : [];
@@ -1225,7 +1220,7 @@ namespace JCTG.Client
                 // Send log to files
                 var message = string.Format($"Symbol={order.Symbol},Ticket={ticketId},Lots={order.Lots},Type={order.Type},Magic={order.Magic},Price={order.OpenPrice},TP={order.TakeProfit},SL={order.StopLoss},Comment={order.Comment}");
                 var log = new Log() { Time = DateTime.UtcNow, Type = "INFO", Description = "Close order", Message = message };
-                SendLogToFile(clientId, log);
+                Task.Run(async () => await SendLogToFileAsync(clientId, log));
 
                 // Get the signal id from the comment field
                 string[] components = order.Comment != null ? order.Comment.Split('/') : [];
@@ -1271,7 +1266,7 @@ namespace JCTG.Client
             }
         }
 
-        private void SendLogToFile(long clientId, Log log)
+        private async Task SendLogToFileAsync(long clientId, Log log)
         {
             // Do null reference check
             if (_terminalConfig != null && _apis != null && (_apis.Count(f => f.ClientId == clientId) == 1 || clientId == 0) && _terminalConfig.DropLogsInFile)
@@ -1280,29 +1275,12 @@ namespace JCTG.Client
                 var logs = _buffers.GetOrAdd(clientId, []);
                 lock (logs) // Ensure thread-safety for list modification
                 {
+                    // Add log to the list
                     logs.Add(log);
                 }
-            }
-        }
 
-        private async Task SendOrderToFileAsync(long clientId, Order order)
-        {
-            // Do null reference check
-            if (_terminalConfig != null && _apis != null && _apis.Count(f => f.ClientId == clientId) == 1)
-            {
-                // Follow similar logic for writing logs to file
-                // Filename
-                string fileName = $"Tradejournal-{clientId}.json";
-
-                try
-                {
-                    // Write file back
-                    await TryWriteFileAsync(fileName, JsonConvert.SerializeObject(order));
-                }
-                finally
-                {
-
-                }
+                // Send the tradejournal to Azure PubSub server
+                await new AzurePubSubServer(_terminalConfig.AccountId).SendLogAsync(log);
             }
         }
 
@@ -1342,6 +1320,9 @@ namespace JCTG.Client
                     // Add the log
                     journal.Order = order;
                     journal.IsTradeClosed = isTradeClosed;
+
+                    // Send the tradejournal to Azure PubSub server
+                    await new AzurePubSubServer(_terminalConfig.AccountId).SendTradeJournalAsync(journal);
 
                     // Serialize and write the journal back to the file
                     string serializedContent = JsonConvert.SerializeObject(journals);
@@ -1394,6 +1375,9 @@ namespace JCTG.Client
                     // Add the log
                     journal.Logs.Add(log);
 
+                    // Send the tradejournal to Azure PubSub server
+                    await new AzurePubSubServer(_terminalConfig.AccountId).SendTradeJournalAsync(journal);
+
                     // Serialize and write the journal back to the file
                     string serializedContent = JsonConvert.SerializeObject(journals);
                     await TryWriteFileAsync(fileName, serializedContent);
@@ -1436,7 +1420,11 @@ namespace JCTG.Client
                 }
 
                 // Add the new signal to the journal
-                journals.Add(new TradeJournal { Signal = signal });
+                var journal = new TradeJournal { Signal = signal };
+                journals.Add(journal);
+
+                // Send the tradejournal to Azure PubSub server
+                await new AzurePubSubServer(_terminalConfig.AccountId).SendTradeJournalAsync(journal);
 
                 // Serialize and write the journal back to the file
                 string serializedContent = JsonConvert.SerializeObject(journals);
