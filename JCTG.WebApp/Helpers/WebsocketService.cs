@@ -218,16 +218,20 @@ namespace JCTG.WebApp.Helpers
                 // Do null reference check
                 if (onLog != null)
                 {
+                    // Get the trade journal from the database
+                    var tj = await dbContext.TradeJournal.FirstOrDefaultAsync(f => f.SignalID == onLog.SignalID && f.ClientID == onLog.ClientID);
+
                     // Log
                     var log = new Log()
                     {
+                        ClientID = onLog.ClientID,
+                        TradeJournalID = tj?.ID,
                         Description = onLog.Log.Description,
                         ErrorType = onLog.Log.ErrorType,
                         Message = onLog.Log.Message,
                         Time = onLog.Log.Time,
                         Type = onLog.Log.Type,
-                    }
-                    ;
+                    };
                     await dbContext.Log.AddAsync(log);
 
                     // Save

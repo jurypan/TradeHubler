@@ -15,6 +15,9 @@ namespace JCTG.Entity
         public string? ErrorType { get; set; }
         public string? Description { get; set; }
 
+        public long ClientID { get; set; }
+        public Client? Client { get; set; }
+
         public long? TradeJournalID { get; set; }
         public TradeJournal? TradeJournal { get; set; }
 
