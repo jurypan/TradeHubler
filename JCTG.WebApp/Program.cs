@@ -42,6 +42,8 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+app.UseMiddleware<ExceptionHandlingMiddleware>();
+
 app.MapBlazorHub();
 app.MapFallbackToPage("/_Host");
 app.MapControllers();

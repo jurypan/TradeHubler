@@ -13,8 +13,6 @@ namespace JCTG
 
         public DbSet<TradeJournal> TradeJournal { get; set; }
 
-        public DbSet<Order> Order { get; set; }
-
         public DbSet<Log> Log { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -32,11 +30,6 @@ namespace JCTG
                .HasForeignKey(t => t.ClientID);
 
             modelBuilder.Entity<TradeJournal>()
-                .HasOne(tj => tj.Order)
-                .WithOne()
-                .HasForeignKey<TradeJournal>(t => t.OrderID);
-
-            modelBuilder.Entity<TradeJournal>()
                 .HasMany(tj => tj.Logs)
                 .WithOne() 
                 .HasForeignKey(t => t.TradeJournalID); 
@@ -48,22 +41,22 @@ namespace JCTG
 
 
 
-            modelBuilder.Entity<Order>()
+            modelBuilder.Entity<TradeJournal>()
                 .Property(o => o.OpenPrice)
                 .HasPrecision(10, 8);
-            modelBuilder.Entity<Order>()
+            modelBuilder.Entity<TradeJournal>()
                .Property(o => o.OpenStopLoss)
                .HasPrecision(10, 8);
-            modelBuilder.Entity<Order>()
+            modelBuilder.Entity<TradeJournal>()
                .Property(o => o.OpenTakeProfit)
                .HasPrecision(10, 8);
-            modelBuilder.Entity<Order>()
+            modelBuilder.Entity<TradeJournal>()
                 .Property(o => o.ClosePrice)
                 .HasPrecision(10, 8);
-            modelBuilder.Entity<Order>()
+            modelBuilder.Entity<TradeJournal>()
                .Property(o => o.CloseStopLoss)
                .HasPrecision(10, 8);
-            modelBuilder.Entity<Order>()
+            modelBuilder.Entity<TradeJournal>()
                .Property(o => o.CloseTakeProfit)
                .HasPrecision(10, 8);
 

@@ -32,7 +32,7 @@ namespace JCTG.Client
                             // If comes from the server
                             if (from == Constants.WebsocketMessageFrom_Server)
                             {
-                                var data = document.RootElement.GetProperty("data");
+                                var data = document.RootElement.GetProperty("Data");
                                 if (data.ValueKind == JsonValueKind.Object && document.RootElement.TryGetProperty("TypeName", out var typeNameProperty))
                                 {
                                     if (type == Constants.WebsocketMessageType_OnTradingviewSignalEvent)

@@ -26,7 +26,7 @@ namespace JCTG.Client
             _timer = new Timer(async _ => await FlushLogsToFileAsync(), null, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(10));
 
             // Foreach broker, init the API
-            foreach (var api in _appConfig.Brokers)
+            foreach (var api in _appConfig.Brokers.Where(f => f.IsEnable).ToList())
             {
                 // Init API
                 var _api = new MetatraderApi(api.MetaTraderDirPath, api.ClientId, terminalConfig.SleepDelay, terminalConfig.MaxRetryCommandSeconds, terminalConfig.LoadOrdersFromFile);
@@ -49,7 +49,7 @@ namespace JCTG.Client
                 _ = Parallel.ForEach(_apis, async _api =>
                 {
                     // Get the broker from the local database
-                    var broker = _appConfig?.Brokers.FirstOrDefault(f => f.ClientId == _api.ClientId && f.IsEnable);
+                    var broker = _appConfig?.Brokers.FirstOrDefault(f => f.ClientId == _api.ClientId);
 
                     // do null reference checks
                     if (_api != null && broker != null && broker.Pairs.Count != 0)

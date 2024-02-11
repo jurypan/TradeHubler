@@ -725,6 +725,7 @@
       "MetaTraderDirPath": "C:\\Users\\joeri.pansaerts\\AppData\\Roaming\\MetaQuotes\\Terminal\\1EC23421AF558490730707A48E5336B0\\MQL5\\Files",
       "ClientId": 147966,
       "StartBalance": 5000,
+      "IsEnable": true,
       "Risk": [
         {
           "Procent": 0,
