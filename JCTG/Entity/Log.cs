@@ -23,8 +23,8 @@ namespace JCTG.Entity
         public long ClientID { get; set; }
         public Client? Client { get; set; }
 
-        public long? TradeJournalID { get; set; }
-        public TradeJournal? TradeJournal { get; set; }
+        public long? SignalID { get; set; }
+        public Signal? Signal { get; set; }
 
     }
 }

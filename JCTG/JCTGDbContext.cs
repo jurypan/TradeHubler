@@ -29,16 +29,20 @@ namespace JCTG
                .WithMany(t => t.TradeJournals)
                .HasForeignKey(t => t.ClientID);
 
-            modelBuilder.Entity<TradeJournal>()
+            modelBuilder.Entity<Signal>()
                 .HasMany(tj => tj.Logs)
                 .WithOne() 
-                .HasForeignKey(t => t.TradeJournalID); 
+                .HasForeignKey(t => t.SignalID); 
 
             modelBuilder.Entity<TradeJournal>()
                 .HasOne(tj => tj.Signal)
                 .WithMany(t => t.TradeJournals)
                .HasForeignKey(t => t.SignalID);
 
+            modelBuilder.Entity<Log>()
+               .HasOne(tj => tj.Client)
+               .WithMany(t => t.Logs)
+              .HasForeignKey(t => t.ClientID);
 
 
             modelBuilder.Entity<TradeJournal>()
@@ -61,16 +65,7 @@ namespace JCTG
                .HasPrecision(10, 8);
 
 
-            modelBuilder.Entity<Log>()
-              .HasOne(tj => tj.TradeJournal)
-              .WithMany(t => t.Logs)
-              .HasForeignKey(t => t.TradeJournalID);
 
-
-            modelBuilder.Entity<Log>()
-               .HasOne(tj => tj.Client)
-               .WithMany(t => t.Logs)
-              .HasForeignKey(t => t.ClientID);
         }
     }
 }

@@ -36,10 +36,7 @@ namespace JCTG.Client
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
+
         public async Task ListToTheClientsAsync()
         {
             // Check if app config is not null
@@ -90,11 +87,6 @@ namespace JCTG.Client
             await Task.FromResult(0);
         }
 
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
         public async Task ListenToTheServerAsync()
         {
             // Do null reference checks

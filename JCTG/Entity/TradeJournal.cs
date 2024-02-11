@@ -7,14 +7,12 @@ namespace JCTG.Entity
         public TradeJournal()
         {
             DateCreated = DateTime.UtcNow;
-            Logs = new List<Log>();
         }
 
         [Key]
         public long ID { get; set; }
         public DateTime DateCreated { get; set; }
-        
-        public List<Log> Logs { get; set; }
+       
         public bool IsTradeClosed { get; set; }
 
 
@@ -36,7 +34,7 @@ namespace JCTG.Entity
 
 
         public DateTime? CloseTime { get; set; }
-        public double CloseLots { get; set; }
+        public double? CloseLots { get; set; }
         public decimal? ClosePrice { get; set; }
         public decimal? CloseStopLoss { get; set; }
         public decimal? CloseTakeProfit { get; set; }

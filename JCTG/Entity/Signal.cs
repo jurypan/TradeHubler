@@ -1,6 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using JCTG.Models;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace JCTG.Entity
 {
@@ -9,6 +8,7 @@ namespace JCTG.Entity
         public Signal()
         {
             DateCreated = DateTime.UtcNow;
+            Logs = new List<Log>();
         }
 
         [Key]
@@ -37,6 +37,8 @@ namespace JCTG.Entity
 
 
         public List<TradeJournal> TradeJournals { get; set; }
+        public List<Log> Logs { get; set; }
+
 
 
         public static Signal Parse(string input)
