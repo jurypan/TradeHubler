@@ -16,7 +16,7 @@ namespace JCTG.WebApp.Helpers
                 if (onOrderCreate != null)
                 {
                     // Trade journal
-                    var tj = new TradeJournal()
+                    var journal = new TradeJournal()
                     {
                         DateCreated = DateTime.UtcNow,
                         IsTradeClosed = false,
@@ -35,12 +35,12 @@ namespace JCTG.WebApp.Helpers
                         Comment = onOrderCreate.Order.Comment,
                         Magic = onOrderCreate.Order.Magic,
                     };
-                    await dbContext.TradeJournal.AddAsync(tj);
+                    await dbContext.TradeJournal.AddAsync(journal);
 
                     // Log
                     var log = new Log()
                     {
-                        TradeJournalID = tj.ID,
+                        TradeJournalID = journal.ID,
                         Description = onOrderCreate.Log.Description,
                         ErrorType = onOrderCreate.Log.ErrorType,
                         Message = onOrderCreate.Log.Message,
@@ -64,21 +64,21 @@ namespace JCTG.WebApp.Helpers
                 if (onOrderUpdate != null && onOrderUpdate.Order != null)
                 {
                     // Get the trade journal from the database
-                    var tj = await dbContext.TradeJournal.FirstOrDefaultAsync(f => f.SignalID == onOrderUpdate.SignalID && f.ClientID == onOrderUpdate.ClientID);
+                    var journal = await dbContext.TradeJournal.FirstOrDefaultAsync(f => f.SignalID == onOrderUpdate.SignalID && f.ClientID == onOrderUpdate.ClientID);
 
                     // Do null reference check
-                    if (tj != null)
+                    if (journal != null)
                     {
-                        tj.Swap = onOrderUpdate.Order.Swap;
-                        tj.Commission = onOrderUpdate.Order.Commission;
-                        tj.Comment = onOrderUpdate.Order.Comment;
-                        tj.Pnl = onOrderUpdate.Order.Pnl;
+                        journal.Swap = onOrderUpdate.Order.Swap;
+                        journal.Commission = onOrderUpdate.Order.Commission;
+                        journal.Comment = onOrderUpdate.Order.Comment;
+                        journal.Pnl = onOrderUpdate.Order.Pnl;
                     }
 
                     // Log
                     var log = new Log()
                     {
-                        TradeJournalID = tj?.ID,
+                        TradeJournalID = journal?.ID,
                         Description = onOrderUpdate.Log.Description,
                         ErrorType = onOrderUpdate.Log.ErrorType,
                         Message = onOrderUpdate.Log.Message,
@@ -101,31 +101,31 @@ namespace JCTG.WebApp.Helpers
                 if (onOrderClose != null)
                 {
                     // Get the trade journal from the database
-                    var tj = await dbContext.TradeJournal.FirstOrDefaultAsync(f => f.SignalID == onOrderClose.SignalID && f.ClientID == onOrderClose.ClientID);
+                    var journal = await dbContext.TradeJournal.FirstOrDefaultAsync(f => f.SignalID == onOrderClose.SignalID && f.ClientID == onOrderClose.ClientID);
 
                     // Do null reference check
-                    if (tj != null)
+                    if (journal != null)
                     {
                         // Set tradingjournal as close
-                        tj.IsTradeClosed = true;
+                        journal.IsTradeClosed = true;
 
                         // Update costs
-                        tj.Swap = onOrderClose.Order.Swap;
-                        tj.Commission = onOrderClose.Order.Commission;
-                        tj.Pnl = onOrderClose.Order.Pnl;
-                        tj.Comment = onOrderClose.Order.Comment;
+                        journal.Swap = onOrderClose.Order.Swap;
+                        journal.Commission = onOrderClose.Order.Commission;
+                        journal.Pnl = onOrderClose.Order.Pnl;
+                        journal.Comment = onOrderClose.Order.Comment;
 
                         // Update close properties
-                        tj.CloseTime = DateTime.UtcNow;
-                        tj.CloseLots = decimal.ToDouble(onOrderClose.Order.Lots);
-                        tj.ClosePrice = onOrderClose.ClosePrice;
-                        tj.CloseStopLoss = onOrderClose.Order.StopLoss;
-                        tj.CloseTakeProfit = onOrderClose.Order.TakeProfit;
+                        journal.CloseTime = DateTime.UtcNow;
+                        journal.CloseLots = decimal.ToDouble(onOrderClose.Order.Lots);
+                        journal.ClosePrice = onOrderClose.ClosePrice;
+                        journal.CloseStopLoss = onOrderClose.Order.StopLoss;
+                        journal.CloseTakeProfit = onOrderClose.Order.TakeProfit;
 
                         // Log
                         var log = new Log()
                         {
-                            TradeJournalID = tj.ID,
+                            TradeJournalID = journal.ID,
                             Description = onOrderClose.Log.Description,
                             ErrorType = onOrderClose.Log.ErrorType,
                             Message = onOrderClose.Log.Message,
@@ -150,15 +150,15 @@ namespace JCTG.WebApp.Helpers
                 if (onOrderAutoMoveSlToBe != null)
                 {
                     // Get the trade journal from the database
-                    var tj = await dbContext.TradeJournal.FirstOrDefaultAsync(f => f.SignalID == onOrderAutoMoveSlToBe.SignalID && f.ClientID == onOrderAutoMoveSlToBe.ClientID);
+                    var journal = await dbContext.TradeJournal.FirstOrDefaultAsync(f => f.SignalID == onOrderAutoMoveSlToBe.SignalID && f.ClientID == onOrderAutoMoveSlToBe.ClientID);
 
                     // Do null reference check
-                    if (tj != null)
+                    if (journal != null)
                     {
                         // Log
                         var log = new Log()
                         {
-                            TradeJournalID = tj.ID,
+                            TradeJournalID = journal.ID,
                             Description = onOrderAutoMoveSlToBe.Log.Description,
                             ErrorType = onOrderAutoMoveSlToBe.Log.ErrorType,
                             Message = onOrderAutoMoveSlToBe.Log.Message,
@@ -183,15 +183,15 @@ namespace JCTG.WebApp.Helpers
                 if (onItsTimeToCloseTheOrder != null)
                 {
                     // Get the trade journal from the database
-                    var tj = await dbContext.TradeJournal.FirstOrDefaultAsync(f => f.SignalID == onItsTimeToCloseTheOrder.SignalID && f.ClientID == onItsTimeToCloseTheOrder.ClientID);
+                    var journal = await dbContext.TradeJournal.FirstOrDefaultAsync(f => f.SignalID == onItsTimeToCloseTheOrder.SignalID && f.ClientID == onItsTimeToCloseTheOrder.ClientID);
 
                     // Do null reference check
-                    if (tj != null)
+                    if (journal != null)
                     {
                         // Log
                         var log = new Log()
                         {
-                            TradeJournalID = tj.ID,
+                            TradeJournalID = journal.ID,
                             Description = onItsTimeToCloseTheOrder.Log.Description,
                             ErrorType = onItsTimeToCloseTheOrder.Log.ErrorType,
                             Message = onItsTimeToCloseTheOrder.Log.Message,
@@ -216,15 +216,15 @@ namespace JCTG.WebApp.Helpers
                 if (onLog != null)
                 {
                     // Get the trade journal from the database
-                    TradeJournal? tj = null;
+                    TradeJournal? journal = null;
                     if (onLog.SignalID.HasValue)
-                        tj = await dbContext.TradeJournal.FirstOrDefaultAsync(f => f.SignalID == onLog.SignalID && f.ClientID == onLog.ClientID);
+                        journal = await dbContext.TradeJournal.FirstOrDefaultAsync(f => f.SignalID == onLog.SignalID && f.ClientID == onLog.ClientID);
 
                     // Log
                     var log = new Log()
                     {
                         ClientID = onLog.ClientID,
-                        TradeJournalID = tj?.ID,
+                        TradeJournalID = journal?.ID,
                         Description = onLog.Log.Description,
                         ErrorType = onLog.Log.ErrorType,
                         Message = onLog.Log.Message,
