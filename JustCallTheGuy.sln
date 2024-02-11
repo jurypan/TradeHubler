@@ -16,7 +16,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JCTG.MQL", "JCTG.MQL\JCTG.M
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JCTG.Client.Tests", "JCTG.Client.Tests\JCTG.Client.Tests.csproj", "{487F0F1E-A16F-4168-BB33-F41D47DC46E0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JCTG.WebApp", "JCTG.WebApp\JCTG.WebApp.csproj", "{73CCB396-D064-4892-8CD6-091EF8B38FBC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JCTG.WebApp", "JCTG.WebApp\JCTG.WebApp.csproj", "{73CCB396-D064-4892-8CD6-091EF8B38FBC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

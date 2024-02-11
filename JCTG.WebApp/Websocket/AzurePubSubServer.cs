@@ -20,7 +20,7 @@ namespace JCTG.WebApp
                     From = Constants.WebsocketMessageFrom_Server,
                     Type = Constants.WebsocketMessageType_OnTradingviewSignalEvent,
                     TypeName = nameof(OnReceivingTradingviewSignalEvent),
-                }), Azure.Core.ContentType.ApplicationJson);
+                }, new JsonSerializerSettings { ContractResolver = new IgnoreJsonPropertyContractResolver() }), Azure.Core.ContentType.ApplicationJson);
 
                 return resp.ClientRequestId;
             }

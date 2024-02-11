@@ -25,6 +25,12 @@ namespace JCTG.Client
                     {
                         using (var document = JsonDocument.Parse(msg.Text))
                         {
+                            // Somewhere in your method or constructor
+                            var jsonSerializerOptions = new JsonSerializerOptions
+                            {
+                                PropertyNamingPolicy = null
+                            };
+
                             // Init
                             var type = document.RootElement.GetProperty("Type").GetString();
                             var from = document.RootElement.GetProperty("From").GetString();
@@ -37,7 +43,7 @@ namespace JCTG.Client
                                 {
                                     if (type == Constants.WebsocketMessageType_OnTradingviewSignalEvent)
                                     {
-                                        var @event = data.Deserialize<OnReceivingTradingviewSignalEvent>(new JsonSerializerOptions(JsonSerializerDefaults.Web));
+                                        var @event = JsonSerializer.Deserialize<OnReceivingTradingviewSignalEvent>(data.GetRawText(), jsonSerializerOptions);
                                         if (@event != null)
                                             OnReceivingTradingviewSignalEvent?.Invoke(@event);
                                     }

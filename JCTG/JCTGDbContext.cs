@@ -44,6 +44,12 @@ namespace JCTG
                .WithMany(t => t.Logs)
               .HasForeignKey(t => t.ClientID);
 
+            modelBuilder.Entity<Log>()
+               .HasOne(tj => tj.Signal)
+               .WithMany(t => t.Logs)
+              .HasForeignKey(t => t.SignalID)
+              .IsRequired(false);
+
 
             modelBuilder.Entity<TradeJournal>()
                 .Property(o => o.OpenPrice)

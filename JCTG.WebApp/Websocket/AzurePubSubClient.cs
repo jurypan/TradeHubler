@@ -30,6 +30,12 @@ namespace JCTG.WebApp
                     {
                         using (var document = JsonDocument.Parse(msg.Text))
                         {
+                            // Somewhere in your method or constructor
+                            var jsonSerializerOptions = new JsonSerializerOptions
+                            {
+                                PropertyNamingPolicy = null
+                            };
+
                             // INit
                             var type = document.RootElement.GetProperty("Type").GetString();
                             var from = document.RootElement.GetProperty("From").GetString();
@@ -42,37 +48,37 @@ namespace JCTG.WebApp
                                 {
                                     if (type == Constants.WebsocketMessageType_OnOrderCreateEvent)
                                     {
-                                        var @event = data.Deserialize<OnOrderCreateEvent>(new JsonSerializerOptions(JsonSerializerDefaults.Web));
+                                        var @event = JsonSerializer.Deserialize<OnOrderCreateEvent>(data.GetRawText(), jsonSerializerOptions);
                                         if (@event != null)
                                             OnOrderCreateEvent?.Invoke(@event);
                                     }
                                     else if (type == Constants.WebsocketMessageType_OnOrderUpdateEvent)
                                     {
-                                        var @event = data.Deserialize<OnOrderUpdateEvent>(new JsonSerializerOptions(JsonSerializerDefaults.Web));
+                                        var @event = JsonSerializer.Deserialize<OnOrderUpdateEvent>(data.GetRawText(), jsonSerializerOptions);
                                         if (@event != null)
                                             OnOrderUpdateEvent?.Invoke(@event);
                                     }
                                     else if (type == Constants.WebsocketMessageType_OnOrderCloseEvent)
                                     {
-                                        var @event = data.Deserialize<OnOrderCloseEvent>(new JsonSerializerOptions(JsonSerializerDefaults.Web));
+                                        var @event = JsonSerializer.Deserialize<OnOrderCloseEvent>(data.GetRawText(), jsonSerializerOptions);
                                         if (@event != null)
                                             OnOrderCloseEvent?.Invoke(@event);
                                     }
                                     else if (type == Constants.WebsocketMessageType_OnLogEvent)
                                     {
-                                        var @event = data.Deserialize<OnLogEvent>(new JsonSerializerOptions(JsonSerializerDefaults.Web));
+                                        var @event = JsonSerializer.Deserialize<OnLogEvent>(data.GetRawText(), jsonSerializerOptions);
                                         if (@event != null)
                                             OnLogEvent?.Invoke(@event);
                                     }
                                     else if (type == Constants.WebsocketMessageType_OnOrderAutoMoveSlToBeEvent)
                                     {
-                                        var @event = data.Deserialize<OnOrderAutoMoveSlToBeEvent>(new JsonSerializerOptions(JsonSerializerDefaults.Web));
+                                        var @event = JsonSerializer.Deserialize<OnOrderAutoMoveSlToBeEvent>(data.GetRawText(), jsonSerializerOptions);
                                         if (@event != null)
                                             OnOrderAutoMoveSlToBeEvent?.Invoke(@event);
                                     }
                                     else if (type == Constants.WebsocketMessageType_OnItsTimeToCloseTheOrderEvent)
                                     {
-                                        var @event = data.Deserialize<OnItsTimeToCloseTheOrderEvent>(new JsonSerializerOptions(JsonSerializerDefaults.Web));
+                                        var @event = JsonSerializer.Deserialize<OnItsTimeToCloseTheOrderEvent>(data.GetRawText(), jsonSerializerOptions);
                                         if (@event != null)
                                             OnItsTimeToCloseTheOrderEvent?.Invoke(@event);
                                     }

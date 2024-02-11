@@ -25,7 +25,7 @@ namespace JCTG.Client
                     From = Constants.WebsocketMessageFrom_Metatrader,
                     Type = Constants.WebsocketMessageType_OnOrderCreateEvent,
                     TypeName = nameof(OnOrderCreateEvent),
-                }), Azure.Core.ContentType.ApplicationJson);
+                }, new JsonSerializerSettings { ContractResolver = new IgnoreJsonPropertyContractResolver() }), Azure.Core.ContentType.ApplicationJson);
 
                 return resp.ClientRequestId;
             }
@@ -43,7 +43,7 @@ namespace JCTG.Client
                     From = Constants.WebsocketMessageFrom_Metatrader,
                     Type = Constants.WebsocketMessageType_OnOrderUpdateEvent,
                     TypeName = nameof(OnOrderUpdateEvent),
-                }), Azure.Core.ContentType.ApplicationJson);
+                }, new JsonSerializerSettings { ContractResolver = new IgnoreJsonPropertyContractResolver() }), Azure.Core.ContentType.ApplicationJson);
 
                 return resp.ClientRequestId;
             }
@@ -61,7 +61,7 @@ namespace JCTG.Client
                     From = Constants.WebsocketMessageFrom_Metatrader,
                     Type = Constants.WebsocketMessageType_OnOrderCloseEvent,
                     TypeName = nameof(OnOrderCloseEvent),
-                }), Azure.Core.ContentType.ApplicationJson);
+                }, new JsonSerializerSettings { ContractResolver = new IgnoreJsonPropertyContractResolver() }), Azure.Core.ContentType.ApplicationJson);
 
                 return resp.ClientRequestId;
             }
@@ -79,7 +79,7 @@ namespace JCTG.Client
                     From = Constants.WebsocketMessageFrom_Metatrader,
                     Type = Constants.WebsocketMessageType_OnLogEvent,
                     TypeName = nameof(OnLogEvent),
-                }), Azure.Core.ContentType.ApplicationJson);
+                }, new JsonSerializerSettings { ContractResolver = new IgnoreJsonPropertyContractResolver() }), Azure.Core.ContentType.ApplicationJson);
 
                 return resp.ClientRequestId;
             }
