@@ -21,7 +21,7 @@ namespace JCTG.WebApp
             service.AddSingleton(pubSub);
 
             // Add as transitent
-            service.AddTransient<WebsocketService>();
+            service.AddTransient<WebsocketServer>();
 
             // Return
             return service;

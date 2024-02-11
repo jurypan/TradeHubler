@@ -1,10 +1,7 @@
 using JCTG;
-using JCTG.Models;
 using JCTG.WebApp;
 using JCTG.WebApp.Helpers;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-using Websocket.Client;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -14,14 +11,21 @@ builder.Services.AddRazorPages();
 builder.Services.AddControllers();
 builder.Services.AddServerSideBlazor();
 
+// Add DB Context
 builder.Services.AddDbContext<JCTGDbContext>(
     options => options.UseSqlServer(builder.Configuration.GetConnectionString("AZURE_SQL_CONNECTIONSTRING"))
     .UseLoggerFactory(LoggerFactory.Create(builder =>
        builder.AddFilter((category, level) =>
            category != DbLoggerCategory.Database.Command.Name || level > LogLevel.Information))));
 
+// Add Websocket Server <-> Terminal
 builder.Services.AddAzurePubSubClient(builder.Configuration.GetConnectionString("AZURE_PUBSUB_CONNECTIONSTRING"));
 builder.Services.AddAzurePubSubServer();
+
+// Init logging
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+builder.Logging.SetMinimumLevel(LogLevel.Debug);
 
 var app = builder.Build();
 
@@ -45,6 +49,7 @@ app.UseWebSockets();
 
 using (var serviceScope = app.Services.CreateScope())
 {
-    serviceScope.ServiceProvider.GetRequiredService<WebsocketService>().Run();
+    app.Logger.LogInformation("Starting the app");
+    await serviceScope.ServiceProvider.GetRequiredService<WebsocketServer>().RunAsync();
     app.Run();
 }

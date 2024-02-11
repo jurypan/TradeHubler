@@ -8,9 +8,9 @@ namespace JCTG.Client
     {
         private readonly WebsocketClient? _client = client;
 
-        public event Action<OnTradingviewSignalEvent> OnTradingviewSignalEvent;
+        public event Action<OnReceivingTradingviewSignalEvent> OnReceivingTradingviewSignalEvent;
 
-        public async Task StartAsync()
+        public async Task ListeningToServerAsync()
         {
             // Do null reference check
             if (_client != null)
@@ -37,9 +37,9 @@ namespace JCTG.Client
                                 {
                                     if (type == Constants.WebsocketMessageType_OnTradingviewSignalEvent)
                                     {
-                                        var @event = data.Deserialize<OnTradingviewSignalEvent>(new JsonSerializerOptions(JsonSerializerDefaults.Web));
+                                        var @event = data.Deserialize<OnReceivingTradingviewSignalEvent>(new JsonSerializerOptions(JsonSerializerDefaults.Web));
                                         if (@event != null)
-                                            OnTradingviewSignalEvent?.Invoke(@event);
+                                            OnReceivingTradingviewSignalEvent?.Invoke(@event);
                                     }
                                 }
                             }
@@ -52,7 +52,7 @@ namespace JCTG.Client
             }
         }
 
-        public async Task<bool> StopAsync() 
+        public async Task<bool> StopListeningToServerAsync() 
         {
             if (_client != null) 
             {

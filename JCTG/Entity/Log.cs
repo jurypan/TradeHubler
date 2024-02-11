@@ -4,6 +4,11 @@ namespace JCTG.Entity
 {
     public class Log
     {
+        public Log() 
+        { 
+            DateCreated = DateTime.UtcNow;
+        }
+
         [Key]
         public long ID { get; set; }
         public DateTime DateCreated { get; set; }

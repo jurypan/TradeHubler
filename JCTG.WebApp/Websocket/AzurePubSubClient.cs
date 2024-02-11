@@ -15,7 +15,7 @@ namespace JCTG.WebApp
         public event Action<OnOrderAutoMoveSlToBeEvent>? OnOrderAutoMoveSlToBeEvent;
         public event Action<OnItsTimeToCloseTheOrderEvent>? OnItsTimeToCloseTheOrderEvent;
 
-        public void ListeningToServer()
+        public async Task ListeningToServerAsync()
         {
             // Do null reference check
             if (_client != null)
@@ -31,13 +31,13 @@ namespace JCTG.WebApp
                         using (var document = JsonDocument.Parse(msg.Text))
                         {
                             // INit
-                            var type = document.RootElement.GetProperty("type").GetString();
-                            var from = document.RootElement.GetProperty("from").GetString();
+                            var type = document.RootElement.GetProperty("Type").GetString();
+                            var from = document.RootElement.GetProperty("From").GetString();
 
                             // If comes from metatrader
                             if (from == Constants.WebsocketMessageFrom_Metatrader)
                             {
-                                var data = document.RootElement.GetProperty("data");
+                                var data = document.RootElement.GetProperty("Data");
                                 if (data.ValueKind == JsonValueKind.Object && document.RootElement.TryGetProperty("TypeName", out var typeNameProperty))
                                 {
                                     if (type == Constants.WebsocketMessageType_OnOrderCreateEvent)
@@ -83,15 +83,15 @@ namespace JCTG.WebApp
                 });
 
                 // Start the web socket
-                Task.Run(_client.Start);
+                await _client.Start();
             }
         }
 
-        public void StopListeningToServer() 
+        public async Task StopListeningToServerAsync() 
         {
             if (_client != null) 
             {
-                Task.Run(async () => await _client.StopOrFail(System.Net.WebSockets.WebSocketCloseStatus.NormalClosure, "shut down"));
+                await _client.StopOrFail(System.Net.WebSockets.WebSocketCloseStatus.NormalClosure, "shut down");
             }
         }
     }

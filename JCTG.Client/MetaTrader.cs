@@ -107,7 +107,7 @@ namespace JCTG.Client
                 if (azurePubSub != null)
                 {
                     // When message receive
-                    azurePubSub.OnTradingviewSignalEvent += async (tradingviewAlert) =>
+                    azurePubSub.OnReceivingTradingviewSignalEvent += async (tradingviewAlert) =>
                     {
                         if (tradingviewAlert != null && tradingviewAlert.SignalID > 0 && tradingviewAlert.AccountID == _appConfig.AccountId)
                         {
@@ -906,7 +906,7 @@ namespace JCTG.Client
                     };
 
                     // Start the web socket
-                    await azurePubSub.StartAsync();
+                    await azurePubSub.ListeningToServerAsync();
                 }
             }
         }
@@ -1186,7 +1186,7 @@ namespace JCTG.Client
                 Task.Run(async () =>
                 {
                     // Send the tradejournal to Azure PubSub server
-                    await new AzurePubSubServer(_appConfig.AccountId).SendOnOrderCreateEventAsync(new OnOrderCreateEvent()
+                    await new AzurePubSubServer().SendOnOrderCreateEventAsync(new OnOrderCreateEvent()
                     {
                         ClientID = clientId,
                         SignalID = signalId,
@@ -1238,7 +1238,7 @@ namespace JCTG.Client
                 Task.Run(async () =>
                 {
                     // Send the tradejournal to Azure PubSub server
-                    await new AzurePubSubServer(_appConfig.AccountId).SendOnOrderUpdateEventAsync(new OnOrderUpdateEvent()
+                    await new AzurePubSubServer().SendOnOrderUpdateEventAsync(new OnOrderUpdateEvent()
                     {
                         ClientID = clientId,
                         SignalID = signalId,
@@ -1289,7 +1289,7 @@ namespace JCTG.Client
                 Task.Run(async () =>
                 {
                     // Send the tradejournal to Azure PubSub server
-                    await new AzurePubSubServer(_appConfig.AccountId).SendOnOrderCloseEventAsync(new OnOrderCloseEvent()
+                    await new AzurePubSubServer().SendOnOrderCloseEventAsync(new OnOrderCloseEvent()
                     {
                         ClientID = clientId,
                         SignalID = signalId,
@@ -1346,7 +1346,7 @@ namespace JCTG.Client
             if (_appConfig != null && _apis != null && (_apis.Count(f => f.ClientId == clientId) == 1 || clientId == 0) && _appConfig.DropLogsInFile)
             {
                 // Send the tradejournal to Azure PubSub server
-                await new AzurePubSubServer(_appConfig.AccountId).SendOnLogEventAsync(new OnLogEvent()
+                await new AzurePubSubServer().SendOnLogEventAsync(new OnLogEvent()
                 {
                     ClientID = clientId,
                     SignalID = signalId,
@@ -1465,7 +1465,7 @@ namespace JCTG.Client
             }
         }
 
-        private async Task SendSignalToJournalFileAsync(long clientId, OnTradingviewSignalEvent signal)
+        private async Task SendSignalToJournalFileAsync(long clientId, OnReceivingTradingviewSignalEvent signal)
         {
             // Ensure dependencies are not null
             if (_appConfig == null || _apis == null || !_apis.Any(f => f.ClientId == clientId))

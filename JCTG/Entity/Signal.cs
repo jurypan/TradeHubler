@@ -35,8 +35,8 @@ namespace JCTG.Entity
         public decimal? RiskRewardRatio { get; set; }
 
 
-        public long? TradeJournalID { get; set; }
-        public TradeJournal? TradeJournal { get; set; }
+
+        public List<TradeJournal> TradeJournals { get; set; }
 
 
         public static Signal Parse(string input)

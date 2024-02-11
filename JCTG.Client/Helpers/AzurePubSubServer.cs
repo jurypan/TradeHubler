@@ -8,10 +8,10 @@ namespace JCTG.Client
     {
         private readonly WebPubSubServiceClient _serviceClient;
 
-        public AzurePubSubServer(long accountId) 
+        public AzurePubSubServer() 
         {
             // Init Azure Web PubSub
-            _serviceClient = new WebPubSubServiceClient("Endpoint=https://justcalltheguy.webpubsub.azure.com;AccessKey=BdxAvvoxX7+nkCq/lQDNe2LAy41lwDfJD8bCPiNuY/k=;Version=1.0;", "client" + accountId.ToString());
+            _serviceClient = new WebPubSubServiceClient("Endpoint=https://justcalltheguy.webpubsub.azure.com;AccessKey=BdxAvvoxX7+nkCq/lQDNe2LAy41lwDfJD8bCPiNuY/k=;Version=1.0;", "server");
         }
 
         public async Task<string> SendOnOrderCreateEventAsync(OnOrderCreateEvent @event)

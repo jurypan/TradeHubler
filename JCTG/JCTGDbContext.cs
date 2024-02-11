@@ -41,12 +41,13 @@ namespace JCTG
                 .WithOne() 
                 .HasForeignKey(t => t.TradeJournalID); 
 
-            // Required property
             modelBuilder.Entity<TradeJournal>()
-                .Property(tj => tj.Signal)
-                .IsRequired();
+                .HasOne(tj => tj.Signal)
+                .WithMany(t => t.TradeJournals)
+               .HasForeignKey(t => t.SignalID);
 
-            // Configure decimal precision if needed
+
+
             modelBuilder.Entity<Order>()
                 .Property(o => o.OpenPrice)
                 .HasPrecision(10, 8);
@@ -71,6 +72,12 @@ namespace JCTG
               .HasOne(tj => tj.TradeJournal)
               .WithMany(t => t.Logs)
               .HasForeignKey(t => t.TradeJournalID);
+
+
+            modelBuilder.Entity<Log>()
+               .HasOne(tj => tj.Client)
+               .WithMany(t => t.Logs)
+              .HasForeignKey(t => t.ClientID);
         }
     }
 }

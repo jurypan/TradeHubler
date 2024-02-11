@@ -48,7 +48,7 @@ namespace JCTG.Client
             // Register configuration instance with DI container
             services.AddSingleton(config);
 
-            var serviceClient = new WebPubSubServiceClient(_pubsubConnectionString, "client" + config.AccountId.ToString());
+            var serviceClient = new WebPubSubServiceClient(_pubsubConnectionString, "account" + config.AccountId.ToString());
             var url = serviceClient.GetClientAccessUri();
             services.AddSingleton(new AzurePubSubClient(new WebsocketClient(url)));
 

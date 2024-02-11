@@ -48,49 +48,55 @@ namespace JCTG.WebApp.Controllers
 
             _logger.LogDebug($"Request body: {requestBody}");
 
-            try
+
+            if(!string.IsNullOrEmpty(requestBody)) 
             {
-                var signal = Signal.Parse(requestBody);
-
-                _logger.LogInformation($"Parsed object to Signal : {JsonConvert.SerializeObject(signal)}", signal);
-
-                await _dbContext.Signal.AddAsync(signal);
-                await _dbContext.SaveChangesAsync();
-
-                _logger.LogInformation($"Added to database in table Signal with ID: {signal.ID}", signal);
-
-                // Create model
-                var id = await _server.SendOnTradingviewSignalEventAsync(new OnTradingviewSignalEvent()
+                try
                 {
-                    SignalID = signal.ID,
-                    AccountID = signal.AccountID,
-                    Instrument = signal.Instrument,
-                    Magic = signal.Magic,
-                    OrderType = signal.OrderType,
-                    StrategyType = signal.StrategyType,
-                    MarketOrder = signal.OrderType == "BUY" || signal.OrderType == "SELL" ? new OnTradingviewSignalEventMarketOrder()
-                    {
-                        StopLoss = signal.StopLoss,
-                        Price = signal.EntryPrice,
-                        TakeProfit = signal.TakeProfit,
-                    } : null,
-                    PassiveOrder = signal.OrderType == "BUYSTOP" || signal.OrderType == "SELLSTOP" ? new OnTradingviewSignalEventPassiveOrder()
-                    {
-                        EntryExpression = signal.EntryExpression,
-                        Risk = signal.Risk,
-                        RiskRewardRatio = signal.RiskRewardRatio,
-                    } : null,
-                });
+                    var signal = Signal.Parse(requestBody);
 
-                _logger.LogInformation($"Sent to Azure Web PubSub with response client request id: {id}", id);
+                    _logger.LogInformation($"Parsed object to Signal : {JsonConvert.SerializeObject(signal)}", signal);
 
-                return Ok("Processed successfully");
+                    await _dbContext.Signal.AddAsync(signal);
+                    await _dbContext.SaveChangesAsync();
+
+                    _logger.LogInformation($"Added to database in table Signal with ID: {signal.ID}", signal);
+
+                    // Create model
+                    var id = await _server.SendOnTradingviewSignalEventAsync(signal.AccountID, new OnReceivingTradingviewSignalEvent()
+                    {
+                        SignalID = signal.ID,
+                        AccountID = signal.AccountID,
+                        Instrument = signal.Instrument,
+                        Magic = signal.Magic,
+                        OrderType = signal.OrderType,
+                        StrategyType = signal.StrategyType,
+                        MarketOrder = signal.OrderType == "BUY" || signal.OrderType == "SELL" ? new OnReceivingTradingviewSignalEventMarketOrder()
+                        {
+                            StopLoss = signal.StopLoss,
+                            Price = signal.EntryPrice,
+                            TakeProfit = signal.TakeProfit,
+                        } : null,
+                        PassiveOrder = signal.OrderType == "BUYSTOP" || signal.OrderType == "SELLSTOP" ? new OnReceivingTradingviewSignalEventPassiveOrder()
+                        {
+                            EntryExpression = signal.EntryExpression,
+                            Risk = signal.Risk,
+                            RiskRewardRatio = signal.RiskRewardRatio,
+                        } : null,
+                    });
+
+                    _logger.LogInformation($"Sent to Azure Web PubSub with response client request id: {id}", id);
+
+                   
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError($"Exception: {ex.Message}\nInner exception message: {ex.InnerException?.Message}\n", ex);
+                    return StatusCode(500, "Internal server error");
+                }
             }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Exception: {ex.Message}\nInner exception message: {ex.InnerException?.Message}\n", ex);
-                return StatusCode(500, "Internal server error");
-            }
+
+            return Ok("Processed successfully");
         }
     }
 }

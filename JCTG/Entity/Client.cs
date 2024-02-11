@@ -18,5 +18,6 @@ namespace JCTG
         public required string Name { get; set; }
 
         public List<TradeJournal> TradeJournals { get; set; }
+        public List<Log> Logs { get; set; }
     }
 }
