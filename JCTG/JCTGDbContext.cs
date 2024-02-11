@@ -13,6 +13,10 @@ namespace JCTG
 
         public DbSet<TradeJournal> TradeJournal { get; set; }
 
+        public DbSet<Order> Order { get; set; }
+
+        public DbSet<Log> Log { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
 
@@ -23,10 +27,50 @@ namespace JCTG
                 .HasForeignKey(ta => ta.AccountID);
 
             modelBuilder.Entity<TradeJournal>()
-                    .HasOne(e => e.Signal)
-                    .WithOne(e => e.TradeJournal)
-                    .HasForeignKey<Signal>(e => e.TradeJournalID)
-                    .IsRequired(false);
+               .HasOne(tj => tj.Client)
+               .WithMany(t => t.TradeJournals)
+               .HasForeignKey(t => t.ClientID);
+
+            modelBuilder.Entity<TradeJournal>()
+                .HasOne(tj => tj.Order)
+                .WithOne()
+                .HasForeignKey<TradeJournal>(t => t.OrderID);
+
+            modelBuilder.Entity<TradeJournal>()
+                .HasMany(tj => tj.Logs)
+                .WithOne() 
+                .HasForeignKey(t => t.TradeJournalID); 
+
+            // Required property
+            modelBuilder.Entity<TradeJournal>()
+                .Property(tj => tj.Signal)
+                .IsRequired();
+
+            // Configure decimal precision if needed
+            modelBuilder.Entity<Order>()
+                .Property(o => o.OpenPrice)
+                .HasPrecision(10, 8);
+            modelBuilder.Entity<Order>()
+               .Property(o => o.OpenStopLoss)
+               .HasPrecision(10, 8);
+            modelBuilder.Entity<Order>()
+               .Property(o => o.OpenTakeProfit)
+               .HasPrecision(10, 8);
+            modelBuilder.Entity<Order>()
+                .Property(o => o.ClosePrice)
+                .HasPrecision(10, 8);
+            modelBuilder.Entity<Order>()
+               .Property(o => o.CloseStopLoss)
+               .HasPrecision(10, 8);
+            modelBuilder.Entity<Order>()
+               .Property(o => o.CloseTakeProfit)
+               .HasPrecision(10, 8);
+
+
+            modelBuilder.Entity<Log>()
+              .HasOne(tj => tj.TradeJournal)
+              .WithMany(t => t.Logs)
+              .HasForeignKey(t => t.TradeJournalID);
         }
     }
 }

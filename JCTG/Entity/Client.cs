@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using JCTG.Entity;
+using System.ComponentModel.DataAnnotations;
 
 namespace JCTG
 {
@@ -15,5 +16,7 @@ namespace JCTG
         public Account? Account { get; set; }
         public int AccountID { get; set; }
         public required string Name { get; set; }
+
+        public List<TradeJournal> TradeJournals { get; set; }
     }
 }

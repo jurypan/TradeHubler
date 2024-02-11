@@ -13,6 +13,7 @@ namespace JCTG.WebApp
         public event Action<OnOrderUpdateEvent>? OnOrderUpdateEvent;
         public event Action<OnOrderCloseEvent>? OnOrderCloseEvent;
         public event Action<OnOrderAutoMoveSlToBeEvent>? OnOrderAutoMoveSlToBeEvent;
+        public event Action<OnItsTimeToCloseTheOrderEvent>? OnItsTimeToCloseTheOrderEvent;
 
         public void ListeningToServer()
         {
@@ -68,6 +69,12 @@ namespace JCTG.WebApp
                                         var @event = data.Deserialize<OnOrderAutoMoveSlToBeEvent>(new JsonSerializerOptions(JsonSerializerDefaults.Web));
                                         if (@event != null)
                                             OnOrderAutoMoveSlToBeEvent?.Invoke(@event);
+                                    }
+                                    else if (type == Constants.WebsocketMessageType_OnItsTimeToCloseTheOrderEvent)
+                                    {
+                                        var @event = data.Deserialize<OnItsTimeToCloseTheOrderEvent>(new JsonSerializerOptions(JsonSerializerDefaults.Web));
+                                        if (@event != null)
+                                            OnItsTimeToCloseTheOrderEvent?.Invoke(@event);
                                     }
                                 }
                             }
