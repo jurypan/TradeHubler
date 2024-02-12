@@ -23,28 +23,28 @@ namespace JCTG.Entity
         public long SignalID { get; set; }
         public Signal Signal { get; set; }
 
-        public long TradeID { get; set; }
-        public required string Symbol { get; set; }
-        public required string Type { get; set; }
+        public long? TradeID { get; set; } // Managed by TRADE
+        public required string Symbol { get; set; } // Managed by ORDER
+        public required string Type { get; set; } // Managed by ORDER
 
-        public DateTime OpenTime { get; set; }
-        public double OpenLots { get; set; }
-        public double OpenPrice { get; set; }
-        public double? OpenStopLoss { get; set; }
-        public double? OpenTakeProfit { get; set; }
-
-
-        public DateTime? CloseTime { get; set; }
-        public double? CloseLots { get; set; }
-        public double? ClosePrice { get; set; }
-        public double? CloseStopLoss { get; set; }
-        public double? CloseTakeProfit { get; set; }
+        public DateTime OpenTime { get; set; } // Managed by TRADE
+        public double OpenLots { get; set; } // Managed by TRADE
+        public double OpenPrice { get; set; } // Managed by ORDER
+        public double? OpenStopLoss { get; set; } // Managed by ORDER
+        public double? OpenTakeProfit { get; set; } // Managed by ORDER
 
 
-        public double Pnl { get; set; }
-        public double Commission { get; set; }
-        public double Swap { get; set; }
-        public string? Comment { get; set; }
-        public int Magic { get; set; }
+        public DateTime? CloseTime { get; set; } // Managed by TRADE
+        public double? CloseLots { get; set; }  // Managed by TRADE
+        public double? ClosePrice { get; set; } // Managed by ORDER
+        public double? CloseStopLoss { get; set; } // Managed by ORDER
+        public double? CloseTakeProfit { get; set; } // Managed by ORDER
+
+
+        public double Pnl { get; set; } // Managed by TRADE
+        public double Commission { get; set; } // Managed by TRADE
+        public double Swap { get; set; } // Managed by TRADE
+        public string? Comment { get; set; } // Managed by ORDER
+        public int Magic { get; set; } // Managed by ORDER
     }
 }

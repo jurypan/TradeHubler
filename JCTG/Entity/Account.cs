@@ -1,7 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using JCTG.Entity;
 
-namespace JCTG
+namespace JCTG.Entity
 {
     public class Account
     {

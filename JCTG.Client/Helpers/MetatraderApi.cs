@@ -1,10 +1,7 @@
-using System.Diagnostics;
 using System.Globalization;
 using JCTG.Models;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using static System.Net.Mime.MediaTypeNames;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 using static JCTG.Client.Helpers;
 
 
@@ -50,7 +47,7 @@ namespace JCTG.Client
 
         public long ClientId { get; private set; }
 
-        public bool ACTIVE = false;
+        public bool IsActive = true;
         private bool START = false;
 
 
@@ -156,7 +153,7 @@ namespace JCTG.Client
         /// </summary>
         private async Task CheckOpenOrdersAsync()
         {
-            while (ACTIVE)
+            while (IsActive)
             {
 
                 Thread.Sleep(sleepDelay);
@@ -185,6 +182,8 @@ namespace JCTG.Client
                 if (data == null)
                     continue;
 
+                // Cast account info
+                AccountInfo = data["account_info"]?.ToObject<AccountInfo>();
 
                 // Assuming 'dataOrders' is the JObject that contains your JSON dataOrders
                 JObject ordersData = (JObject)data["orders"];
@@ -208,6 +207,8 @@ namespace JCTG.Client
                             ordersToRemove.Add(orderId);
                         }
                     }
+
+                    var isCollectionOfOrdersChanged = false;
 
                     // Add or update
                     foreach (var orderEntry in ordersData)
@@ -245,12 +246,18 @@ namespace JCTG.Client
                                     // Check if the values have changed
                                     if (newOrder.StopLoss != previousData.StopLoss || newOrder.TakeProfit != previousData.TakeProfit)
                                     {
+                                        // Set flag as true
+                                        isCollectionOfOrdersChanged = true;
+
                                         // Invoke the event
                                         OnOrderUpdateEvent?.Invoke(ClientId, orderId, newOrder);
                                     }
                                 }
                                 else
                                 {
+                                    // Set flag as true
+                                    isCollectionOfOrdersChanged = true;
+
                                     // If it's a new order, add it to the dictionary and invoke the event
                                     OpenOrders.Add(orderId, newOrder);
                                     OnOrderCreateEvent?.Invoke(ClientId, orderId, newOrder);
@@ -259,10 +266,12 @@ namespace JCTG.Client
                         }
                     }
 
-
                     // Remove the marked orders
                     foreach (var orderId in ordersToRemove)
                     {
+                        // Set flag as true
+                        isCollectionOfOrdersChanged = true;
+
                         // Set close date
                         OpenOrders[orderId].CloseTime = DateTime.UtcNow;
 
@@ -272,11 +281,17 @@ namespace JCTG.Client
                         // Remove the order from the list
                         OpenOrders.Remove(orderId);
                     }
+
+                    // If collection of orders is changed
+                    if(isCollectionOfOrdersChanged)
+                    {
+                        // Update trades
+                        GetTrades(1);
+                    }
                 }
 
 
-                // Cast account info
-                AccountInfo = data["account_info"]?.ToObject<AccountInfo>();
+                
 
                 if (loadDataFromFile)
                     await TryWriteToFileAsync(pathOrdersStored, data.ToString());
@@ -288,7 +303,7 @@ namespace JCTG.Client
         /// </summary>
         private async Task CheckTradesAsync()
         {
-            while (ACTIVE)
+            while (IsActive)
             {
 
                 Thread.Sleep(sleepDelay);
@@ -340,7 +355,7 @@ namespace JCTG.Client
         /// </summary>
         private async Task CheckMessagesAsync()
         {
-            while (ACTIVE)
+            while (IsActive)
             {
 
                 Thread.Sleep(sleepDelay);
@@ -399,7 +414,7 @@ namespace JCTG.Client
         /// </summary>
         private async Task CheckMarketDataAsync()
         {
-            while (ACTIVE)
+            while (IsActive)
             {
                 // Sleep
                 Thread.Sleep(sleepDelay);
@@ -466,7 +481,7 @@ namespace JCTG.Client
         /// </summary>
         private async Task CheckCandleCloseAsync()
         {
-            while (ACTIVE)
+            while (IsActive)
             {
                 Thread.Sleep(sleepDelay);
 
@@ -590,7 +605,7 @@ namespace JCTG.Client
         /// </summary>
         private async Task CheckHistoricDataAsync()
         {
-            while (ACTIVE)
+            while (IsActive)
             {
 
                 Thread.Sleep(sleepDelay);
@@ -704,54 +719,54 @@ namespace JCTG.Client
             string ordersStored = await TryReadFileAsync(pathOrdersStored);
             string tradesStored = await TryReadFileAsync(pathTradesStored);
 
-            if (ordersStored.Length == 0)
-                return;
-
-
-            JObject dataOrders;
-            JObject dataTrades;
-
-            try { dataOrders = JObject.Parse(ordersStored); }
-            catch { return; }
-            if (dataOrders == null) { return; }
-
-            try { dataTrades = JObject.Parse(tradesStored); }
-            catch { return; }
-            if (dataTrades == null) { return; }
-
-            // Set the orders stored as "last open order" to make sure the events are still working
-            lastOpenOrdersStr = ordersStored;
-
-            // Parse the open orders
-            OpenOrders = dataOrders["orders"]?.ToObject<Dictionary<long, Order>>();
-
-            // Init the open orders
-            if (OpenOrders == null)
-                OpenOrders = new Dictionary<long, Order>();
-
-            // Parse the account info
-            AccountInfo = dataOrders["account_info"]?.ToObject<AccountInfo>();
-
-            // Set the dates in UTC
-            foreach (var order in OpenOrders)
+            if (ordersStored.Length != 0)
             {
-                order.Value.OpenTime = DateTime.SpecifyKind(order.Value.OpenTime.AddHours(-(this.AccountInfo == null ? 0.0 : this.AccountInfo.TimezoneOffset)), DateTimeKind.Utc);
+                JObject dataOrders;
+
+                try { dataOrders = JObject.Parse(ordersStored); }
+                catch { return; }
+                if (dataOrders == null) { return; }
+
+                // Set the orders stored as "last open order" to make sure the events are still working
+                lastOpenOrdersStr = ordersStored;
+
+                // Parse the open orders
+                OpenOrders = dataOrders["orders"]?.ToObject<Dictionary<long, Order>>();
+
+                // Init the open orders
+                if (OpenOrders == null)
+                    OpenOrders = new Dictionary<long, Order>();
+
+                // Parse the account info
+                AccountInfo = dataOrders["account_info"]?.ToObject<AccountInfo>();
+
+                // Set the dates in UTC
+                foreach (var order in OpenOrders)
+                {
+                    order.Value.OpenTime = DateTime.SpecifyKind(order.Value.OpenTime.AddHours(-(this.AccountInfo == null ? 0.0 : this.AccountInfo.TimezoneOffset)), DateTimeKind.Utc);
+                }
             }
 
-            // Set the trade stored as "last trades" to make sure the events are still working
-            lastTradesStr = tradesStored;
+            if (tradesStored.Length != 0)
+            {
+                JObject dataTrades;
 
-            // Parse it to objects
-            var trades = JsonConvert.DeserializeObject<Dictionary<long, Trade>>(tradesStored);
+                try { dataTrades = JObject.Parse(tradesStored); }
+                catch { return; }
+                if (dataTrades == null) { return; }
 
-            // Do null reference check
-            if (trades != null)
-                Trades = trades;
-            else
-                Trades = new Dictionary<long, Trade>();
+                // Set the trade stored as "last trades" to make sure the events are still working
+                lastTradesStr = tradesStored;
 
-            // Set the system as active
-            this.ACTIVE = true;
+                // Parse it to objects
+                var trades = JsonConvert.DeserializeObject<Dictionary<long, Trade>>(tradesStored);
+
+                // Do null reference check
+                if (trades != null)
+                    Trades = trades;
+                else
+                    Trades = new Dictionary<long, Trade>();
+            }
         }
 
 
@@ -896,10 +911,10 @@ namespace JCTG.Client
         }
 
         /// <summary>
-        /// Sends a GET_HISTORIC_TRADES command to request historic trades. The dataOrders will be stored in Trades.  On receiving the dataOrders the eventHandler.OnHistoricTrades()  function will be triggered.
+        /// Sends a get trades command to request historic trades. The dataOrders will be stored in Trades. On receiving the dataOrders the eventHandler.OnHistoricTrades()  function will be triggered.
         /// </summary>
         /// <param name="lookbackDays"> lookbackDays (int): Days to look back into the trade history.  The history must also be visible in MT4. </param>
-        public void GetHistoricTrades(int lookbackDays)
+        public void GetTrades(int lookbackDays)
         {
             SendCommand("GET_HISTORIC_TRADES", lookbackDays.ToString());
         }

@@ -1,0 +1,37 @@
+﻿@page "/Signals";
+@inject SignalRepository _signalRepository;
+@inject NavigationManager _navigationManager;
+
+<h3>Signals</h3>
+@if (_signals.Count() <= 0)
+{
+    <p>No signals available</p>
+}
+else
+{
+    <div class="row">
+        @foreach (var signal in _signals)
+        {
+            <div class="col-md-3 mb-3">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">@signal.Instrument @signal.OrderType</h5>
+                        <p class="card-text">Strategy : @signal.StrategyType</p>
+                        <div>
+                            <a href="@($"Signals/{signal.ID}/Tradingjournals")"> View trading Journal</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    private List<JCTG.Entity.Signal> _signals = new List<Entity.Signal>();
+
+    protected async override Task OnInitializedAsync()
+    {
+        _signals = await _signalRepository.GetAll(692803787);
+    }
+}

@@ -1,4 +1,6 @@
-﻿namespace JCTG.WebApp
+﻿using JCTG.WebApp.Controllers;
+
+namespace JCTG.WebApp
 {
     public class ExceptionHandlingMiddleware
     {
@@ -19,6 +21,7 @@
             {
                 // Log the exception
                 // Respond with a generic error message if necessary
+                Serilog.Log.ForContext<ExceptionHandlingMiddleware>().Error($"Exception: {ex.Message}\nInner exception message: {ex.InnerException?.Message}\n", ex);
                 context.Response.StatusCode = 500;
                 await context.Response.WriteAsync("An unexpected error has occurred.");
             }

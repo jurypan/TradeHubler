@@ -23,16 +23,16 @@ namespace JCTG.Entity
 
 
         // Optional BUY or SELL
-        public decimal? CurrentPrice { get; set; }
-        public decimal? EntryPrice { get; set; }
-        public decimal? StopLoss { get; set; }
-        public decimal? TakeProfit { get; set; }
+        public double? CurrentPrice { get; set; }
+        public double? EntryPrice { get; set; }
+        public double? StopLoss { get; set; }
+        public double? TakeProfit { get; set; }
 
 
         // Optional BUYSTOP or SELLSTOP
         public string? EntryExpression { get; set; }
-        public decimal? Risk { get; set; }
-        public decimal? RiskRewardRatio { get; set; }
+        public double? Risk { get; set; }
+        public double? RiskRewardRatio { get; set; }
 
 
 
@@ -58,15 +58,15 @@ namespace JCTG.Entity
 
             var optionalParams = new Dictionary<string, Action<string>>
             {
-                { "entryprice", value => tradeInfo.EntryPrice = decimal.Parse(value) },
-                { "currentprice", value => tradeInfo.CurrentPrice = decimal.Parse(value) },
-                { "sl", value => tradeInfo.StopLoss = decimal.Parse(value) },
-                { "tp", value => tradeInfo.TakeProfit = decimal.Parse(value) },
+                { "entryprice", value => tradeInfo.EntryPrice = double.Parse(value) },
+                { "currentprice", value => tradeInfo.CurrentPrice = double.Parse(value) },
+                { "sl", value => tradeInfo.StopLoss = double.Parse(value) },
+                { "tp", value => tradeInfo.TakeProfit = double.Parse(value) },
                 { "magic", value => tradeInfo.Magic = long.Parse(value) },
                 { "strategytype", value => tradeInfo.StrategyType = Enum.Parse<StrategyType>(value) },
                 { "entryexpr", value => tradeInfo.EntryExpression = value },
-                { "risk", value => tradeInfo.Risk = decimal.Parse(value) },
-                { "rr", value => tradeInfo.RiskRewardRatio = decimal.Parse(value)  },
+                { "risk", value => tradeInfo.Risk = double.Parse(value) },
+                { "rr", value => tradeInfo.RiskRewardRatio = double.Parse(value)  },
             };
 
             foreach (var part in parts[3..])

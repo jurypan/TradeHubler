@@ -1,7 +1,6 @@
-﻿using JCTG.Entity;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
-namespace JCTG
+namespace JCTG.Entity
 {
     public class Client
     {

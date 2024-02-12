@@ -1,7 +1,9 @@
 using JCTG;
 using JCTG.WebApp;
 using JCTG.WebApp.Helpers;
+using JCTG.WebApp.Repository;
 using Microsoft.EntityFrameworkCore;
+using Serilog;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -12,7 +14,7 @@ builder.Services.AddControllers();
 builder.Services.AddServerSideBlazor();
 
 // Add DB Context
-builder.Services.AddDbContext<JCTGDbContext>(
+builder.Services.AddDbContextFactory<JCTGDbContext>(
     options => options.UseSqlServer(builder.Configuration.GetConnectionString("AZURE_SQL_CONNECTIONSTRING"))
     .UseLoggerFactory(LoggerFactory.Create(builder =>
        builder.AddFilter((category, level) =>
@@ -22,10 +24,16 @@ builder.Services.AddDbContext<JCTGDbContext>(
 builder.Services.AddAzurePubSubClient(builder.Configuration.GetConnectionString("AZURE_PUBSUB_CONNECTIONSTRING"));
 builder.Services.AddAzurePubSubServer();
 
+// Add services to the scope
+builder.Services.AddTransient<SignalRepository>();
+builder.Services.AddTransient<TradejournalRepository>();
+builder.Services.AddTransient<LogRepository>();
+
 // Init logging
 builder.Logging.ClearProviders();
-builder.Logging.AddConsole();
 builder.Logging.SetMinimumLevel(LogLevel.Debug);
+builder.Host.UseSerilog((context, configuration) =>
+    configuration.ReadFrom.Configuration(context.Configuration));
 
 var app = builder.Build();
 
@@ -52,6 +60,7 @@ app.UseWebSockets();
 using (var serviceScope = app.Services.CreateScope())
 {
     app.Logger.LogInformation("Starting the app");
-    await serviceScope.ServiceProvider.GetRequiredService<WebsocketServer>().RunAsync();
+    if (!app.Environment.IsDevelopment())
+        await serviceScope.ServiceProvider.GetRequiredService<WebsocketServer>().RunAsync();
     app.Run();
 }

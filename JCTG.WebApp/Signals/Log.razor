@@ -1,0 +1,80 @@
+﻿@page "/Signals/{signalid:int}/Tradingjournals/{tradejournalid:int}/Logs";
+@inject LogRepository _logRepository;
+@inject NavigationManager _navigationManager;
+
+<h3>Signals</h3>
+@if (_logs.Count() <= 0)
+{
+    <p>No trading journals available</p>
+}
+else
+{
+    <div class="row">
+        <div class="col-4 border border-primary">
+            Date created
+        </div>
+        <div class="col-4 border border-primary">
+            Type
+        </div>
+        <div class="col-4 border border-primary">
+            Error Type
+        </div>
+    </div>
+    <br />
+    @foreach (var log in _logs)
+    {
+        <div class="row">
+            <div class="col-4 border border-secondary">
+                @log.DateCreated
+            </div>
+            <div class="col-4  border border-secondary">
+                @log.Type
+            </div>
+            <div class="col-4  border border-secondary">
+                @log.ErrorType
+            </div>
+            <div class="col-12  border border-secondary">
+                @log.Message
+            </div>
+            @if (!string.IsNullOrEmpty(log.Description))
+            {
+                <div class="col-12  border border-secondary">
+                    @log.Description
+                </div>
+            }
+            
+        </div>
+        <br />
+    }
+
+}
+
+
+
+
+@code {
+
+    [Parameter]
+    public int SignalId { get; set; }
+
+    [Parameter]
+    public int? TradejournalId { get; set; }
+
+
+    private List<Entity.Log> _logs = new List<Entity.Log>();
+    private readonly Serilog.ILogger _logger = Serilog.Log.ForContext<Log>();
+
+    protected async override Task OnInitializedAsync()
+    {
+        _logger.Debug($"OnInitializedAsync with signal id {SignalId}");
+
+        if (TradejournalId.HasValue)
+        {
+            _logs = await _logRepository.GetAll(692803787, SignalId, TradejournalId.Value);
+        }
+        else
+        {
+            _logs = await _logRepository.GetAll(692803787, SignalId);
+        }
+    }
+}

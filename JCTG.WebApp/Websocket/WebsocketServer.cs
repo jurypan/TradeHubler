@@ -71,8 +71,6 @@ namespace JCTG.WebApp.Helpers
                     // Do null reference check
                     if (journal != null)
                     {
-                        journal.Comment = onOrderUpdate.Order.Comment;
-                        journal.CloseLots = decimal.ToDouble(onOrderUpdate.Order.Lots);
                         journal.CloseStopLoss = decimal.ToDouble(onOrderUpdate.Order.StopLoss);
                         journal.CloseTakeProfit = decimal.ToDouble(onOrderUpdate.Order.TakeProfit);
                     }
@@ -109,15 +107,7 @@ namespace JCTG.WebApp.Helpers
                     // Do null reference check
                     if (journal != null)
                     {
-                        // Update costs
-                        journal.Swap = onOrderClose.Order.Swap;
-                        journal.Commission = onOrderClose.Order.Commission;
-                        journal.Pnl = onOrderClose.Order.Pnl;
-                        journal.Comment = onOrderClose.Order.Comment;
-
                         // Update close properties
-                        journal.CloseTime = DateTime.UtcNow;
-                        journal.CloseLots = decimal.ToDouble(onOrderClose.Order.Lots);
                         journal.ClosePrice = decimal.ToDouble(onOrderClose.ClosePrice);
                         journal.CloseStopLoss = decimal.ToDouble(onOrderClose.Order.StopLoss);
                         journal.CloseTakeProfit = decimal.ToDouble(onOrderClose.Order.TakeProfit);
@@ -246,44 +236,47 @@ namespace JCTG.WebApp.Helpers
                         var journal = await dbContext.TradeJournal.FirstOrDefaultAsync(f => f.SignalID == onTradeEvent.SignalID && f.ClientID == onTradeEvent.ClientID);
 
                         // Do null reference check
-                        if (journal != null)
+                        if (journal != null && !journal.TradeID.HasValue)
                         {
                             journal.TradeID = onTradeEvent.TradeID;
+                            journal.OpenLots += onTradeEvent.Trade.Lots;
                             journal.Swap += onTradeEvent.Trade.Swap;
                             journal.Commission += onTradeEvent.Trade.Commission;
                             journal.Pnl += onTradeEvent.Trade.Pnl;
-                            journal.Comment = onTradeEvent.Trade.Comment;
+
+                            // Log
+                            var log = new Log()
+                            {
+                                SignalID = onTradeEvent.SignalID,
+                                ClientID = onTradeEvent.ClientID,
+                                Description = onTradeEvent.Log.Description,
+                                ErrorType = onTradeEvent.Log.ErrorType,
+                                Message = onTradeEvent.Log.Message,
+                                Time = onTradeEvent.Log.Time,
+                                Type = onTradeEvent.Log.Type,
+                            };
+                            await dbContext.Log.AddAsync(log);
+
+                            // Save
+                            await dbContext.SaveChangesAsync();
                         }
-
-                        // Log
-                        var log = new Log()
-                        {
-                            SignalID = onTradeEvent.SignalID,
-                            ClientID = onTradeEvent.ClientID,
-                            Description = onTradeEvent.Log.Description,
-                            ErrorType = onTradeEvent.Log.ErrorType,
-                            Message = onTradeEvent.Log.Message,
-                            Time = onTradeEvent.Log.Time,
-                            Type = onTradeEvent.Log.Type,
-                        };
-                        await dbContext.Log.AddAsync(log);
-
-                        // Save
-                        await dbContext.SaveChangesAsync();
                     }
 
                     // When a new trade is just entered
                     if (!onTradeEvent.SignalID.HasValue && onTradeEvent.Trade.Entry == "entry_out")
                     {
                         // Get the trade journal from the database
-                        var journal = await dbContext.TradeJournal.FirstOrDefaultAsync(f => f.TradeID == onTradeEvent.TradeID && f.ClientID == onTradeEvent.ClientID);
+                        var journal = await dbContext.TradeJournal.FirstOrDefaultAsync(f => f.Magic == onTradeEvent.Trade.Magic && f.Symbol == onTradeEvent.Trade.Symbol && f.Type == onTradeEvent.Trade.Type && f.ClientID == onTradeEvent.ClientID);
 
                         // Do null reference check
-                        if (journal != null)
+                        if (journal != null && !journal.IsTradeClosed)
                         {
+                            journal.CloseLots += onTradeEvent.Trade.Lots;
                             journal.Swap += onTradeEvent.Trade.Swap;
                             journal.Commission += onTradeEvent.Trade.Commission;
                             journal.Pnl += onTradeEvent.Trade.Pnl;
+                            journal.CloseTime = DateTime.UtcNow;
+                            journal.IsTradeClosed = journal.CloseLots == journal.OpenLots;
 
                             // Log
                             var log = new Log()
