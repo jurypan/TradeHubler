@@ -51,27 +51,6 @@ namespace JCTG
               .IsRequired(false);
 
 
-            modelBuilder.Entity<TradeJournal>()
-                .Property(o => o.OpenPrice)
-                .HasPrecision(10, 8);
-            modelBuilder.Entity<TradeJournal>()
-               .Property(o => o.OpenStopLoss)
-               .HasPrecision(10, 8);
-            modelBuilder.Entity<TradeJournal>()
-               .Property(o => o.OpenTakeProfit)
-               .HasPrecision(10, 8);
-            modelBuilder.Entity<TradeJournal>()
-                .Property(o => o.ClosePrice)
-                .HasPrecision(10, 8);
-            modelBuilder.Entity<TradeJournal>()
-               .Property(o => o.CloseStopLoss)
-               .HasPrecision(10, 8);
-            modelBuilder.Entity<TradeJournal>()
-               .Property(o => o.CloseTakeProfit)
-               .HasPrecision(10, 8);
-
-
-
         }
     }
 }

@@ -23,21 +23,22 @@ namespace JCTG.Entity
         public long SignalID { get; set; }
         public Signal Signal { get; set; }
 
+        public long TradeID { get; set; }
         public required string Symbol { get; set; }
         public required string Type { get; set; }
 
         public DateTime OpenTime { get; set; }
         public double OpenLots { get; set; }
-        public decimal OpenPrice { get; set; }
-        public decimal? OpenStopLoss { get; set; }
-        public decimal? OpenTakeProfit { get; set; }
+        public double OpenPrice { get; set; }
+        public double? OpenStopLoss { get; set; }
+        public double? OpenTakeProfit { get; set; }
 
 
         public DateTime? CloseTime { get; set; }
         public double? CloseLots { get; set; }
-        public decimal? ClosePrice { get; set; }
-        public decimal? CloseStopLoss { get; set; }
-        public decimal? CloseTakeProfit { get; set; }
+        public double? ClosePrice { get; set; }
+        public double? CloseStopLoss { get; set; }
+        public double? CloseTakeProfit { get; set; }
 
 
         public double Pnl { get; set; }

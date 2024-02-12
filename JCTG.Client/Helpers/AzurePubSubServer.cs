@@ -121,5 +121,23 @@ namespace JCTG.Client
             }
             return "0";
         }
+
+        public async Task<string> SendOnTradeEventAsync(OnTradeEvent @event)
+        {
+            if (_serviceClient != null)
+            {
+                var resp = await _serviceClient.SendToAllAsync(JsonConvert.SerializeObject(new WebsocketMessage<OnTradeEvent>()
+                {
+                    Data = @event,
+                    DataType = Constants.WebsocketMessageDatatype_JSON,
+                    From = Constants.WebsocketMessageFrom_Metatrader,
+                    Type = Constants.WebsocketMessageType_OnTradeEvent,
+                    TypeName = nameof(OnTradeEvent),
+                }, new JsonSerializerSettings { ContractResolver = new IgnoreJsonPropertyContractResolver() }), Azure.Core.ContentType.ApplicationJson);
+
+                return resp.ClientRequestId;
+            }
+            return "0";
+        }
     }
 }

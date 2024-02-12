@@ -1,7 +1,10 @@
+using System.Diagnostics;
 using System.Globalization;
 using JCTG.Models;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using static System.Net.Mime.MediaTypeNames;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 using static JCTG.Client.Helpers;
 
 
@@ -14,16 +17,17 @@ namespace JCTG.Client
         private readonly string MetaTraderDirPath;
         private readonly int sleepDelay;
         private readonly int maxRetryCommandSeconds;
-        private readonly bool loadOrdersFromFile;
+        private readonly bool loadDataFromFile;
 
         private readonly string pathOrders;
         private readonly string pathMessages;
         private readonly string pathMarketData;
         private readonly string pathCandleCloseData;
         private readonly string pathHistoricData;
-        private readonly string pathHistoricTrades;
+        private readonly string pathTrades;
         private readonly string pathOrdersStored;
         private readonly string pathMessagesStored;
+        private readonly string pathTradesStored;
         private readonly string pathCommandsPrefix;
 
         private readonly int maxCommandFiles = 20;
@@ -34,7 +38,7 @@ namespace JCTG.Client
         private string lastMarketDataStr = "";
         private string lastCandleCloseStr = "";
         private string lastHistoricDataStr = "";
-        private string lastHistoricTradesStr = "";
+        private string lastTradesStr = "";
 
 
         public Dictionary<long, Order> OpenOrders { get; private set; }
@@ -42,11 +46,11 @@ namespace JCTG.Client
         public Dictionary<string, MarketData> MarketData { get; private set; }
         public Dictionary<string, BarData> LastBarData { get; private set; }
         public Dictionary<string, HistoricBarData> HistoricData { get; private set; }
-        public Dictionary<long, Order> HistoricTrades { get; private set; }
+        public Dictionary<long, Trade> Trades { get; private set; }
 
         public long ClientId { get; private set; }
 
-        public bool ACTIVE = true;
+        public bool ACTIVE = false;
         private bool START = false;
 
 
@@ -55,7 +59,7 @@ namespace JCTG.Client
         private Thread? marketDataThread;
         private Thread? barDataThread;
         private Thread? historicDataThread;
-        private Thread? historicTradesThread;
+        private Thread? tradesThread;
 
         // Define the delegate for the event
         public delegate void OnOrderCreateEventHandler(long clientId, long ticketId, Order order);
@@ -79,15 +83,18 @@ namespace JCTG.Client
         public delegate void OnHistoricDataEventHandler(long clientId);
         public event OnHistoricDataEventHandler? OnHistoricDataEvent;
 
+        public delegate void OnTradeEventHandler(long clientId, long tradeId, Trade trade);
+        public event OnTradeEventHandler? OnTradeEvent;
 
 
-        public MetatraderApi(string MetaTraderDirPath, long clientId, int sleepDelay, int maxRetryCommandSeconds, bool loadOrdersFromFile)
+
+        public MetatraderApi(string MetaTraderDirPath, long clientId, int sleepDelay, int maxRetryCommandSeconds, bool loadDataFromFile)
         {
             this.MetaTraderDirPath = MetaTraderDirPath;
             this.ClientId = clientId;
             this.sleepDelay = sleepDelay;
             this.maxRetryCommandSeconds = maxRetryCommandSeconds;
-            this.loadOrdersFromFile = loadOrdersFromFile;
+            this.loadDataFromFile = loadDataFromFile;
 
             if (!Directory.Exists(MetaTraderDirPath))
             {
@@ -100,9 +107,10 @@ namespace JCTG.Client
             this.pathMarketData = Path.Join(MetaTraderDirPath, "DWX", "DWX_Market_Data.txt");
             this.pathCandleCloseData = Path.Join(MetaTraderDirPath, "DWX", "DWX_Bar_Data.txt");
             this.pathHistoricData = Path.Join(MetaTraderDirPath, "DWX", "DWX_Historic_Data.txt");
-            this.pathHistoricTrades = Path.Join(MetaTraderDirPath, "DWX", "DWX_Historic_Trades.txt");
-            this.pathOrdersStored = Path.Join(MetaTraderDirPath, "DWX", "DWX_Orders_Stored.txt");
-            this.pathMessagesStored = Path.Join(MetaTraderDirPath, "DWX", "DWX_Messages_Stored.txt");
+            this.pathTrades = Path.Join(MetaTraderDirPath, "DWX", "DWX_Historic_Trades.txt");
+            this.pathOrdersStored = Path.Join(MetaTraderDirPath, "DWX", "DWX_Orders_Stored.json");
+            this.pathMessagesStored = Path.Join(MetaTraderDirPath, "DWX", "DWX_Messages_Stored.json");
+            this.pathTradesStored = Path.Join(MetaTraderDirPath, "DWX", "DWX_Trades_Stored.json");
             this.pathCommandsPrefix = Path.Join(MetaTraderDirPath, "DWX", "DWX_Commands_");
         }
 
@@ -114,7 +122,7 @@ namespace JCTG.Client
         {
             await LoadLogsAsync();
 
-            if (loadOrdersFromFile)
+            if (loadDataFromFile)
                 await LoadDataAsync();
 
             // Start the thread to run the asynchronous method
@@ -133,8 +141,8 @@ namespace JCTG.Client
             this.historicDataThread = new Thread(async () => await CheckHistoricDataAsync());
             this.historicDataThread?.Start();
 
-            this.historicTradesThread = new Thread(async () => await CheckHistoricTradesAsync());
-            this.historicTradesThread?.Start();
+            this.tradesThread = new Thread(async () => await CheckTradesAsync());
+            this.tradesThread?.Start();
 
             await ResetCommandIDsAsync();
 
@@ -144,7 +152,7 @@ namespace JCTG.Client
 
 
         /// <summary>
-        /// Regularly checks the file for open orders and triggers the eventHandler.OnOrderCreateEvent() function.
+        /// Regularly checks the file for open orders and triggers the eventHandler.OnOrderEvents functions.
         /// </summary>
         private async Task CheckOpenOrdersAsync()
         {
@@ -178,10 +186,10 @@ namespace JCTG.Client
                     continue;
 
 
-                // Assuming 'data' is the JObject that contains your JSON data
+                // Assuming 'dataOrders' is the JObject that contains your JSON dataOrders
                 JObject ordersData = (JObject)data["orders"];
 
-                // If market data is null -> create new instance
+                // If market dataOrders is null -> create new instance
                 if (OpenOrders == null)
                     OpenOrders = new Dictionary<long, Order>();
 
@@ -270,8 +278,60 @@ namespace JCTG.Client
                 // Cast account info
                 AccountInfo = data["account_info"]?.ToObject<AccountInfo>();
 
-                if (loadOrdersFromFile)
+                if (loadDataFromFile)
                     await TryWriteToFileAsync(pathOrdersStored, data.ToString());
+            }
+        }
+
+        /// <summary>
+        /// Regularly checks the file for trades and triggers the eventHandler.OnTradevent() function.
+        /// </summary>
+        private async Task CheckTradesAsync()
+        {
+            while (ACTIVE)
+            {
+
+                Thread.Sleep(sleepDelay);
+
+                if (!START)
+                    continue;
+
+                // Read file
+                string text = await TryReadFileAsync(pathTrades);
+
+                // Make sure the import is new
+                if (this.AccountInfo != null && text.Length > 0 && !text.Equals(lastTradesStr))
+                {
+                    // Set new ordersStored file to the variable
+                    lastTradesStr = text;
+
+                    // If null -> new instance
+                    if (Trades == null)
+                        Trades = new Dictionary<long, Trade>();
+
+                    // Parse it to objects
+                    var trades = JsonConvert.DeserializeObject<Dictionary<long, Trade>>(text);
+
+                    // Do null reference check
+                    if (trades != null)
+                    {
+                        // Throw events for new trades
+                        foreach (var trade in trades)
+                        {
+                            // Check if it's already in the current collection, if not -> throw event
+                            if (!Trades.Any(f => f.Key == trade.Key))
+                            {
+                                OnTradeEvent?.Invoke(this.ClientId, trade.Key, trade.Value);
+                            }
+                        }
+
+                        // Update the object
+                        Trades = trades;
+                    }
+
+                    if (loadDataFromFile)
+                        await TryWriteToFileAsync(pathTradesStored, lastTradesStr);
+                }
             }
         }
 
@@ -335,7 +395,7 @@ namespace JCTG.Client
         }
 
         /// <summary>
-        /// Regularly checks the file for market data and triggers the eventHandler.OnTick() function.
+        /// Regularly checks the file for market dataOrders and triggers the eventHandler.OnTick() function.
         /// </summary>
         private async Task CheckMarketDataAsync()
         {
@@ -348,7 +408,7 @@ namespace JCTG.Client
                 if (!START)
                     continue;
 
-                // Parse MT4 text file
+                // Parse MT4 ordersStored file
                 string text = await TryReadFileAsync(pathMarketData);
 
                 // Check if the file is changed in regards to the previous version
@@ -361,11 +421,11 @@ namespace JCTG.Client
 
                 var _marketData = JsonConvert.DeserializeObject<Dictionary<string, MarketData>>(lastMarketDataStr);
 
-                // If market data is null -> create new instance
+                // If market dataOrders is null -> create new instance
                 if (MarketData == null)
                     MarketData = new Dictionary<string, MarketData>();
 
-                // Foreach property of the data
+                // Foreach property of the dataOrders
                 if (_marketData != null)
                 {
                     foreach (var property in _marketData)
@@ -402,7 +462,7 @@ namespace JCTG.Client
         }
 
         /// <summary>
-        /// Regularly checks the file for bar data and triggers the eventHandler.OnBarData() function.
+        /// Regularly checks the file for bar dataOrders and triggers the eventHandler.OnBarData() function.
         /// </summary>
         private async Task CheckCandleCloseAsync()
         {
@@ -496,7 +556,7 @@ namespace JCTG.Client
                                 OnCandleCloseEvent?.Invoke(ClientId, property.Name, newBarData.Timeframe, newBarData.Time, newBarData.Open, newBarData.High, newBarData.Low, newBarData.Close, newBarData.TickVolume);
                             }
 
-                            // Update the historic data
+                            // Update the historic dataOrders
                             if (HistoricData == null)
                                 HistoricData = new Dictionary<string, HistoricBarData>();
 
@@ -526,7 +586,7 @@ namespace JCTG.Client
 
 
         /// <summary>
-        /// Regularly checks the file for historic data and triggers the eventHandler.OnHistoricData() function.
+        /// Regularly checks the file for historic dataOrders and triggers the eventHandler.OnHistoricData() function.
         /// </summary>
         private async Task CheckHistoricDataAsync()
         {
@@ -544,7 +604,7 @@ namespace JCTG.Client
                 // Make sure the import is new
                 if (this.AccountInfo != null && text.Length > 0 && !text.Equals(lastHistoricDataStr))
                 {
-                    // Set new text file to the variable
+                    // Set new ordersStored file to the variable
                     lastHistoricDataStr = text;
 
                     JObject data;
@@ -627,57 +687,13 @@ namespace JCTG.Client
                     // Trigger event
                     OnHistoricDataEvent?.Invoke(ClientId);
 
-                    // Signal that the current data processing is complete
+                    // Signal that the current dataOrders processing is complete
                     _resetHistoricBarDataEvent.Set();
                 }
             }
         }
 
-        /// <summary>
-        /// Regularly checks the file for historic data and triggers the eventHandler.OnHistoricData() function.
-        /// </summary>
-        private async Task CheckHistoricTradesAsync()
-        {
-            while (ACTIVE)
-            {
 
-                Thread.Sleep(sleepDelay);
-
-                if (!START)
-                    continue;
-
-                // Read file
-                string text = await TryReadFileAsync(pathHistoricData);
-
-                // Make sure the import is new
-                if (this.AccountInfo != null && text.Length > 0 && !text.Equals(lastHistoricTradesStr))
-                {
-                    // Set new text file to the variable
-                    lastHistoricTradesStr = text;
-
-                    JObject data;
-
-                    try
-                    {
-                        data = JObject.Parse(text);
-                    }
-                    catch
-                    {
-                        continue;
-                    }
-
-                    if (data == null)
-                    {
-                        continue;
-                    }
-
-                    if (HistoricTrades == null)
-                        HistoricTrades = new Dictionary<long, Order>();
-
-                    // TODO
-                }
-            }
-        }
 
         /// <summary>
         /// Loads stored orders from file (in case of a restart). 
@@ -685,36 +701,57 @@ namespace JCTG.Client
         private async Task LoadDataAsync()
         {
 
-            string text = await TryReadFileAsync(pathOrdersStored);
+            string ordersStored = await TryReadFileAsync(pathOrdersStored);
+            string tradesStored = await TryReadFileAsync(pathTradesStored);
 
-            if (text.Length == 0)
+            if (ordersStored.Length == 0)
                 return;
 
-            JObject data;
 
-            try
-            {
-                data = JObject.Parse(text);
-            }
-            catch
-            {
-                return;
-            }
+            JObject dataOrders;
+            JObject dataTrades;
 
-            if (data == null)
-                return;
+            try { dataOrders = JObject.Parse(ordersStored); }
+            catch { return; }
+            if (dataOrders == null) { return; }
 
-            lastOpenOrdersStr = text;
-            OpenOrders = data["orders"]?.ToObject<Dictionary<long, Order>>();
+            try { dataTrades = JObject.Parse(tradesStored); }
+            catch { return; }
+            if (dataTrades == null) { return; }
+
+            // Set the orders stored as "last open order" to make sure the events are still working
+            lastOpenOrdersStr = ordersStored;
+
+            // Parse the open orders
+            OpenOrders = dataOrders["orders"]?.ToObject<Dictionary<long, Order>>();
+
+            // Init the open orders
             if (OpenOrders == null)
                 OpenOrders = new Dictionary<long, Order>();
-            AccountInfo = data["account_info"]?.ToObject<AccountInfo>();
+
+            // Parse the account info
+            AccountInfo = dataOrders["account_info"]?.ToObject<AccountInfo>();
 
             // Set the dates in UTC
             foreach (var order in OpenOrders)
             {
                 order.Value.OpenTime = DateTime.SpecifyKind(order.Value.OpenTime.AddHours(-(this.AccountInfo == null ? 0.0 : this.AccountInfo.TimezoneOffset)), DateTimeKind.Utc);
             }
+
+            // Set the trade stored as "last trades" to make sure the events are still working
+            lastTradesStr = tradesStored;
+
+            // Parse it to objects
+            var trades = JsonConvert.DeserializeObject<Dictionary<long, Trade>>(tradesStored);
+
+            // Do null reference check
+            if (trades != null)
+                Trades = trades;
+            else
+                Trades = new Dictionary<long, Trade>();
+
+            // Set the system as active
+            this.ACTIVE = true;
         }
 
 
@@ -757,7 +794,7 @@ namespace JCTG.Client
 
 
         /// <summary>
-        /// Sends a SUBSCRIBE_SYMBOLS command to subscribe to market (tick) data.
+        /// Sends a SUBSCRIBE_SYMBOLS command to subscribe to market (tick) dataOrders.
         /// </summary>
         /// <param name="symbols"> List of pairs to subscribe to.</param>
         public void SubscribeForTicks(List<string> symbols)
@@ -766,7 +803,7 @@ namespace JCTG.Client
         }
 
         /// <summary>
-        /// Sends a SUBSCRIBE_SYMBOLS_BAR_DATA command to subscribe to bar data.
+        /// Sends a SUBSCRIBE_SYMBOLS_BAR_DATA command to subscribe to bar dataOrders.
         /// </summary>
         /// <param name="symbols"> List of lists containing symbol/time frame combinations to subscribe to.For example: { "EURUSD", "M1" }, { "USDJPY", "H1" } };</param>
         public void SubscribeForBarData(List<KeyValuePair<string, string>> symbols)
@@ -781,9 +818,9 @@ namespace JCTG.Client
         }
 
         /// <summary>
-        /// Sends a GET_HISTORIC_DATA command to request historic data.
+        /// Sends a GET_HISTORIC_DATA command to request historic dataOrders.
         /// </summary>
-        /// <param name="pairs"> Symbol to get historic data</param>
+        /// <param name="pairs"> Symbol to get historic dataOrders</param>
         public void GetHistoricData(List<Pairs> pairs)
         {
             Thread thread = new(() =>
@@ -846,12 +883,12 @@ namespace JCTG.Client
         }
 
         /// <summary>
-        /// Sends a GET_HISTORIC_DATA command to request historic data.
+        /// Sends a GET_HISTORIC_DATA command to request historic dataOrders.
         /// </summary>
-        /// <param name="symbol"> Symbol to get historic data</param>
-        /// <param name="timeFrame">Time frame for the requested data</param>
-        /// <param name="start">Start timestamp (seconds since epoch) of the requested data</param>
-        /// <param name="end">End timestamp of the requested data</param>
+        /// <param name="symbol"> Symbol to get historic dataOrders</param>
+        /// <param name="timeFrame">Time frame for the requested dataOrders</param>
+        /// <param name="start">Start timestamp (seconds since epoch) of the requested dataOrders</param>
+        /// <param name="end">End timestamp of the requested dataOrders</param>
         public void GetHistoricData(string symbol, string timeFrame, DateTimeOffset start, DateTimeOffset end)
         {
             string content = symbol + "," + timeFrame + "," + start.ToUnixTimeSeconds() + "," + end.ToUnixTimeSeconds();
@@ -859,7 +896,7 @@ namespace JCTG.Client
         }
 
         /// <summary>
-        /// Sends a GET_HISTORIC_TRADES command to request historic trades. The data will be stored in HistoricTrades.  On receiving the data the eventHandler.OnHistoricTrades()  function will be triggered.
+        /// Sends a GET_HISTORIC_TRADES command to request historic trades. The dataOrders will be stored in Trades.  On receiving the dataOrders the eventHandler.OnHistoricTrades()  function will be triggered.
         /// </summary>
         /// <param name="lookbackDays"> lookbackDays (int): Days to look back into the trade history.  The history must also be visible in MT4. </param>
         public void GetHistoricTrades(int lookbackDays)

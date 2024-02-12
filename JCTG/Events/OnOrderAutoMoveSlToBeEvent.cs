@@ -7,5 +7,6 @@ namespace JCTG.Events
         public long ClientID { get; set; }
         public long SignalID { get; set; }
         public required Log Log { get; set; }
+        public decimal StopLossPrice { get; set; }
     }
 }

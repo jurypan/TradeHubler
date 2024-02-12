@@ -1,6 +1,7 @@
 ﻿using JCTG.Models;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
 using Microsoft.CodeAnalysis.Scripting;
+using System.Text.RegularExpressions;
 
 namespace JCTG.Client
 {
@@ -43,6 +44,21 @@ namespace JCTG.Client
                 Console.WriteLine("Runtime error: " + ex.Message);
                 return 0M;
             }
+        }
+
+        public static async Task<DateTime?> GetDateFromBarString(string input)
+        {
+            string pattern = @"\[(\d+)\]"; // Pattern to find digits inside brackets
+
+            Match match = Regex.Match(input, pattern);
+
+            if (match.Success)
+            {
+                string number = match.Groups[1].Value;
+                long numberAsLong = long.Parse(number);
+                return numberAsLong.FromUnixTime();
+            }
+            return null;
         }
 
         public class ScriptContext

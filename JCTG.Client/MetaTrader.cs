@@ -3,6 +3,7 @@ using JCTG.Models;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using static JCTG.Client.Helpers;
 
 namespace JCTG.Client
@@ -29,7 +30,7 @@ namespace JCTG.Client
             foreach (var api in _appConfig.Brokers.Where(f => f.IsEnable).ToList())
             {
                 // Init API
-                var _api = new MetatraderApi(api.MetaTraderDirPath, api.ClientId, terminalConfig.SleepDelay, terminalConfig.MaxRetryCommandSeconds, terminalConfig.LoadOrdersFromFile);
+                var _api = new MetatraderApi(api.MetaTraderDirPath, api.ClientId, terminalConfig.SleepDelay, terminalConfig.MaxRetryCommandSeconds, true);
 
                 // Add to the list
                 _apis.Add(_api);
@@ -60,6 +61,7 @@ namespace JCTG.Client
                         _api.OnOrderCloseEvent += OnOrderCloseEvent;
                         _api.OnLogEvent += OnLogEvent;
                         _api.OnCandleCloseEvent += OnCandleCloseEvent;
+                        _api.OnTradeEvent += OnTradeEvent;
                         _api.OnTickEvent += OnTickEvent;
 
                         // Start the API
@@ -86,6 +88,7 @@ namespace JCTG.Client
 
             await Task.FromResult(0);
         }
+
 
         public async Task ListenToTheServerAsync()
         {
@@ -227,13 +230,13 @@ namespace JCTG.Client
                                                             else
                                                             {
                                                                 var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={tradingviewAlert.OrderType},Magic={tradingviewAlert.Magic},StrategyType={tradingviewAlert.StrategyType},Price={tradingviewAlert.MarketOrder.Price},TP={tradingviewAlert.MarketOrder.TakeProfit},SL={tradingviewAlert.MarketOrder.StopLoss}");
-                                                                await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = "Spread is too high in regards to the risk" }, tradingviewAlert.SignalID);
+                                                                await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = $"The risk {metadataTick.Ask - slPrice} should be at least {pair.RiskMinXTimesTheSpread} times the spread : {spread}" }, tradingviewAlert.SignalID);
                                                             }
                                                         }
                                                         else
                                                         {
                                                             var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={tradingviewAlert.OrderType},Magic={tradingviewAlert.Magic},StrategyType={tradingviewAlert.StrategyType},Price={tradingviewAlert.MarketOrder.Price},TP={tradingviewAlert.MarketOrder.TakeProfit},SL={tradingviewAlert.MarketOrder.StopLoss}");
-                                                            await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = "Max lot size exceeded" }, tradingviewAlert.SignalID);
+                                                            await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = $"Max lot size {lotSize} exceeded : {pair.MaxLotSize}" }, tradingviewAlert.SignalID);
                                                         }
                                                     }
                                                     else
@@ -380,19 +383,19 @@ namespace JCTG.Client
                                                             else
                                                             {
                                                                 var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={tradingviewAlert.OrderType},Magic={tradingviewAlert.Magic},StrategyType={tradingviewAlert.StrategyType},EntryExpr={tradingviewAlert.PassiveOrder.EntryExpression},Risk={tradingviewAlert.PassiveOrder.Risk},RR={tradingviewAlert.PassiveOrder.RiskRewardRatio}");
-                                                                await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = "Spread is too high in regards to the risk" }, tradingviewAlert.SignalID);
+                                                                await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = $"The risk {tradingviewAlert.PassiveOrder.Risk.Value} should be at least {pair.RiskMinXTimesTheSpread} times the spread : {spread}" }, tradingviewAlert.SignalID);
                                                             }
                                                         }
                                                         else
                                                         {
                                                             var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={tradingviewAlert.OrderType},Magic={tradingviewAlert.Magic},StrategyType={tradingviewAlert.StrategyType},EntryExpr={tradingviewAlert.PassiveOrder.EntryExpression},Risk={tradingviewAlert.PassiveOrder.Risk},RR={tradingviewAlert.PassiveOrder.RiskRewardRatio}");
-                                                            await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = "Max lot size exceeded" }, tradingviewAlert.SignalID);
+                                                            await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = $"Max lot size {lotSize} exceeded : {pair.MaxLotSize}" }, tradingviewAlert.SignalID);
                                                         }
                                                     }
                                                     else
                                                     {
                                                         var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={tradingviewAlert.OrderType},Magic={tradingviewAlert.Magic},StrategyType={tradingviewAlert.StrategyType},EntryExpr={tradingviewAlert.PassiveOrder.EntryExpression},Risk={tradingviewAlert.PassiveOrder.Risk},RR={tradingviewAlert.PassiveOrder.RiskRewardRatio}");
-                                                        await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = $"Can't find entry candle {tradingviewAlert.PassiveOrder.EntryExpression}" }, tradingviewAlert.SignalID);
+                                                        await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = $"Can't find entry candle {tradingviewAlert.PassiveOrder.EntryExpression} with date : {DynamicEvaluator.GetDateFromBarString(tradingviewAlert.PassiveOrder.EntryExpression)}" }, tradingviewAlert.SignalID);
                                                     }
                                                 }
 
@@ -496,13 +499,13 @@ namespace JCTG.Client
                                                             else
                                                             {
                                                                 var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={tradingviewAlert.OrderType},Magic={tradingviewAlert.Magic},StrategyType={tradingviewAlert.StrategyType},Price={tradingviewAlert.MarketOrder.Price},TP={tradingviewAlert.MarketOrder.TakeProfit},SL={tradingviewAlert.MarketOrder.StopLoss}");
-                                                                await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = "The spread is too high in regards to the risk" }, tradingviewAlert.SignalID);
+                                                                await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = $"The risk {slPrice - metadataTick.Ask} should be at least {pair.RiskMinXTimesTheSpread} times the spread : {spread}" }, tradingviewAlert.SignalID);
                                                             }
                                                         }
                                                         else
                                                         {
                                                             var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={tradingviewAlert.OrderType},Magic={tradingviewAlert.Magic},StrategyType={tradingviewAlert.StrategyType},Price={tradingviewAlert.MarketOrder.Price},TP={tradingviewAlert.MarketOrder.TakeProfit},SL={tradingviewAlert.MarketOrder.StopLoss}");
-                                                            await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = "Max lot size exceeded" }, tradingviewAlert.SignalID);
+                                                            await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = $"Max lot size {lotSize} exceeded : {pair.MaxLotSize}" }, tradingviewAlert.SignalID);
                                                         }
                                                     }
                                                     else
@@ -649,19 +652,19 @@ namespace JCTG.Client
                                                             else
                                                             {
                                                                 var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={tradingviewAlert.OrderType},Magic={tradingviewAlert.Magic},StrategyType={tradingviewAlert.StrategyType},EntryExpr={tradingviewAlert.PassiveOrder.EntryExpression},Risk={tradingviewAlert.PassiveOrder.Risk},RR={tradingviewAlert.PassiveOrder.RiskRewardRatio}");
-                                                                await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = "Spread is too high in regards to the risk" }, tradingviewAlert.SignalID);
+                                                                await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = $"The risk {tradingviewAlert.PassiveOrder.Risk.Value} should be at least {pair.RiskMinXTimesTheSpread} times the spread : {spread}" }, tradingviewAlert.SignalID);
                                                             }
                                                         }
                                                         else
                                                         {
                                                             var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={tradingviewAlert.OrderType},Magic={tradingviewAlert.Magic},StrategyType={tradingviewAlert.StrategyType},EntryExpr={tradingviewAlert.PassiveOrder.EntryExpression},Risk={tradingviewAlert.PassiveOrder.Risk},RR={tradingviewAlert.PassiveOrder.RiskRewardRatio}");
-                                                            await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = "Max lot size exceeded" }, tradingviewAlert.SignalID);
+                                                            await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = $"Max lot size {lotSize} exceeded : {pair.MaxLotSize}" }, tradingviewAlert.SignalID);
                                                         }
                                                     }
                                                     else
                                                     {
                                                         var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={tradingviewAlert.OrderType},Magic={tradingviewAlert.Magic},StrategyType={tradingviewAlert.StrategyType},EntryExpr={tradingviewAlert.PassiveOrder.EntryExpression},Risk={tradingviewAlert.PassiveOrder.Risk},RR={tradingviewAlert.PassiveOrder.RiskRewardRatio}");
-                                                        await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = $"Can't find entry candle {tradingviewAlert.PassiveOrder.EntryExpression}" }, tradingviewAlert.SignalID);
+                                                        await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = $"Can't find entry candle {tradingviewAlert.PassiveOrder.EntryExpression} with date : {DynamicEvaluator.GetDateFromBarString(tradingviewAlert.PassiveOrder.EntryExpression)}" }, tradingviewAlert.SignalID);
                                                     }
                                                 }
 
@@ -875,25 +878,25 @@ namespace JCTG.Client
                                         else
                                         {
                                             var message = string.Format($"Symbol={tradingviewAlert.Instrument},Type={tradingviewAlert.OrderType},Magic={tradingviewAlert.Magic},StrategyType={tradingviewAlert.StrategyType}");
-                                            await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "WARNING", Message = message, ErrorType = "No subscription for this pair and strategy" });
+                                            await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "WARNING", Message = message, ErrorType = "No subscription for this pair and strategy" }, tradingviewAlert.SignalID);
                                         }
                                     }
                                     else
                                     {
                                         var message = string.Format($"Symbol={tradingviewAlert.Instrument},Type={tradingviewAlert.OrderType},Magic={tradingviewAlert.Magic},StrategyType={tradingviewAlert.StrategyType}");
-                                        await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = "No market data available for this metatrader" });
+                                        await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = "No market data available for this metatrader" }, tradingviewAlert.SignalID);
                                     }
                                 }
                                 else
                                 {
                                     var message = string.Format($"Symbol={tradingviewAlert.Instrument},Type={tradingviewAlert.OrderType},Magic={tradingviewAlert.Magic},StrategyType={tradingviewAlert.StrategyType}");
-                                    await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = "No account info available for this metatrader" });
+                                    await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = "No account info available for this metatrader" }, tradingviewAlert.SignalID);
                                 }
                             }
                         }
                         else
                         {
-                            await LogAsync(0, new Log() { Time = DateTime.UtcNow, Type = "ERROR", ErrorType = "Message received from the server that is null" });
+                            await LogAsync(0, new Log() { Time = DateTime.UtcNow, Type = "ERROR", ErrorType = "Error message received from the server. Could not link it to a signal." });
                         }
                     };
 
@@ -949,6 +952,14 @@ namespace JCTG.Client
                             // Send log to files
                             Task.Run(async () =>
                             {
+                                // Send the event to Azure PubSub server
+                                await new AzurePubSubServer().SendOnItsTimeToCloseTheOrderEventAsync(new OnItsTimeToCloseTheOrderEvent()
+                                {
+                                    ClientID = clientId,
+                                    SignalID = signalId,
+                                    Log = log
+                                });
+
                                 // Send log to file
                                 await LogAsync(clientId, log, signalId);
                             });
@@ -1028,6 +1039,14 @@ namespace JCTG.Client
                                             // Check if SL is already set to BE
                                             if (order.Value.StopLoss != slPrice)
                                             {
+                                                // Send to logs
+                                                if (_appConfig.Debug)
+                                                {
+                                                    var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={order.Value.Type},Magic={order.Value.Magic},StrategyType={strategyType},Price={order.Value.OpenPrice},TP={order.Value.TakeProfit},SL={slPrice}");
+                                                    var description = string.Format($"SL: OpenPrice={order.Value.OpenPrice},Spread={spread},Offset={offset},Digits={marketdata.Value.Digits}");
+                                                    Task.Run(async () => await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, signalId));
+                                                }
+
                                                 // Print on the screen
                                                 Print(Environment.NewLine);
                                                 Print("------!!! AUTO !!! ------- SEND MODIFY SL TO BE ORDER TO METATRADER ------!!! AUTO !!! -------");
@@ -1046,12 +1065,21 @@ namespace JCTG.Client
                                                 // Modify order
                                                 api.ModifyOrder(order.Key, order.Value.Lots, 0, slPrice, order.Value.TakeProfit);
 
-                                                var message = string.Format($"Symbol={order.Value.Symbol},Ticket={order.Key},Lots={order.Value.Lots},Type={order.Value.Type},Magic={order.Value.Magic},Price={order.Value.OpenPrice},TP={order.Value.TakeProfit},SL={order.Value.StopLoss},Comment={order.Value.Comment}");
-                                                var log = new Log() { Time = DateTime.UtcNow, Type = "Auto move SL to BE", Message = message };
+                                                var message2 = string.Format($"Symbol={order.Value.Symbol},Ticket={order.Key},Lots={order.Value.Lots},Type={order.Value.Type},Magic={order.Value.Magic},Price={order.Value.OpenPrice},TP={order.Value.TakeProfit},SL={slPrice},Comment={order.Value.Comment}");
+                                                var log = new Log() { Time = DateTime.UtcNow, Type = "INFO", Message = message2, Description = "Auto move SL to BE" };
 
                                                 // Send log to BE
-                                                Task.Run(async () => 
+                                                Task.Run(async () =>
                                                 {
+                                                    // Send the event to Azure PubSub server
+                                                    await new AzurePubSubServer().SendOnOrderAutoMoveSlToBeEventAsync(new OnOrderAutoMoveSlToBeEvent()
+                                                    {
+                                                        ClientID = clientId,
+                                                        SignalID = signalId,
+                                                        StopLossPrice = slPrice,
+                                                        Log = log
+                                                    });
+
                                                     // Send log to file
                                                     await LogAsync(clientId, log, signalId);
                                                 });
@@ -1072,6 +1100,14 @@ namespace JCTG.Client
                                             // Check if SL is already set to BE
                                             if (order.Value.StopLoss != slPrice)
                                             {
+                                                // Send to logs
+                                                if (_appConfig.Debug)
+                                                {
+                                                    var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={order.Value.Type},Magic={order.Value.Magic},StrategyType={strategyType},Price={order.Value.OpenPrice},TP={order.Value.TakeProfit},SL={slPrice}");
+                                                    var description = string.Format($"SL: OpenPrice={order.Value.OpenPrice},Spread={spread},Offset={offset},Digits={marketdata.Value.Digits}");
+                                                    Task.Run(async () => await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, signalId));
+                                                }
+
                                                 // Print on the screen
                                                 Print(Environment.NewLine);
                                                 Print("------!!! AUTO !!! ------- SEND MODIFY SL TO BE ORDER TO METATRADER ------!!! AUTO !!! -------");
@@ -1091,12 +1127,21 @@ namespace JCTG.Client
                                                 api.ModifyOrder(order.Key, order.Value.Lots, 0, slPrice, order.Value.TakeProfit);
 
                                                 // Send log to files
-                                                var message = string.Format($"Symbol={order.Value.Symbol},Ticket={order.Key},Lots={order.Value.Lots},Type={order.Value.Type},Magic={order.Value.Magic},Price={order.Value.OpenPrice},TP={order.Value.TakeProfit},SL={order.Value.StopLoss},Comment={order.Value.Comment}");
-                                                var log = new Log() { Time = DateTime.UtcNow, Type = "Auto move SL to BE", Message = message };
+                                                var message2 = string.Format($"Symbol={order.Value.Symbol},Ticket={order.Key},Lots={order.Value.Lots},Type={order.Value.Type},Magic={order.Value.Magic},Price={order.Value.OpenPrice},TP={order.Value.TakeProfit},SL={slPrice},Comment={order.Value.Comment}");
+                                                var log = new Log() { Time = DateTime.UtcNow, Type = "INFO", Message = message2, Description = "Auto move SL to BE" };
 
                                                 // Send log to BE
                                                 Task.Run(async () =>
                                                 {
+                                                    // Send the event to Azure PubSub server
+                                                    await new AzurePubSubServer().SendOnOrderAutoMoveSlToBeEventAsync(new OnOrderAutoMoveSlToBeEvent()
+                                                    {
+                                                        ClientID = clientId,
+                                                        SignalID = signalId,
+                                                        StopLossPrice = slPrice,
+                                                        Log = log
+                                                    });
+
                                                     // Send log to file
                                                     await LogAsync(clientId, log, signalId);
                                                 });
@@ -1187,7 +1232,7 @@ namespace JCTG.Client
                     });
 
                     // Send log to files
-                    await LogAsync(clientId, log);
+                    await LogAsync(clientId, log, signalId);
 
                     // Send log to the journal
                     await SendLogToJournalFileAsync(clientId, signalId, log);
@@ -1239,7 +1284,7 @@ namespace JCTG.Client
                     });
 
                     // Send log to files
-                    await LogAsync(clientId, log);
+                    await LogAsync(clientId, log, signalId);
 
                     // Send log to the journal
                     await SendLogToJournalFileAsync(clientId, signalId, log);
@@ -1268,6 +1313,7 @@ namespace JCTG.Client
                 Print("Magic     : " + order.Magic);
                 Print("------------------------------------------------");
 
+
                 // Send log to files
                 var message = string.Format($"Symbol={order.Symbol},Ticket={ticketId},Lots={order.Lots},Type={order.Type},Magic={order.Magic},Price={order.OpenPrice},TP={order.TakeProfit},SL={order.StopLoss},Comment={order.Comment}");
                 var log = new Log() { Time = DateTime.UtcNow, Type = "INFO", Description = "Close order", Message = message };
@@ -1278,6 +1324,7 @@ namespace JCTG.Client
                 if (components != null && components.Length == 5)
                     _ = long.TryParse(components[0], out signalId);
 
+
                 Task.Run(async () =>
                 {
                     // Send the tradejournal to Azure PubSub server
@@ -1285,18 +1332,56 @@ namespace JCTG.Client
                     {
                         ClientID = clientId,
                         SignalID = signalId,
+                        ClosePrice = 0.0M, // TODO
                         Order = order,
                         Log = log
                     });
 
                     // Send logs to file
-                    await LogAsync(clientId, log);
+                    await LogAsync(clientId, log, signalId);
 
                     // Send log to the journal
                     await SendLogToJournalFileAsync(clientId, signalId, log);
 
                     // Send order to the journal
                     await SendOrderToJournalFileAsync(clientId, signalId, order, true);
+                });
+            }
+        }
+
+        private void OnTradeEvent(long clientId, long tradeId, Trade trade)
+        {
+            // Do null reference check
+            if (_appConfig != null)
+            {
+                // Send log to files
+                var message = string.Format($"Symbol={trade.Symbol},TradeId={tradeId},Lots={trade.Lots},Type={trade.Type},Magic={trade.Magic},Entry={trade.Entry},DealPrice={trade.DealPrice},Comment={trade.Comment}");
+                var log = new Log() { Time = DateTime.UtcNow, Type = "INFO", Description = "Trade", Message = message };
+
+                // Get the signal id from the comment field
+                string[] components = trade.Comment != null ? trade.Comment.Split('/') : [];
+                long signalId = 0;
+                if (trade.Entry == "entry_in" && components != null && components.Length == 5)
+                    _ = long.TryParse(components[0], out signalId);
+
+
+                Task.Run(async () =>
+                {
+                    // Send the tradejournal to Azure PubSub server
+                    await new AzurePubSubServer().SendOnTradeEventAsync(new OnTradeEvent()
+                    {
+                        ClientID = clientId,
+                        SignalID = signalId == 0 ? null : signalId,
+                        TradeID = tradeId,
+                        Trade = trade,
+                        Log = log
+                    });
+
+                    // Send logs to file
+                    await LogAsync(clientId, log, signalId);
+
+                    // Send log to the journal
+                    await SendLogToJournalFileAsync(clientId, signalId, log);
                 });
             }
         }
