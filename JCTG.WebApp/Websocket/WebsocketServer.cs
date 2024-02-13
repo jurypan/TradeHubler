@@ -15,11 +15,14 @@ namespace JCTG.WebApp.Helpers
 
                 if (onOrderCreate != null && onOrderCreate.ClientID > 0 && onOrderCreate.SignalID > 0)
                 {
+                    // Check trade journal
+                    var journal = await dbContext.TradeJournal.FirstOrDefaultAsync(f => f.ClientID == onOrderCreate.ClientID && f.SignalID == onOrderCreate.SignalID);
+
                     // Check for duplicates
-                    if(!await dbContext.TradeJournal.AnyAsync(f => f.ClientID == onOrderCreate.ClientID && f.SignalID == onOrderCreate.SignalID))
+                    if (journal == null)
                     {
                         // Deal journal
-                        var journal = new TradeJournal()
+                        journal = new TradeJournal()
                         {
                             DateCreated = DateTime.UtcNow,
                             IsTradeClosed = false,
@@ -36,24 +39,24 @@ namespace JCTG.WebApp.Helpers
                             Magic = onOrderCreate.Order.Magic,
                         };
                         await dbContext.TradeJournal.AddAsync(journal);
-
-                        // Log
-                        var log = new Log()
-                        {
-                            SignalID = onOrderCreate.SignalID,
-                            ClientID = onOrderCreate.ClientID,
-                            Description = onOrderCreate.Log.Description,
-                            ErrorType = onOrderCreate.Log.ErrorType,
-                            Message = onOrderCreate.Log.Message,
-                            Time = onOrderCreate.Log.Time,
-                            Type = onOrderCreate.Log.Type,
-                        }
-                        ;
-                        await dbContext.Log.AddAsync(log);
-
-                        // Save
-                        await dbContext.SaveChangesAsync();
                     }
+
+                    // Log
+                    var log = new Log()
+                    {
+                        SignalID = onOrderCreate.SignalID,
+                        ClientID = onOrderCreate.ClientID,
+                        Description = onOrderCreate.Log.Description,
+                        ErrorType = onOrderCreate.Log.ErrorType,
+                        Message = onOrderCreate.Log.Message,
+                        Time = onOrderCreate.Log.Time,
+                        Type = onOrderCreate.Log.Type,
+                    }
+                    ;
+                    await dbContext.Log.AddAsync(log);
+
+                    // Save
+                    await dbContext.SaveChangesAsync();
                 }
             };
 
@@ -233,7 +236,7 @@ namespace JCTG.WebApp.Helpers
                     if(!dbContext.TradeJournalDeal.Any(f => f.DealId == onDealEvent.DealID))
                     {
                         // Get the trade journal from the database
-                        var journal = await dbContext.TradeJournal.FirstOrDefaultAsync(f => f.SignalID == onDealEvent.SignalID && f.ClientID == onDealEvent.ClientID);
+                        var journal = await dbContext.TradeJournal.FirstOrDefaultAsync(f => f.Magic == onDealEvent.Deal.Magic && f.ClientID == onDealEvent.ClientID);
 
                         // Do null reference check
                         if (journal != null)
@@ -243,10 +246,7 @@ namespace JCTG.WebApp.Helpers
                             {
                                  DateCreated = DateTime.UtcNow,
                                  DealId = onDealEvent.DealID,
-                                 Comment = onDealEvent.Deal.Comment,
                                  Commission = onDealEvent.Deal.Commission,
-                                 DealPrice = onDealEvent.Deal.DealPrice,
-                                 DealTime = onDealEvent.Deal.DealTime,
                                  Entry = onDealEvent.Deal.Entry,
                                  Lots = onDealEvent.Deal.Lots,
                                  Magic = onDealEvent.Deal.Magic,

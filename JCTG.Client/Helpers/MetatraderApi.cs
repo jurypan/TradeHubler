@@ -310,7 +310,7 @@ namespace JCTG.Client
                     // Do null reference check
                     if (deals != null)
                     {
-                        // Throw events for new deals
+                        // Foreach deal
                         foreach (var deal in deals)
                         {
                             // Check if it's already in the current collection, if not -> throw event

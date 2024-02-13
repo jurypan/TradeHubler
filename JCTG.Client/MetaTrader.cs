@@ -1354,7 +1354,7 @@ namespace JCTG.Client
             if (_appConfig != null)
             {
                 // Send log to files
-                var message = string.Format($"Symbol={trade.Symbol},TradeId={tradeId},Lots={trade.Lots},Type={trade.Type},Magic={trade.Magic},Entry={trade.Entry},DealPrice={trade.DealPrice},Comment={trade.Comment}");
+                var message = string.Format($"Symbol={trade.Symbol},TradeId={tradeId},Lots={trade.Lots},Type={trade.Type},Magic={trade.Magic},Entry={trade.Entry},Comment={trade.Comment}");
                 var log = new Log() { Time = DateTime.UtcNow, Type = "INFO", Description = "Deal", Message = message };
 
                 // Get the signal id from the comment field
