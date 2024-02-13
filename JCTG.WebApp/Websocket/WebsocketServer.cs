@@ -18,7 +18,7 @@ namespace JCTG.WebApp.Helpers
                     // Check for duplicates
                     if(!await dbContext.TradeJournal.AnyAsync(f => f.ClientID == onOrderCreate.ClientID && f.SignalID == onOrderCreate.SignalID))
                     {
-                        // Trade journal
+                        // Deal journal
                         var journal = new TradeJournal()
                         {
                             DateCreated = DateTime.UtcNow,
@@ -221,75 +221,81 @@ namespace JCTG.WebApp.Helpers
                 }
             };
 
-            client.OnTradeEvent += async (onTradeEvent) =>
+            client.OnDealEvent += async (onDealEvent) =>
             {
                 using var scope = scopeFactory.CreateScope();
                 var dbContext = scope.ServiceProvider.GetRequiredService<JCTGDbContext>();
 
                 // Do null reference check
-                if (onTradeEvent != null && onTradeEvent.ClientID > 0 && onTradeEvent.Trade != null && onTradeEvent.TradeID > 0)
+                if (onDealEvent != null && onDealEvent.ClientID > 0 && onDealEvent.Deal != null && onDealEvent.DealID > 0)
                 {
-                    // When a new trade is just entered
-                    if(onTradeEvent.SignalID.HasValue && onTradeEvent.Trade.Entry == "entry_in")
+                    // Check if the deal already exist
+                    if(!dbContext.TradeJournalDeal.Any(f => f.DealId == onDealEvent.DealID))
                     {
                         // Get the trade journal from the database
-                        var journal = await dbContext.TradeJournal.FirstOrDefaultAsync(f => f.SignalID == onTradeEvent.SignalID && f.ClientID == onTradeEvent.ClientID);
+                        var journal = await dbContext.TradeJournal.FirstOrDefaultAsync(f => f.SignalID == onDealEvent.SignalID && f.ClientID == onDealEvent.ClientID);
 
                         // Do null reference check
-                        if (journal != null && !journal.TradeID.HasValue)
+                        if (journal != null)
                         {
-                            journal.TradeID = onTradeEvent.TradeID;
-                            journal.OpenLots += onTradeEvent.Trade.Lots;
-                            journal.Swap += onTradeEvent.Trade.Swap;
-                            journal.Commission += onTradeEvent.Trade.Commission;
-                            journal.Pnl += onTradeEvent.Trade.Pnl;
+                            // Add deal
+                            var deal = new TradeJournalDeal()
+                            {
+                                 DateCreated = DateTime.UtcNow,
+                                 DealId = onDealEvent.DealID,
+                                 Comment = onDealEvent.Deal.Comment,
+                                 Commission = onDealEvent.Deal.Commission,
+                                 DealPrice = onDealEvent.Deal.DealPrice,
+                                 DealTime = onDealEvent.Deal.DealTime,
+                                 Entry = onDealEvent.Deal.Entry,
+                                 Lots = onDealEvent.Deal.Lots,
+                                 Magic = onDealEvent.Deal.Magic,
+                                 Pnl = onDealEvent.Deal.Pnl,
+                                 Swap = onDealEvent.Deal.Swap,
+                                 Symbol = onDealEvent.Deal.Symbol,
+                                 TradeJournalID = journal.ID,
+                                 Type = onDealEvent.Deal.Type,
+                            };
+                            await dbContext.TradeJournalDeal.AddAsync(deal);
+
+                            // Update the journal
+                            journal.Swap += onDealEvent.Deal.Swap;
+                            journal.Commission += onDealEvent.Deal.Commission;
+                            journal.Pnl += onDealEvent.Deal.Pnl;
 
                             // Log
                             var log = new Log()
                             {
-                                SignalID = onTradeEvent.SignalID,
-                                ClientID = onTradeEvent.ClientID,
-                                Description = onTradeEvent.Log.Description,
-                                ErrorType = onTradeEvent.Log.ErrorType,
-                                Message = onTradeEvent.Log.Message,
-                                Time = onTradeEvent.Log.Time,
-                                Type = onTradeEvent.Log.Type,
+                                SignalID = onDealEvent.SignalID,
+                                ClientID = onDealEvent.ClientID,
+                                Description = onDealEvent.Log.Description,
+                                ErrorType = onDealEvent.Log.ErrorType,
+                                Message = onDealEvent.Log.Message,
+                                Time = onDealEvent.Log.Time,
+                                Type = onDealEvent.Log.Type,
                             };
                             await dbContext.Log.AddAsync(log);
 
                             // Save
                             await dbContext.SaveChangesAsync();
-                        }
-                    }
 
-                    // When a new trade is just entered
-                    if (!onTradeEvent.SignalID.HasValue && onTradeEvent.Trade.Entry == "entry_out")
-                    {
-                        // Get the trade journal from the database
-                        var journal = await dbContext.TradeJournal.FirstOrDefaultAsync(f => f.Magic == onTradeEvent.Trade.Magic && f.Symbol == onTradeEvent.Trade.Symbol && f.Type == onTradeEvent.Trade.Type && f.ClientID == onTradeEvent.ClientID);
+                            // Check if trade is closed
+                            var totalLotsResult = dbContext.TradeJournalDeal
+                                                        .GroupBy(trade => 1) // Group by a constant to aggregate over all trades
+                                                        .Select(g => new
+                                                        {
+                                                            TotalLots = g.Sum(trade =>
+                                                                trade.Entry == "entry_in" ? trade.Lots :
+                                                                trade.Entry == "entry_out" || trade.Entry == "entry_out_by" ? -trade.Lots :
+                                                                0)
+                                                        })
+                                                        .FirstOrDefault();
 
-                        // Do null reference check
-                        if (journal != null && !journal.IsTradeClosed)
-                        {
-                            journal.CloseLots += onTradeEvent.Trade.Lots;
-                            journal.Swap += onTradeEvent.Trade.Swap;
-                            journal.Commission += onTradeEvent.Trade.Commission;
-                            journal.Pnl += onTradeEvent.Trade.Pnl;
-                            journal.CloseTime = DateTime.UtcNow;
-                            journal.IsTradeClosed = journal.CloseLots == journal.OpenLots;
-
-                            // Log
-                            var log = new Log()
+                            if (totalLotsResult != null && totalLotsResult.TotalLots == 0)
                             {
-                                SignalID = journal.SignalID,
-                                ClientID = onTradeEvent.ClientID,
-                                Description = onTradeEvent.Log.Description,
-                                ErrorType = onTradeEvent.Log.ErrorType,
-                                Message = onTradeEvent.Log.Message,
-                                Time = onTradeEvent.Log.Time,
-                                Type = onTradeEvent.Log.Type,
-                            };
-                            await dbContext.Log.AddAsync(log);
+                                journal.CloseTime = DateTime.UtcNow;
+                                journal.IsTradeClosed = true;
+                            }
                         }
                     }
                 }

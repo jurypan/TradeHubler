@@ -48,11 +48,12 @@
           "CancelStopOrLimitOrderWhenNewSignal": true,
           "NumberOfHistoricalBarsRequested": 100,
           "CloseAllTradesAt": "04:55",
+          "DoNotOpenTradesXMinutesBeforeClose": 10, // TODO
           "SpreadEntry": "Add",
           "SpreadSL": "Subtract",
           "SpreadTP": "Add",
           "RiskMinXTimesTheSpread": 4,
-          "CorrelatedPairs": []
+          "CorrelatedPairs": [] // TODO
         },
         {
           "TickerInTradingView": "UKX",

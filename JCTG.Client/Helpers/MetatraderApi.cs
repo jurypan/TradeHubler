@@ -21,10 +21,10 @@ namespace JCTG.Client
         private readonly string pathMarketData;
         private readonly string pathCandleCloseData;
         private readonly string pathHistoricData;
-        private readonly string pathTrades;
+        private readonly string pathDeals;
         private readonly string pathOrdersStored;
         private readonly string pathMessagesStored;
-        private readonly string pathTradesStored;
+        private readonly string pathDealsStored;
         private readonly string pathCommandsPrefix;
 
         private readonly int maxCommandFiles = 20;
@@ -35,7 +35,7 @@ namespace JCTG.Client
         private string lastMarketDataStr = "";
         private string lastCandleCloseStr = "";
         private string lastHistoricDataStr = "";
-        private string lastTradesStr = "";
+        private string lastDealsStr = "";
 
 
         public Dictionary<long, Order> OpenOrders { get; private set; }
@@ -43,7 +43,7 @@ namespace JCTG.Client
         public Dictionary<string, MarketData> MarketData { get; private set; }
         public Dictionary<string, BarData> LastBarData { get; private set; }
         public Dictionary<string, HistoricBarData> HistoricData { get; private set; }
-        public Dictionary<long, Trade> Trades { get; private set; }
+        public Dictionary<long, Deal> Trades { get; private set; }
 
         public long ClientId { get; private set; }
 
@@ -56,7 +56,7 @@ namespace JCTG.Client
         private Thread? marketDataThread;
         private Thread? barDataThread;
         private Thread? historicDataThread;
-        private Thread? tradesThread;
+        private Thread? dealsThread;
 
         // Define the delegate for the event
         public delegate void OnOrderCreateEventHandler(long clientId, long ticketId, Order order);
@@ -80,8 +80,8 @@ namespace JCTG.Client
         public delegate void OnHistoricDataEventHandler(long clientId);
         public event OnHistoricDataEventHandler? OnHistoricDataEvent;
 
-        public delegate void OnTradeEventHandler(long clientId, long tradeId, Trade trade);
-        public event OnTradeEventHandler? OnTradeEvent;
+        public delegate void OnDealEventHandler(long clientId, long dealId, Deal deal);
+        public event OnDealEventHandler? OnDealEvent;
 
 
 
@@ -99,16 +99,16 @@ namespace JCTG.Client
                 Environment.Exit(1);
             }
 
-            this.pathOrders = Path.Join(MetaTraderDirPath, "DWX", "DWX_Orders.txt");
-            this.pathMessages = Path.Join(MetaTraderDirPath, "DWX", "DWX_Messages.txt");
-            this.pathMarketData = Path.Join(MetaTraderDirPath, "DWX", "DWX_Market_Data.txt");
-            this.pathCandleCloseData = Path.Join(MetaTraderDirPath, "DWX", "DWX_Bar_Data.txt");
-            this.pathHistoricData = Path.Join(MetaTraderDirPath, "DWX", "DWX_Historic_Data.txt");
-            this.pathTrades = Path.Join(MetaTraderDirPath, "DWX", "DWX_Historic_Trades.txt");
-            this.pathOrdersStored = Path.Join(MetaTraderDirPath, "DWX", "DWX_Orders_Stored.json");
-            this.pathMessagesStored = Path.Join(MetaTraderDirPath, "DWX", "DWX_Messages_Stored.json");
-            this.pathTradesStored = Path.Join(MetaTraderDirPath, "DWX", "DWX_Trades_Stored.json");
-            this.pathCommandsPrefix = Path.Join(MetaTraderDirPath, "DWX", "DWX_Commands_");
+            this.pathOrders = Path.Join(MetaTraderDirPath, "JCTG", "JCTG_Orders.json");
+            this.pathMessages = Path.Join(MetaTraderDirPath, "JCTG", "JCTG_Messages.json");
+            this.pathMarketData = Path.Join(MetaTraderDirPath, "JCTG", "JCTG_Market_Data.json");
+            this.pathCandleCloseData = Path.Join(MetaTraderDirPath, "JCTG", "JCTG_Bar_Data.json");
+            this.pathHistoricData = Path.Join(MetaTraderDirPath, "JCTG", "JCTG_Historic_Data.json");
+            this.pathDeals = Path.Join(MetaTraderDirPath, "JCTG", "JCTG_Historic_Trades.json");
+            this.pathOrdersStored = Path.Join(MetaTraderDirPath, "JCTG", "JCTG_Orders_Stored.json");
+            this.pathMessagesStored = Path.Join(MetaTraderDirPath, "JCTG", "JCTG_Messages_Stored.json");
+            this.pathDealsStored = Path.Join(MetaTraderDirPath, "JCTG", "JCTG_Trades_Stored.json");
+            this.pathCommandsPrefix = Path.Join(MetaTraderDirPath, "JCTG", "JCTG_Commands_");
         }
 
 
@@ -138,8 +138,8 @@ namespace JCTG.Client
             this.historicDataThread = new Thread(async () => await CheckHistoricDataAsync());
             this.historicDataThread?.Start();
 
-            this.tradesThread = new Thread(async () => await CheckTradesAsync());
-            this.tradesThread?.Start();
+            this.dealsThread = new Thread(async () => await CheckDealsAsync());
+            this.dealsThread?.Start();
 
             await ResetCommandIDsAsync();
 
@@ -208,8 +208,6 @@ namespace JCTG.Client
                         }
                     }
 
-                    var isCollectionOfOrdersChanged = false;
-
                     // Add or update
                     foreach (var orderEntry in ordersData)
                     {
@@ -246,18 +244,12 @@ namespace JCTG.Client
                                     // Check if the values have changed
                                     if (newOrder.StopLoss != previousData.StopLoss || newOrder.TakeProfit != previousData.TakeProfit)
                                     {
-                                        // Set flag as true
-                                        isCollectionOfOrdersChanged = true;
-
                                         // Invoke the event
                                         OnOrderUpdateEvent?.Invoke(ClientId, orderId, newOrder);
                                     }
                                 }
                                 else
                                 {
-                                    // Set flag as true
-                                    isCollectionOfOrdersChanged = true;
-
                                     // If it's a new order, add it to the dictionary and invoke the event
                                     OpenOrders.Add(orderId, newOrder);
                                     OnOrderCreateEvent?.Invoke(ClientId, orderId, newOrder);
@@ -269,9 +261,6 @@ namespace JCTG.Client
                     // Remove the marked orders
                     foreach (var orderId in ordersToRemove)
                     {
-                        // Set flag as true
-                        isCollectionOfOrdersChanged = true;
-
                         // Set close date
                         OpenOrders[orderId].CloseTime = DateTime.UtcNow;
 
@@ -282,16 +271,7 @@ namespace JCTG.Client
                         OpenOrders.Remove(orderId);
                     }
 
-                    // If collection of orders is changed
-                    if(isCollectionOfOrdersChanged)
-                    {
-                        // Update trades
-                        GetTrades(1);
-                    }
                 }
-
-
-                
 
                 if (loadDataFromFile)
                     await TryWriteToFileAsync(pathOrdersStored, data.ToString());
@@ -299,9 +279,9 @@ namespace JCTG.Client
         }
 
         /// <summary>
-        /// Regularly checks the file for trades and triggers the eventHandler.OnTradevent() function.
+        /// Regularly checks the file for deals and triggers the eventHandler.OnTradevent() function.
         /// </summary>
-        private async Task CheckTradesAsync()
+        private async Task CheckDealsAsync()
         {
             while (IsActive)
             {
@@ -312,40 +292,40 @@ namespace JCTG.Client
                     continue;
 
                 // Read file
-                string text = await TryReadFileAsync(pathTrades);
+                string text = await TryReadFileAsync(pathDeals);
 
                 // Make sure the import is new
-                if (this.AccountInfo != null && text.Length > 0 && !text.Equals(lastTradesStr))
+                if (this.AccountInfo != null && text.Length > 0 && !text.Equals(lastDealsStr))
                 {
                     // Set new ordersStored file to the variable
-                    lastTradesStr = text;
+                    lastDealsStr = text;
 
                     // If null -> new instance
                     if (Trades == null)
-                        Trades = new Dictionary<long, Trade>();
+                        Trades = new Dictionary<long, Deal>();
 
                     // Parse it to objects
-                    var trades = JsonConvert.DeserializeObject<Dictionary<long, Trade>>(text);
+                    var deals = JsonConvert.DeserializeObject<Dictionary<long, Deal>>(text);
 
                     // Do null reference check
-                    if (trades != null)
+                    if (deals != null)
                     {
-                        // Throw events for new trades
-                        foreach (var trade in trades)
+                        // Throw events for new deals
+                        foreach (var deal in deals)
                         {
                             // Check if it's already in the current collection, if not -> throw event
-                            if (!Trades.Any(f => f.Key == trade.Key))
+                            if (!Trades.Any(f => f.Key == deal.Key))
                             {
-                                OnTradeEvent?.Invoke(this.ClientId, trade.Key, trade.Value);
+                                OnDealEvent?.Invoke(this.ClientId, deal.Key, deal.Value);
                             }
                         }
 
                         // Update the object
-                        Trades = trades;
+                        Trades = deals;
                     }
 
                     if (loadDataFromFile)
-                        await TryWriteToFileAsync(pathTradesStored, lastTradesStr);
+                        await TryWriteToFileAsync(pathDealsStored, lastDealsStr);
                 }
             }
         }
@@ -717,7 +697,7 @@ namespace JCTG.Client
         {
 
             string ordersStored = await TryReadFileAsync(pathOrdersStored);
-            string tradesStored = await TryReadFileAsync(pathTradesStored);
+            string tradesStored = await TryReadFileAsync(pathDealsStored);
 
             if (ordersStored.Length != 0)
             {
@@ -755,17 +735,17 @@ namespace JCTG.Client
                 catch { return; }
                 if (dataTrades == null) { return; }
 
-                // Set the trade stored as "last trades" to make sure the events are still working
-                lastTradesStr = tradesStored;
+                // Set the deal stored as "last deals" to make sure the events are still working
+                lastDealsStr = tradesStored;
 
                 // Parse it to objects
-                var trades = JsonConvert.DeserializeObject<Dictionary<long, Trade>>(tradesStored);
+                var trades = JsonConvert.DeserializeObject<Dictionary<long, Deal>>(tradesStored);
 
                 // Do null reference check
                 if (trades != null)
                     Trades = trades;
                 else
-                    Trades = new Dictionary<long, Trade>();
+                    Trades = [];
             }
         }
 
@@ -908,15 +888,6 @@ namespace JCTG.Client
         {
             string content = symbol + "," + timeFrame + "," + start.ToUnixTimeSeconds() + "," + end.ToUnixTimeSeconds();
             SendCommand("GET_HISTORIC_DATA", content);
-        }
-
-        /// <summary>
-        /// Sends a get trades command to request historic trades. The dataOrders will be stored in Trades. On receiving the dataOrders the eventHandler.OnHistoricTrades()  function will be triggered.
-        /// </summary>
-        /// <param name="lookbackDays"> lookbackDays (int): Days to look back into the trade history.  The history must also be visible in MT4. </param>
-        public void GetTrades(int lookbackDays)
-        {
-            SendCommand("GET_HISTORIC_TRADES", lookbackDays.ToString());
         }
 
 

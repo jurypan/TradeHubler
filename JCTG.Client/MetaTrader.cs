@@ -3,7 +3,6 @@ using JCTG.Models;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using System.Collections.Concurrent;
-using System.Diagnostics;
 using static JCTG.Client.Helpers;
 
 namespace JCTG.Client
@@ -61,7 +60,7 @@ namespace JCTG.Client
                         _api.OnOrderCloseEvent += OnOrderCloseEvent;
                         _api.OnLogEvent += OnLogEvent;
                         _api.OnCandleCloseEvent += OnCandleCloseEvent;
-                        _api.OnTradeEvent += OnTradeEvent;
+                        _api.OnDealEvent += OnTradeEvent;
                         _api.OnTickEvent += OnTickEvent;
 
                         // Start the API
@@ -1349,14 +1348,14 @@ namespace JCTG.Client
             }
         }
 
-        private void OnTradeEvent(long clientId, long tradeId, Trade trade)
+        private void OnTradeEvent(long clientId, long tradeId, Deal trade)
         {
             // Do null reference check
             if (_appConfig != null)
             {
                 // Send log to files
                 var message = string.Format($"Symbol={trade.Symbol},TradeId={tradeId},Lots={trade.Lots},Type={trade.Type},Magic={trade.Magic},Entry={trade.Entry},DealPrice={trade.DealPrice},Comment={trade.Comment}");
-                var log = new Log() { Time = DateTime.UtcNow, Type = "INFO", Description = "Trade", Message = message };
+                var log = new Log() { Time = DateTime.UtcNow, Type = "INFO", Description = "Deal", Message = message };
 
                 // Get the signal id from the comment field
                 string[] components = trade.Comment != null ? trade.Comment.Split('/') : [];
@@ -1368,12 +1367,12 @@ namespace JCTG.Client
                 Task.Run(async () =>
                 {
                     // Send the tradejournal to Azure PubSub server
-                    await new AzurePubSubServer().SendOnTradeEventAsync(new OnTradeEvent()
+                    await new AzurePubSubServer().SendOnTradeEventAsync(new OnDealEvent()
                     {
                         ClientID = clientId,
                         SignalID = signalId == 0 ? null : signalId,
-                        TradeID = tradeId,
-                        Trade = trade,
+                        DealID = tradeId,
+                        Deal = trade,
                         Log = log
                     });
 

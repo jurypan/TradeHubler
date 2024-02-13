@@ -13,6 +13,8 @@ namespace JCTG
 
         public DbSet<TradeJournal> TradeJournal { get; set; }
 
+        public DbSet<TradeJournalDeal> TradeJournalDeal { get; set; }
+
         public DbSet<Log> Log { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -28,6 +30,11 @@ namespace JCTG
                .HasOne(tj => tj.Client)
                .WithMany(t => t.TradeJournals)
                .HasForeignKey(t => t.ClientID);
+
+            modelBuilder.Entity<TradeJournalDeal>()
+              .HasOne(tj => tj.TradeJournal)
+              .WithMany(t => t.Deals)
+              .HasForeignKey(t => t.TradeJournalID);
 
             modelBuilder.Entity<Signal>()
                 .HasMany(tj => tj.Logs)

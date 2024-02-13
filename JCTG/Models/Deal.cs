@@ -1,6 +1,6 @@
 ﻿namespace JCTG.Models
 {
-    public class Trade
+    public class Deal
     {
         public int Magic { get; set; }
         public string Symbol { get; set; }
