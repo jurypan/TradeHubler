@@ -83,7 +83,7 @@ namespace JCTG.WebApp
                                         if (@event != null)
                                             OnItsTimeToCloseTheOrderEvent?.Invoke(@event);
                                     }
-                                    else if (type == Constants.WebsocketMessageType_OnTradeEvent)
+                                    else if (type == Constants.WebsocketMessageType_OnDealEvent)
                                     {
                                         var @event = JsonSerializer.Deserialize<OnDealEvent>(data.GetRawText(), jsonSerializerOptions);
                                         if (@event != null)

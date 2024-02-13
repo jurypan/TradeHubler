@@ -131,7 +131,7 @@ namespace JCTG.Client
                     Data = @event,
                     DataType = Constants.WebsocketMessageDatatype_JSON,
                     From = Constants.WebsocketMessageFrom_Metatrader,
-                    Type = Constants.WebsocketMessageType_OnTradeEvent,
+                    Type = Constants.WebsocketMessageType_OnDealEvent,
                     TypeName = nameof(OnDealEvent),
                 }, new JsonSerializerSettings { ContractResolver = new IgnoreJsonPropertyContractResolver() }), Azure.Core.ContentType.ApplicationJson);
 

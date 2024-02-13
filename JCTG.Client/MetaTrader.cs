@@ -60,7 +60,7 @@ namespace JCTG.Client
                         _api.OnOrderCloseEvent += OnOrderCloseEvent;
                         _api.OnLogEvent += OnLogEvent;
                         _api.OnCandleCloseEvent += OnCandleCloseEvent;
-                        _api.OnDealEvent += OnTradeEvent;
+                        _api.OnDealEvent += OnDealEvent;
                         _api.OnTickEvent += OnTickEvent;
 
                         // Start the API
@@ -1348,7 +1348,7 @@ namespace JCTG.Client
             }
         }
 
-        private void OnTradeEvent(long clientId, long tradeId, Deal trade)
+        private void OnDealEvent(long clientId, long tradeId, Deal trade)
         {
             // Do null reference check
             if (_appConfig != null)
