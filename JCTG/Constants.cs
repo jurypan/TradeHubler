@@ -6,10 +6,10 @@
 
         // From Metatrader To Server
         public static string WebsocketMessageFrom_Metatrader = "Metatrader";
-        public static string WebsocketMessageType_OnOrderCreateEvent = "OnOrderCreateEvent";
-        public static string WebsocketMessageType_OnOrderUpdateEvent = "OnOrderUpdateEvent";
-        public static string WebsocketMessageType_OnOrderCloseEvent = "OnOrderCloseEvent";
-        public static string WebsocketMessageType_OnDealCreateEvent = "OnDealCreateEvent";
+        public static string WebsocketMessageType_OnOrderCreatedEvent = "OnOrderCreatedEvent";
+        public static string WebsocketMessageType_OnOrderUpdatedEvent = "OnOrderUpdatedEvent";
+        public static string WebsocketMessageType_OnOrderClosedEvent = "OnOrderClosedEvent";
+        public static string WebsocketMessageType_OnDealCreatedEvent = "OnDealCreatedEvent";
         public static string WebsocketMessageType_OnLogEvent = "OnLogEvent";
         public static string WebsocketMessageType_OnOrderAutoMoveSlToBeEvent = "_OnOrderAutoMoveSlToBeEvent";
         public static string WebsocketMessageType_OnItsTimeToCloseTheOrderEvent = "OnItsTimeToCloseTheOrderEvent";

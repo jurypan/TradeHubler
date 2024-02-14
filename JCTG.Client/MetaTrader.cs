@@ -1222,7 +1222,7 @@ namespace JCTG.Client
                 Task.Run(async () =>
                 {
                     // Send the tradejournal to Azure PubSub server
-                    await new AzurePubSubServer().SendOnOrderCreateEventAsync(new OnOrderCreateEvent()
+                    await new AzurePubSubServer().SendOnOrderCreateEventAsync(new OnOrderCreatedEvent()
                     {
                         ClientID = clientId,
                         SignalID = signalId,
@@ -1274,7 +1274,7 @@ namespace JCTG.Client
                 Task.Run(async () =>
                 {
                     // Send the tradejournal to Azure PubSub server
-                    await new AzurePubSubServer().SendOnOrderUpdateEventAsync(new OnOrderUpdateEvent()
+                    await new AzurePubSubServer().SendOnOrderUpdateEventAsync(new OnOrderUpdatedEvent()
                     {
                         ClientID = clientId,
                         SignalID = signalId,
@@ -1331,7 +1331,7 @@ namespace JCTG.Client
                 Task.Run(async () =>
                 {
                     // Send the tradejournal to Azure PubSub server
-                    await new AzurePubSubServer().SendOnOrderCloseEventAsync(new OnOrderCloseEvent()
+                    await new AzurePubSubServer().SendOnOrderCloseEventAsync(new OnOrderClosedEvent()
                     {
                         ClientID = clientId,
                         SignalID = signalId,
@@ -1365,7 +1365,7 @@ namespace JCTG.Client
                 Task.Run(async () =>
                 {
                     // Send the tradejournal to Azure PubSub server
-                    await new AzurePubSubServer().SendOnTradeEventAsync(new OnDealCreateEvent()
+                    await new AzurePubSubServer().SendOnTradeEventAsync(new OnDealCreatedEvent()
                     {
                         ClientID = clientId,
                         DealID = tradeId,

@@ -2,7 +2,7 @@
 
 namespace JCTG.Events
 {
-    public class OnOrderUpdateEvent
+    public class OnOrderUpdatedEvent
     {
         public long ClientID { get; set; }
         public long SignalID { get; set; }

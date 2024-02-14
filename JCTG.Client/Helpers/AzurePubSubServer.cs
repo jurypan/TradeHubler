@@ -14,17 +14,17 @@ namespace JCTG.Client
             _serviceClient = new WebPubSubServiceClient("Endpoint=https://justcalltheguy.webpubsub.azure.com;AccessKey=BdxAvvoxX7+nkCq/lQDNe2LAy41lwDfJD8bCPiNuY/k=;Version=1.0;", "server");
         }
 
-        public async Task<string> SendOnOrderCreateEventAsync(OnOrderCreateEvent @event)
+        public async Task<string> SendOnOrderCreateEventAsync(OnOrderCreatedEvent @event)
         {
             if (_serviceClient != null)
             {
-                var resp = await _serviceClient.SendToAllAsync(JsonConvert.SerializeObject(new WebsocketMessage<OnOrderCreateEvent>()
+                var resp = await _serviceClient.SendToAllAsync(JsonConvert.SerializeObject(new WebsocketMessage<OnOrderCreatedEvent>()
                 {
                     Data = @event,
                     DataType = Constants.WebsocketMessageDatatype_JSON,
                     From = Constants.WebsocketMessageFrom_Metatrader,
-                    Type = Constants.WebsocketMessageType_OnOrderCreateEvent,
-                    TypeName = nameof(OnOrderCreateEvent),
+                    Type = Constants.WebsocketMessageType_OnOrderCreatedEvent,
+                    TypeName = nameof(OnOrderCreatedEvent),
                 }, new JsonSerializerSettings { ContractResolver = new IgnoreJsonPropertyContractResolver() }), Azure.Core.ContentType.ApplicationJson);
 
                 return resp.ClientRequestId;
@@ -32,17 +32,17 @@ namespace JCTG.Client
             return "0";
         }
 
-        public async Task<string> SendOnOrderUpdateEventAsync(OnOrderUpdateEvent @event)
+        public async Task<string> SendOnOrderUpdateEventAsync(OnOrderUpdatedEvent @event)
         {
             if (_serviceClient != null)
             {
-                var resp = await _serviceClient.SendToAllAsync(JsonConvert.SerializeObject(new WebsocketMessage<OnOrderUpdateEvent>()
+                var resp = await _serviceClient.SendToAllAsync(JsonConvert.SerializeObject(new WebsocketMessage<OnOrderUpdatedEvent>()
                 {
                     Data = @event,
                     DataType = Constants.WebsocketMessageDatatype_JSON,
                     From = Constants.WebsocketMessageFrom_Metatrader,
-                    Type = Constants.WebsocketMessageType_OnOrderUpdateEvent,
-                    TypeName = nameof(OnOrderUpdateEvent),
+                    Type = Constants.WebsocketMessageType_OnOrderUpdatedEvent,
+                    TypeName = nameof(OnOrderUpdatedEvent),
                 }, new JsonSerializerSettings { ContractResolver = new IgnoreJsonPropertyContractResolver() }), Azure.Core.ContentType.ApplicationJson);
 
                 return resp.ClientRequestId;
@@ -50,17 +50,17 @@ namespace JCTG.Client
             return "0";
         }
 
-        public async Task<string> SendOnOrderCloseEventAsync(OnOrderCloseEvent @event)
+        public async Task<string> SendOnOrderCloseEventAsync(OnOrderClosedEvent @event)
         {
             if (_serviceClient != null)
             {
-                var resp = await _serviceClient.SendToAllAsync(JsonConvert.SerializeObject(new WebsocketMessage<OnOrderCloseEvent>()
+                var resp = await _serviceClient.SendToAllAsync(JsonConvert.SerializeObject(new WebsocketMessage<OnOrderClosedEvent>()
                 {
                     Data = @event,
                     DataType = Constants.WebsocketMessageDatatype_JSON,
                     From = Constants.WebsocketMessageFrom_Metatrader,
-                    Type = Constants.WebsocketMessageType_OnOrderCloseEvent,
-                    TypeName = nameof(OnOrderCloseEvent),
+                    Type = Constants.WebsocketMessageType_OnOrderClosedEvent,
+                    TypeName = nameof(OnOrderClosedEvent),
                 }, new JsonSerializerSettings { ContractResolver = new IgnoreJsonPropertyContractResolver() }), Azure.Core.ContentType.ApplicationJson);
 
                 return resp.ClientRequestId;
@@ -122,17 +122,17 @@ namespace JCTG.Client
             return "0";
         }
 
-        public async Task<string> SendOnTradeEventAsync(OnDealCreateEvent @event)
+        public async Task<string> SendOnTradeEventAsync(OnDealCreatedEvent @event)
         {
             if (_serviceClient != null)
             {
-                var resp = await _serviceClient.SendToAllAsync(JsonConvert.SerializeObject(new WebsocketMessage<OnDealCreateEvent>()
+                var resp = await _serviceClient.SendToAllAsync(JsonConvert.SerializeObject(new WebsocketMessage<OnDealCreatedEvent>()
                 {
                     Data = @event,
                     DataType = Constants.WebsocketMessageDatatype_JSON,
                     From = Constants.WebsocketMessageFrom_Metatrader,
-                    Type = Constants.WebsocketMessageType_OnDealCreateEvent,
-                    TypeName = nameof(OnDealCreateEvent),
+                    Type = Constants.WebsocketMessageType_OnDealCreatedEvent,
+                    TypeName = nameof(OnDealCreatedEvent),
                 }, new JsonSerializerSettings { ContractResolver = new IgnoreJsonPropertyContractResolver() }), Azure.Core.ContentType.ApplicationJson);
 
                 return resp.ClientRequestId;
