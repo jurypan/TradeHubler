@@ -11,9 +11,9 @@ namespace JCTG
 
         public DbSet<Signal> Signal { get; set; }
 
-        public DbSet<TradeJournal> TradeJournal { get; set; }
+        public DbSet<Order> Order { get; set; }
 
-        public DbSet<TradeJournalDeal> TradeJournalDeal { get; set; }
+        public DbSet<Deal> Deal { get; set; }
 
         public DbSet<Log> Log { get; set; }
 
@@ -26,24 +26,24 @@ namespace JCTG
                 .WithMany(t => t.Signals)
                 .HasForeignKey(ta => ta.AccountID);
 
-            modelBuilder.Entity<TradeJournal>()
+            modelBuilder.Entity<Order>()
                .HasOne(tj => tj.Client)
-               .WithMany(t => t.TradeJournals)
+               .WithMany(t => t.Orders)
                .HasForeignKey(t => t.ClientID);
 
-            modelBuilder.Entity<TradeJournalDeal>()
-              .HasOne(tj => tj.TradeJournal)
+            modelBuilder.Entity<Deal>()
+              .HasOne(tj => tj.Order)
               .WithMany(t => t.Deals)
-              .HasForeignKey(t => t.TradeJournalID);
+              .HasForeignKey(t => t.OrderID);
 
             modelBuilder.Entity<Signal>()
                 .HasMany(tj => tj.Logs)
                 .WithOne() 
                 .HasForeignKey(t => t.SignalID); 
 
-            modelBuilder.Entity<TradeJournal>()
+            modelBuilder.Entity<Order>()
                 .HasOne(tj => tj.Signal)
-                .WithMany(t => t.TradeJournals)
+                .WithMany(t => t.Orders)
                .HasForeignKey(t => t.SignalID);
 
             modelBuilder.Entity<Log>()

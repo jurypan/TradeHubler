@@ -63,7 +63,7 @@ namespace JCTG.WebApp.Controllers
                         SignalID = signal.ID,
                         AccountID = signal.AccountID,
                         Instrument = signal.Instrument,
-                        Magic = signal.Magic,
+                        Magic = signal.ID,
                         OrderType = signal.OrderType,
                         StrategyType = signal.StrategyType,
                         MarketOrder = signal.OrderType == "BUY" || signal.OrderType == "SELL" ? new OnReceivingTradingviewSignalEventMarketOrder()

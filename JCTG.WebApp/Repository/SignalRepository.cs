@@ -15,7 +15,7 @@ namespace JCTG.WebApp.Repository
         {
             using var context = await dbContextFactory.CreateDbContextAsync();
             return await context.Signal
-                .Include(f => f.TradeJournals).ThenInclude(f => f.Client)
+                .Include(f => f.Orders).ThenInclude(f => f.Client)
                 .Include(f => f.Logs)
                 .FirstOrDefaultAsync(f => f.AccountID == accountId && f.ID == signalId);
         }
@@ -24,7 +24,7 @@ namespace JCTG.WebApp.Repository
         {
             using var context = await dbContextFactory.CreateDbContextAsync();
             return await context.Signal
-                        .Where(f => f.AccountID == accountId && f.ID == signalId && f.TradeJournals.Count() == 0)
+                        .Where(f => f.AccountID == accountId && f.ID == signalId && f.Orders.Count() == 0)
                         .SelectMany(f => f.Account.Clients)
                         .ToListAsync();
         }

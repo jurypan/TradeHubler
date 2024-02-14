@@ -60,7 +60,7 @@ namespace JCTG.Client
                         _api.OnOrderCloseEvent += OnOrderCloseEvent;
                         _api.OnLogEvent += OnLogEvent;
                         _api.OnCandleCloseEvent += OnCandleCloseEvent;
-                        _api.OnDealEvent += OnDealEvent;
+                        _api.OnDealEvent += OnDealCreateEvent;
                         _api.OnTickEvent += OnTickEvent;
 
                         // Start the API
@@ -1297,7 +1297,7 @@ namespace JCTG.Client
         private void OnOrderCloseEvent(long clientId, long ticketId, Order order)
         {
             // Do null reference check
-            if (_appConfig != null)
+            if (_appConfig != null && _apis.Count(f => f.ClientId == clientId) == 1)
             {
                 // Print on the screen
                 Print(Environment.NewLine);
@@ -1323,6 +1323,10 @@ namespace JCTG.Client
                 if (components != null && components.Length == 5)
                     _ = long.TryParse(components[0], out signalId);
 
+                // Get pair
+                var api = _apis.First(f => f.ClientId == clientId);
+                var marketdata = api.MarketData.FirstOrDefault(f => f.Key == order.Symbol).Value;
+
 
                 Task.Run(async () =>
                 {
@@ -1331,7 +1335,7 @@ namespace JCTG.Client
                     {
                         ClientID = clientId,
                         SignalID = signalId,
-                        ClosePrice = 0.0M, // TODO
+                        ClosePrice = marketdata != null ? marketdata.Ask : 0.0M,
                         Order = order,
                         Log = log
                     });
@@ -1348,7 +1352,7 @@ namespace JCTG.Client
             }
         }
 
-        private void OnDealEvent(long clientId, long tradeId, Deal trade)
+        private void OnDealCreateEvent(long clientId, long tradeId, Deal trade)
         {
             // Do null reference check
             if (_appConfig != null)
@@ -1361,7 +1365,7 @@ namespace JCTG.Client
                 Task.Run(async () =>
                 {
                     // Send the tradejournal to Azure PubSub server
-                    await new AzurePubSubServer().SendOnTradeEventAsync(new OnDealEvent()
+                    await new AzurePubSubServer().SendOnTradeEventAsync(new OnDealCreateEvent()
                     {
                         ClientID = clientId,
                         DealID = tradeId,

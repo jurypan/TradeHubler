@@ -2,9 +2,9 @@
 
 namespace JCTG.Entity
 {
-    public class TradeJournalDeal
+    public class Deal
     {
-        public TradeJournalDeal()
+        public Deal()
         {
             DateCreated = DateTime.UtcNow;
         }
@@ -13,11 +13,11 @@ namespace JCTG.Entity
         public long ID { get; set; }
         public DateTime DateCreated { get; set; }
 
-        public long TradeJournalID { get; set; }
-        public TradeJournal TradeJournal { get; set; }
+        public long OrderID { get; set; }
+        public Order Order { get; set; }
 
 
-        public long DealId { get; set; }
+        public long MtDealId { get; set; }
 
         public int Magic { get; set; }
         public string Symbol { get; set; }

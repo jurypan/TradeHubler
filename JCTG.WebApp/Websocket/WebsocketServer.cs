@@ -16,13 +16,13 @@ namespace JCTG.WebApp.Helpers
                 if (onOrderCreate != null && onOrderCreate.ClientID > 0 && onOrderCreate.SignalID > 0)
                 {
                     // Check trade journal
-                    var journal = await dbContext.TradeJournal.FirstOrDefaultAsync(f => f.ClientID == onOrderCreate.ClientID && f.SignalID == onOrderCreate.Order.Magic);
+                    var journal = await dbContext.Order.FirstOrDefaultAsync(f => f.ClientID == onOrderCreate.ClientID && f.SignalID == onOrderCreate.Order.Magic);
 
                     // Check for duplicates
                     if (journal == null)
                     {
                         // Deal journal
-                        journal = new TradeJournal()
+                        journal = new Order()
                         {
                             DateCreated = DateTime.UtcNow,
                             IsTradeClosed = false,
@@ -38,7 +38,7 @@ namespace JCTG.WebApp.Helpers
                             Comment = onOrderCreate.Order.Comment,
                             Magic = onOrderCreate.Order.Magic,
                         };
-                        await dbContext.TradeJournal.AddAsync(journal);
+                        await dbContext.Order.AddAsync(journal);
                     }
 
                     // Log
@@ -69,7 +69,7 @@ namespace JCTG.WebApp.Helpers
                 if (onOrderUpdate != null && onOrderUpdate.ClientID > 0 && onOrderUpdate.Order != null && onOrderUpdate.SignalID > 0)
                 {
                     // Get the trade journal from the database
-                    var journal = await dbContext.TradeJournal.FirstOrDefaultAsync(f => f.SignalID == onOrderUpdate.SignalID && f.ClientID == onOrderUpdate.ClientID);
+                    var journal = await dbContext.Order.FirstOrDefaultAsync(f => f.SignalID == onOrderUpdate.SignalID && f.ClientID == onOrderUpdate.ClientID);
 
                     // Do null reference check
                     if (journal != null)
@@ -105,7 +105,7 @@ namespace JCTG.WebApp.Helpers
                 if (onOrderClose != null && onOrderClose.ClientID > 0 && onOrderClose.SignalID > 0)
                 {
                     // Get the trade journal from the database
-                    var journal = await dbContext.TradeJournal.FirstOrDefaultAsync(f => f.SignalID == onOrderClose.SignalID && f.ClientID == onOrderClose.ClientID);
+                    var journal = await dbContext.Order.FirstOrDefaultAsync(f => f.SignalID == onOrderClose.SignalID && f.ClientID == onOrderClose.ClientID);
 
                     // Do null reference check
                     if (journal != null)
@@ -144,7 +144,7 @@ namespace JCTG.WebApp.Helpers
                 if (onOrderAutoMoveSlToBe != null && onOrderAutoMoveSlToBe.ClientID > 0 && onOrderAutoMoveSlToBe.SignalID > 0)
                 {
                     // Get the trade journal from the database
-                    var journal = await dbContext.TradeJournal.FirstOrDefaultAsync(f => f.SignalID == onOrderAutoMoveSlToBe.SignalID && f.ClientID == onOrderAutoMoveSlToBe.ClientID);
+                    var journal = await dbContext.Order.FirstOrDefaultAsync(f => f.SignalID == onOrderAutoMoveSlToBe.SignalID && f.ClientID == onOrderAutoMoveSlToBe.ClientID);
 
                     // Do null reference check
                     if (journal != null)
@@ -233,74 +233,97 @@ namespace JCTG.WebApp.Helpers
                 if (onDealEvent != null && onDealEvent.ClientID > 0 && onDealEvent.Deal != null && onDealEvent.DealID > 0)
                 {
                     // Check if the deal already exist
-                    if(!dbContext.TradeJournalDeal.Any(f => f.DealId == onDealEvent.DealID))
+                    if (!dbContext.Deal.Any(f => f.MtDealId == onDealEvent.DealID))
                     {
-                        // Get the trade journal from the database
-                        var journal = await dbContext.TradeJournal.FirstOrDefaultAsync(f => f.Magic == onDealEvent.Deal.Magic && f.ClientID == onDealEvent.ClientID);
-
-                        // Do null reference check
-                        if (journal != null)
+                        int maxRetries = 3; // Maximum number of retries
+                        for (int attempt = 1; attempt <= maxRetries; attempt++)
                         {
-                            // Add deal
-                            var deal = new TradeJournalDeal()
+                            // Get the trade journal from the database
+                            var journal = await dbContext.Order.Where(f => f.Symbol == onDealEvent.Deal.Symbol && f.ClientID == onDealEvent.ClientID && f.IsTradeClosed == false).OrderByDescending(f => f.DateCreated).FirstOrDefaultAsync();
+
+                            // Do null reference check
+                            if (journal != null)
                             {
-                                 DateCreated = DateTime.UtcNow,
-                                 DealId = onDealEvent.DealID,
-                                 Commission = onDealEvent.Deal.Commission,
-                                 Entry = onDealEvent.Deal.Entry,
-                                 Lots = onDealEvent.Deal.Lots,
-                                 Magic = onDealEvent.Deal.Magic,
-                                 Pnl = onDealEvent.Deal.Pnl,
-                                 Price = onDealEvent.Deal.Price,
-                                 Swap = onDealEvent.Deal.Swap,
-                                 Symbol = onDealEvent.Deal.Symbol,
-                                 TradeJournalID = journal.ID,
-                                 Type = onDealEvent.Deal.Type,
-                            };
-                            await dbContext.TradeJournalDeal.AddAsync(deal);
+                                // Stop loop
+                                attempt = maxRetries;
 
-                            // Update the journal
-                            journal.Swap += onDealEvent.Deal.Swap;
-                            journal.Commission += onDealEvent.Deal.Commission;
-                            journal.Pnl += onDealEvent.Deal.Pnl;
+                                // Add deal
+                                var deal = new Deal()
+                                {
+                                    DateCreated = DateTime.UtcNow,
+                                    MtDealId = onDealEvent.DealID,
+                                    Commission = onDealEvent.Deal.Commission,
+                                    Entry = onDealEvent.Deal.Entry,
+                                    Lots =  onDealEvent.Deal.Lots,
+                                    Magic = onDealEvent.Deal.Magic,
+                                    Pnl = onDealEvent.Deal.Pnl,
+                                    Price = onDealEvent.Deal.Price,
+                                    Swap = onDealEvent.Deal.Swap,
+                                    Symbol = onDealEvent.Deal.Symbol,
+                                    OrderID = journal.ID,
+                                    Type = onDealEvent.Deal.Type,
+                                };
+                                await dbContext.Deal.AddAsync(deal);
 
-                            // Log
-                            var log = new Log()
-                            {
-                                SignalID = journal.SignalID,
-                                ClientID = onDealEvent.ClientID,
-                                Description = onDealEvent.Log.Description,
-                                ErrorType = onDealEvent.Log.ErrorType,
-                                Message = onDealEvent.Log.Message,
-                                Time = onDealEvent.Log.Time,
-                                Type = onDealEvent.Log.Type,
-                            };
-                            await dbContext.Log.AddAsync(log);
+                                // Update the journal
+                                journal.Swap += onDealEvent.Deal.Swap;
+                                journal.Commission += onDealEvent.Deal.Commission;
+                                journal.Pnl += onDealEvent.Deal.Pnl;
 
-                            // Save
-                            await dbContext.SaveChangesAsync();
+                                // Log
+                                var log = new Log()
+                                {
+                                    SignalID = journal.SignalID,
+                                    ClientID = onDealEvent.ClientID,
+                                    Description = onDealEvent.Log.Description,
+                                    ErrorType = onDealEvent.Log.ErrorType,
+                                    Message = onDealEvent.Log.Message,
+                                    Time = onDealEvent.Log.Time,
+                                    Type = onDealEvent.Log.Type,
+                                };
+                                await dbContext.Log.AddAsync(log);
 
-                            // Check if trade is closed
-                            var totalLotsResult = dbContext.TradeJournalDeal
-                                                        .GroupBy(trade => 1) // Group by a constant to aggregate over all trades
-                                                        .Select(g => new
-                                                        {
-                                                            TotalLots = g.Sum(trade =>
-                                                                trade.Entry == "entry_in" ? trade.Lots :
-                                                                trade.Entry == "entry_out" || trade.Entry == "entry_out_by" ? -trade.Lots :
-                                                                0)
-                                                        })
-                                                        .FirstOrDefault();
+                                // If MT4
+                                if(onDealEvent.Deal.Entry == "trade")
+                                {
+                                    journal.CloseTime = DateTime.UtcNow;
+                                    journal.IsTradeClosed = true;
+                                }
+                                else
+                                {
+                                    // MT5 is more complex, check if trade is closed
+                                    var totalLotsResult = dbContext.Deal
+                                                                .Where(f => f.OrderID == journal.ID)
+                                                                .GroupBy(trade => 1) // Group by a constant to aggregate over all trades
+                                                                .Select(g => new
+                                                                {
+                                                                    TotalLots = g.Sum(trade =>
+                                                                        trade.Entry == "entry_in" ? trade.Lots :
+                                                                        trade.Entry == "entry_out" || trade.Entry == "entry_out_by" ? -trade.Lots :
+                                                                        0)
+                                                                })
+                                                                .FirstOrDefault();
 
-                            if (totalLotsResult != null && totalLotsResult.TotalLots == 0)
-                            {
-                                journal.CloseTime = DateTime.UtcNow;
-                                journal.IsTradeClosed = true;
+                                    if (totalLotsResult != null && totalLotsResult.TotalLots == 0.0)
+                                    {
+                                        journal.CloseTime = DateTime.UtcNow;
+                                        journal.IsTradeClosed = true;
+                                    }
+                                }
+
+                                // Save
+                                await dbContext.SaveChangesAsync();
+
                             }
-                        }
-                        else
-                        {
-                            // Do retry
+                            else if (attempt < maxRetries)
+                            {
+                                await Task.Delay(1000); // Wait for 1 second before retrying
+                            }
+                            else
+                            {
+                                // Logic for handling the case where all retries have failed.
+                                // You might log this event or handle it according to your application's requirements.
+                            }
                         }
                     }
                 }

@@ -9,7 +9,7 @@
         public static string WebsocketMessageType_OnOrderCreateEvent = "OnOrderCreateEvent";
         public static string WebsocketMessageType_OnOrderUpdateEvent = "OnOrderUpdateEvent";
         public static string WebsocketMessageType_OnOrderCloseEvent = "OnOrderCloseEvent";
-        public static string WebsocketMessageType_OnDealEvent = "OnDealEvent";
+        public static string WebsocketMessageType_OnDealCreateEvent = "OnDealCreateEvent";
         public static string WebsocketMessageType_OnLogEvent = "OnLogEvent";
         public static string WebsocketMessageType_OnOrderAutoMoveSlToBeEvent = "_OnOrderAutoMoveSlToBeEvent";
         public static string WebsocketMessageType_OnItsTimeToCloseTheOrderEvent = "OnItsTimeToCloseTheOrderEvent";

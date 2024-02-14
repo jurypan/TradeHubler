@@ -36,7 +36,7 @@ namespace JCTG.Entity
 
 
 
-        public List<TradeJournal> TradeJournals { get; set; }
+        public List<Order> Orders { get; set; }
         public List<Log> Logs { get; set; }
 
 

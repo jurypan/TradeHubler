@@ -16,7 +16,7 @@ namespace JCTG.Entity
         public int AccountID { get; set; }
         public required string Name { get; set; }
 
-        public List<TradeJournal> TradeJournals { get; set; }
+        public List<Order> Orders { get; set; }
         public List<Log> Logs { get; set; }
     }
 }

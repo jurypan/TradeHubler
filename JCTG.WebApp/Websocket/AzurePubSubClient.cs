@@ -14,7 +14,7 @@ namespace JCTG.WebApp
         public event Action<OnOrderCloseEvent>? OnOrderCloseEvent;
         public event Action<OnOrderAutoMoveSlToBeEvent>? OnOrderAutoMoveSlToBeEvent;
         public event Action<OnItsTimeToCloseTheOrderEvent>? OnItsTimeToCloseTheOrderEvent;
-        public event Action<OnDealEvent>? OnDealEvent;
+        public event Action<OnDealCreateEvent>? OnDealEvent;
 
         public async Task ListeningToServerAsync()
         {
@@ -83,9 +83,9 @@ namespace JCTG.WebApp
                                         if (@event != null)
                                             OnItsTimeToCloseTheOrderEvent?.Invoke(@event);
                                     }
-                                    else if (type == Constants.WebsocketMessageType_OnDealEvent)
+                                    else if (type == Constants.WebsocketMessageType_OnDealCreateEvent)
                                     {
-                                        var @event = JsonSerializer.Deserialize<OnDealEvent>(data.GetRawText(), jsonSerializerOptions);
+                                        var @event = JsonSerializer.Deserialize<OnDealCreateEvent>(data.GetRawText(), jsonSerializerOptions);
                                         if (@event != null)
                                             OnDealEvent?.Invoke(@event);
                                     }

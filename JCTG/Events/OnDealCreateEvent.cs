@@ -2,7 +2,7 @@
 
 namespace JCTG.Events
 {
-    public class OnDealEvent
+    public class OnDealCreateEvent
     {
         public long ClientID { get; set; }
         public long DealID { get; set; }

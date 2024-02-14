@@ -122,17 +122,17 @@ namespace JCTG.Client
             return "0";
         }
 
-        public async Task<string> SendOnTradeEventAsync(OnDealEvent @event)
+        public async Task<string> SendOnTradeEventAsync(OnDealCreateEvent @event)
         {
             if (_serviceClient != null)
             {
-                var resp = await _serviceClient.SendToAllAsync(JsonConvert.SerializeObject(new WebsocketMessage<OnDealEvent>()
+                var resp = await _serviceClient.SendToAllAsync(JsonConvert.SerializeObject(new WebsocketMessage<OnDealCreateEvent>()
                 {
                     Data = @event,
                     DataType = Constants.WebsocketMessageDatatype_JSON,
                     From = Constants.WebsocketMessageFrom_Metatrader,
-                    Type = Constants.WebsocketMessageType_OnDealEvent,
-                    TypeName = nameof(OnDealEvent),
+                    Type = Constants.WebsocketMessageType_OnDealCreateEvent,
+                    TypeName = nameof(OnDealCreateEvent),
                 }, new JsonSerializerSettings { ContractResolver = new IgnoreJsonPropertyContractResolver() }), Azure.Core.ContentType.ApplicationJson);
 
                 return resp.ClientRequestId;
