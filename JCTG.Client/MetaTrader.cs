@@ -158,7 +158,7 @@ namespace JCTG.Client
                                                     if (_appConfig.Debug)
                                                     {
                                                         var message = string.Format($"StopLossPriceCalculated || Symbol={pair.TickerInMetatrader},Type={tradingviewAlert.OrderType},Magic={tradingviewAlert.Magic},StrategyType={tradingviewAlert.StrategyType},Price={tradingviewAlert.MarketOrder.Price},TP={tradingviewAlert.MarketOrder.TakeProfit},SL={tradingviewAlert.MarketOrder.StopLoss}");
-                                                        var description = string.Format($"SLForLong: Ask={metadataTick.Ask},Spread={spread},Digits={metadataTick.Digits},SignalPrice={tradingviewAlert.MarketOrder.Price},SignalSL={tradingviewAlert.MarketOrder.StopLoss}");
+                                                        var description = string.Format($"StopLoss || Ask={metadataTick.Ask},Spread={spread},Digits={metadataTick.Digits},SignalPrice={tradingviewAlert.MarketOrder.Price},SignalSL={tradingviewAlert.MarketOrder.StopLoss}");
                                                         await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, tradingviewAlert.SignalID);
                                                     }
 
@@ -169,7 +169,7 @@ namespace JCTG.Client
                                                     if (_appConfig.Debug)
                                                     {
                                                         var message = string.Format($"LotSizeCalculated || Symbol={pair.TickerInMetatrader},Type={tradingviewAlert.OrderType},Magic={tradingviewAlert.Magic},StrategyType={tradingviewAlert.StrategyType},Price={tradingviewAlert.MarketOrder.Price},TP={tradingviewAlert.MarketOrder.TakeProfit},SL={tradingviewAlert.MarketOrder.StopLoss}");
-                                                        var description = string.Format($"LotSize: StartBalance={startbalance},Balance={api.AccountInfo.Balance},Risk={pair.Risk},AskPrice={metadataTick.Ask},SlPrice={slPrice},TickValue={metadataTick.TickValue},TickSize={metadataTick.TickSize},LotStep={metadataTick.LotStep},MinLotSize={metadataTick.MinLotSize},MaxLotSize={metadataTick.MaxLotSize},DynRisk={RiskCalculator.ChooseClosestMultiplier(startbalance, api.AccountInfo.Balance, dynRisk)}");
+                                                        var description = string.Format($"LotSize || StartBalance={startbalance},Balance={api.AccountInfo.Balance},Risk={pair.Risk},AskPrice={metadataTick.Ask},SlPrice={slPrice},TickValue={metadataTick.TickValue},TickSize={metadataTick.TickSize},LotStep={metadataTick.LotStep},MinLotSize={metadataTick.MinLotSize},MaxLotSize={metadataTick.MaxLotSize},DynRisk={RiskCalculator.ChooseClosestMultiplier(startbalance, api.AccountInfo.Balance, dynRisk)}");
                                                         await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, tradingviewAlert.SignalID);
                                                     }
 
@@ -196,7 +196,7 @@ namespace JCTG.Client
                                                                 if (_appConfig.Debug)
                                                                 {
                                                                     var message = string.Format($"TakeProfitCalculated || Symbol={pair.TickerInMetatrader},Type={tradingviewAlert.OrderType},Magic={tradingviewAlert.Magic},StrategyType={tradingviewAlert.StrategyType},Price={tradingviewAlert.MarketOrder.Price},TP={tradingviewAlert.MarketOrder.TakeProfit},SL={tradingviewAlert.MarketOrder.StopLoss}");
-                                                                    var description = string.Format($"TPForLong: Ask={metadataTick.Ask},Spread={spread},Digits={metadataTick.Digits},SignalPrice={tradingviewAlert.MarketOrder.Price},SignalTP={tradingviewAlert.MarketOrder.TakeProfit}");
+                                                                    var description = string.Format($"TakeProfit || Ask={metadataTick.Ask},Spread={spread},Digits={metadataTick.Digits},SignalPrice={tradingviewAlert.MarketOrder.Price},SignalTP={tradingviewAlert.MarketOrder.TakeProfit}");
                                                                     await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, tradingviewAlert.SignalID);
                                                                 }
 
@@ -222,7 +222,7 @@ namespace JCTG.Client
                                                                 if (_appConfig.Debug)
                                                                 {
                                                                     var message = string.Format($"MetatraderOrderExecuted || Symbol={pair.TickerInMetatrader},Type={tradingviewAlert.OrderType},Magic={tradingviewAlert.Magic},StrategyType={tradingviewAlert.StrategyType},Price={tradingviewAlert.MarketOrder.Price},TP={tradingviewAlert.MarketOrder.TakeProfit},SL={tradingviewAlert.MarketOrder.StopLoss}");
-                                                                    var description = string.Format($"ExecuteOrder: Symbol={pair.TickerInMetatrader},OrderType={orderType},LotSize={lotSize},Price=,SL={slPrice},TP={tpPrice},Magic={tradingviewAlert.Magic},Comment={comment}");
+                                                                    var description = string.Format($"ExecuteOrder || Symbol={pair.TickerInMetatrader},OrderType={orderType},LotSize={lotSize},Price=,SL={slPrice},TP={tpPrice},Magic={tradingviewAlert.Magic},Comment={comment}");
                                                                     await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, tradingviewAlert.SignalID);
                                                                 }
                                                             }
@@ -300,13 +300,13 @@ namespace JCTG.Client
                                                     if (_appConfig.Debug)
                                                     {
                                                         var message = string.Format($"EntryPriceCalculated || Symbol={pair.TickerInMetatrader},Type={tradingviewAlert.OrderType},Magic={tradingviewAlert.Magic},StrategyType={tradingviewAlert.StrategyType},EntryExpr={tradingviewAlert.PassiveOrder.EntryExpression},Risk={tradingviewAlert.PassiveOrder.Risk},RR={tradingviewAlert.PassiveOrder.RiskRewardRatio}");
-                                                        var description = string.Format($"Price: Price={price},Spread={spread},EntryExpression={tradingviewAlert.PassiveOrder.EntryExpression}");
+                                                        var description = string.Format($"EntryPrice || Price={price},Spread={spread},EntryExpression={tradingviewAlert.PassiveOrder.EntryExpression}");
                                                         await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, tradingviewAlert.SignalID);
 
-                                                        description = string.Format($"StopLossCallculated ||  Price={price},Spread={spread},Risk={tradingviewAlert.PassiveOrder.Risk.Value},SLMultiplier={pair.SLMultiplier}");
+                                                        description = string.Format($"StopLoss ||  Price={price},Spread={spread},Risk={tradingviewAlert.PassiveOrder.Risk.Value},SLMultiplier={pair.SLMultiplier}");
                                                         await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, tradingviewAlert.SignalID);
 
-                                                        description = string.Format($"TakeProfitCalculated ||  Price={price},Spread={spread},Risk={tradingviewAlert.PassiveOrder.Risk.Value},RiskRewardRatio={tradingviewAlert.PassiveOrder.RiskRewardRatio.Value}");
+                                                        description = string.Format($"TakeProfit ||  Price={price},Spread={spread},Risk={tradingviewAlert.PassiveOrder.Risk.Value},RiskRewardRatio={tradingviewAlert.PassiveOrder.RiskRewardRatio.Value}");
                                                         await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, tradingviewAlert.SignalID);
                                                     }
 
@@ -356,7 +356,7 @@ namespace JCTG.Client
                                                                         if (_appConfig.Debug)
                                                                         {
                                                                             var message = string.Format($"CancelledPassiveOrder || Symbol={pair.TickerInMetatrader},Type={tradingviewAlert.OrderType},Magic={tradingviewAlert.Magic},StrategyType={tradingviewAlert.StrategyType},EntryExpr={tradingviewAlert.PassiveOrder.EntryExpression},Risk={tradingviewAlert.PassiveOrder.Risk},RR={tradingviewAlert.PassiveOrder.RiskRewardRatio}");
-                                                                            var description = string.Format($"CancelStopOrLimitOrderWhenNewSignal: Symbol={pair.TickerInMetatrader}");
+                                                                            var description = string.Format($"CloseOrder || Symbol={pair.TickerInMetatrader}");
                                                                             await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, tradingviewAlert.SignalID);
                                                                         }
                                                                     }
@@ -375,7 +375,7 @@ namespace JCTG.Client
                                                                 if (_appConfig.Debug)
                                                                 {
                                                                     var message = string.Format($"MetatraderOrderCreated || Symbol={pair.TickerInMetatrader},Type={tradingviewAlert.OrderType},Magic={tradingviewAlert.Magic},StrategyType={tradingviewAlert.StrategyType},EntryExpr={tradingviewAlert.PassiveOrder.EntryExpression},Risk={tradingviewAlert.PassiveOrder.Risk},RR={tradingviewAlert.PassiveOrder.RiskRewardRatio}");
-                                                                    var description = string.Format($"ExecuteOrder: Symbol={pair.TickerInMetatrader},OrderType={orderType},LotSize={lotSize},Price={price},SL={sl},TP={tp},Magic={tradingviewAlert.Magic},Comment={comment}");
+                                                                    var description = string.Format($"ExecuteOrder || Symbol={pair.TickerInMetatrader},OrderType={orderType},LotSize={lotSize},Price={price},SL={sl},TP={tp},Magic={tradingviewAlert.Magic},Comment={comment}");
                                                                     await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, tradingviewAlert.SignalID);
                                                                 }
                                                             }
@@ -1375,31 +1375,37 @@ namespace JCTG.Client
 
         public async Task LoadLogFromFileAsync(long clientId)
         {
-            string fileName = $"Log-{clientId}.json";
-            await _semaphore.WaitAsync();
-            try
+            if(_appConfig != null && _appConfig.Brokers.Any(f => f.ClientId == clientId))
             {
-                if (File.Exists(fileName))
+                var pair = _appConfig.Brokers.First(f => f.ClientId == clientId);
+
+                string fileName = pair.MetaTraderDirPath + $"Log-{clientId}.json";
+                await _semaphore.WaitAsync();
+                try
                 {
-                    var json = await File.ReadAllTextAsync(fileName);
-                    var logsFromFile = JsonConvert.DeserializeObject<List<Log>>(json) ?? new List<Log>();
-
-                    var logs = _buffers.GetOrAdd(clientId, new List<Log>());
-                    lock (logs) // Ensure thread-safety
+                    if (File.Exists(fileName))
                     {
-                        // Assuming we want to replace the current buffer with the file contents
-                        logs.Clear();
-                        logs.AddRange(logsFromFile);
+                        var json = await File.ReadAllTextAsync(fileName);
+                        var logsFromFile = JsonConvert.DeserializeObject<List<Log>>(json) ?? new List<Log>();
 
-                        // Make sure the last item is on top
-                        logs = logs?.OrderByDescending(f => f.Time).ToList();
+                        var logs = _buffers.GetOrAdd(clientId, new List<Log>());
+                        lock (logs) // Ensure thread-safety
+                        {
+                            // Assuming we want to replace the current buffer with the file contents
+                            logs.Clear();
+                            logs.AddRange(logsFromFile);
+
+                            // Make sure the last item is on top
+                            logs = logs?.OrderByDescending(f => f.Time).ToList();
+                        }
                     }
                 }
+                finally
+                {
+                    _semaphore.Release();
+                }
             }
-            finally
-            {
-                _semaphore.Release();
-            }
+           
         }
 
 
@@ -1507,16 +1513,17 @@ namespace JCTG.Client
 
                 // Add the new signal to the journal
                 var journal = journals.FirstOrDefault(f => f.Signal.SignalID == signalId);
+                var pair = _appConfig.Brokers.FirstOrDefault(f => f.ClientId == clientId);
 
                 // Do null reference check
-                if (journal != null)
+                if (journal != null && pair != null)
                 {
                     // Add the log
                     journal.Logs.Add(log);
 
                     // Serialize and write the journal back to the file
                     string serializedContent = JsonConvert.SerializeObject(journals);
-                    await TryWriteFileAsync(fileName, serializedContent);
+                    await TryWriteFileAsync(pair.MetaTraderDirPath + fileName, serializedContent);
                 }
 
 
@@ -1534,7 +1541,7 @@ namespace JCTG.Client
             if (_appConfig == null || _apis == null || !_apis.Any(f => f.ClientId == clientId))
                 return;
 
-            string fileName = $"Tradejournal-{clientId}.json";
+            string fileName = $"tradejournal.json";
             List<TradeJournal> journals;
 
             // Attempt to enter the semaphore (wait if necessary)
@@ -1561,7 +1568,8 @@ namespace JCTG.Client
 
                 // Serialize and write the journal back to the file
                 string serializedContent = JsonConvert.SerializeObject(journals);
-                await TryWriteFileAsync(fileName, serializedContent);
+                var pair = _appConfig.Brokers.First(f => f.ClientId == clientId);
+                await TryWriteFileAsync(pair.MetaTraderDirPath + fileName, serializedContent);
             }
             finally
             {
@@ -1572,10 +1580,14 @@ namespace JCTG.Client
 
         private async Task FlushLogsToFileAsync()
         {
+            if (_appConfig == null || _apis == null)
+                return;
+
             foreach (var clientId in _buffers.Keys.ToList()) // ToList to avoid collection modification issues
             {
                 List<Log> logsToWrite = [];
                 bool logsAvailable = false;
+                var pair = _appConfig.Brokers.First(f => f.ClientId == clientId);
 
                 // Attempt to safely retrieve and clear the buffer for the current clientId
                 if (_buffers.TryGetValue(clientId, out var logs))
@@ -1590,10 +1602,10 @@ namespace JCTG.Client
                     }
                 }
 
-                if (logsAvailable)
+                if (logsAvailable && pair != null)
                 {
                     // Filename
-                    string fileName = $"Log-{clientId}.json";
+                    string fileName = pair.MetaTraderDirPath + $"Log-{clientId}.json";
 
                     // Wait until it's safe to enter
                     await _semaphore.WaitAsync();

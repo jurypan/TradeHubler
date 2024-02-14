@@ -22,6 +22,7 @@ namespace JCTG.Entity
         public int Magic { get; set; }
         public string Symbol { get; set; }
         public double Lots { get; set; }
+        public double Price { get; set; }
         public string Type { get; set; }
         public string Entry { get; set; }
         public double Pnl { get; set; }

@@ -18,7 +18,7 @@ else
                         <h5 class="card-title">@tradingJournal.Client?.Name</h5>
                         <p class="card-text">@tradingJournal.Symbol @tradingJournal.Type</p>
                         <p class="card-text">@tradingJournal.Signal.StrategyType</p>
-                        <div><a href="@($"Signals/{tradingJournal.SignalID}/Tradingjournals/{tradingJournal.ID}/Logs")"> View logs</a></div>
+                        <div><a href="@($"Signals/{SignalId}/Tradingjournals/{tradingJournal.ClientID}/Logs")"> View logs</a></div>
                     </div>
                 </div>
             </div>
@@ -36,7 +36,7 @@ else
                 <div class="card-body">
                     <h5 class="card-title">@client.Name</h5>
                     <p class="card-text"></p>
-                    <div><a href="@($"Signals/{SignalId}/Logs")">View logs</a></div>
+                    <div><a href="@($"Signals/{SignalId}/Tradingjournals/{client.ID}/Logs")"> View logs</a></div>
                 </div>
             </div>
         </div>

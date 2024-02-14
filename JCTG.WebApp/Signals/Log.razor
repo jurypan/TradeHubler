@@ -1,4 +1,4 @@
-﻿@page "/Signals/{signalid:int}/Tradingjournals/{tradejournalid:int}/Logs";
+﻿@page "/Signals/{signalid:int}/Tradingjournals/{clientid:int}/Logs";
 @inject LogRepository _logRepository;
 @inject NavigationManager _navigationManager;
 
@@ -58,7 +58,7 @@ else
     public int SignalId { get; set; }
 
     [Parameter]
-    public int? TradejournalId { get; set; }
+    public int ClientId { get; set; }
 
 
     private List<Entity.Log> _logs = new List<Entity.Log>();
@@ -67,14 +67,6 @@ else
     protected async override Task OnInitializedAsync()
     {
         _logger.Debug($"OnInitializedAsync with signal id {SignalId}");
-
-        if (TradejournalId.HasValue)
-        {
-            _logs = await _logRepository.GetAll(692803787, SignalId, TradejournalId.Value);
-        }
-        else
-        {
-            _logs = await _logRepository.GetAll(692803787, SignalId);
-        }
+        _logs = await _logRepository.GetAll(692803787, SignalId, ClientId);
     }
 }

@@ -251,6 +251,7 @@ namespace JCTG.WebApp.Helpers
                                  Lots = onDealEvent.Deal.Lots,
                                  Magic = onDealEvent.Deal.Magic,
                                  Pnl = onDealEvent.Deal.Pnl,
+                                 Price = onDealEvent.Deal.Price,
                                  Swap = onDealEvent.Deal.Swap,
                                  Symbol = onDealEvent.Deal.Symbol,
                                  TradeJournalID = journal.ID,
