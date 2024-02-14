@@ -1,9 +1,9 @@
 //+------------------------------------------------------------------+
 //| Expert initialization function                                   |
 //+------------------------------------------------s-----------------+
-#property copyright "Copyright 2023, JP.x BV"
+#property copyright "Copyright 2024, JP.x BV"
 #property link      "https://www.justcalltheguy.io"
-#property version   "2.005"
+#property version   "2.008"
 #property strict
 
 // if the timer is too small, we might have problems accessing the files from python (mql will write to file every update time). 
@@ -26,16 +26,16 @@ long lastUpdateMillis = GetTickCount(), lastUpdateOrdersMillis = GetTickCount();
 string startIdentifier = "<:";
 string endIdentifier = ":>";
 string delimiter = "|";
-string folderName = "DWX";
-string filePathOrders = folderName + "/DWX_Orders.txt";
-string filePathMessages = folderName + "/DWX_Messages.txt";
-string filePathMarketData = folderName + "/DWX_Market_Data.txt";
-string filePathBarData = folderName + "/DWX_Bar_Data.txt";
-string filePathHistoricData = folderName + "/DWX_Historic_Data.txt";
-string filePathHistoricTrades = folderName + "/DWX_Historic_Trades.txt";
-string filePathCommandsPrefix = folderName + "/DWX_Commands_";
+string folderName = "JCTG";
+string filePathOrders = folderName + "/JCTG_Orders.json";
+string filePathMessages = folderName + "/JCTG_Messages.json";
+string filePathMarketData = folderName + "/JCTG_Market_Data.json";
+string filePathBarData = folderName + "/JCTG_Bar_Data.json";
+string filePathHistoricData = folderName + "/JCTG_Historic_Data.json";
+string filePathHistoricTrades = folderName + "/JCTG_Historic_Trades.json";
+string filePathCommandsPrefix = folderName + "/JCTG_Commands_";
 
-string lastOrderText = "", lastMarketDataText = "", lastMessageText = "", lastBarDataText = "";
+string lastOrderText = "", lastMarketDataText = "", lastMessageText = "", lastBarDataText = "", lastTradeText = "";
 
 struct MESSAGE
 {
@@ -156,6 +156,7 @@ void OnTick() {
    CheckOpenOrders();
    CheckMarketData();
    CheckBarData();
+   CheckTrades(14);
 }
 
 
@@ -224,8 +225,6 @@ void CheckCommands() {
          SubscribeSymbols(content);
       } else if (command == "SUBSCRIBE_SYMBOLS_BAR_DATA") {
          SubscribeSymbolsBarData(content);
-      } else if (command == "GET_HISTORIC_TRADES") {
-         GetHistoricTrades(content);
       } else if (command == "GET_HISTORIC_DATA") {
          GetHistoricData(content);
       } else if (command == "RESET_COMMAND_IDS") {
@@ -700,12 +699,10 @@ void GetHistoricData(string dataStr) {
    }
 }
 
-void GetHistoricTrades(string dataStr) {
-
-    int lookbackDays = (int)StringToInteger(dataStr);
+void CheckTrades(int lookbackDays) {
    
     if (lookbackDays <= 0) {
-       SendError("HISTORIC_TRADES", "Lookback days smaller or equal to zero: " + dataStr);
+       SendError("HISTORIC_TRADES", "Lookback days smaller or equal to zero");
        return;
     }
    
@@ -716,7 +713,7 @@ void GetHistoricTrades(string dataStr) {
         if (OrderOpenTime() < TimeCurrent() - lookbackDays * (24 * 60 * 60)) continue;
         if (!first) text += ", ";
         else first = false;
-        text += StringFormat("\"%d\": {\"magic\": %d, \"symbol\": \"%s\", \"lots\": %.2f, \"type\": \"%s\", \"open_time\": \"%s\", \"close_time\": \"%s\", \"open_price\": %.5f, \"close_price\": %.5f, \"SL\": %.5f, \"TP\": %.5f, \"pnl\": %.2f, \"commission\": %.2f, \"swap\": %.2f, \"comment\": \"%s\"}", 
+        text += StringFormat("\"%d\": {\"magic\": %d, \"symbol\": \"%s\", \"lots\": %.2f, \"type\": \"%s\", \"open_time\": \"%s\", \"close_time\": \"%s\", \"open_price\": %.5f, \"close_price\": %.5f, \"SL\": %.5f, \"TP\": %.5f, \"pnl\": %.2f, \"commission\": %.2f, \"swap\": %.2f, \"comment\": \"%s\", \"ismt4\": true, \"entry\": \"trade\"}", 
                              OrderTicket(), 
                              OrderMagicNumber(), 
                              OrderSymbol(), 
@@ -734,11 +731,13 @@ void GetHistoricTrades(string dataStr) {
                              OrderComment());
     }
     text += "}";
-     for (int i=0; i<5; i++) {
-      if (WriteToFile(filePathHistoricTrades, text)) break;
-      Sleep(100);
+    
+     // only write to file if there was a change. 
+   if (text == lastTradeText) return;
+   
+   if (WriteToFile(filePathHistoricTrades, text)) {
+      lastTradeText = text;
    }
-   SendInfo("Successfully read historic trades.");
 }
 
 double CalculateATR(string symbol, int shift, int period, string strTimeframe) {

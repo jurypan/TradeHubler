@@ -3,7 +3,7 @@
 //+------------------------------------------------s-----------------+
 #property copyright "Copyright 2024, JP.x BV"
 #property link      "https://www.justcalltheguy.io"
-#property version   "2.007"
+#property version   "2.008"
 #property strict
 
 /*
@@ -46,16 +46,16 @@ long lastUpdateMillis = GetTickCount(), lastUpdateOrdersMillis = GetTickCount();
 string startIdentifier = "<:";
 string endIdentifier = ":>";
 string delimiter = "|";
-string folderName = "DWX";
-string filePathOrders = folderName + "/DWX_Orders.txt";
-string filePathMessages = folderName + "/DWX_Messages.txt";
-string filePathMarketData = folderName + "/DWX_Market_Data.txt";
-string filePathBarData = folderName + "/DWX_Bar_Data.txt";
-string filePathHistoricData = folderName + "/DWX_Historic_Data.txt";
-string filePathHistoricTrades = folderName + "/DWX_Historic_Trades.txt";
-string filePathCommandsPrefix = folderName + "/DWX_Commands_";
+string folderName = "JCTG";
+string filePathOrders = folderName + "/JCTG_Orders.json";
+string filePathMessages = folderName + "/JCTG_Messages.json";
+string filePathMarketData = folderName + "/JCTG_Market_Data.json";
+string filePathBarData = folderName + "/JCTG_Bar_Data.json";
+string filePathHistoricData = folderName + "/JCTG_Historic_Data.json";
+string filePathHistoricTrades = folderName + "/JCTG_Historic_Trades.json";
+string filePathCommandsPrefix = folderName + "/JCTG_Commands_";
 
-string lastOrderText = "", lastMarketDataText = "", lastMessageText = "", lastBarDataText = "";
+string lastOrderText = "", lastMarketDataText = "", lastMessageText = "", lastBarDataText = "", lastTradeText = "";
 
 struct MESSAGE
 {
@@ -185,6 +185,7 @@ void OnTick() {
    CheckOpenOrders();
    CheckMarketData();
    CheckBarData();
+   CheckTrades(14);
 }
 
 
@@ -251,8 +252,6 @@ void CheckCommands() {
          SubscribeSymbols(content);
       } else if (command == "SUBSCRIBE_SYMBOLS_BAR_DATA") {
          SubscribeSymbolsBarData(content);
-      } else if (command == "GET_HISTORIC_TRADES") {
-         GetHistoricTrades(content);
       } else if (command == "GET_HISTORIC_DATA") {
          GetHistoricData(content);
       } else if (command == "RESET_COMMAND_IDS") {
@@ -789,12 +788,12 @@ void GetHistoricData(string dataStr) {
    }
 }
 
-void GetHistoricTrades(string dataStr) {
+void CheckTrades(int days) {
 
-   int lookbackDays = (int)StringToInteger(dataStr);
+   int lookbackDays = days;
    
    if (lookbackDays <= 0) {
-      SendError("HISTORIC_TRADES", "Lookback days smaller or equal to zero: " + dataStr);
+      SendError("HISTORIC_TRADES", "Lookback days smaller or equal to zero");
       return;
    }
    
@@ -809,7 +808,7 @@ void GetHistoricTrades(string dataStr) {
       // if (!HistoryOrderSelect(orderTicket)) continue;
       if (!first) text += ", ";
       else first = false;
-      text += StringFormat("\"%llu\": {\"magic\": %d, \"symbol\": \"%s\", \"lots\": %.2f, \"type\": \"%s\", \"entry\": \"%s\", \"deal_time\": \"%s\", \"deal_price\": %.5f, \"pnl\": %.2f, \"commission\": %.2f, \"swap\": %.2f, \"comment\": \"%s\"}", 
+      text += StringFormat("\"%llu\": {\"magic\": %d, \"symbol\": \"%s\", \"lots\": %.2f, \"type\": \"%s\", \"entry\": \"%s\", \"deal_time\": \"%s\", \"deal_price\": %.5f, \"pnl\": %.2f, \"commission\": %.2f, \"swap\": %.2f, \"comment\": \"%s\", \"ismt4\": false}", 
                            ticket, 
                            HistoryDealGetInteger(ticket, DEAL_MAGIC), 
                            HistoryDealGetString(ticket, DEAL_SYMBOL), 
@@ -827,11 +826,13 @@ void GetHistoricTrades(string dataStr) {
    
    
    text += "}";
-   for (int i=0; i<5; i++) {
-      if (WriteToFile(filePathHistoricTrades, text)) break;
-      Sleep(100);
+
+    // only write to file if there was a change. 
+   if (text == lastTradeText) return;
+   
+   if (WriteToFile(filePathHistoricTrades, text)) {
+      lastTradeText = text;
    }
-   SendInfo("Successfully read historic trades.");
 }
 
 double CalculateATR(string symbol, int shift, int period, string strTimeframe) {

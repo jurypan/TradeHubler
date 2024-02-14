@@ -16,7 +16,7 @@ namespace JCTG.WebApp.Helpers
                 if (onOrderCreate != null && onOrderCreate.ClientID > 0 && onOrderCreate.SignalID > 0)
                 {
                     // Check trade journal
-                    var journal = await dbContext.TradeJournal.FirstOrDefaultAsync(f => f.ClientID == onOrderCreate.ClientID && f.SignalID == onOrderCreate.SignalID);
+                    var journal = await dbContext.TradeJournal.FirstOrDefaultAsync(f => f.ClientID == onOrderCreate.ClientID && f.SignalID == onOrderCreate.Order.Magic);
 
                     // Check for duplicates
                     if (journal == null)
@@ -266,7 +266,7 @@ namespace JCTG.WebApp.Helpers
                             // Log
                             var log = new Log()
                             {
-                                SignalID = onDealEvent.SignalID,
+                                SignalID = journal.SignalID,
                                 ClientID = onDealEvent.ClientID,
                                 Description = onDealEvent.Log.Description,
                                 ErrorType = onDealEvent.Log.ErrorType,
@@ -296,6 +296,10 @@ namespace JCTG.WebApp.Helpers
                                 journal.CloseTime = DateTime.UtcNow;
                                 journal.IsTradeClosed = true;
                             }
+                        }
+                        else
+                        {
+                            // Do retry
                         }
                     }
                 }

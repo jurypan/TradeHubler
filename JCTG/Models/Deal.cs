@@ -11,6 +11,5 @@
         public double Pnl { get; set; }
         public double Commission { get; set; }
         public double Swap { get; set; }
-        public string Comment { get; set; }
     }
 }
