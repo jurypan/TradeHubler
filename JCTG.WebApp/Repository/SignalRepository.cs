@@ -19,14 +19,5 @@ namespace JCTG.WebApp.Repository
                 .Include(f => f.Logs)
                 .FirstOrDefaultAsync(f => f.AccountID == accountId && f.ID == signalId);
         }
-
-        public async Task<List<Client>> GetClientsThatDontHaveAJournalById(int accountId, long signalId)
-        {
-            using var context = await dbContextFactory.CreateDbContextAsync();
-            return await context.Signal
-                        .Where(f => f.AccountID == accountId && f.ID == signalId && f.Orders.Count() == 0)
-                        .SelectMany(f => f.Account.Clients)
-                        .ToListAsync();
-        }
     }
 }

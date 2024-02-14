@@ -28,6 +28,7 @@ builder.Services.AddAzurePubSubServer();
 builder.Services.AddTransient<SignalRepository>();
 builder.Services.AddTransient<OrderRepository>();
 builder.Services.AddTransient<LogRepository>();
+builder.Services.AddTransient<ClientRepository>();
 
 // Init logging
 builder.Logging.ClearProviders();

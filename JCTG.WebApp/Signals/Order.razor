@@ -1,5 +1,6 @@
 ﻿@page "/Signals/{signalid:int}/Orders";
 @inject SignalRepository _signalRepository;
+@inject ClientRepository _clientRepository;
 @inject NavigationManager _navigationManager;
 
 <h3>Orders</h3>
@@ -26,10 +27,11 @@ else
     </div>
 }
 
-
+<br />
+<br />
 <h3>Clients with orders for this signal</h3>
 <div class="row">
-    @foreach (var client in _clientsWithoutOrders)
+    @foreach (var client in _clients)
     {
         <div class="col-md-6 mb-6">
             <div class="card">
@@ -51,15 +53,24 @@ else
 
 
     private List<JCTG.Entity.Order> _orders = new List<Entity.Order>();
-    private List<JCTG.Entity.Client> _clientsWithoutOrders = new List<Entity.Client>();
+    private List<JCTG.Entity.Client> _clients = new List<Entity.Client>();
 
     protected async override Task OnInitializedAsync()
     {
         var signal = await _signalRepository.GetById(692803787, SignalId);
+        var clients = await _clientRepository.GetAll(692803787);
+
         if (signal != null)
         {
             _orders = signal.Orders;
         }
-        _clientsWithoutOrders = await _signalRepository.GetClientsThatDontHaveAJournalById(692803787, SignalId);
+
+        foreach (var client in clients)
+        {
+            if(!_orders.Any(f => f.ClientID == client.ID))
+            {
+                _clients.Add(client);
+            }
+        }
     }
 }
