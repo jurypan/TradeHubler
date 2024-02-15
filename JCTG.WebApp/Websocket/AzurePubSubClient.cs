@@ -6,18 +6,23 @@ namespace JCTG.WebApp
 {
     public class AzurePubSubClient(WebsocketClient client)
     {
+        private readonly Serilog.ILogger _logger = Serilog.Log.ForContext<AzurePubSubClient>();
+
         private readonly WebsocketClient? _client = client;
 
         public event Action<OnLogEvent>? OnLogEvent;
         public event Action<OnOrderCreatedEvent>? OnOrderCreatedEvent;
         public event Action<OnOrderUpdatedEvent>? OnOrderUpdateEvent;
         public event Action<OnOrderClosedEvent>? OnOrderCloseEvent;
-        public event Action<OnOrderAutoMoveSlToBeEvent>? OnOrderAutoMoveSlToBeEvent;
+        public event Action<OnOrderAutoMoveSlToBeEvent>? OnAutoMoveSlToBeEvent;
         public event Action<OnItsTimeToCloseTheOrderEvent>? OnItsTimeToCloseTheOrderEvent;
         public event Action<OnDealCreatedEvent>? OnDealCreatedEvent;
 
         public async Task ListeningToServerAsync()
         {
+            // Log
+            _logger.Debug($"Init client");
+
             // Do null reference check
             if (_client != null)
             {
@@ -75,7 +80,7 @@ namespace JCTG.WebApp
                                     {
                                         var @event = JsonSerializer.Deserialize<OnOrderAutoMoveSlToBeEvent>(data.GetRawText(), jsonSerializerOptions);
                                         if (@event != null)
-                                            OnOrderAutoMoveSlToBeEvent?.Invoke(@event);
+                                            OnAutoMoveSlToBeEvent?.Invoke(@event);
                                     }
                                     else if (type == Constants.WebsocketMessageType_OnItsTimeToCloseTheOrderEvent)
                                     {

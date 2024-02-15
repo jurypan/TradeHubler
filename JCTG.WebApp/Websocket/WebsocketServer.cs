@@ -5,24 +5,37 @@ namespace JCTG.WebApp.Helpers
 {
     public class WebsocketServer(AzurePubSubClient client, IServiceScopeFactory scopeFactory)
     {
+        private readonly Serilog.ILogger _logger = Serilog.Log.ForContext<WebsocketServer>();
+
         public async Task RunAsync()
         {
+            // Log
+            _logger.Debug($"Init event handlers");
 
             client.OnOrderCreatedEvent += async (onOrderCreated) =>
             {
+                // Log
+                _logger.Debug("On order create event triggered", onOrderCreated);
+
                 using var scope = scopeFactory.CreateScope();
                 var dbContext = scope.ServiceProvider.GetRequiredService<JCTGDbContext>();
 
                 if (onOrderCreated != null && onOrderCreated.ClientID > 0 && onOrderCreated.SignalID > 0)
                 {
+                    // Log
+                    _logger.Debug($"Signal id is {onOrderCreated.SignalID}", onOrderCreated);
+
                     // Check trade order
-                    var journal = await dbContext.Order.FirstOrDefaultAsync(f => f.ClientID == onOrderCreated.ClientID && f.SignalID == onOrderCreated.Order.Magic);
+                    var order = await dbContext.Order.FirstOrDefaultAsync(f => f.ClientID == onOrderCreated.ClientID && f.SignalID == onOrderCreated.SignalID);
 
                     // Check for duplicates
-                    if (journal == null)
+                    if (order == null)
                     {
+                        // Log
+                        _logger.Debug($"Order not found");
+
                         // Deal order
-                        journal = new Order()
+                        order = new Order()
                         {
                             DateCreated = DateTime.UtcNow,
                             IsTradeClosed = false,
@@ -38,7 +51,7 @@ namespace JCTG.WebApp.Helpers
                             Comment = onOrderCreated.Order.Comment,
                             Magic = onOrderCreated.Order.Magic,
                         };
-                        await dbContext.Order.AddAsync(journal);
+                        await dbContext.Order.AddAsync(order);
                     }
 
                     // Log
@@ -57,63 +70,93 @@ namespace JCTG.WebApp.Helpers
 
                     // Save
                     await dbContext.SaveChangesAsync();
+
+                    // Log
+                    _logger.Information($"Saved order in database with id {order.ID}");
                 }
             };
 
             client.OnOrderUpdateEvent += async (onOrderUpdated) =>
             {
+                // Log
+                _logger.Debug("On order update event triggered", onOrderUpdated);
+
                 using var scope = scopeFactory.CreateScope();
                 var dbContext = scope.ServiceProvider.GetRequiredService<JCTGDbContext>();
 
                 // Do null reference check
                 if (onOrderUpdated != null && onOrderUpdated.ClientID > 0 && onOrderUpdated.Order != null && onOrderUpdated.SignalID > 0)
                 {
+                    // Log
+                    _logger.Debug($"Signal id is {onOrderUpdated.SignalID}", onOrderUpdated);
+
                     // Get the trade order from the database
-                    var journal = await dbContext.Order.FirstOrDefaultAsync(f => f.SignalID == onOrderUpdated.SignalID && f.ClientID == onOrderUpdated.ClientID);
+                    var order = await dbContext.Order.FirstOrDefaultAsync(f => f.SignalID == onOrderUpdated.SignalID && f.ClientID == onOrderUpdated.ClientID);
 
                     // Do null reference check
-                    if (journal != null)
+                    if (order != null)
                     {
-                        journal.CloseStopLoss = decimal.ToDouble(onOrderUpdated.Order.StopLoss);
-                        journal.CloseTakeProfit = decimal.ToDouble(onOrderUpdated.Order.TakeProfit);
+                        // Log
+                        _logger.Debug($"Order found, update SL {decimal.ToDouble(onOrderUpdated.Order.StopLoss)} and TP {decimal.ToDouble(onOrderUpdated.Order.TakeProfit)}", order);
+
+                        // Update entity
+                        order.CloseStopLoss = decimal.ToDouble(onOrderUpdated.Order.StopLoss);
+                        order.CloseTakeProfit = decimal.ToDouble(onOrderUpdated.Order.TakeProfit);
+
+                        // Log
+                        var log = new Log()
+                        {
+                            SignalID = onOrderUpdated.SignalID,
+                            ClientID = onOrderUpdated.ClientID,
+                            Description = onOrderUpdated.Log.Description,
+                            ErrorType = onOrderUpdated.Log.ErrorType,
+                            Message = onOrderUpdated.Log.Message,
+                            Time = onOrderUpdated.Log.Time,
+                            Type = onOrderUpdated.Log.Type,
+                        };
+                        await dbContext.Log.AddAsync(log);
+
+                        // Save
+                        await dbContext.SaveChangesAsync();
+
+                        // Log
+                        _logger.Debug($"Saved database");
                     }
-
-                    // Log
-                    var log = new Log()
+                    else
                     {
-                        SignalID = onOrderUpdated.SignalID,
-                        ClientID = onOrderUpdated.ClientID,
-                        Description = onOrderUpdated.Log.Description,
-                        ErrorType = onOrderUpdated.Log.ErrorType,
-                        Message = onOrderUpdated.Log.Message,
-                        Time = onOrderUpdated.Log.Time,
-                        Type = onOrderUpdated.Log.Type,
-                    };
-                    await dbContext.Log.AddAsync(log);
-
-                    // Save
-                    await dbContext.SaveChangesAsync();
+                        // Log
+                        _logger.Error($"Order not foudn with signal id {onOrderUpdated.SignalID}");
+                    }
                 }
             };
 
             client.OnOrderCloseEvent += async (onOrderClosed) =>
             {
+                // Log
+                _logger.Debug("On order close event triggered", onOrderClosed);
+
                 using var scope = scopeFactory.CreateScope();
                 var dbContext = scope.ServiceProvider.GetRequiredService<JCTGDbContext>();
 
                 // Do null reference check
                 if (onOrderClosed != null && onOrderClosed.ClientID > 0 && onOrderClosed.SignalID > 0)
                 {
+                    // Log
+                    _logger.Debug($"Signal id is {onOrderClosed.SignalID}", onOrderClosed);
+
                     // Get the trade order from the database
-                    var journal = await dbContext.Order.FirstOrDefaultAsync(f => f.SignalID == onOrderClosed.SignalID && f.ClientID == onOrderClosed.ClientID);
+                    var order = await dbContext.Order.FirstOrDefaultAsync(f => f.SignalID == onOrderClosed.SignalID && f.ClientID == onOrderClosed.ClientID);
 
                     // Do null reference check
-                    if (journal != null)
+                    if (order != null)
                     {
+                        // Log
+                        _logger.Debug($"Order found, update Price {decimal.ToDouble(onOrderClosed.ClosePrice)}, update SL {decimal.ToDouble(onOrderClosed.Order.StopLoss)} and TP {decimal.ToDouble(onOrderClosed.Order.TakeProfit)}", order);
+
                         // Update close properties
-                        journal.ClosePrice = decimal.ToDouble(onOrderClosed.ClosePrice);
-                        journal.CloseStopLoss = decimal.ToDouble(onOrderClosed.Order.StopLoss);
-                        journal.CloseTakeProfit = decimal.ToDouble(onOrderClosed.Order.TakeProfit);
+                        order.ClosePrice = decimal.ToDouble(onOrderClosed.ClosePrice);
+                        order.CloseStopLoss = decimal.ToDouble(onOrderClosed.Order.StopLoss);
+                        order.CloseTakeProfit = decimal.ToDouble(onOrderClosed.Order.TakeProfit);
 
                         // Log
                         var log = new Log()
@@ -125,60 +168,92 @@ namespace JCTG.WebApp.Helpers
                             Message = onOrderClosed.Log.Message,
                             Time = onOrderClosed.Log.Time,
                             Type = onOrderClosed.Log.Type,
-                        }
-                        ;
+                        };
                         await dbContext.Log.AddAsync(log);
 
                         // Save
                         await dbContext.SaveChangesAsync();
+
+                        // Log
+                        _logger.Debug($"Saved database");
+                    }
+                    else
+                    {
+                        // Log
+                        _logger.Error($"Order not found with signal id {onOrderClosed.SignalID}");
                     }
                 }
             };
 
-            client.OnOrderAutoMoveSlToBeEvent += async (onOrderAutoMoveSlToBe) =>
+            client.OnAutoMoveSlToBeEvent += async (onAutoMoveSlToBe) =>
             {
+                // Log
+                _logger.Debug("On auto move SL to BE event triggered", onAutoMoveSlToBe);
+
                 using var scope = scopeFactory.CreateScope();
                 var dbContext = scope.ServiceProvider.GetRequiredService<JCTGDbContext>();
 
                 // Do null reference check
-                if (onOrderAutoMoveSlToBe != null && onOrderAutoMoveSlToBe.ClientID > 0 && onOrderAutoMoveSlToBe.SignalID > 0)
+                if (onAutoMoveSlToBe != null && onAutoMoveSlToBe.ClientID > 0 && onAutoMoveSlToBe.SignalID > 0)
                 {
+                    // Log
+                    _logger.Debug($"Signal id is {onAutoMoveSlToBe.SignalID}", onAutoMoveSlToBe);
+
                     // Get the trade order from the database
-                    var order = await dbContext.Order.FirstOrDefaultAsync(f => f.SignalID == onOrderAutoMoveSlToBe.SignalID && f.ClientID == onOrderAutoMoveSlToBe.ClientID);
+                    var order = await dbContext.Order.FirstOrDefaultAsync(f => f.SignalID == onAutoMoveSlToBe.SignalID && f.ClientID == onAutoMoveSlToBe.ClientID);
 
                     // Do null reference check
                     if (order != null)
                     {
-                        order.CloseStopLoss = decimal.ToDouble(onOrderAutoMoveSlToBe.StopLossPrice);
+                        // Log
+                        _logger.Debug($"Order found, update SL {decimal.ToDouble(onAutoMoveSlToBe.StopLossPrice)}", order);
+
+                        // Update entity
+                        order.CloseStopLoss = decimal.ToDouble(onAutoMoveSlToBe.StopLossPrice);
+                    }
+                    else
+                    { 
+                        // Log
+                        _logger.Error($"Order not found with signal id {onAutoMoveSlToBe.SignalID}");
                     }
 
                     // Log
                     var log = new Log()
                     {
-                        SignalID = onOrderAutoMoveSlToBe.SignalID,
-                        ClientID = onOrderAutoMoveSlToBe.ClientID,
-                        Description = onOrderAutoMoveSlToBe.Log.Description,
-                        ErrorType = onOrderAutoMoveSlToBe.Log.ErrorType,
-                        Message = onOrderAutoMoveSlToBe.Log.Message,
-                        Time = onOrderAutoMoveSlToBe.Log.Time,
-                        Type = onOrderAutoMoveSlToBe.Log.Type,
+                        SignalID = onAutoMoveSlToBe.SignalID,
+                        ClientID = onAutoMoveSlToBe.ClientID,
+                        Description = onAutoMoveSlToBe.Log.Description,
+                        ErrorType = onAutoMoveSlToBe.Log.ErrorType,
+                        Message = onAutoMoveSlToBe.Log.Message,
+                        Time = onAutoMoveSlToBe.Log.Time,
+                        Type = onAutoMoveSlToBe.Log.Type,
                     }
                     ;
                     await dbContext.Log.AddAsync(log);
 
                     // Save
                     await dbContext.SaveChangesAsync();
+
+                    // Log
+                    _logger.Debug($"Saved database");
+
                 }
             };
 
             client.OnItsTimeToCloseTheOrderEvent += async (onItsTimeToCloseTheOrder) =>
             {
+                // Log
+                _logger.Debug("On Its time to close the order event triggered", onItsTimeToCloseTheOrder);
+
                 using var scope = scopeFactory.CreateScope();
                 var dbContext = scope.ServiceProvider.GetRequiredService<JCTGDbContext>();
 
                 // Do null reference check
                 if (onItsTimeToCloseTheOrder != null && onItsTimeToCloseTheOrder.ClientID > 0 && onItsTimeToCloseTheOrder.SignalID > 0)
                 {
+                    // Log
+                    _logger.Debug($"Signal id is {onItsTimeToCloseTheOrder.SignalID}", onItsTimeToCloseTheOrder);
+
                     // Log
                     var log = new Log()
                     {
@@ -195,11 +270,17 @@ namespace JCTG.WebApp.Helpers
 
                     // Save
                     await dbContext.SaveChangesAsync();
+
+                    // Log
+                    _logger.Debug($"Saved database");
                 }
             };
 
             client.OnLogEvent += async (onLog) =>
             {
+                // Log
+                _logger.Debug("On log event triggered", onLog);
+
                 using var scope = scopeFactory.CreateScope();
                 var dbContext = scope.ServiceProvider.GetRequiredService<JCTGDbContext>();
 
@@ -221,20 +302,32 @@ namespace JCTG.WebApp.Helpers
 
                     // Save
                     await dbContext.SaveChangesAsync();
+
+                    // Log
+                    _logger.Debug($"Saved database");
                 }
             };
 
             client.OnDealCreatedEvent += async (onDealCreatedEvent) =>
             {
+                // Log
+                _logger.Debug("On deal created event triggered", onDealCreatedEvent);
+
                 using var scope = scopeFactory.CreateScope();
                 var dbContext = scope.ServiceProvider.GetRequiredService<JCTGDbContext>();
 
                 // Do null reference check
-                if (onDealCreatedEvent != null && onDealCreatedEvent.ClientID > 0 && onDealCreatedEvent.Deal != null && onDealCreatedEvent.DealID > 0)
+                if (onDealCreatedEvent != null && onDealCreatedEvent.ClientID > 0 && onDealCreatedEvent.Deal != null && onDealCreatedEvent.MtDealID > 0)
                 {
+                    // Log
+                    _logger.Debug($"Deal id is {onDealCreatedEvent.MtDealID}", onDealCreatedEvent);
+
                     // Check if the deal already exist
-                    if (!dbContext.Deal.Any(f => f.MtDealId == onDealCreatedEvent.DealID))
+                    if (!dbContext.Deal.Any(f => f.MtDealId == onDealCreatedEvent.MtDealID))
                     {
+                        // Log
+                        _logger.Debug($"Deal id {onDealCreatedEvent.MtDealID} is not found in the database ", onDealCreatedEvent);
+
                         int maxRetries = 3; // Maximum number of retries
                         for (int attempt = 1; attempt <= maxRetries; attempt++)
                         {
@@ -247,12 +340,15 @@ namespace JCTG.WebApp.Helpers
                                 // Stop loop
                                 attempt = maxRetries;
 
+                                // Log
+                                _logger.Debug($"Order with id {order.ID} is found in the database ", order);
+
                                 // Add deal
                                 var deal = new Deal()
                                 {
                                     DateCreated = DateTime.UtcNow,
                                     OrderID = order.ID,
-                                    MtDealId = onDealCreatedEvent.DealID,
+                                    MtDealId = onDealCreatedEvent.MtDealID,
                                     Commission = onDealCreatedEvent.Deal.Commission,
                                     Entry = onDealCreatedEvent.Deal.Entry,
                                     Lots =  onDealCreatedEvent.Deal.Lots,
@@ -269,6 +365,9 @@ namespace JCTG.WebApp.Helpers
                                 order.Swap += onDealCreatedEvent.Deal.Swap;
                                 order.Commission += onDealCreatedEvent.Deal.Commission;
                                 order.Pnl += onDealCreatedEvent.Deal.Pnl;
+
+                                // Log
+                                _logger.Debug($"Order swap {onDealCreatedEvent.Deal.Swap}, commission {onDealCreatedEvent.Deal.Commission} and pnl {onDealCreatedEvent.Deal.Pnl} updated in the database ", onDealCreatedEvent);
 
                                 // Log
                                 var log = new Log()
@@ -288,6 +387,10 @@ namespace JCTG.WebApp.Helpers
                                 {
                                     order.CloseTime = DateTime.UtcNow;
                                     order.IsTradeClosed = true;
+
+                                    // Log
+                                    _logger.Debug($"MT4, Set order as closed", order);
+
                                 }
                                 else
                                 {
@@ -303,33 +406,49 @@ namespace JCTG.WebApp.Helpers
                                                                         0)
                                                                 })
                                                                 .FirstOrDefault();
+                                    // Log
+                                    _logger.Debug($"MT5, Total lot result is {totalLotsResult}", totalLotsResult);
 
                                     if (totalLotsResult != null && totalLotsResult.TotalLots == 0.0)
                                     {
                                         order.CloseTime = DateTime.UtcNow;
                                         order.IsTradeClosed = true;
+
+                                        // Log
+                                        _logger.Debug($"MT5, Set order as closed", order);
                                     }
                                 }
 
                                 // Save
                                 await dbContext.SaveChangesAsync();
 
+                                // Log
+                                _logger.Debug($"Saved database");
+
                             }
                             else if (attempt < maxRetries)
                             {
-                                await Task.Delay(1000); // Wait for 1 second before retrying
+                                // Log
+                                _logger.Information($"Order not found in database, wait 1 second");
+
+                                // Wait for 1 second before retrying
+                                await Task.Delay(1000);
                             }
                             else
                             {
-                                // Logic for handling the case where all retries have failed.
-                                // You might log this event or handle it according to your application's requirements.
+                                // Log
+                                _logger.Error($"Order not found in database after 3 retries");
                             }
                         }
                     }
                 }
             };
 
+            // Listen to the server
             await client.ListeningToServerAsync();
+
+            // Log
+            _logger.Information($"Websocket started");
         }
     }
 }

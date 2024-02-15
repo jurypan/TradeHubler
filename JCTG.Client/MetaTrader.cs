@@ -1368,7 +1368,7 @@ namespace JCTG.Client
                     await new AzurePubSubServer().SendOnTradeEventAsync(new OnDealCreatedEvent()
                     {
                         ClientID = clientId,
-                        DealID = tradeId,
+                        MtDealID = tradeId,
                         Deal = trade,
                         Log = log
                     });
