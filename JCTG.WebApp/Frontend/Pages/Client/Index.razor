@@ -1,0 +1,41 @@
+﻿@page "/";
+@inject ClientRepository _clientRepository;
+
+<h3>Clients</h3>
+@if (_clients.Count() <= 0)
+{
+    <p>No Clients available</p>
+}
+else
+{
+    <div class="row">
+        @foreach (var Client in _clients)
+        {
+            <div class="col-md-3 mb-3">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">@Client.Name</h5>
+                        <p class="card-text">@Client.Currency</p>
+                        <p class="card-text">Balance: @Client.Balance</p>
+                        <p class="card-text">Equity: @Client.Equity</p>
+                        <div>
+                            <a href="@($"Clients/{Client.ID}/History")"> View trading orders</a>
+                        </div>
+                        <div>
+                            <a href="@($"Clients/{Client.ID}/Tradingview")"> View trading chart</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    private List<Entity.Client> _clients = new List<Entity.Client>();
+
+    protected async override Task OnInitializedAsync()
+    {
+        _clients = await _clientRepository.GetAll(692803787);
+    }
+}

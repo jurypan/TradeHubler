@@ -1,0 +1,76 @@
+﻿@page "/Signals/{signalid:int}/Orders";
+@inject SignalRepository _signalRepository;
+@inject ClientRepository _clientRepository;
+@inject NavigationManager _navigationManager;
+
+<h3>Orders</h3>
+@if (_orders.Count() <= 0)
+{
+    <p>No trading journals available</p>
+}
+else
+{
+    <div class="row">
+        @foreach (var order in _orders)
+        {
+            <div class="col-md-6 mb-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">@order.Client?.Name</h5>
+                        <p class="card-text">@order.Symbol @order.Type</p>
+                        <p class="card-text">@order.Signal.StrategyType</p>
+                        <div><a href="@($"Signals/{SignalId}/Orders/{order.ClientID}/Logs")"> View logs</a></div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+<br />
+<br />
+<h3>Clients with orders for this signal</h3>
+<div class="row">
+    @foreach (var client in _clients)
+    {
+        <div class="col-md-6 mb-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">@client.Name</h5>
+                    <p class="card-text"></p>
+                    <div><a href="@($"Signals/{SignalId}/Orders/{client.ID}/Logs")"> View logs</a></div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+
+@code {
+
+    [Parameter]
+    public int SignalId { get; set; }
+
+
+    private List<Entity.Order> _orders = new List<Entity.Order>();
+    private List<Entity.Client> _clients = new List<Entity.Client>();
+
+    protected async override Task OnInitializedAsync()
+    {
+        var signal = await _signalRepository.GetById(692803787, SignalId);
+        var clients = await _clientRepository.GetAll(692803787);
+
+        if (signal != null)
+        {
+            _orders = signal.Orders;
+        }
+
+        foreach (var client in clients)
+        {
+            if(!_orders.Any(f => f.ClientID == client.ID))
+            {
+                _clients.Add(client);
+            }
+        }
+    }
+}

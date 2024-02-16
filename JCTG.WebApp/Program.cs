@@ -1,7 +1,8 @@
 using JCTG;
-using JCTG.WebApp;
-using JCTG.WebApp.Helpers;
-using JCTG.WebApp.Repository;
+using JCTG.WebApp.Backend.Middleware;
+using JCTG.WebApp.Backend.Repository;
+using JCTG.WebApp.Backend.Websocket;
+using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 
@@ -30,6 +31,12 @@ builder.Services.AddTransient<OrderRepository>();
 builder.Services.AddTransient<LogRepository>();
 builder.Services.AddTransient<ClientRepository>();
 
+// Init the frontend pages
+builder.Services.Configure<RazorPagesOptions>(options =>
+{
+    options.RootDirectory = "/Frontend/Pages";
+});
+
 // Init logging
 builder.Logging.ClearProviders();
 builder.Logging.SetMinimumLevel(LogLevel.Debug);
@@ -41,7 +48,7 @@ var app = builder.Build();
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
-    //app.UseExceptionHandler("/Error");
+    app.UseExceptionHandler("/Error");
     app.UseHsts();
 }
 
@@ -63,6 +70,6 @@ using (var serviceScope = app.Services.CreateScope())
 {
     app.Logger.LogInformation("Starting the app");
     if (!app.Environment.IsDevelopment())
-       await serviceScope.ServiceProvider.GetRequiredService<WebsocketServer>().RunAsync();
+        await serviceScope.ServiceProvider.GetRequiredService<WebsocketServer>().RunAsync();
     app.Run();
 }

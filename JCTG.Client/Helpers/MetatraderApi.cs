@@ -43,7 +43,7 @@ namespace JCTG.Client
         public Dictionary<string, MarketData> MarketData { get; private set; }
         public Dictionary<string, BarData> LastBarData { get; private set; }
         public Dictionary<string, HistoricBarData> HistoricData { get; private set; }
-        public Dictionary<long, Deal> Trades { get; private set; }
+        public Dictionary<long, Deal> Deals { get; private set; }
 
         public long ClientId { get; private set; }
 
@@ -80,8 +80,8 @@ namespace JCTG.Client
         public delegate void OnHistoricDataEventHandler(long clientId);
         public event OnHistoricDataEventHandler? OnHistoricDataEvent;
 
-        public delegate void OnDealEventHandler(long clientId, long dealId, Deal deal);
-        public event OnDealEventHandler? OnDealEvent;
+        public delegate void OnDealCreatedEventHandler(long clientId, long dealId, Deal deal);
+        public event OnDealCreatedEventHandler? OnDealCreatedEvent;
 
         public delegate void OnAccountInfoChangedHandler(long clientId, AccountInfo accountInfo);
         public event OnAccountInfoChangedHandler? OnAccountInfoChangedEvent;
@@ -314,8 +314,8 @@ namespace JCTG.Client
                     lastDealsStr = text;
 
                     // If null -> new instance
-                    if (Trades == null)
-                        Trades = new Dictionary<long, Deal>();
+                    if (Deals == null)
+                        Deals = new Dictionary<long, Deal>();
 
                     // Parse it to objects
                     var deals = JsonConvert.DeserializeObject<Dictionary<long, Deal>>(text);
@@ -327,14 +327,14 @@ namespace JCTG.Client
                         foreach (var deal in deals)
                         {
                             // Check if it's already in the current collection, if not -> throw event
-                            if (!Trades.Any(f => f.Key == deal.Key))
+                            if (!Deals.Any(f => f.Key == deal.Key))
                             {
-                                OnDealEvent?.Invoke(this.ClientId, deal.Key, deal.Value);
+                                OnDealCreatedEvent?.Invoke(this.ClientId, deal.Key, deal.Value);
                             }
                         }
 
                         // Update the object
-                        Trades = deals;
+                        Deals = deals;
                     }
 
                     if (loadDataFromFile)
@@ -756,9 +756,9 @@ namespace JCTG.Client
 
                 // Do null reference check
                 if (trades != null)
-                    Trades = trades;
+                    Deals = trades;
                 else
-                    Trades = [];
+                    Deals = [];
             }
         }
 

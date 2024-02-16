@@ -62,7 +62,7 @@ namespace JCTG.Client
                         _api.OnOrderCloseEvent += OnOrderCloseEvent;
                         _api.OnLogEvent += OnLogEvent;
                         _api.OnCandleCloseEvent += OnCandleCloseEvent;
-                        _api.OnDealEvent += OnDealCreateEvent;
+                        _api.OnDealCreatedEvent += OnDealCreateEvent;
                         _api.OnTickEvent += OnTickEvent;
                         _api.OnAccountInfoChangedEvent += OnAccountInfoChangedEvent;
 
