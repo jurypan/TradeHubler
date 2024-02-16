@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
@@ -8,13 +8,9 @@
 
   <ItemGroup>
     <Compile Remove="Logs\**" />
-    <Compile Remove="NewFolder\**" />
     <Content Remove="Logs\**" />
-    <Content Remove="NewFolder\**" />
     <EmbeddedResource Remove="Logs\**" />
-    <EmbeddedResource Remove="NewFolder\**" />
     <None Remove="Logs\**" />
-    <None Remove="NewFolder\**" />
   </ItemGroup>
 
   <ItemGroup>
@@ -41,11 +37,9 @@
     <Content Update="appsettings.Development.json">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Content>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Pages\NewFolder\" />
-    <Folder Include="Pages\Signal\" />
+    <Content Update="Pages\Client\Tradingview.razor">
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+    </Content>
   </ItemGroup>
 
 </Project>
