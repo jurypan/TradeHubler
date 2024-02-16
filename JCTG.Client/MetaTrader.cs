@@ -1357,12 +1357,14 @@ namespace JCTG.Client
         private void OnDealCreateEvent(long clientId, long tradeId, Deal trade)
         {
             // Do null reference check
-            if (_appConfig != null)
+            if (_appConfig != null && _apis.Count(f => f.ClientId == clientId) == 1)
             {
                 // Send log to files
                 var message = string.Format($"DealCreated || Symbol={trade.Symbol},TradeId={tradeId},Lots={trade.Lots},Type={trade.Type},Magic={trade.Magic},Entry={trade.Entry}");
                 var log = new Log() { Time = DateTime.UtcNow, Type = "INFO", Description = "Deal created", Message = message };
 
+                // Get api
+                var api = _apis.First(f => f.ClientId == clientId);
 
                 Task.Run(async () =>
                 {
@@ -1372,7 +1374,9 @@ namespace JCTG.Client
                         ClientID = clientId,
                         MtDealID = tradeId,
                         Deal = trade,
-                        Log = log
+                        Log = log,
+                        AccountBalance = api.AccountInfo?.Balance,
+                        AccountEquity = api.AccountInfo?.Equity
                     });
                 });
             }

@@ -358,6 +358,8 @@ namespace JCTG.WebApp.Helpers
                                     Swap = onDealCreatedEvent.Deal.Swap,
                                     Symbol = onDealCreatedEvent.Deal.Symbol,
                                     Type = onDealCreatedEvent.Deal.Type,
+                                    AccountBalance = onDealCreatedEvent.AccountBalance,
+                                    AccountEquity = onDealCreatedEvent.AccountEquity,
                                 };
                                 await dbContext.Deal.AddAsync(deal);
 

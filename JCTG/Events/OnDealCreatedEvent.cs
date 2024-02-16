@@ -8,5 +8,7 @@ namespace JCTG.Events
         public long MtDealID { get; set; }
         public required Deal Deal { get; set; }
         public required Log Log { get; set; }
+        public double? AccountBalance { get; set; }
+        public double? AccountEquity { get; set; }
     }
 }

@@ -28,5 +28,7 @@ namespace JCTG.Entity
         public double Pnl { get; set; }
         public double Commission { get; set; }
         public double Swap { get; set; }
+        public double? AccountBalance { get; set; }
+        public double? AccountEquity { get; set; }
     }
 }
