@@ -17,6 +17,7 @@ namespace JCTG.WebApp
         public event Action<OnOrderAutoMoveSlToBeEvent>? OnAutoMoveSlToBeEvent;
         public event Action<OnItsTimeToCloseTheOrderEvent>? OnItsTimeToCloseTheOrderEvent;
         public event Action<OnDealCreatedEvent>? OnDealCreatedEvent;
+        public event Action<OnAccountInfoChangedEvent>? OnAccountInfoChangedEvent;
 
         public async Task ListeningToServerAsync()
         {
@@ -93,6 +94,12 @@ namespace JCTG.WebApp
                                         var @event = JsonSerializer.Deserialize<OnDealCreatedEvent>(data.GetRawText(), jsonSerializerOptions);
                                         if (@event != null)
                                             OnDealCreatedEvent?.Invoke(@event);
+                                    }
+                                    else if (type == Constants.WebsocketMessageType_OnAccountInfoChangedEvent)
+                                    {
+                                        var @event = JsonSerializer.Deserialize<OnAccountInfoChangedEvent>(data.GetRawText(), jsonSerializerOptions);
+                                        if (@event != null)
+                                            OnAccountInfoChangedEvent?.Invoke(@event);
                                     }
                                 }
                             }

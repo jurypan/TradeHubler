@@ -139,5 +139,23 @@ namespace JCTG.Client
             }
             return "0";
         }
+
+        public async Task<string> SendOnAccountInfoChangedAsync(OnAccountInfoChangedEvent @event)
+        {
+            if (_serviceClient != null)
+            {
+                var resp = await _serviceClient.SendToAllAsync(JsonConvert.SerializeObject(new WebsocketMessage<OnAccountInfoChangedEvent>()
+                {
+                    Data = @event,
+                    DataType = Constants.WebsocketMessageDatatype_JSON,
+                    From = Constants.WebsocketMessageFrom_Metatrader,
+                    Type = Constants.WebsocketMessageType_OnAccountInfoChangedEvent,
+                    TypeName = nameof(OnAccountInfoChangedEvent),
+                }, new JsonSerializerSettings { ContractResolver = new IgnoreJsonPropertyContractResolver() }), Azure.Core.ContentType.ApplicationJson);
+
+                return resp.ClientRequestId;
+            }
+            return "0";
+        }
     }
 }

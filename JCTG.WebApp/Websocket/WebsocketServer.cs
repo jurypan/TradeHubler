@@ -382,8 +382,11 @@ namespace JCTG.WebApp.Helpers
                                 };
                                 await dbContext.Log.AddAsync(log);
 
+                                // Save
+                                await dbContext.SaveChangesAsync();
+
                                 // If MT4
-                                if(onDealCreatedEvent.Deal.Entry == "trade")
+                                if (onDealCreatedEvent.Deal.Entry == "trade")
                                 {
                                     order.CloseTime = DateTime.UtcNow;
                                     order.IsTradeClosed = true;
@@ -394,28 +397,37 @@ namespace JCTG.WebApp.Helpers
                                 }
                                 else
                                 {
-                                    // MT5 is more complex, check if trade is closed
-                                    var totalLotsResult = dbContext.Deal
-                                                                .Where(f => f.OrderID == order.ID)
-                                                                .GroupBy(trade => 1) // Group by a constant to aggregate over all trades
-                                                                .Select(g => new
-                                                                {
-                                                                    TotalLots = g.Sum(trade =>
-                                                                        trade.Entry == "entry_in" ? trade.Lots :
-                                                                        trade.Entry == "entry_out" || trade.Entry == "entry_out_by" ? -trade.Lots :
-                                                                        0)
-                                                                })
-                                                                .FirstOrDefault();
-                                    // Log
-                                    _logger.Debug($"MT5, Total lot result is {totalLotsResult}", totalLotsResult);
+                                    // Get total lots
+                                    var deals = await dbContext.Deal.Where(f => f.OrderID == order.ID && (f.Entry == "entry_in" || f.Entry == "entry_out" || f.Entry == "entry_out_by")).ToListAsync();
 
-                                    if (totalLotsResult != null && totalLotsResult.TotalLots == 0.0)
+                                    // do null reference check
+                                    if(deals.Count > 0)
                                     {
-                                        order.CloseTime = DateTime.UtcNow;
-                                        order.IsTradeClosed = true;
+                                        // Count the total amount of lots that are used for entry in
+                                        var sumLotsIn = deals.Where(f => f.Entry == "entry_in").Sum(f => f.Lots);
+
+                                        // Count the total amount of lots that are used for entry_out or entry_out_by
+                                        var sumLotsOut = deals.Where(f => f.Entry == "entry_out" || f.Entry == "entry_out_by").Sum(f => f.Lots);
+
+                                        // Do the calculation
+                                        var totalLotsResult = sumLotsIn - sumLotsOut;
 
                                         // Log
-                                        _logger.Debug($"MT5, Set order as closed", order);
+                                        _logger.Debug($"MT5, Total lot result is {totalLotsResult} for order {order.ID} ", totalLotsResult);
+
+                                        if (totalLotsResult <= 0.0)
+                                        {
+                                            order.CloseTime = DateTime.UtcNow;
+                                            order.IsTradeClosed = true;
+
+                                            // Log
+                                            _logger.Debug($"MT5, Set order {order.ID} as closed", order);
+                                        }
+                                    }
+                                    else
+                                    {
+                                        // Log
+                                        _logger.Error("MT5, No deal found to calculate if the trade is closed or not");
                                     }
                                 }
 
@@ -444,9 +456,46 @@ namespace JCTG.WebApp.Helpers
                 }
             };
 
+            client.OnAccountInfoChangedEvent += async (onAccountInfoChangedEvent) =>
+            {
+                // Log
+                _logger.Debug("On account info changed event triggered", onAccountInfoChangedEvent);
+
+                using var scope = scopeFactory.CreateScope();
+                var dbContext = scope.ServiceProvider.GetRequiredService<JCTGDbContext>();
+
+                // Do null reference check
+                if (onAccountInfoChangedEvent != null && onAccountInfoChangedEvent.ClientID > 0 && onAccountInfoChangedEvent.AccountInfo != null)
+                {
+                    // Get client from DB
+                    var client = await dbContext.Client.FirstOrDefaultAsync(f => f.ID == onAccountInfoChangedEvent.ClientID);
+
+                    // Do null reference check
+                    if(client != null) 
+                    { 
+                        // Set properties
+                        client.Balance = onAccountInfoChangedEvent.AccountInfo.Balance;
+                        client.Equity = onAccountInfoChangedEvent.AccountInfo.Equity;
+                        client.Currency = onAccountInfoChangedEvent.AccountInfo.Currency;
+                        client.Leverage = onAccountInfoChangedEvent.AccountInfo.Leverage;
+
+                        // Save
+                        await dbContext.SaveChangesAsync();
+
+                        // Log
+                        _logger.Debug($"Saved database");
+                    }
+                    else
+                    {
+                        // Log
+                        _logger.Error($"Client not found with id {onAccountInfoChangedEvent.ClientID}", onAccountInfoChangedEvent);
+                    }
+                }
+            };
+
             // Listen to the server
             await client.ListeningToServerAsync();
-
+            
             // Log
             _logger.Information($"Websocket started");
         }

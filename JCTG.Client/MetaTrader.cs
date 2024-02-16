@@ -1,8 +1,10 @@
 ﻿using JCTG.Events;
 using JCTG.Models;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using static JCTG.Client.Helpers;
 
 namespace JCTG.Client
@@ -15,7 +17,7 @@ namespace JCTG.Client
         private readonly List<DailyTaskScheduler> _timing;
         private SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1); // Initial count 1, maximum count 1
         private readonly ConcurrentDictionary<long, List<Log>> _buffers = new ConcurrentDictionary<long, List<Log>>();
-        private Timer _timer;
+        private readonly Timer _timer;
 
         public Metatrader(TerminalConfig terminalConfig)
         {
@@ -26,10 +28,10 @@ namespace JCTG.Client
             _timer = new Timer(async _ => await FlushLogsToFileAsync(), null, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(10));
 
             // Foreach broker, init the API
-            foreach (var api in _appConfig.Brokers.Where(f => f.IsEnable).ToList())
+            foreach (var broker in _appConfig.Brokers.Where(f => f.IsEnable).ToList())
             {
                 // Init API
-                var _api = new MetatraderApi(api.MetaTraderDirPath, api.ClientId, terminalConfig.SleepDelay, terminalConfig.MaxRetryCommandSeconds, true);
+                var _api = new MetatraderApi(broker.MetaTraderDirPath, broker.ClientId, terminalConfig.SleepDelay, terminalConfig.MaxRetryCommandSeconds, true);
 
                 // Add to the list
                 _apis.Add(_api);
@@ -62,6 +64,7 @@ namespace JCTG.Client
                         _api.OnCandleCloseEvent += OnCandleCloseEvent;
                         _api.OnDealEvent += OnDealCreateEvent;
                         _api.OnTickEvent += OnTickEvent;
+                        _api.OnAccountInfoChangedEvent += OnAccountInfoChangedEvent;
 
                         // Start the API
                         await _api.StartAsync();
@@ -88,7 +91,6 @@ namespace JCTG.Client
             await Task.FromResult(0);
         }
 
-
         public async Task ListenToTheServerAsync()
         {
             // Do null reference checks
@@ -105,7 +107,7 @@ namespace JCTG.Client
                     {
                         if (tradingviewAlert != null && tradingviewAlert.SignalID > 0 && tradingviewAlert.AccountID == _appConfig.AccountId)
                         {
-                            // Iterate through the api's
+                            // Iterate through the broker's
                             foreach (var api in _apis)
                             {
                                 // Get the right pair back from the local database
@@ -1376,6 +1378,27 @@ namespace JCTG.Client
             }
         }
 
+        private void OnAccountInfoChangedEvent(long clientId, AccountInfo accountInfo)
+        {
+            // Do null reference check
+            if (_appConfig != null) 
+            {
+                // Send log to files
+                var message = string.Format($"AccountInfoChanged || Name={accountInfo.Name},Balance={accountInfo.Balance},Equity={accountInfo.Equity}");
+                var log = new Log() { Time = DateTime.UtcNow, Type = "INFO", Description = "AccountInfo Changed", Message = message };
+
+                Task.Run(async () =>
+                {
+                    // Send the tradejournal to Azure PubSub server
+                    await new AzurePubSubServer().SendOnAccountInfoChangedAsync(new OnAccountInfoChangedEvent()
+                    {
+                        ClientID = clientId,
+                        AccountInfo = accountInfo,
+                        Log = log,
+                    });
+                });
+            }
+        }
 
         public async Task LoadLogFromFileAsync(long clientId)
         {
@@ -1383,13 +1406,13 @@ namespace JCTG.Client
             {
                 var pair = _appConfig.Brokers.First(f => f.ClientId == clientId);
 
-                string fileName = pair.MetaTraderDirPath + $"Log-{clientId}.json";
+                string fileName = $"JCTG_Logs.json";
                 await _semaphore.WaitAsync();
                 try
                 {
                     if (File.Exists(fileName))
                     {
-                        var json = await File.ReadAllTextAsync(fileName);
+                        var json = await File.ReadAllTextAsync(pair.MetaTraderDirPath + "JCTG\\" + fileName);
                         var logsFromFile = JsonConvert.DeserializeObject<List<Log>>(json) ?? new List<Log>();
 
                         var logs = _buffers.GetOrAdd(clientId, new List<Log>());
@@ -1411,7 +1434,6 @@ namespace JCTG.Client
             }
            
         }
-
 
         private async Task LogAsync(long clientId, Log log, long? signalId = null)
         {
@@ -1442,7 +1464,7 @@ namespace JCTG.Client
             if (_appConfig == null || _apis == null || !_apis.Any(f => f.ClientId == clientId))
                 return;
 
-            string fileName = $"Tradejournal-{clientId}.json";
+            string fileName = $"JCTG_Tradejournal.json";
             List<TradeJournal> journals;
 
             // Attempt to enter the semaphore (wait if necessary)
@@ -1469,13 +1491,16 @@ namespace JCTG.Client
                 // Do null reference check
                 if (journal != null)
                 {
+                    // Get pair
+                    var pair = _appConfig.Brokers.First(f => f.ClientId == clientId);
+
                     // Add to journal
                     journal.Order = order;
                     journal.IsTradeClosed = isTradeClosed;
 
                     // Serialize and write the journal back to the file
                     string serializedContent = JsonConvert.SerializeObject(journals);
-                    await TryWriteFileAsync(fileName, serializedContent);
+                    await TryWriteFileAsync(pair.MetaTraderDirPath + "JCTG\\" + fileName, serializedContent);
                 }
 
 
@@ -1494,7 +1519,7 @@ namespace JCTG.Client
             if (_appConfig == null || _apis == null || !_apis.Any(f => f.ClientId == clientId))
                 return;
 
-            string fileName = $"Tradejournal-{clientId}.json";
+            string fileName = $"JCTG_Tradejournal.json";
             List<TradeJournal> journals;
 
             // Attempt to enter the semaphore (wait if necessary)
@@ -1527,7 +1552,7 @@ namespace JCTG.Client
 
                     // Serialize and write the journal back to the file
                     string serializedContent = JsonConvert.SerializeObject(journals);
-                    await TryWriteFileAsync(pair.MetaTraderDirPath + fileName, serializedContent);
+                    await TryWriteFileAsync(pair.MetaTraderDirPath + "JCTG\\" + fileName, serializedContent);
                 }
 
 
@@ -1545,7 +1570,7 @@ namespace JCTG.Client
             if (_appConfig == null || _apis == null || !_apis.Any(f => f.ClientId == clientId))
                 return;
 
-            string fileName = $"tradejournal.json";
+            string fileName = $"JCTG_Tradejournal.json";
             List<TradeJournal> journals;
 
             // Attempt to enter the semaphore (wait if necessary)
@@ -1573,7 +1598,7 @@ namespace JCTG.Client
                 // Serialize and write the journal back to the file
                 string serializedContent = JsonConvert.SerializeObject(journals);
                 var pair = _appConfig.Brokers.First(f => f.ClientId == clientId);
-                await TryWriteFileAsync(pair.MetaTraderDirPath + fileName, serializedContent);
+                await TryWriteFileAsync(pair.MetaTraderDirPath + "JCTG\\" + fileName, serializedContent);
             }
             finally
             {
@@ -1609,7 +1634,7 @@ namespace JCTG.Client
                 if (logsAvailable && pair != null)
                 {
                     // Filename
-                    string fileName = pair.MetaTraderDirPath + $"Log-{clientId}.json";
+                    string fileName = "JCTG_Logs.json";
 
                     // Wait until it's safe to enter
                     await _semaphore.WaitAsync();
@@ -1624,7 +1649,7 @@ namespace JCTG.Client
                         logsToWrite.Sort((x, y) => y.Time.CompareTo(x.Time));
 
                         // Write file back
-                        await TryWriteFileAsync(fileName, JsonConvert.SerializeObject(logsToWrite));
+                        await TryWriteFileAsync(pair.MetaTraderDirPath + "JCTG\\" + fileName, JsonConvert.SerializeObject(logsToWrite));
                     }
                     catch (Exception ex)
                     {

@@ -13,6 +13,7 @@
         public static string WebsocketMessageType_OnLogEvent = "OnLogEvent";
         public static string WebsocketMessageType_OnOrderAutoMoveSlToBeEvent = "_OnOrderAutoMoveSlToBeEvent";
         public static string WebsocketMessageType_OnItsTimeToCloseTheOrderEvent = "OnItsTimeToCloseTheOrderEvent";
+        public static string WebsocketMessageType_OnAccountInfoChangedEvent = "OnAccountInfoChangedEvent";
 
 
         // From Server To Metatrader

@@ -15,7 +15,7 @@ namespace JCTG.WebApp.Repository
         {
             using var context = await dbContextFactory.CreateDbContextAsync();
             return await context.Log
-                .Where(f => f.SignalID == signalId && f.Signal != null && f.Signal.AccountID == accountId && f.ClientID == clientId)
+                .Where(f => f.SignalID == signalId && f.ClientID == clientId)
                 .OrderByDescending(f => f.DateCreated)
                 .ToListAsync();
         }

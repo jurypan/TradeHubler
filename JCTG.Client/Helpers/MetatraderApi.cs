@@ -83,6 +83,9 @@ namespace JCTG.Client
         public delegate void OnDealEventHandler(long clientId, long dealId, Deal deal);
         public event OnDealEventHandler? OnDealEvent;
 
+        public delegate void OnAccountInfoChangedHandler(long clientId, AccountInfo accountInfo);
+        public event OnAccountInfoChangedHandler? OnAccountInfoChangedEvent;
+
 
 
         public MetatraderApi(string MetaTraderDirPath, long clientId, int sleepDelay, int maxRetryCommandSeconds, bool loadDataFromFile)
@@ -183,7 +186,17 @@ namespace JCTG.Client
                     continue;
 
                 // Cast account info
-                AccountInfo = data["account_info"]?.ToObject<AccountInfo>();
+                var accountInfo = data["account_info"]?.ToObject<AccountInfo>();
+
+                // Check if the account info is changed
+                if(accountInfo != null && AccountInfo != null && accountInfo.Balance != AccountInfo.Balance)
+                {
+                    // Invoke the event
+                    OnAccountInfoChangedEvent?.Invoke(this.ClientId, accountInfo);
+                }
+
+                // Set the new account info
+                AccountInfo = accountInfo;
 
                 // Assuming 'dataOrders' is the JObject that contains your JSON dataOrders
                 JObject ordersData = (JObject)data["orders"];
