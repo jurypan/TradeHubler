@@ -14,7 +14,7 @@ public static class Extension
         // Init
         var serviceClient = new WebPubSubServiceClient(connectionString, "server");
         var url = serviceClient.GetClientAccessUri();
-        var pubSub = new AzurePubSubClient(new WebsocketClient(url));
+        var pubSub = new AzurePubSubServer(new WebsocketClient(url));
 
         // Add as singleton
         service.AddSingleton(pubSub);
@@ -32,7 +32,7 @@ public static class Extension
         ArgumentNullException.ThrowIfNull(service);
 
         // Add as transitent
-        service.AddTransient<AzurePubSubServer>();
+        service.AddTransient<AzurePubSubClient>();
 
         // Return
         return service;

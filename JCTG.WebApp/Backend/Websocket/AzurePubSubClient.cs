@@ -1,122 +1,29 @@
-﻿using JCTG.Events;
-using System.Text.Json;
-using Websocket.Client;
+using Azure.Messaging.WebPubSub;
+using JCTG.Events;
+using Newtonsoft.Json;
 
 namespace JCTG.WebApp.Backend.Websocket;
 
-public class AzurePubSubClient(WebsocketClient client)
+public class AzurePubSubClient(IConfiguration configuration)
 {
-    private readonly Serilog.ILogger _logger = Serilog.Log.ForContext<AzurePubSubClient>();
-
-    private readonly WebsocketClient? _client = client;
-
-    public event Action<OnLogEvent>? OnLogEvent;
-    public event Action<OnOrderCreatedEvent>? OnOrderCreatedEvent;
-    public event Action<OnOrderUpdatedEvent>? OnOrderUpdateEvent;
-    public event Action<OnOrderClosedEvent>? OnOrderCloseEvent;
-    public event Action<OnOrderAutoMoveSlToBeEvent>? OnAutoMoveSlToBeEvent;
-    public event Action<OnItsTimeToCloseTheOrderEvent>? OnItsTimeToCloseTheOrderEvent;
-    public event Action<OnDealCreatedEvent>? OnDealCreatedEvent;
-    public event Action<OnAccountInfoChangedEvent>? OnAccountInfoChangedEvent;
-
-    public async Task ListeningToServerAsync()
+    public async Task<string> SendOnTradingviewSignalEventAsync(int accountId, OnReceivingTradingviewSignalEvent signal) 
     {
-        // Log
-        _logger.Debug($"Init client");
+        // Get client from the account
+        var _client = new WebPubSubServiceClient(configuration.GetConnectionString("AZURE_PUBSUB_CONNECTIONSTRING"), "account" + accountId);
 
-        // Do null reference check
-        if (_client != null)
-        {
-            // Disable the auto disconnect and reconnect because the sample would like the _client to stay online even no data comes in
-            _client.ReconnectTimeout = null;
-
-            // Enable the event receive
-            _client.MessageReceived.Subscribe(msg =>
-            {
-                if (msg != null && msg.Text != null)
-                {
-                    using (var document = JsonDocument.Parse(msg.Text))
-                    {
-                        // Somewhere in your method or constructor
-                        var jsonSerializerOptions = new JsonSerializerOptions
-                        {
-                            PropertyNamingPolicy = null
-                        };
-
-                        // INit
-                        var type = document.RootElement.GetProperty("Type").GetString();
-                        var from = document.RootElement.GetProperty("From").GetString();
-
-                        // If comes from metatrader
-                        if (from == Constants.WebsocketMessageFrom_Metatrader)
-                        {
-                            var data = document.RootElement.GetProperty("Data");
-                            if (data.ValueKind == JsonValueKind.Object && document.RootElement.TryGetProperty("TypeName", out var typeNameProperty))
-                            {
-                                if (type == Constants.WebsocketMessageType_OnOrderCreatedEvent)
-                                {
-                                    var @event = JsonSerializer.Deserialize<OnOrderCreatedEvent>(data.GetRawText(), jsonSerializerOptions);
-                                    if (@event != null)
-                                        OnOrderCreatedEvent?.Invoke(@event);
-                                }
-                                else if (type == Constants.WebsocketMessageType_OnOrderUpdatedEvent)
-                                {
-                                    var @event = JsonSerializer.Deserialize<OnOrderUpdatedEvent>(data.GetRawText(), jsonSerializerOptions);
-                                    if (@event != null)
-                                        OnOrderUpdateEvent?.Invoke(@event);
-                                }
-                                else if (type == Constants.WebsocketMessageType_OnOrderClosedEvent)
-                                {
-                                    var @event = JsonSerializer.Deserialize<OnOrderClosedEvent>(data.GetRawText(), jsonSerializerOptions);
-                                    if (@event != null)
-                                        OnOrderCloseEvent?.Invoke(@event);
-                                }
-                                else if (type == Constants.WebsocketMessageType_OnLogEvent)
-                                {
-                                    var @event = JsonSerializer.Deserialize<OnLogEvent>(data.GetRawText(), jsonSerializerOptions);
-                                    if (@event != null)
-                                        OnLogEvent?.Invoke(@event);
-                                }
-                                else if (type == Constants.WebsocketMessageType_OnOrderAutoMoveSlToBeEvent)
-                                {
-                                    var @event = JsonSerializer.Deserialize<OnOrderAutoMoveSlToBeEvent>(data.GetRawText(), jsonSerializerOptions);
-                                    if (@event != null)
-                                        OnAutoMoveSlToBeEvent?.Invoke(@event);
-                                }
-                                else if (type == Constants.WebsocketMessageType_OnItsTimeToCloseTheOrderEvent)
-                                {
-                                    var @event = JsonSerializer.Deserialize<OnItsTimeToCloseTheOrderEvent>(data.GetRawText(), jsonSerializerOptions);
-                                    if (@event != null)
-                                        OnItsTimeToCloseTheOrderEvent?.Invoke(@event);
-                                }
-                                else if (type == Constants.WebsocketMessageType_OnDealCreatedEvent)
-                                {
-                                    var @event = JsonSerializer.Deserialize<OnDealCreatedEvent>(data.GetRawText(), jsonSerializerOptions);
-                                    if (@event != null)
-                                        OnDealCreatedEvent?.Invoke(@event);
-                                }
-                                else if (type == Constants.WebsocketMessageType_OnAccountInfoChangedEvent)
-                                {
-                                    var @event = JsonSerializer.Deserialize<OnAccountInfoChangedEvent>(data.GetRawText(), jsonSerializerOptions);
-                                    if (@event != null)
-                                        OnAccountInfoChangedEvent?.Invoke(@event);
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-
-            // Start the web socket
-            await _client.Start();
-        }
-    }
-
-    public async Task StopListeningToServerAsync() 
-    {
         if (_client != null) 
         {
-            await _client.StopOrFail(System.Net.WebSockets.WebSocketCloseStatus.NormalClosure, "shut down");
+            var resp = await _client.SendToAllAsync(JsonConvert.SerializeObject(new WebsocketMessage<OnReceivingTradingviewSignalEvent>()
+            {
+                Data = signal,
+                DataType = Constants.WebsocketMessageDatatype_JSON,
+                From = Constants.WebsocketMessageFrom_Server,
+                Type = Constants.WebsocketMessageType_OnTradingviewSignalEvent,
+                TypeName = nameof(OnReceivingTradingviewSignalEvent),
+            }, new JsonSerializerSettings { ContractResolver = new IgnoreJsonPropertyContractResolver() }), Azure.Core.ContentType.ApplicationJson);
+
+            return resp.ClientRequestId;
         }
+        return "0";
     }
 }

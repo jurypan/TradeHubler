@@ -3,7 +3,7 @@
 /// <summary>
 /// Used to display bar chart
 /// </summary>
-public class Ohlcv : IChartEntry
+public class Candle : IChartEntry
 {
     public DateTime Time { get; set; }
     public decimal Open { get; set; }

@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace JCTG.WebApp.Backend.Websocket;
 
-public class WebsocketServer(AzurePubSubClient client, IServiceScopeFactory scopeFactory)
+public class WebsocketServer(AzurePubSubServer server, IServiceScopeFactory scopeFactory)
 {
     private readonly Serilog.ILogger _logger = Serilog.Log.ForContext<WebsocketServer>();
 
@@ -12,7 +12,7 @@ public class WebsocketServer(AzurePubSubClient client, IServiceScopeFactory scop
         // Log
         _logger.Debug($"Init event handlers");
 
-        client.OnOrderCreatedEvent += async (onOrderCreated) =>
+        server.OnOrderCreatedEvent += async (onOrderCreated) =>
         {
             // Log
             _logger.Debug("On order create event triggered", onOrderCreated);
@@ -76,7 +76,7 @@ public class WebsocketServer(AzurePubSubClient client, IServiceScopeFactory scop
             }
         };
 
-        client.OnOrderUpdateEvent += async (onOrderUpdated) =>
+        server.OnOrderUpdateEvent += async (onOrderUpdated) =>
         {
             // Log
             _logger.Debug("On order update event triggered", onOrderUpdated);
@@ -130,7 +130,7 @@ public class WebsocketServer(AzurePubSubClient client, IServiceScopeFactory scop
             }
         };
 
-        client.OnOrderCloseEvent += async (onOrderClosed) =>
+        server.OnOrderCloseEvent += async (onOrderClosed) =>
         {
             // Log
             _logger.Debug("On order close event triggered", onOrderClosed);
@@ -185,7 +185,7 @@ public class WebsocketServer(AzurePubSubClient client, IServiceScopeFactory scop
             }
         };
 
-        client.OnAutoMoveSlToBeEvent += async (onAutoMoveSlToBe) =>
+        server.OnAutoMoveSlToBeEvent += async (onAutoMoveSlToBe) =>
         {
             // Log
             _logger.Debug("On auto move SL to BE event triggered", onAutoMoveSlToBe);
@@ -240,7 +240,7 @@ public class WebsocketServer(AzurePubSubClient client, IServiceScopeFactory scop
             }
         };
 
-        client.OnItsTimeToCloseTheOrderEvent += async (onItsTimeToCloseTheOrder) =>
+        server.OnItsTimeToCloseTheOrderEvent += async (onItsTimeToCloseTheOrder) =>
         {
             // Log
             _logger.Debug("On Its time to close the order event triggered", onItsTimeToCloseTheOrder);
@@ -276,7 +276,7 @@ public class WebsocketServer(AzurePubSubClient client, IServiceScopeFactory scop
             }
         };
 
-        client.OnLogEvent += async (onLog) =>
+        server.OnLogEvent += async (onLog) =>
         {
             // Log
             _logger.Debug("On log event triggered", onLog);
@@ -308,7 +308,7 @@ public class WebsocketServer(AzurePubSubClient client, IServiceScopeFactory scop
             }
         };
 
-        client.OnDealCreatedEvent += async (onDealCreatedEvent) =>
+        server.OnDealCreatedEvent += async (onDealCreatedEvent) =>
         {
             // Log
             _logger.Debug("On deal created event triggered", onDealCreatedEvent);
@@ -458,7 +458,7 @@ public class WebsocketServer(AzurePubSubClient client, IServiceScopeFactory scop
             }
         };
 
-        client.OnAccountInfoChangedEvent += async (onAccountInfoChangedEvent) =>
+        server.OnAccountInfoChangedEvent += async (onAccountInfoChangedEvent) =>
         {
             // Log
             _logger.Debug("On account info changed event triggered", onAccountInfoChangedEvent);
@@ -469,7 +469,7 @@ public class WebsocketServer(AzurePubSubClient client, IServiceScopeFactory scop
             // Do null reference check
             if (onAccountInfoChangedEvent != null && onAccountInfoChangedEvent.ClientID > 0 && onAccountInfoChangedEvent.AccountInfo != null)
             {
-                // Get client from DB
+                // Get server from DB
                 var client = await dbContext.Client.FirstOrDefaultAsync(f => f.ID == onAccountInfoChangedEvent.ClientID);
 
                 // Do null reference check
@@ -496,7 +496,7 @@ public class WebsocketServer(AzurePubSubClient client, IServiceScopeFactory scop
         };
 
         // Listen to the server
-        await client.ListeningToServerAsync();
+        await server.ListeningToServerAsync();
         
         // Log
         _logger.Information($"Websocket started");

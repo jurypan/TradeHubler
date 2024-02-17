@@ -62,10 +62,10 @@ public class ChartHelperInterop : IAsyncDisposable
         ChartType chartType;
 
         // Extract candle data (if applicable)
-        if (data.ChartEntries[0] is Ohlcv)
+        if (data.ChartEntries[0] is Candle)
         {
             chartType = ChartType.Candlestick;
-            mainChartData = data.ChartEntries.Cast<Ohlcv>()
+            mainChartData = data.ChartEntries.Cast<Candle>()
                 .Select(x => new
                 {
                     time = new DateTimeOffset(x.Time, TimeSpan.Zero).ToUnixTimeSeconds(),

@@ -2,7 +2,7 @@
 public class ChartData
 {
     /// <summary>
-    /// Fill this object with chart entry data such as Ohlcv or PricePoint
+    /// Fill this object with chart entry data such as Candle or PricePoint
     /// </summary>
     public List<IChartEntry> ChartEntries { get; set; }
 
@@ -15,7 +15,7 @@ public class ChartData
 
     [Obsolete(
         "Property CandleData has been deprecated. Please use ChartEntries instead. " +
-        "You may need to use .Cast<IChartEntry>() to convert a list of List<Ohlcv> into a List<IChartEntry>.",
+        "You may need to use .Cast<IChartEntry>() to convert a list of List<Candle> into a List<IChartEntry>.",
         true)]
-    public List<Ohlcv> CandleData { get; set; }
+    public List<Candle> CandleData { get; set; }
 }

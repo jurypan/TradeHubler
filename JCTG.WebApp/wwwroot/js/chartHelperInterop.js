@@ -39,6 +39,9 @@ export function loadChart(chartElement, chartRefId, chartType, mainSeriesData, v
 			timeVisible: chartOptions.timeScaleTimeVisible,
 			secondsVisible: chartOptions.timeScaleSecondsVisible
 		},
+		crosshair: {
+			mode: 0,
+		},
 		...chartOptions.customChartDefinitions
 	});
 
@@ -97,7 +100,7 @@ export function loadChart(chartElement, chartRefId, chartType, mainSeriesData, v
 	window.charts[chartRefId]["VolumeSeries"].setData(volumeData);
 
 	// Bind data
-	window.charts[chartRefId]["MainSeries"].setMarkers(markerData); // <- fix me
+	window.charts[chartRefId]["MainSeries"].setMarkers(markerData);
 
 	// Force resize if applicable
 	var timerID;
@@ -116,6 +119,7 @@ export function loadChart(chartElement, chartRefId, chartType, mainSeriesData, v
 
 	// Fit the chart
 	window.charts[chartRefId].timeScale().fitContent();
+
 
 	// success
 	return true;

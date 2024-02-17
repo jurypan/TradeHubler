@@ -13,9 +13,9 @@ namespace JCTG.WebApp.Backend.Api
     {
         private readonly Serilog.ILogger _logger = Serilog.Log.ForContext<TradingviewController>();
         private readonly JCTGDbContext _dbContext;
-        private readonly AzurePubSubServer _server;
+        private readonly AzurePubSubClient _server;
 
-        public TradingviewController(JCTGDbContext dbContext, AzurePubSubServer server)
+        public TradingviewController(JCTGDbContext dbContext, AzurePubSubClient server)
         {
             _dbContext = dbContext;
             _server = server;

@@ -1,16 +1,16 @@
 ﻿@page "/Clients/{clientid:int}/Tradingview";
 @using JCTG.WebApp.Frontend.Components.Tradingview
-
+@inject ChartService chartService
 
 <h1>Tradingview</h1>
 
-<TradingViewChart @ref=myChart />
+<TradingViewChart @ref=tv />
 
 @code {
     [Parameter]
     public int ClientId { get; set; }
 
-    TradingViewChart? myChart;
+    TradingViewChart? tv;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -21,19 +21,26 @@
         // Load the data
         ChartData data = new()
             {
-                ChartEntries = new List<IChartEntry>(),
-                MarkerData = new List<Marker>(),
+                ChartEntries = (await chartService.GetSampleData())
+                        .Cast<IChartEntry>().ToList(),
+                MarkerData = await chartService.GetSampleMarkers()
             };
 
         // Optionally define options
         ChartOptions options = new()
             {
-                TimeScaleSecondsVisible = false,
-                Width = -75
+                Width = -75,
+                Height = 500,
+                LayoutBackgroundColor = "white",
+                LayoutTextColor = "black",
+                HorzLinesColor = "white",
+                VertLinesColor = "white",
+                VolumeColorDown = "white",
+                VolumeColorUp = "white",
             };
 
         // Load the chart
-        if (myChart != null)
-            await myChart.LoadChartAsync(data, options);
+        if (tv != null)
+            await tv.LoadChartAsync(data, options);
     }
 }

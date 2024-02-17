@@ -2,6 +2,7 @@ using JCTG;
 using JCTG.WebApp.Backend.Middleware;
 using JCTG.WebApp.Backend.Repository;
 using JCTG.WebApp.Backend.Websocket;
+using JCTG.WebApp.Frontend.Components.Tradingview;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
@@ -13,6 +14,12 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorPages();
 builder.Services.AddControllers();
 builder.Services.AddServerSideBlazor();
+builder.Services.AddScoped(sp => new HttpClient
+{
+    BaseAddress = new Uri("https://localhost:7197/")
+});
+builder.Services.AddTransient<ChartService>();
+
 
 // Add DB Context
 builder.Services.AddDbContextFactory<JCTGDbContext>(
