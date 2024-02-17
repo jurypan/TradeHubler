@@ -37,6 +37,7 @@ builder.Services.AddTransient<SignalRepository>();
 builder.Services.AddTransient<OrderRepository>();
 builder.Services.AddTransient<LogRepository>();
 builder.Services.AddTransient<ClientRepository>();
+builder.Services.AddTransient<DealRepository>();
 
 // Init the frontend pages
 builder.Services.Configure<RazorPagesOptions>(options =>

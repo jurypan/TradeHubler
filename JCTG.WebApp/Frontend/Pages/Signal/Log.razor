@@ -1,4 +1,4 @@
-﻿@page "/Signals/{signalid:int}/Orders/{clientid:int}/Logs";
+﻿@page "/Signals/{signalid:long}/Orders/{clientid:long}/Logs";
 @inject LogRepository _logRepository;
 @inject NavigationManager _navigationManager;
 
@@ -55,10 +55,10 @@ else
 @code {
 
     [Parameter]
-    public int SignalId { get; set; }
+    public long SignalId { get; set; }
 
     [Parameter]
-    public int ClientId { get; set; }
+    public long ClientId { get; set; }
 
 
     private List<Entity.Log> _logs = new List<Entity.Log>();

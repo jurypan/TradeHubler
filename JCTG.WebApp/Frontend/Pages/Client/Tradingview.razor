@@ -1,4 +1,4 @@
-﻿@page "/Clients/{clientid:int}/Tradingview";
+﻿@page "/Clients/{clientid:long}/Tradingview";
 @using JCTG.WebApp.Frontend.Components.Tradingview
 @inject ChartService chartService
 
@@ -8,7 +8,7 @@
 
 @code {
     [Parameter]
-    public int ClientId { get; set; }
+    public long ClientId { get; set; }
 
     TradingViewChart? tv;
 

@@ -20,6 +20,7 @@ namespace JCTG.Entity
         public int? Leverage { get; set; }
         public double? Balance { get; set; }
         public double? Equity { get; set; }
+        public double StartBalance { get; set; }
 
 
         public List<Order> Orders { get; set; }

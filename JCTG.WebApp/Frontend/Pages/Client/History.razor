@@ -1,12 +1,71 @@
-﻿@page "/Clients/{clientid:int}/History";
+﻿@page "/Clients/{clientid:long}/History";
+@inject ClientRepository _clientRepository;
+@inject DealRepository _dealRepository;
+@using JCTG.WebApp.Frontend.Components.Tradingview
 
-<h3>Orders</h3>
+<h1>History</h1>
+
+<TradingViewChart @ref=tv />
 
 @code {
-
     [Parameter]
-    public int ClientId { get; set; }
+    public long ClientId { get; set; }
+
+    TradingViewChart? tv;
+    IEnumerable<Deal>? deals;
+    Client? client;
 
 
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        // Only on first render
+        if (!firstRender)
+            return;
 
+        deals = await _dealRepository.GetAll(this.ClientId);
+        client = await _clientRepository.GetById(692803787, this.ClientId);
+
+        // Chart data
+        var chartData = deals.Select(x => new PricePoint()
+            {
+                Time = x.DateCreated,
+                Price = x.AccountBalance.HasValue ? Convert.ToDecimal(x.AccountBalance.Value) : 0.0M,
+                Volume = 0.0M
+            }).ToList();
+        if (client != null)
+        {
+            chartData.Add(new PricePoint()
+                {
+                    Price = Convert.ToDecimal(client.StartBalance),
+                    Time = client.DateCreated,
+                    Volume = 0.0M
+                });
+        }
+        chartData = chartData.OrderBy(f => f.Time).ToList();
+
+
+        // Load the data
+        ChartData data = new()
+            {
+                ChartEntries = new List<IChartEntry>(chartData),
+                MarkerData = new List<Marker>()
+            };
+
+        // Optionally define options
+        ChartOptions options = new()
+            {
+                Width = -75,
+                Height = 500,
+                LayoutBackgroundColor = "white",
+                LayoutTextColor = "black",
+                HorzLinesColor = "white",
+                VertLinesColor = "white",
+                VolumeColorDown = "white",
+                VolumeColorUp = "white",
+            };
+
+        // Load the chart
+        if (tv != null)
+            await tv.LoadChartAsync(data, options);
+    }
 }

@@ -1,4 +1,4 @@
-﻿@page "/Signals/{signalid:int}/Orders";
+﻿@page "/Signals/{signalid:long}/Orders";
 @inject SignalRepository _signalRepository;
 @inject ClientRepository _clientRepository;
 @inject NavigationManager _navigationManager;
@@ -49,7 +49,7 @@ else
 @code {
 
     [Parameter]
-    public int SignalId { get; set; }
+    public long SignalId { get; set; }
 
 
     private List<Entity.Order> _orders = new List<Entity.Order>();
