@@ -162,4 +162,13 @@
         // Exec javascript
         await JS.UpdateMarkersToLineSeriesAsync(el, data);
     }
+    public async Task UpdateCandleStickAsync(Tick data)
+    {
+        // Check if chart is init
+        if (!IsInit)
+            return;
+
+        // Exec javascript
+        await JS.UpdateCandleStickAsync(el, data);
+    }
 }

@@ -30,12 +30,32 @@
         await tv.InitAsync(new()
             {
                 Width = -75,
-                Height = 1000,
+                Height = 500,
             });
 
         // Do null reference check
         if(tv.IsInit)
         {
+            // Calculate cumulative commission for each deal
+            var cumulativeCommissions = new Dictionary<DateTime, decimal>();
+            decimal totalCommission = 0.0M;
+            foreach (var deal in deals.Where(f => f.AccountBalance.HasValue).OrderBy(f => f.DateCreated))
+            {
+                totalCommission += Convert.ToDecimal(deal.Commission);
+                totalCommission += Convert.ToDecimal(deal.Swap);
+                cumulativeCommissions[deal.DateCreated] = totalCommission;
+            }
+
+            // Use the cumulative commissions in the query
+            await tv.AddLineSeriesAsync(deals
+                .Where(f => f.AccountBalance.HasValue)
+                .Select(x => new PricePoint()
+                    {
+                        Time = x.DateCreated,
+                        Price = x.AccountBalance.HasValue ? Convert.ToDecimal(x.AccountBalance.Value) - cumulativeCommissions[x.DateCreated] : 0.0M
+                    }).OrderBy(f => f.Time).ToList());
+
+
             // Load the chart
             await tv.AddAreaSeriesAsync(deals.Where(f => f.AccountBalance.HasValue).Select(x => new AreaPoint()
                 {

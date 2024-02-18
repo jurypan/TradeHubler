@@ -7,6 +7,7 @@ public class WebsocketFrontend(AzurePubSubServer server) : IAsyncDisposable
     private readonly Serilog.ILogger _logger = Serilog.Log.ForContext<WebsocketFrontend>();
 
     public event Action<OnGetHistoricalBarDataEvent>? OnGetHistoricalBarDataEvent;
+    public event Action<OnTickEvent>? OnTickEvent;
 
     public async Task RunAsync()
     {
@@ -41,6 +42,21 @@ public class WebsocketFrontend(AzurePubSubServer server) : IAsyncDisposable
 
         // Subscribe the new handler
         OnGetHistoricalBarDataEvent += handler;
+    }
+
+    public void SubscribeToOnTickEvent(Action<OnTickEvent> handler)
+    {
+        // Unsubscribe all existing handlers to ensure there's only one subscriber
+        if (OnTickEvent != null)
+        {
+            foreach (Delegate existingHandler in OnTickEvent.GetInvocationList())
+            {
+                OnTickEvent -= (Action<OnTickEvent>)existingHandler;
+            }
+        }
+
+        // Subscribe the new handler
+        OnTickEvent += handler;
     }
 
 

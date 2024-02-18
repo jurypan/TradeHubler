@@ -92,6 +92,21 @@ export function updateCandleStickSeries(element, refId, data) {
 	window.charts[refId].timeScale().fitContent();
 }
 
+export function updateCandleStick(element, refId, data) {
+	if (element == null) {
+		console.error("element was null. Please define a reference for your TradingViewChart element.");
+		return;
+	}
+
+	if (window.charts[refId]["CandleSeries"] == null) {
+		console.error("Lineseries collection was null. Please define a reference for your TradingViewChart element.");
+		return;
+	}
+
+	window.charts[refId]["CandleSeries"].update(data);
+	window.charts[refId].timeScale().fitContent();
+}
+
 export function addAreaSeries(element, refId, data, options) {
 	if (element == null) {
 		console.error("element was null. Please define a reference for your TradingViewChart element.");
@@ -119,7 +134,7 @@ export function updateAreaSeries(element, refId, data) {
 	}
 
 	if (window.charts[refId]["AreaSeries"] == null) {
-		console.error("Lineseries collection was null. Please define a reference for your TradingViewChart element.");
+		console.error("Areaseries collection was null. Please define a reference for your TradingViewChart element.");
 		return;
 	}
 
@@ -185,7 +200,6 @@ export function addVolumeSeries(element, refId, data, options) {
 	window.charts[refId].timeScale().fitContent();
 }
 
-
 export function updateVolumeSeries(element, refId, data) {
 	if (element == null) {
 		console.error("element was null. Please define a reference for your TradingViewChart element.");
@@ -245,7 +259,6 @@ export function addMarkersToLineSeries(element, refId, data) {
 	window.charts[refId]["LineSeries"].setMarkers(data);
 	window.charts[refId].timeScale().fitContent();
 }
-
 
 export function updateMarkersToLineSeries(element, refId, data) {
 	if (element == null) {

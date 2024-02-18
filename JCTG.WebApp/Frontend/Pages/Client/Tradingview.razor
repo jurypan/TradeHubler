@@ -1,6 +1,5 @@
 ﻿@page "/Clients/{clientid:long}/Tradingview";
-@using JCTG.Events
-@using JCTG.WebApp.Frontend.Components.Tradingview
+@implements IDisposable
 @inject JCTG.WebApp.Backend.Websocket.WebsocketFrontend _websocket
 @inject JCTG.WebApp.Backend.Websocket.AzurePubSubClient _pubSubClient
 @inject ClientRepository _clientRepository
@@ -64,6 +63,29 @@
                 }
             });
 
+            _websocket.SubscribeToOnTickEvent(async (onTickEvent) =>
+    {
+        // Do null reference check
+        if (onTickEvent != null
+                    && onTickEvent.ClientID > 0
+                    && onTickEvent.AccountID > 0
+                    && onTickEvent.MarketData != null
+                    && onTickEvent.AccountID == 692803787
+                    && onTickEvent.ClientID == ClientId
+                )
+        {
+            // Get the data from the event
+            var candleData = new Tick()
+                {
+                    Time = DateTime.UtcNow,
+                    Price = onTickEvent.MarketData.Ask
+                };
+
+            // Load the chart
+            await tv.UpdateCandleStickAsync(candleData);
+        }
+    });
+
             // Send command to Metatrader
             await _pubSubClient.SendGetHistoricalBarDataAsync(692803787, new Command.OnSendGetHistoricalBarDataCommand()
                 {
@@ -73,6 +95,25 @@
                     Timeframe = "M5",
                     StartDate = DateTime.UtcNow.AddDays(-7),
                 });
+
+            // Send command to Metatrader
+            await _pubSubClient.SendStartListeningToTicksCommand(692803787, new Command.OnSendStartListeningToTicksCommand()
+                {
+                    AccountID = 692803787,
+                    ClientID = ClientId,
+                    Symbol = "BTCUSDT",
+                });
         }
+    }
+
+    public void Dispose()
+    {
+        // Send command to Metatrader
+        Task.Run(async () => await _pubSubClient.SendStopListeningToTicksCommand(692803787, new Command.OnSendStopListeningToTicksCommand()
+            {
+                AccountID = 692803787,
+                ClientID = ClientId,
+                Symbol = "BTCUSDT",
+            }));
     }
 }

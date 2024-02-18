@@ -839,7 +839,7 @@
           "SLtoBEafterR": 1.0,
           "MaxSpread": 0.0001,
           "SLMultiplier": 1.02,
-          "MaxLotSize": 10000,
+          "MaxLotSize": 15000,
           "OrderExecType": "Active",
           "CancelStopOrLimitOrderWhenNewSignal": true,
           "NumberOfHistoricalBarsRequested": 100,

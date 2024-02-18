@@ -43,6 +43,17 @@ public class JSInteropt(IJSRuntime jsRuntime) : IAsyncDisposable
         }));
     }
 
+    public async Task UpdateCandleStickAsync(ElementReference eleRef, Tick data)
+    {
+        // Call loadChart JS function
+        var module = await moduleTask.Value;
+        await module.InvokeVoidAsync("updateCandleStick", eleRef, eleRef.Id, new
+        {
+            time = new DateTimeOffset(data.Time, TimeSpan.Zero).ToUnixTimeSeconds(),
+            value = data.Price,
+        });
+    }
+
     public async Task AddAreaSeriesAsync(ElementReference eleRef, List<AreaPoint> data, ChartOptions options)
     {
         // Call loadChart JS function
