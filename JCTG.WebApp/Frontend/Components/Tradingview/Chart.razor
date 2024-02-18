@@ -70,7 +70,10 @@
             return;
 
         // Exec javascript
-        await JS.AddLineSeriesAsync(el, data, Options);
+        await JS.AddLineSeriesAsync(el, data.OrderBy(f => f.Time)
+                         .GroupBy(x => new { x.Time.Date, x.Time.Hour, x.Time.Minute }) // Group by date, hour, and minute
+                        .Select(group => group.First()) // Select the first item from each group
+                        .ToList(), Options);
     }
 
     public async Task UpdateLineSeriesAsync(List<PricePoint> data)
@@ -80,7 +83,10 @@
             return;
 
         // Exec javascript
-        await JS.UpdateLineSeriesAsync(el, data);
+        await JS.UpdateLineSeriesAsync(el, data.OrderBy(f => f.Time)
+                         .GroupBy(x => new { x.Time.Date, x.Time.Hour, x.Time.Minute }) // Group by date, hour, and minute
+                        .Select(group => group.First()) // Select the first item from each group
+                        .ToList());
     }
 
     public async Task AddVolumeSeriesAsync(List<CandlePoint> data)
@@ -162,6 +168,7 @@
         // Exec javascript
         await JS.UpdateMarkersToLineSeriesAsync(el, data);
     }
+
     public async Task UpdateCandleStickAsync(Tick data)
     {
         // Check if chart is init

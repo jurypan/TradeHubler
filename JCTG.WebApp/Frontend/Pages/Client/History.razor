@@ -48,20 +48,24 @@
 
             // Use the cumulative commissions in the query
             await tv.AddLineSeriesAsync(deals
-                .Where(f => f.AccountBalance.HasValue)
+                .Where(f => f.AccountBalance.HasValue && f.AccountBalance.Value > 0)
                 .Select(x => new PricePoint()
                     {
                         Time = x.DateCreated,
                         Price = x.AccountBalance.HasValue ? Convert.ToDecimal(x.AccountBalance.Value) - cumulativeCommissions[x.DateCreated] : 0.0M
-                    }).OrderBy(f => f.Time).ToList());
+                    }).OrderBy(f => f.Time)
+                        .ToList());
 
 
             // Load the chart
-            await tv.AddAreaSeriesAsync(deals.Where(f => f.AccountBalance.HasValue).Select(x => new AreaPoint()
+            await tv.AddAreaSeriesAsync(deals
+                .Where(f => f.AccountBalance.HasValue && f.AccountBalance.Value > 0)
+                .Select(x => new AreaPoint()
                 {
                     Time = x.DateCreated,
                     Price = x.AccountBalance.HasValue ? Convert.ToDecimal(x.AccountBalance.Value) : 0.0M
-                }).OrderBy(f => f.Time).ToList());
+                    }).OrderBy(f => f.Time)
+                        .ToList());
         }
     }
 }
