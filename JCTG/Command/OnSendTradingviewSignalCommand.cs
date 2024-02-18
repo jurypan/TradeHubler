@@ -1,8 +1,8 @@
 ﻿using JCTG.Models;
 
-namespace JCTG.Events
+namespace JCTG.Command
 {
-    public class OnReceivingTradingviewSignalEvent
+    public class OnSendTradingviewSignalCommand
     {
 
         // Required

@@ -21,7 +21,7 @@ public class ChartHelperInterop : IAsyncDisposable
     public async Task LoadChart(ElementReference eleRef, ChartData data, ChartOptions options)
     {
         // Shape the data to be compatible with JS library
-        (ChartType? chartType, object mainChartData, object volumeData, object markerData) =
+        (ChartType? chartType, object mainChartData, object? volumeData, object? markerData) =
             ShapeBarChartData(data, options);
 
         // Call loadChart JS function
@@ -33,7 +33,7 @@ public class ChartHelperInterop : IAsyncDisposable
     public async Task UpdateChart(ElementReference eleRef, ChartData data, ChartOptions options)
     {
         // Shape updated data using cached options
-        (ChartType? chartType, object mainChartData, object volumeData, object markerData) =
+        (ChartType? chartType, object mainChartData, object? volumeData, object? markerData) =
             ShapeBarChartData(data, options);
 
         // Call JS function
@@ -48,7 +48,7 @@ public class ChartHelperInterop : IAsyncDisposable
     /// <param name="data"></param>
     /// <param name="options"></param>
     /// <returns></returns>
-    private (ChartType? chartType, object mainChartData, object volumeData, object markerData)
+    private (ChartType? chartType, object mainChartData, object? volumeData, object? markerData)
         ShapeBarChartData(ChartData data, ChartOptions options)
     {
         // Don't proceed on empty data
@@ -97,16 +97,24 @@ public class ChartHelperInterop : IAsyncDisposable
             lastPrice = nextPrice;
             return isLower ? options.VolumeColorUp : options.VolumeColorDown;
         };
-        object volumeData = data.ChartEntries
+
+        object? volumeData = Array.Empty<object>();
+        if (options.VolumeEnable)
+        {
+            volumeData = data.ChartEntries
             .Select(x => new
             {
                 time = new DateTimeOffset(x.Time, TimeSpan.Zero).ToUnixTimeSeconds(),
                 value = x.Volume,
                 color = getVolumeColor(x.DisplayPrice),
             });
+        }
 
         // Shape marker data
-        object markerData = data.MarkerData
+        object? markerData = Array.Empty<object>();
+        if (data.MarkerData != null)
+        {
+            markerData = data.MarkerData
             .Select(x => new
             {
                 time = new DateTimeOffset(x.Time, TimeSpan.Zero).ToUnixTimeSeconds(),
@@ -119,6 +127,8 @@ public class ChartHelperInterop : IAsyncDisposable
                 text = x.Text,
                 size = options.MarkerSize
             });
+        }
+        
 
         return (chartType, mainChartData, volumeData, markerData);
     }

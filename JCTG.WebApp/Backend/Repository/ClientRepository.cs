@@ -16,4 +16,10 @@ public class ClientRepository(IDbContextFactory<JCTGDbContext> dbContextFactory)
         using var context = await dbContextFactory.CreateDbContextAsync();
         return await context.Client.FirstOrDefaultAsync(f => f.AccountID == accountId && f.ID == id);
     }
+
+    public async Task<DateTime?> GetStartDate(int accountId, long id)
+    {
+        using var context = await dbContextFactory.CreateDbContextAsync();
+        return (await context.Client.FirstOrDefaultAsync(f => f.AccountID == accountId && f.ID == id))?.DateCreated;
+    }
 }

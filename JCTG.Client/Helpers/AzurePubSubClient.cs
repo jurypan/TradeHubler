@@ -1,5 +1,5 @@
 ﻿using System.Text.Json;
-using JCTG.Events;
+using JCTG.Command;
 using Websocket.Client;
 
 namespace JCTG.Client
@@ -8,7 +8,8 @@ namespace JCTG.Client
     {
         private readonly WebsocketClient? _client = client;
 
-        public event Action<OnReceivingTradingviewSignalEvent> OnReceivingTradingviewSignalEvent;
+        public event Action<OnSendTradingviewSignalCommand> OnSendTradingviewSignalCommand;
+        public event Action<OnSendGetHistoricalBarDataCommand> OnSendGetHistoricalBarDataCommand;
 
         public async Task ListeningToServerAsync()
         {
@@ -41,11 +42,17 @@ namespace JCTG.Client
                                 var data = document.RootElement.GetProperty("Data");
                                 if (data.ValueKind == JsonValueKind.Object && document.RootElement.TryGetProperty("TypeName", out var typeNameProperty))
                                 {
-                                    if (type == Constants.WebsocketMessageType_OnTradingviewSignalEvent)
+                                    if (type == Constants.WebsocketMessageType_OnSendTradingviewSignalCommand)
                                     {
-                                        var @event = JsonSerializer.Deserialize<OnReceivingTradingviewSignalEvent>(data.GetRawText(), jsonSerializerOptions);
+                                        var @event = JsonSerializer.Deserialize<OnSendTradingviewSignalCommand>(data.GetRawText(), jsonSerializerOptions);
                                         if (@event != null)
-                                            OnReceivingTradingviewSignalEvent?.Invoke(@event);
+                                            OnSendTradingviewSignalCommand?.Invoke(@event);
+                                    }
+                                    else if (type == Constants.WebsocketMessageType_OnSendGetHistoricalBarDataCommand)
+                                    {
+                                        var @event = JsonSerializer.Deserialize<OnSendGetHistoricalBarDataCommand>(data.GetRawText(), jsonSerializerOptions);
+                                        if (@event != null)
+                                            OnSendGetHistoricalBarDataCommand?.Invoke(@event);
                                     }
                                 }
                             }

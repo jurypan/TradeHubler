@@ -26,6 +26,7 @@ public class ChartOptions
     public bool TimeScaleSecondsVisible { get; set; } = false;
 
     // -- Volume
+    public bool VolumeEnable { get; set; }
     public string VolumeColorUp { get; set; } = "rgba(0, 150, 136, 0.8)";
     public string VolumeColorDown { get; set; } = "rgba(255,82,82, 0.8)";
 

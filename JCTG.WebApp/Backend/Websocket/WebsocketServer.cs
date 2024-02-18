@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace JCTG.WebApp.Backend.Websocket;
 
-public class WebsocketServer(AzurePubSubServer server, IServiceScopeFactory scopeFactory)
+public class WebsocketServer(AzurePubSubServerBackend server, IServiceScopeFactory scopeFactory)
 {
     private readonly Serilog.ILogger _logger = Serilog.Log.ForContext<WebsocketServer>();
 

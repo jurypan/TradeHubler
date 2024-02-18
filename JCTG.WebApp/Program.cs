@@ -18,7 +18,7 @@ builder.Services.AddScoped(sp => new HttpClient
 {
     BaseAddress = new Uri("https://localhost:7197/")
 });
-builder.Services.AddTransient<ChartService>();
+builder.Services.AddTransient<WebsocketServer>();
 
 
 // Add DB Context

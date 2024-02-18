@@ -1,4 +1,5 @@
-﻿using JCTG.Entity;
+﻿using JCTG.Command;
+using JCTG.Entity;
 using JCTG.Events;
 using JCTG.WebApp.Backend.Websocket;
 using Microsoft.AspNetCore.Mvc;
@@ -59,7 +60,7 @@ namespace JCTG.WebApp.Backend.Api
                     _logger.Information($"Added to database in table Signal with ID: {signal.ID}", signal);
 
                     // Create model
-                    var id = await _server.SendOnTradingviewSignalEventAsync(signal.AccountID, new OnReceivingTradingviewSignalEvent()
+                    var id = await _server.SendOnTradingviewSignalCommandAsync(signal.AccountID, new OnSendTradingviewSignalCommand()
                     {
                         SignalID = signal.ID,
                         AccountID = signal.AccountID,

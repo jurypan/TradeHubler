@@ -85,22 +85,27 @@ export function loadChart(chartElement, chartRefId, chartType, mainSeriesData, v
 
 
 	// Define volume for chart layout
-	window.charts[chartRefId]["VolumeSeries"] = window.charts[chartRefId].addHistogramSeries({
-		color: '#26a69a',
-		priceFormat: {
-			type: 'volume',
-		},
-		priceScaleId: '',
-		scaleMargins: {
-			top: 0.8,
-			bottom: 0,
-		},
-		...chartOptions.customVolumeSeriesDefinitions
-	});
-	window.charts[chartRefId]["VolumeSeries"].setData(volumeData);
+	if (volumeData != null && volumeData != undefined) {
+		window.charts[chartRefId]["VolumeSeries"] = window.charts[chartRefId].addHistogramSeries({
+			color: '#26a69a',
+			priceFormat: {
+				type: 'volume',
+			},
+			priceScaleId: '',
+			scaleMargins: {
+				top: 0.8,
+				bottom: 0,
+			},
+			...chartOptions.customVolumeSeriesDefinitions
+		});
+		window.charts[chartRefId]["VolumeSeries"].setData(volumeData);
+	}
+	
 
 	// Bind data
-	window.charts[chartRefId]["MainSeries"].setMarkers(markerData);
+	if (markerData != null && markerData != undefined) {
+		window.charts[chartRefId]["MainSeries"].setMarkers(markerData);
+	}
 
 	// Force resize if applicable
 	var timerID;
@@ -127,6 +132,10 @@ export function loadChart(chartElement, chartRefId, chartType, mainSeriesData, v
 
 export function replaceChartData(chartRefId, chartType, mainSeriesData, volumeData, markerData) {
 	window.charts[chartRefId]["MainSeries"].setData(mainSeriesData);
-	window.charts[chartRefId]["VolumeSeries"].setData(volumeData);
-	window.charts[chartRefId]["MainSeries"].setMarkers(markerData);
+	if (volumeData != null && volumeData != undefined) {
+		window.charts[chartRefId]["VolumeSeries"].setData(volumeData);
+	}
+	if (markerData != null && markerData != undefined) {
+		window.charts[chartRefId]["MainSeries"].setMarkers(markerData);
+	}
 }

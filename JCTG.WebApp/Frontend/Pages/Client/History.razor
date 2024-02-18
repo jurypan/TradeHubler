@@ -15,6 +15,11 @@
     IEnumerable<Deal>? deals;
     Client? client;
 
+    protected async override Task OnInitializedAsync()
+    {
+        
+    }
+
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -32,15 +37,7 @@
                 Price = x.AccountBalance.HasValue ? Convert.ToDecimal(x.AccountBalance.Value) : 0.0M,
                 Volume = 0.0M
             }).ToList();
-        if (client != null)
-        {
-            chartData.Add(new PricePoint()
-                {
-                    Price = Convert.ToDecimal(client.StartBalance),
-                    Time = client.DateCreated,
-                    Volume = 0.0M
-                });
-        }
+
         chartData = chartData.OrderBy(f => f.Time).ToList();
 
 

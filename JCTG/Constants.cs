@@ -14,10 +14,14 @@
         public static string WebsocketMessageType_OnOrderAutoMoveSlToBeEvent = "_OnOrderAutoMoveSlToBeEvent";
         public static string WebsocketMessageType_OnItsTimeToCloseTheOrderEvent = "OnItsTimeToCloseTheOrderEvent";
         public static string WebsocketMessageType_OnAccountInfoChangedEvent = "OnAccountInfoChangedEvent";
+        public static string WebsocketMessageType_OnGetHistoricalBarDataEvent = "OnGetHistoricalBarDataEvent";
 
-
+        
         // From Server To Metatrader
         public static string WebsocketMessageFrom_Server = "Server";
-        public static string WebsocketMessageType_OnTradingviewSignalEvent = "OnReceivingTradingviewSignalEvent";
+        public static string WebsocketMessageType_OnSendTradingviewSignalCommand = "OnSendTradingviewSignalCommand";
+        public static string WebsocketMessageType_OnSendGetHistoricalBarDataCommand = "OnSendGetHistoricalBarDataCommand";
+        public static string WebsocketMessageType_OnSendStartListeningToTicksCommand = "OnSendStartListeningToTicksCommand";
+        public static string WebsocketMessageType_OnSendStopListeningToTicksCommand = "OnSendStopListeningToTicksCommand";
     }
 }

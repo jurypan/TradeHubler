@@ -4,9 +4,9 @@ using Websocket.Client;
 
 namespace JCTG.WebApp.Backend.Websocket;
 
-public class AzurePubSubServer(WebsocketClient client)
+public class AzurePubSubServerBackend(WebsocketClient client)
 {
-    private readonly Serilog.ILogger _logger = Serilog.Log.ForContext<AzurePubSubServer>();
+    private readonly Serilog.ILogger _logger = Serilog.Log.ForContext<AzurePubSubServerBackend>();
 
     private readonly WebsocketClient? _client = client;
 
@@ -108,7 +108,8 @@ public class AzurePubSubServer(WebsocketClient client)
             });
 
             // Start the web socket
-            await _client.Start();
+            if (!client.IsStarted)
+                await _client.Start();
         }
     }
 
@@ -116,7 +117,8 @@ public class AzurePubSubServer(WebsocketClient client)
     {
         if (_client != null) 
         {
-            await _client.StopOrFail(System.Net.WebSockets.WebSocketCloseStatus.NormalClosure, "shut down");
+            if (client.IsStarted)
+                await _client.StopOrFail(System.Net.WebSockets.WebSocketCloseStatus.NormalClosure, "shut down");
         }
     }
 }

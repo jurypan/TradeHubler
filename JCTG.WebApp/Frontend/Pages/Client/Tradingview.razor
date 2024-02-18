@@ -1,6 +1,8 @@
 ﻿@page "/Clients/{clientid:long}/Tradingview";
 @using JCTG.WebApp.Frontend.Components.Tradingview
-@inject ChartService chartService
+@inject JCTG.WebApp.Backend.Websocket.AzurePubSubClient _pubSubClient
+@inject JCTG.WebApp.Backend.Websocket.AzurePubSubServerFrontend _pubSubServer
+@inject ClientRepository _clientRepository
 
 <h1>Tradingview</h1>
 
@@ -18,29 +20,73 @@
         if (!firstRender)
             return;
 
-        // Load the data
-        ChartData data = new()
+        // Get client
+        var client = await _clientRepository.GetById(692803787, ClientId);
+
+        // Do null reference check
+        if (tv != null && client != null)
+        {
+            // Init the event handler
+            _pubSubServer.OnGetHistoricalBarDataEvent += async (onGetHistoricalBarDataEvent) =>
             {
-                ChartEntries = (await chartService.GetSampleData())
-                        .Cast<IChartEntry>().ToList(),
-                MarkerData = await chartService.GetSampleMarkers()
+                // Do null reference check 
+                if (onGetHistoricalBarDataEvent != null 
+                    && onGetHistoricalBarDataEvent.ClientID > 0 
+                    && onGetHistoricalBarDataEvent.AccountID > 0 
+                    && onGetHistoricalBarDataEvent.BarData != null
+                    && onGetHistoricalBarDataEvent.AccountID == 692803787
+                    && onGetHistoricalBarDataEvent.ClientID == ClientId
+                )
+                {
+                    // Get the data from the event
+                    var candleData = onGetHistoricalBarDataEvent.BarData.Select(x => new Candle()
+                    {
+                        Time = x.Time,
+                        High = x.High,
+                        Low = x.Low,
+                        Open = x.Open,
+                        Close = x.Close,
+                        Volume = Convert.ToDecimal(x.TickVolume),
+                        }).Cast<IChartEntry>().ToList();
+
+                    // Load the data
+                    ChartData data = new()
+                        {
+                            ChartEntries = candleData,
+                            MarkerData = new List<Marker>(),
+                        };
+
+                    // Optionally define options
+                    ChartOptions options = new()
+                        {
+                            Width = -75,
+                            Height = 1000,
+                            LayoutBackgroundColor = "white",
+                            LayoutTextColor = "black",
+                            HorzLinesColor = "white",
+                            VertLinesColor = "white",
+                        };
+
+                    // Load the chart
+                    if (tv != null)
+                        await tv.LoadChartAsync(data, options);
+                }
             };
 
-        // Optionally define options
-        ChartOptions options = new()
-            {
-                Width = -75,
-                Height = 500,
-                LayoutBackgroundColor = "white",
-                LayoutTextColor = "black",
-                HorzLinesColor = "white",
-                VertLinesColor = "white",
-                VolumeColorDown = "white",
-                VolumeColorUp = "white",
-            };
+            // Start listening to events
+            await _pubSubServer.ListeningToServerAsync();
 
-        // Load the chart
-        if (tv != null)
-            await tv.LoadChartAsync(data, options);
+            // Send command to Metatrader
+            await _pubSubClient.SendGetHistoricalBarDataAsync(692803787, new Command.OnSendGetHistoricalBarDataCommand()
+                {
+                    AccountID = 692803787,
+                    ClientID = ClientId,
+                    Symbol = "BTCUSDT",
+                    Timeframe = "M5",
+                    StartDate = DateTime.UtcNow.AddDays(-7),
+                });
+        }
     }
+
+    public void Dispose() => Task.Run(async () => await _pubSubServer.StopListeningToServerAsync());
 }

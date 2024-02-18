@@ -77,7 +77,7 @@ namespace JCTG.Client
         public delegate void OnCandleCloseEventHandler(long clientId, string symbol, string timeFrame, DateTime time, decimal open, decimal high, decimal low, decimal close, int tickVolume);
         public event OnCandleCloseEventHandler? OnCandleCloseEvent;
 
-        public delegate void OnHistoricDataEventHandler(long clientId);
+        public delegate void OnHistoricDataEventHandler(long clientId, string symbol, string timeFrame);
         public event OnHistoricDataEventHandler? OnHistoricDataEvent;
 
         public delegate void OnDealCreatedEventHandler(long clientId, long dealId, Deal deal);
@@ -645,15 +645,18 @@ namespace JCTG.Client
                             if (stSplit.Length != 2)
                                 continue;
 
+                            // Instrument
                             var instrument = stSplit[0];
+                            var timeframe = stSplit[1];
 
+                            // Foreach bardata
                             foreach (var item in items)
                             {
                                 if (HistoricData.ContainsKey(instrument))
                                 {
                                     var obj = new BarData
                                     {
-                                        Timeframe = stSplit[1],
+                                        Timeframe = timeframe,
                                         Time = DateTime.SpecifyKind(item["time"].ToObject<DateTime>().AddHours(-(this.AccountInfo == null ? 0.0 : this.AccountInfo.TimezoneOffset)), DateTimeKind.Utc),
                                         Open = item["open"].ToObject<decimal>(),
                                         High = item["high"].ToObject<decimal>(),
@@ -663,14 +666,16 @@ namespace JCTG.Client
                                     };
                                     // Update the previous values
                                     if (!HistoricData[instrument].BarData.Any(f => f.Time == obj.Time && f.Timeframe == obj.Timeframe))
+                                    {
                                         HistoricData[instrument].BarData.Add(obj);
+                                    }
                                 }
                                 else
                                 {
                                     var hbd = new HistoricBarData();
                                     hbd.BarData.Add(new BarData
                                     {
-                                        Timeframe = stSplit[1],
+                                        Timeframe = timeframe,
                                         Time = DateTime.SpecifyKind(item["time"].ToObject<DateTime>().AddHours(-(this.AccountInfo == null ? 0.0 : this.AccountInfo.TimezoneOffset)), DateTimeKind.Utc),
                                         Open = item["open"].ToObject<decimal>(),
                                         High = item["high"].ToObject<decimal>(),
@@ -681,6 +686,9 @@ namespace JCTG.Client
                                     HistoricData.Add(instrument, hbd);
                                 }
                             }
+
+                            // Trigger event
+                            OnHistoricDataEvent?.Invoke(ClientId, instrument, timeframe);
                         }
                     }
 
@@ -691,9 +699,6 @@ namespace JCTG.Client
 
                     // Delete file
                     TryDeleteFile(pathHistoricData);
-
-                    // Trigger event
-                    OnHistoricDataEvent?.Invoke(ClientId);
 
                     // Signal that the current dataOrders processing is complete
                     _resetHistoricBarDataEvent.Set();
