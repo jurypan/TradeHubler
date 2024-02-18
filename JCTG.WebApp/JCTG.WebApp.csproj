@@ -18,15 +18,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="wwwroot\sample-data.csv">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="wwwroot\sample-markers.csv">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\JCTG\JCTG.csproj" />
   </ItemGroup>
 
@@ -53,12 +44,6 @@
     </Content>
     <Content Update="Frontend\Pages\Client\Tradingview.razor">
       <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
-    </Content>
-    <Content Update="wwwroot\sample-data.csv">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Update="wwwroot\sample-markers.csv">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
 

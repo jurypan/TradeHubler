@@ -3,14 +3,15 @@ using Microsoft.EntityFrameworkCore;
 
 namespace JCTG.WebApp.Backend.Websocket;
 
-public class WebsocketServer(AzurePubSubServerBackend server, IServiceScopeFactory scopeFactory)
+public class WebsocketBackend(AzurePubSubServer server, IServiceScopeFactory scopeFactory) : IAsyncDisposable
 {
-    private readonly Serilog.ILogger _logger = Serilog.Log.ForContext<WebsocketServer>();
+    private readonly Serilog.ILogger _logger = Serilog.Log.ForContext<WebsocketBackend>();
+
 
     public async Task RunAsync()
     {
         // Log
-        _logger.Debug($"Init event handlers");
+        _logger.Debug($"Init backend event handlers");
 
         server.OnOrderCreatedEvent += async (onOrderCreated) =>
         {
@@ -495,10 +496,18 @@ public class WebsocketServer(AzurePubSubServerBackend server, IServiceScopeFacto
             }
         };
 
-        // Listen to the server
-        await server.ListeningToServerAsync();
+
+       // Listen to the server
+       if(!server.IsStarted)
+            await server.ListeningToServerAsync();
         
         // Log
-        _logger.Information($"Websocket started");
+        _logger.Information($"Websocket backend started");
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (server.IsStarted)
+            await server.StopListeningToServerAsync();
     }
 }

@@ -1,4 +1,4 @@
-﻿namespace JCTG.WebApp.Frontend.Components.Tradingview;
+﻿namespace JCTG.WebApp.Frontend.Components.TradingviewOLD;
 public interface IChartEntry
 {
     public DateTime Time { get; set; }

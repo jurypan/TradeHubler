@@ -2,7 +2,6 @@ using JCTG;
 using JCTG.WebApp.Backend.Middleware;
 using JCTG.WebApp.Backend.Repository;
 using JCTG.WebApp.Backend.Websocket;
-using JCTG.WebApp.Frontend.Components.Tradingview;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
@@ -18,7 +17,7 @@ builder.Services.AddScoped(sp => new HttpClient
 {
     BaseAddress = new Uri("https://localhost:7197/")
 });
-builder.Services.AddTransient<WebsocketServer>();
+builder.Services.AddTransient<WebsocketBackend>();
 
 
 // Add DB Context
@@ -78,6 +77,7 @@ using (var serviceScope = app.Services.CreateScope())
 {
     app.Logger.LogInformation("Starting the app");
     if (!app.Environment.IsDevelopment())
-        await serviceScope.ServiceProvider.GetRequiredService<WebsocketServer>().RunAsync();
+        await serviceScope.ServiceProvider.GetRequiredService<WebsocketBackend>().RunAsync();
+    await serviceScope.ServiceProvider.GetRequiredService<WebsocketFrontend>().RunAsync();
     app.Run();
 }

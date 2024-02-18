@@ -1,18 +1,20 @@
 ﻿@page "/Clients/{clientid:long}/Tradingview";
-@using JCTG.WebApp.Frontend.Components.Tradingview
+@using JCTG.Events
+@using JCTG.WebApp.Frontend.Components.TradingviewOLD
+@inject JCTG.WebApp.Backend.Websocket.WebsocketFrontend _websocket
 @inject JCTG.WebApp.Backend.Websocket.AzurePubSubClient _pubSubClient
-@inject JCTG.WebApp.Backend.Websocket.AzurePubSubServerFrontend _pubSubServer
 @inject ClientRepository _clientRepository
 
 <h1>Tradingview</h1>
 
-<TradingViewChart @ref=tv />
+<TradingViewChartOLD @ref=tv />
 
 @code {
     [Parameter]
     public long ClientId { get; set; }
 
-    TradingViewChart? tv;
+    TradingViewChartOLD? tv;
+
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -27,12 +29,12 @@
         if (tv != null && client != null)
         {
             // Init the event handler
-            _pubSubServer.OnGetHistoricalBarDataEvent += async (onGetHistoricalBarDataEvent) =>
+            _websocket.SubscribeToOnGetHistoricalBarDataEvent(async (onGetHistoricalBarDataEvent) =>
             {
-                // Do null reference check 
-                if (onGetHistoricalBarDataEvent != null 
-                    && onGetHistoricalBarDataEvent.ClientID > 0 
-                    && onGetHistoricalBarDataEvent.AccountID > 0 
+                // Do null reference check
+                if (onGetHistoricalBarDataEvent != null
+                    && onGetHistoricalBarDataEvent.ClientID > 0
+                    && onGetHistoricalBarDataEvent.AccountID > 0
                     && onGetHistoricalBarDataEvent.BarData != null
                     && onGetHistoricalBarDataEvent.AccountID == 692803787
                     && onGetHistoricalBarDataEvent.ClientID == ClientId
@@ -40,13 +42,13 @@
                 {
                     // Get the data from the event
                     var candleData = onGetHistoricalBarDataEvent.BarData.Select(x => new Candle()
-                    {
-                        Time = x.Time,
-                        High = x.High,
-                        Low = x.Low,
-                        Open = x.Open,
-                        Close = x.Close,
-                        Volume = Convert.ToDecimal(x.TickVolume),
+                        {
+                            Time = x.Time,
+                            High = x.High,
+                            Low = x.Low,
+                            Open = x.Open,
+                            Close = x.Close,
+                            Volume = Convert.ToDecimal(x.TickVolume),
                         }).Cast<IChartEntry>().ToList();
 
                     // Load the data
@@ -71,10 +73,7 @@
                     if (tv != null)
                         await tv.LoadChartAsync(data, options);
                 }
-            };
-
-            // Start listening to events
-            await _pubSubServer.ListeningToServerAsync();
+            });
 
             // Send command to Metatrader
             await _pubSubClient.SendGetHistoricalBarDataAsync(692803787, new Command.OnSendGetHistoricalBarDataCommand()
@@ -87,6 +86,4 @@
                 });
         }
     }
-
-    public void Dispose() => Task.Run(async () => await _pubSubServer.StopListeningToServerAsync());
 }

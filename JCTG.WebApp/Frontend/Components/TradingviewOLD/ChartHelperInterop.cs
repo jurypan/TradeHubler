@@ -1,15 +1,15 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 
-namespace JCTG.WebApp.Frontend.Components.Tradingview;
+namespace JCTG.WebApp.Frontend.Components.TradingviewOLD;
 
-public class ChartHelperInterop : IAsyncDisposable
+public class ChartHelperInteropOLD : IAsyncDisposable
 {
     private readonly Lazy<Task<IJSObjectReference>> moduleTask;
-    public ChartHelperInterop(IJSRuntime jsRuntime)
+    public ChartHelperInteropOLD(IJSRuntime jsRuntime)
     {
         moduleTask = new(() => jsRuntime.InvokeAsync<IJSObjectReference>(
-           "import", "./js/chartHelperInterop.js").AsTask());
+           "import", $"./js/chartHelperInteropOLD.js?v={DateTime.UtcNow:yyyyMMddHHmm}").AsTask());
     }
 
     /// <summary>

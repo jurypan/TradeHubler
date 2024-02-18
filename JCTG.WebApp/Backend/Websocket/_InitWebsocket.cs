@@ -3,7 +3,7 @@ using Websocket.Client;
 
 namespace JCTG.WebApp.Backend.Websocket;
 
-public static class Extension
+public static class _InitWebsocket
 {
     public static IServiceCollection AddAzurePubSubClient(this IServiceCollection service, string? connectionString)
     {
@@ -13,16 +13,13 @@ public static class Extension
 
         // Init
         var serviceClient = new WebPubSubServiceClient(connectionString, "server");
-        var url = serviceClient.GetClientAccessUri();
-        var pubSubBackend = new AzurePubSubServerBackend(new WebsocketClient(url));
-        var pubSubFrontend = new AzurePubSubServerFrontend(new WebsocketClient(url));
 
         // Add as singleton
-        service.AddSingleton(pubSubBackend);
-        service.AddSingleton(pubSubFrontend);
+        service.AddSingleton(new AzurePubSubServer(new WebsocketClient(serviceClient.GetClientAccessUri())));
 
         // Add as transitent
-        service.AddTransient<WebsocketServer>();
+        service.AddSingleton<WebsocketBackend>();
+        service.AddSingleton<WebsocketFrontend>();
 
         // Return
         return service;

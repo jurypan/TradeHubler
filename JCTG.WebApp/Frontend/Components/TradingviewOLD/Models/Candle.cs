@@ -1,4 +1,4 @@
-﻿namespace JCTG.WebApp.Frontend.Components.Tradingview;
+﻿namespace JCTG.WebApp.Frontend.Components.TradingviewOLD;
 
 /// <summary>
 /// Used to display bar chart

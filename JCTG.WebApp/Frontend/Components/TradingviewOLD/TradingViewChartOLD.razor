@@ -25,7 +25,7 @@
         ChartIsLoaded = true;
 
         // load chart
-        ChartHelperInterop interop = new ChartHelperInterop(JSRuntime);
+        ChartHelperInteropOLD interop = new ChartHelperInteropOLD(JSRuntime);
         await interop.LoadChart(ChartElement, data, options);
     }
 
@@ -47,7 +47,7 @@
         else CachedOptions = options;
 
         // Update chart
-        ChartHelperInterop interop = new ChartHelperInterop(JSRuntime);
+        ChartHelperInteropOLD interop = new ChartHelperInteropOLD(JSRuntime);
         await interop.UpdateChart(ChartElement, data, options);
     }
 }

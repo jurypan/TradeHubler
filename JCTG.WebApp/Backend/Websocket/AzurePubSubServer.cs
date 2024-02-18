@@ -4,11 +4,10 @@ using Websocket.Client;
 
 namespace JCTG.WebApp.Backend.Websocket;
 
-public class AzurePubSubServerBackend(WebsocketClient client)
+public class AzurePubSubServer(WebsocketClient client)
 {
-    private readonly Serilog.ILogger _logger = Serilog.Log.ForContext<AzurePubSubServerBackend>();
+    private readonly Serilog.ILogger _logger = Serilog.Log.ForContext<AzurePubSubServer>();
 
-    private readonly WebsocketClient? _client = client;
 
     public event Action<OnLogEvent>? OnLogEvent;
     public event Action<OnOrderCreatedEvent>? OnOrderCreatedEvent;
@@ -18,6 +17,9 @@ public class AzurePubSubServerBackend(WebsocketClient client)
     public event Action<OnItsTimeToCloseTheOrderEvent>? OnItsTimeToCloseTheOrderEvent;
     public event Action<OnDealCreatedEvent>? OnDealCreatedEvent;
     public event Action<OnAccountInfoChangedEvent>? OnAccountInfoChangedEvent;
+    public event Action<OnGetHistoricalBarDataEvent>? OnGetHistoricalBarDataEvent;
+
+    public bool IsStarted { get { return client.IsStarted; }  }
 
     public async Task ListeningToServerAsync()
     {
@@ -25,13 +27,13 @@ public class AzurePubSubServerBackend(WebsocketClient client)
         _logger.Debug($"Init client");
 
         // Do null reference check
-        if (_client != null)
+        if (client != null)
         {
-            // Disable the auto disconnect and reconnect because the sample would like the _client to stay online even no data comes in
-            _client.ReconnectTimeout = null;
+            // Disable the auto disconnect and reconnect because the sample would like the client to stay online even no data comes in
+            client.ReconnectTimeout = null;
 
             // Enable the event receive
-            _client.MessageReceived.Subscribe(msg =>
+            client.MessageReceived.Subscribe(msg =>
             {
                 if (msg != null && msg.Text != null)
                 {
@@ -101,6 +103,12 @@ public class AzurePubSubServerBackend(WebsocketClient client)
                                     if (@event != null)
                                         OnAccountInfoChangedEvent?.Invoke(@event);
                                 }
+                                else if (type == Constants.WebsocketMessageType_OnGetHistoricalBarDataEvent)
+                                {
+                                    var @event = JsonSerializer.Deserialize<OnGetHistoricalBarDataEvent>(data.GetRawText(), jsonSerializerOptions);
+                                    if (@event != null)
+                                        OnGetHistoricalBarDataEvent?.Invoke(@event);
+                                }
                             }
                         }
                     }
@@ -109,16 +117,16 @@ public class AzurePubSubServerBackend(WebsocketClient client)
 
             // Start the web socket
             if (!client.IsStarted)
-                await _client.Start();
+                await client.Start();
         }
     }
 
     public async Task StopListeningToServerAsync() 
     {
-        if (_client != null) 
+        if (client != null) 
         {
             if (client.IsStarted)
-                await _client.StopOrFail(System.Net.WebSockets.WebSocketCloseStatus.NormalClosure, "shut down");
+                await client.StopOrFail(System.Net.WebSockets.WebSocketCloseStatus.NormalClosure, "shut down");
         }
     }
 }

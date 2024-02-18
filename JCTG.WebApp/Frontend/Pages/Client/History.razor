@@ -1,24 +1,19 @@
 ﻿@page "/Clients/{clientid:long}/History";
 @inject ClientRepository _clientRepository;
 @inject DealRepository _dealRepository;
-@using JCTG.WebApp.Frontend.Components.Tradingview
+@using JCTG.WebApp.Frontend.Components.TradingviewOLD
 
 <h1>History</h1>
 
-<TradingViewChart @ref=tv />
+<TradingViewChartOLD @ref=tv />
 
 @code {
     [Parameter]
     public long ClientId { get; set; }
 
-    TradingViewChart? tv;
+    TradingViewChartOLD? tv;
     IEnumerable<Deal>? deals;
     Client? client;
-
-    protected async override Task OnInitializedAsync()
-    {
-        
-    }
 
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
