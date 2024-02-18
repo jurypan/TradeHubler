@@ -10,13 +10,18 @@ using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Determine the base address dynamically based on the environment
+var baseAddress = builder.Environment.IsDevelopment()
+    ? "https://localhost:7197/" // Development base URL
+    : "http://justcalltheguy.westeurope.cloudapp.azure.com/"; // Production base URL
+
 // Add services to the container.
 builder.Services.AddRazorPages();
 builder.Services.AddControllers();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddScoped(sp => new HttpClient
 {
-    BaseAddress = new Uri("https://localhost:7197/")
+    BaseAddress = new Uri(baseAddress)
 });
 
 

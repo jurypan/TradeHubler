@@ -43,6 +43,28 @@ public class JSInteropt(IJSRuntime jsRuntime) : IAsyncDisposable
         }));
     }
 
+    public async Task AddAreaSeriesAsync(ElementReference eleRef, List<AreaPoint> data, ChartOptions options)
+    {
+        // Call loadChart JS function
+        var module = await moduleTask.Value;
+        await module.InvokeVoidAsync("addAreaSeries", eleRef, eleRef.Id, data.Select(x => new
+        {
+            time = new DateTimeOffset(x.Time, TimeSpan.Zero).ToUnixTimeSeconds(),
+            value = x.DisplayPrice,
+        }), options);
+    }
+
+    public async Task UpdateAreaSeriesAsync(ElementReference eleRef, List<AreaPoint> data)
+    {
+        // Call loadChart JS function
+        var module = await moduleTask.Value;
+        await module.InvokeVoidAsync("updateAreaSeries", eleRef, eleRef.Id, data.Select(x => new
+        {
+            time = new DateTimeOffset(x.Time, TimeSpan.Zero).ToUnixTimeSeconds(),
+            value = x.DisplayPrice,
+        }));
+    }
+
     public async Task AddLineSeriesAsync(ElementReference eleRef, List<PricePoint> data, ChartOptions options)
     {
         // Call loadChart JS function

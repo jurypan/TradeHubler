@@ -37,11 +37,10 @@
         if(tv.IsInit)
         {
             // Load the chart
-            await tv.AddLineSeriesAsync(deals.Where(f => f.AccountBalance.HasValue).Select(x => new PricePoint()
+            await tv.AddAreaSeriesAsync(deals.Where(f => f.AccountBalance.HasValue).Select(x => new AreaPoint()
                 {
                     Time = x.DateCreated,
-                    Price = x.AccountBalance.HasValue ? Convert.ToDecimal(x.AccountBalance.Value) : 0.0M,
-                    Volume = 0.0M
+                    Price = x.AccountBalance.HasValue ? Convert.ToDecimal(x.AccountBalance.Value) : 0.0M
                 }).OrderBy(f => f.Time).ToList());
         }
     }

@@ -43,6 +43,26 @@
         await JS.UpdateCandleStickSeriesAsync(el, data);
     }
 
+    public async Task AddAreaSeriesAsync(List<AreaPoint> data)
+    {
+        // Check if chart is init
+        if (!IsInit)
+            return;
+
+        // Exec javascript
+        await JS.AddAreaSeriesAsync(el, data, Options);
+    }
+
+    public async Task UpdateAreaSeriesAsync(List<AreaPoint> data)
+    {
+        // Check if chart is init
+        if (!IsInit)
+            return;
+
+        // Exec javascript
+        await JS.UpdateAreaSeriesAsync(el, data);
+    }
+
     public async Task AddLineSeriesAsync(List<PricePoint> data)
     {
         // Check if chart is init

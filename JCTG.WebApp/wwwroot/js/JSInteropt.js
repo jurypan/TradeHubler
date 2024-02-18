@@ -92,6 +92,41 @@ export function updateCandleStickSeries(element, refId, data) {
 	window.charts[refId].timeScale().fitContent();
 }
 
+export function addAreaSeries(element, refId, data, options) {
+	if (element == null) {
+		console.error("element was null. Please define a reference for your TradingViewChart element.");
+		return;
+	}
+
+	window.charts[refId]["AreaSeries"] = window.charts[refId].addAreaSeries({
+		lineColor: 'rgb(38,166,154)',
+		topColor: '#2962FF',
+		bottomColor: 'rgba(41, 98, 255, 0.28)',
+		priceFormat: {
+			type: 'price',
+			precision: options.rightPriceScaleDecimalPrecision,
+			minMove: 1 / (10 ** options.rightPriceScaleDecimalPrecision),
+		}
+	});
+	window.charts[refId]["AreaSeries"].setData(data);
+	window.charts[refId].timeScale().fitContent();
+}
+
+export function updateAreaSeries(element, refId, data) {
+	if (element == null) {
+		console.error("element was null. Please define a reference for your TradingViewChart element.");
+		return;
+	}
+
+	if (window.charts[refId]["AreaSeries"] == null) {
+		console.error("Lineseries collection was null. Please define a reference for your TradingViewChart element.");
+		return;
+	}
+
+	window.charts[refId]["AreaSeries"].setData(data);
+	window.charts[refId].timeScale().fitContent();
+}
+
 export function addLineSeries(element, refId, data, options) {
 	if (element == null) {
 		console.error("element was null. Please define a reference for your TradingViewChart element.");
