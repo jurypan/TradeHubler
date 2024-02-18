@@ -1,32 +1,40 @@
 ﻿@page "/Clients/{clientid:long}/Tradingview";
 @using JCTG.Events
-@using JCTG.WebApp.Frontend.Components.TradingviewOLD
+@using JCTG.WebApp.Frontend.Components.Tradingview
 @inject JCTG.WebApp.Backend.Websocket.WebsocketFrontend _websocket
 @inject JCTG.WebApp.Backend.Websocket.AzurePubSubClient _pubSubClient
 @inject ClientRepository _clientRepository
 
 <h1>Tradingview</h1>
 
-<TradingViewChartOLD @ref=tv />
+<Chart @ref=tv />
+
 
 @code {
     [Parameter]
     public long ClientId { get; set; }
 
-    TradingViewChartOLD? tv;
+    private Chart? tv;
 
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         // Only on first render
-        if (!firstRender)
+        if (!firstRender || tv == null)
             return;
 
         // Get client
         var client = await _clientRepository.GetById(692803787, ClientId);
 
+        // Init tradingview Chart
+        await tv.InitAsync(new()
+            {
+                Width = -75,
+                Height = 1000,
+            });
+
         // Do null reference check
-        if (tv != null && client != null)
+        if (tv.IsInit && client != null)
         {
             // Init the event handler
             _websocket.SubscribeToOnGetHistoricalBarDataEvent(async (onGetHistoricalBarDataEvent) =>
@@ -41,7 +49,7 @@
                 )
                 {
                     // Get the data from the event
-                    var candleData = onGetHistoricalBarDataEvent.BarData.Select(x => new Candle()
+                    var candleData = onGetHistoricalBarDataEvent.BarData.Select(x => new CandlePoint()
                         {
                             Time = x.Time,
                             High = x.High,
@@ -49,29 +57,10 @@
                             Open = x.Open,
                             Close = x.Close,
                             Volume = Convert.ToDecimal(x.TickVolume),
-                        }).Cast<IChartEntry>().ToList();
-
-                    // Load the data
-                    ChartData data = new()
-                        {
-                            ChartEntries = candleData,
-                            MarkerData = new List<Marker>(),
-                        };
-
-                    // Optionally define options
-                    ChartOptions options = new()
-                        {
-                            Width = -75,
-                            Height = 1000,
-                            LayoutBackgroundColor = "white",
-                            LayoutTextColor = "black",
-                            HorzLinesColor = "white",
-                            VertLinesColor = "white",
-                        };
+                        }).ToList();
 
                     // Load the chart
-                    if (tv != null)
-                        await tv.LoadChartAsync(data, options);
+                    await tv.AddCandlestickSeriesAsync(candleData);
                 }
             });
 

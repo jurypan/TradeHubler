@@ -1,17 +1,17 @@
 ﻿@page "/Clients/{clientid:long}/History";
 @inject ClientRepository _clientRepository;
 @inject DealRepository _dealRepository;
-@using JCTG.WebApp.Frontend.Components.TradingviewOLD
+@using JCTG.WebApp.Frontend.Components.Tradingview
 
 <h1>History</h1>
 
-<TradingViewChartOLD @ref=tv />
+<Chart @ref=tv />
 
 @code {
     [Parameter]
     public long ClientId { get; set; }
 
-    TradingViewChartOLD? tv;
+    Chart? tv;
     IEnumerable<Deal>? deals;
     Client? client;
 
@@ -19,45 +19,30 @@
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         // Only on first render
-        if (!firstRender)
+        if (!firstRender || tv == null)
             return;
 
+        // Get data from database
         deals = await _dealRepository.GetAll(this.ClientId);
         client = await _clientRepository.GetById(692803787, this.ClientId);
 
-        // Chart data
-        var chartData = deals.Select(x => new PricePoint()
-            {
-                Time = x.DateCreated,
-                Price = x.AccountBalance.HasValue ? Convert.ToDecimal(x.AccountBalance.Value) : 0.0M,
-                Volume = 0.0M
-            }).ToList();
-
-        chartData = chartData.OrderBy(f => f.Time).ToList();
-
-
-        // Load the data
-        ChartData data = new()
-            {
-                ChartEntries = new List<IChartEntry>(chartData),
-                MarkerData = new List<Marker>()
-            };
-
-        // Optionally define options
-        ChartOptions options = new()
+        // Init tradingview Chart
+        await tv.InitAsync(new()
             {
                 Width = -75,
-                Height = 500,
-                LayoutBackgroundColor = "white",
-                LayoutTextColor = "black",
-                HorzLinesColor = "white",
-                VertLinesColor = "white",
-                VolumeColorDown = "white",
-                VolumeColorUp = "white",
-            };
+                Height = 1000,
+            });
 
-        // Load the chart
-        if (tv != null)
-            await tv.LoadChartAsync(data, options);
+        // Do null reference check
+        if(tv.IsInit)
+        {
+            // Load the chart
+            await tv.AddLineSeriesAsync(deals.Where(f => f.AccountBalance.HasValue).Select(x => new PricePoint()
+                {
+                    Time = x.DateCreated,
+                    Price = x.AccountBalance.HasValue ? Convert.ToDecimal(x.AccountBalance.Value) : 0.0M,
+                    Volume = 0.0M
+                }).OrderBy(f => f.Time).ToList());
+        }
     }
 }

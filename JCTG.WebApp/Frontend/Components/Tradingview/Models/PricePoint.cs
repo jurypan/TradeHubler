@@ -1,5 +1,5 @@
-﻿namespace JCTG.WebApp.Frontend.Components.TradingviewOLD;
-public class PricePoint : IChartEntry
+﻿namespace JCTG.WebApp.Frontend.Components.Tradingview;
+public class PricePoint
 {
     public DateTime Time { get; set; }
     public decimal Price { get; set; }

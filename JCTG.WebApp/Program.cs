@@ -2,6 +2,7 @@ using JCTG;
 using JCTG.WebApp.Backend.Middleware;
 using JCTG.WebApp.Backend.Repository;
 using JCTG.WebApp.Backend.Websocket;
+using JCTG.WebApp.Frontend.Components.Tradingview;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
@@ -17,7 +18,6 @@ builder.Services.AddScoped(sp => new HttpClient
 {
     BaseAddress = new Uri("https://localhost:7197/")
 });
-builder.Services.AddTransient<WebsocketBackend>();
 
 
 // Add DB Context
@@ -30,6 +30,9 @@ builder.Services.AddDbContextFactory<JCTGDbContext>(
 // Add Websocket Server <-> Terminal
 builder.Services.AddAzurePubSubClient(builder.Configuration.GetConnectionString("AZURE_PUBSUB_CONNECTIONSTRING"));
 builder.Services.AddAzurePubSubServer();
+
+// Add Tradingview
+builder.Services.InitTradingview();
 
 // Add services to the scope
 builder.Services.AddTransient<SignalRepository>();

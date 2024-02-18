@@ -1,4 +1,4 @@
-﻿namespace JCTG.WebApp.Frontend.Components.TradingviewOLD;
+﻿namespace JCTG.WebApp.Frontend.Components.Tradingview;
 
 public class Marker
 {

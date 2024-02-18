@@ -1,9 +1,9 @@
-﻿namespace JCTG.WebApp.Frontend.Components.TradingviewOLD;
+﻿namespace JCTG.WebApp.Frontend.Components.Tradingview;
 
 /// <summary>
 /// Used to display bar chart
 /// </summary>
-public class Candle : IChartEntry
+public class CandlePoint
 {
     public DateTime Time { get; set; }
     public decimal Open { get; set; }

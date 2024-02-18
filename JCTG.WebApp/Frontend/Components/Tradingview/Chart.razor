@@ -1,0 +1,145 @@
+﻿@inject JSInteropt JS
+
+<div @ref=el></div>
+
+
+@code {
+
+    public ChartOptions Options { get; private set; } = new ChartOptions();
+    public bool IsInit { get; set; } = false;
+    public ElementReference el { get; set; }
+
+
+    public async Task InitAsync(ChartOptions? options = null)
+    {
+        // Use default options when none are provided
+        if (options != null)
+            Options = options;
+
+        // Set is init
+        IsInit = true;
+
+        // Exec javascript
+        await JS.InitAsync(el, Options);
+    }
+
+    public async Task AddCandlestickSeriesAsync(List<CandlePoint> data)
+    {
+        // Check if chart is init
+        if (!IsInit)
+            return;
+
+        // Exec javascript
+        await JS.AddCandleStickSeriesAsync(el, data, Options);
+    }
+
+    public async Task UpdateCandlestickSeriesAsync(List<CandlePoint> data)
+    {
+        // Check if chart is init
+        if (!IsInit)
+            return;
+
+        // Exec javascript
+        await JS.UpdateCandleStickSeriesAsync(el, data);
+    }
+
+    public async Task AddLineSeriesAsync(List<PricePoint> data)
+    {
+        // Check if chart is init
+        if (!IsInit)
+            return;
+
+        // Exec javascript
+        await JS.AddLineSeriesAsync(el, data, Options);
+    }
+
+    public async Task UpdateLineSeriesAsync(List<PricePoint> data)
+    {
+        // Check if chart is init
+        if (!IsInit)
+            return;
+
+        // Exec javascript
+        await JS.UpdateLineSeriesAsync(el, data);
+    }
+
+    public async Task AddVolumeSeriesAsync(List<CandlePoint> data)
+    {
+        // Check if chart is init
+        if (!IsInit)
+            return;
+
+        // Exec javascript
+        await JS.AddVolumeSeriesAsync(el, data, Options);
+    }
+
+    public async Task UpdateVolumeSeriesAsync(List<CandlePoint> data)
+    {
+        // Check if chart is init
+        if (!IsInit)
+            return;
+
+        // Exec javascript
+        await JS.UpdateVolumeSeriesAsync(el, data, Options);
+    }
+
+    public async Task AddVolumeSeriesAsync(List<PricePoint> data)
+    {
+        // Check if chart is init
+        if (!IsInit)
+            return;
+
+        // Exec javascript
+        await JS.AddVolumeSeriesAsync(el, data, Options);
+    }
+
+    public async Task UpdateVolumeSeriesAsync(List<PricePoint> data)
+    {
+        // Check if chart is init
+        if (!IsInit)
+            return;
+
+        // Exec javascript
+        await JS.UpdateVolumeSeriesAsync(el, data, Options);
+    }
+
+    public async Task AddMarkersToCandleStickSeriesAsync(List<Marker> data)
+    {
+        // Check if chart is init
+        if (!IsInit)
+            return;
+
+        // Exec javascript
+        await JS.AddMarkersToCandleStickSeriesAsync(el, data);
+    }
+
+    public async Task UpdateMarkersToCandleStickSeriesAsync(List<Marker> data)
+    {
+        // Check if chart is init
+        if (!IsInit)
+            return;
+
+        // Exec javascript
+        await JS.UpdateMarkersToCandleStickSeriesAsync(el, data);
+    }
+
+    public async Task AddMarkersToLineSeriesAsync(List<Marker> data)
+    {
+        // Check if chart is init
+        if (!IsInit)
+            return;
+
+        // Exec javascript
+        await JS.AddMarkersToLineSeriesAsync(el, data);
+    }
+
+    public async Task UpdateMarkersToLineSeriesAsync(List<Marker> data)
+    {
+        // Check if chart is init
+        if (!IsInit)
+            return;
+
+        // Exec javascript
+        await JS.UpdateMarkersToLineSeriesAsync(el, data);
+    }
+}
