@@ -1,12 +1,12 @@
 ﻿using Microsoft.AspNetCore.Components;
-using Microsoft.Extensions.Options;
 using Microsoft.JSInterop;
+using static JCTG.WebApp.Frontend.Components.Tradingview.Marker;
 
 namespace JCTG.WebApp.Frontend.Components.Tradingview;
 
 public class JSInteropt(IJSRuntime jsRuntime) : IAsyncDisposable
 {
-    private readonly Lazy<Task<IJSObjectReference>> moduleTask = new(() => jsRuntime.InvokeAsync<IJSObjectReference>("import", $"./js/JSInteropt.js").AsTask());
+    private readonly Lazy<Task<IJSObjectReference>> moduleTask = new(() => jsRuntime.InvokeAsync<IJSObjectReference>("import", $"./js/JSInteropt.js?v=2").AsTask());
 
     public async Task InitAsync(ElementReference eleRef, ChartOptions options)
     {
@@ -15,7 +15,7 @@ public class JSInteropt(IJSRuntime jsRuntime) : IAsyncDisposable
         await module.InvokeVoidAsync("initTradingView", eleRef, eleRef.Id, options);
     }
 
-    public async Task AddCandleStickSeriesAsync(ElementReference eleRef, List<CandlePoint> data, ChartOptions options)
+    public async Task AddCandleStickSeriesAsync(ElementReference eleRef, List<BarData> data, ChartOptions options)
     {
         // Call loadChart JS function
         var module = await moduleTask.Value;
@@ -26,10 +26,11 @@ public class JSInteropt(IJSRuntime jsRuntime) : IAsyncDisposable
             high = x.High,
             low = x.Low,
             close = x.Close,
+            color = x.Color
         }), options);
     }
 
-    public async Task UpdateCandleStickSeriesAsync(ElementReference eleRef, List<CandlePoint> data)
+    public async Task UpdateCandleStickSeriesAsync(ElementReference eleRef, List<BarData> data)
     {
         // Call loadChart JS function
         var module = await moduleTask.Value;
@@ -40,6 +41,7 @@ public class JSInteropt(IJSRuntime jsRuntime) : IAsyncDisposable
             high = x.High,
             low = x.Low,
             close = x.Close,
+            color = x.Color
         }));
     }
 
@@ -52,6 +54,52 @@ public class JSInteropt(IJSRuntime jsRuntime) : IAsyncDisposable
             time = new DateTimeOffset(data.Time, TimeSpan.Zero).ToUnixTimeSeconds(),
             value = data.Price,
         });
+    }
+
+    public async Task SetMarkersToCandlestickSeriesAsync(ElementReference eleRef, List<Marker> data)
+    {
+        // Call loadChart JS function
+        var module = await moduleTask.Value;
+
+        // Inline method
+        Func<MarkerShape, string> getShape = (shape) =>
+        {
+            if (shape == MarkerShape.Square)
+                return "square";
+            else if (shape == MarkerShape.Circle)
+                return "circle";
+            else if (shape == MarkerShape.ArrowUp)
+                return "arrowUp";
+            else if (shape == MarkerShape.ArrowDown)
+                return "arrowDown";
+            else
+                return "arrowDown";
+        };
+
+        // Inline method
+        Func<MarkerPosition, string> getPosition = (position) =>
+        {
+            if (position == MarkerPosition.AboveBar)
+                return "aboveBar";
+            else if (position == MarkerPosition.BelowBar)
+                return "belowBar";
+            else if (position == MarkerPosition.InBar)
+                return "inBar";
+            else
+                return "belowBar";
+        };
+
+        // Invoke javascript
+        await module.InvokeVoidAsync("setMarkersToCandlestickSeriesAsync", eleRef, eleRef.Id, data.Select(x => new
+        {
+            time = new DateTimeOffset(x.Time, TimeSpan.Zero).ToUnixTimeSeconds(),
+            position = getPosition(x.Position),
+            shape = getShape(x.Shape),
+            color = x.Color,
+            id = x.Id,
+            text = x.Text,
+            size = x.Size,
+        }));
     }
 
     public async Task AddAreaSeriesAsync(ElementReference eleRef, List<AreaPoint> data, ChartOptions options)
@@ -98,7 +146,7 @@ public class JSInteropt(IJSRuntime jsRuntime) : IAsyncDisposable
         }));
     }
 
-    public async Task AddVolumeSeriesAsync(ElementReference eleRef, List<CandlePoint> data, ChartOptions options)
+    public async Task AddVolumeSeriesAsync(ElementReference eleRef, List<BarData> data, ChartOptions options)
     {
         // Call loadChart JS function
         var module = await moduleTask.Value;
@@ -116,11 +164,11 @@ public class JSInteropt(IJSRuntime jsRuntime) : IAsyncDisposable
         {
             time = new DateTimeOffset(x.Time, TimeSpan.Zero).ToUnixTimeSeconds(),
             value = x.Volume,
-            color = getVolumeColor(x.DisplayPrice),
+            color = getVolumeColor(x.Close),
         }), options);
     }
 
-    public async Task UpdateVolumeSeriesAsync(ElementReference eleRef, List<CandlePoint> data, ChartOptions options)
+    public async Task UpdateVolumeSeriesAsync(ElementReference eleRef, List<BarData> data, ChartOptions options)
     {
         // Call loadChart JS function
         var module = await moduleTask.Value;
@@ -139,7 +187,7 @@ public class JSInteropt(IJSRuntime jsRuntime) : IAsyncDisposable
         {
             time = new DateTimeOffset(x.Time, TimeSpan.Zero).ToUnixTimeSeconds(),
             value = x.Volume,
-            color = getVolumeColor(x.DisplayPrice),
+            color = getVolumeColor(x.Close),
         }));
     }
 

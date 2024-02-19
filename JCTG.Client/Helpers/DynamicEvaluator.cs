@@ -46,7 +46,7 @@ namespace JCTG.Client
             }
         }
 
-        public static async Task<DateTime?> GetDateFromBarString(string input)
+        public static DateTime? GetDateFromBarString(string input)
         {
             string pattern = @"\[(\d+)\]"; // Pattern to find digits inside brackets
 

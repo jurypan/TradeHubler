@@ -1,0 +1,38 @@
+﻿@page "/Clients/{clientid:long}/Pairs";
+@inject OrderRepository _orderRepository;
+
+<h3>Pairs</h3>
+@if (_pairs.Count() <= 0)
+{
+    <p>No pairs available</p>
+}
+else
+{
+    <div class="row">
+        @foreach (var pair in _pairs)
+        {
+            <div class="col-md-3 mb-3">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">@pair</h5>
+                        <div>
+                            <a href="@($"Clients/{ClientId}/Pairs/{pair}/Tradingview")"> View tradingview</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    [Parameter]
+    public long ClientId { get; set; }
+
+    private List<string> _pairs = new();
+
+    protected async override Task OnInitializedAsync()
+    {
+        _pairs = await _orderRepository.GetAllPairs(692803787, ClientId);
+    }
+}

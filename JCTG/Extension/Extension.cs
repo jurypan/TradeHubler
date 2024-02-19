@@ -10,9 +10,9 @@
             return (long)elapsedTime.TotalMilliseconds;
         }
 
-        public static DateTime FromUnixTime(this long unixTime)
+        public static DateTime FromUnixTime(this long unixTimeInMilliseconds)
         {
-            return epoch.AddSeconds(unixTime);
+            return epoch.AddSeconds(unixTimeInMilliseconds / 1000.0);
         }
     }
 }

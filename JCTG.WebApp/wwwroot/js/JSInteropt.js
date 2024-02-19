@@ -62,10 +62,10 @@ export function addCandleStickSeries(element, refId, data, options) {
 	}
 
 	window.charts[refId]["CandleSeries"] = window.charts[refId].addCandlestickSeries({
-		upColor: 'rgb(38,166,154)',
-		downColor: 'rgb(255,82,82)',
-		wickUpColor: 'rgb(38,166,154)',
-		wickDownColor: 'rgb(255,82,82)',
+		upColor: 'rgb(237, 213, 152)',
+		downColor: 'rgb(247, 126, 126)',
+		wickUpColor: 'rgb(237, 213, 152)',
+		wickDownColor: 'rgb(247, 126, 126)',
 		borderVisible: true,
 		priceFormat: {
 			type: 'price',
@@ -105,6 +105,20 @@ export function updateCandleStick(element, refId, data) {
 
 	window.charts[refId]["CandleSeries"].update(data);
 	window.charts[refId].timeScale().fitContent();
+}
+
+export function setMarkersToCandlestickSeriesAsync(element, refId, data) {
+	if (element == null) {
+		console.error("element was null. Please define a reference for your TradingViewChart element.");
+		return;
+	}
+
+	if (window.charts[refId]["CandleSeries"] == null) {
+		console.error("Lineseries collection was null. Please define a reference for your TradingViewChart element.");
+		return;
+	}
+
+	window.charts[refId]["CandleSeries"].setMarkers(data);
 }
 
 export function addAreaSeries(element, refId, data, options) {

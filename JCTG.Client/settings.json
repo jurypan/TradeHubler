@@ -35,27 +35,6 @@
       ],
       "Pairs": [
         {
-          "TickerInTradingView": "XJO",
-          "TickerInMetatrader": "AUS200",
-          "Timeframe": "M5",
-          "StrategyNr": 4,
-          "Risk": 0.05,
-          "SLtoBEafterR": 1.0,
-          "MaxSpread": 2.0,
-          "SLMultiplier": 1.1,
-          "MaxLotSize": 1000,
-          "OrderExecType": "Active",
-          "CancelStopOrLimitOrderWhenNewSignal": true,
-          "NumberOfHistoricalBarsRequested": 100,
-          "CloseAllTradesAt": "04:55",
-          "DoNotOpenTradesXMinutesBeforeClose": 10, // TODO
-          "SpreadEntry": "Add",
-          "SpreadSL": "Subtract",
-          "SpreadTP": "Add",
-          "RiskMinXTimesTheSpread": 4,
-          "CorrelatedPairs": [] // TODO
-        },
-        {
           "TickerInTradingView": "UKX",
           "TickerInMetatrader": "UK100",
           "Timeframe": "M5",
@@ -485,27 +464,6 @@
       ],
       "Pairs": [
         {
-          "TickerInTradingView": "XJO",
-          "TickerInMetatrader": "ASXAUD",
-          "Timeframe": "M5",
-          "StrategyNr": 4,
-          "Risk": 0.15,
-          "SLtoBEafterR": 1.0,
-          "MaxSpread": 2.0,
-          "SLMultiplier": 1.1,
-          "MaxLotSize": 1000,
-          "OrderExecType": "Active",
-          "CancelStopOrLimitOrderWhenNewSignal": true,
-          "NumberOfHistoricalBarsRequested": 100,
-          "CloseAllTradesAt": "04:55",
-          "DoNotOpenTradesXMinutesBeforeClose": 10, // TODO
-          "SpreadEntry": "Add",
-          "SpreadSL": "Subtract",
-          "SpreadTP": "Add",
-          "RiskMinXTimesTheSpread": 4,
-          "CorrelatedPairs": [] // TODO
-        },
-        {
           "TickerInTradingView": "UKX",
           "TickerInMetatrader": "FTSGBP",
           "Timeframe": "M5",
@@ -859,28 +817,48 @@
       "IsEnable": true,
       "Risk": [
         {
-          "Procent": 0,
-          "Multiplier": 1
+          "Procent": -6.0,
+          "Multiplier": 0.25
         },
         {
-          "Procent": 2.0,
-          "Multiplier": 1.25
-        },
-        {
-          "Procent": 4.0,
-          "Multiplier": 1.50
-        },
-        {
-          "Procent": -2.0,
-          "Multiplier": 0.75
+          "Procent": -5.0,
+          "Multiplier": 0.40
         },
         {
           "Procent": -4.0,
           "Multiplier": 0.50
         },
         {
-          "Procent": -6.0,
-          "Multiplier": 0.25
+          "Procent": -3.0,
+          "Multiplier": 0.60
+        },
+        {
+          "Procent": -2.0,
+          "Multiplier": 0.75
+        },
+        {
+          "Procent": -1.0,
+          "Multiplier": 0.85
+        },
+        {
+          "Procent": 0,
+          "Multiplier": 1
+        },
+        {
+          "Procent": 1.0,
+          "Multiplier": 1.1
+        },
+        {
+          "Procent": 2.0,
+          "Multiplier": 1.25
+        },
+        {
+          "Procent": 3.0,
+          "Multiplier": 1.40
+        },
+        {
+          "Procent": 4.0,
+          "Multiplier": 1.50
         }
       ],
       "Pairs": [

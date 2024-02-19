@@ -23,7 +23,7 @@
         await JS.InitAsync(el, Options);
     }
 
-    public async Task AddCandlestickSeriesAsync(List<CandlePoint> data)
+    public async Task AddCandlestickSeriesAsync(List<BarData> data)
     {
         // Check if chart is init
         if (!IsInit)
@@ -33,7 +33,7 @@
         await JS.AddCandleStickSeriesAsync(el, data, Options);
     }
 
-    public async Task UpdateCandlestickSeriesAsync(List<CandlePoint> data)
+    public async Task UpdateCandlestickSeriesAsync(List<BarData> data)
     {
         // Check if chart is init
         if (!IsInit)
@@ -41,6 +41,16 @@
 
         // Exec javascript
         await JS.UpdateCandleStickSeriesAsync(el, data);
+    }
+
+    public async Task SetMarkersToCandlestickSeriesAsync(List<Marker> data)
+    {
+        // Check if chart is init
+        if (!IsInit)
+            return;
+
+        // Exec javascript
+        await JS.SetMarkersToCandlestickSeriesAsync(el, data);
     }
 
     public async Task AddAreaSeriesAsync(List<AreaPoint> data)
@@ -89,7 +99,7 @@
                         .ToList());
     }
 
-    public async Task AddVolumeSeriesAsync(List<CandlePoint> data)
+    public async Task AddVolumeSeriesAsync(List<BarData> data)
     {
         // Check if chart is init
         if (!IsInit)
@@ -99,7 +109,7 @@
         await JS.AddVolumeSeriesAsync(el, data, Options);
     }
 
-    public async Task UpdateVolumeSeriesAsync(List<CandlePoint> data)
+    public async Task UpdateVolumeSeriesAsync(List<BarData> data)
     {
         // Check if chart is init
         if (!IsInit)

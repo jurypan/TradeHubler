@@ -21,7 +21,14 @@
                 // Respond with a generic error message if necessary
                 Serilog.Log.ForContext<ExceptionHandlingMiddleware>().Error($"Exception: {ex.Message}\nInner exception message: {ex.InnerException?.Message}\n", ex);
                 context.Response.StatusCode = 500;
-                await context.Response.WriteAsync("An unexpected error has occurred.");
+                await context.Response.WriteAsync("An unexpected error has occurred.<br />");
+                await context.Response.WriteAsync("---------------------------------<br />");
+                await context.Response.WriteAsync(ex.Message + "<br />");
+                if(ex.InnerException != null)
+                {
+                    await context.Response.WriteAsync("---------------------------------<br />");
+                    await context.Response.WriteAsync(ex.InnerException.Message + "<br />");
+                }
             }
         }
     }
