@@ -19,13 +19,20 @@
     public required string Symbol { get; set; } = "BTCUSDT";
 
     private Chart? tv;
-    private bool firstRender = true;
 
-    private async Task UpdateChartAsync()
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        // Do null reference check
-        if (tv == null)
+        // Only on first render
+        if (!firstRender || tv == null)
             return;
+
+        // Init tradingview Chart
+        await tv.InitAsync(new()
+            {
+                Width = -75,
+                Height = 1000,
+            });
 
         // Get client
         var client = await _clientRepository.GetById(692803787, ClientId);
@@ -36,55 +43,48 @@
         // Do null reference check
         if (tv.IsInit && client != null)
         {
-            if (firstRender == true)
+            // Init the event handler
+            _websocket.SubscribeToOnGetHistoricalBarDataEvent(async (onGetHistoricalBarDataEvent) =>
             {
-                // Init the event handler
-                _websocket.SubscribeToOnGetHistoricalBarDataEvent(async (onGetHistoricalBarDataEvent) =>
+                // Do null reference check
+                if (onGetHistoricalBarDataEvent != null
+                    && onGetHistoricalBarDataEvent.ClientID > 0
+                    && onGetHistoricalBarDataEvent.AccountID > 0
+                    && onGetHistoricalBarDataEvent.BarData != null
+                    && onGetHistoricalBarDataEvent.AccountID == 692803787
+                    && onGetHistoricalBarDataEvent.ClientID == ClientId
+                )
                 {
-                    // Do null reference check
-                    if (onGetHistoricalBarDataEvent != null
-                        && onGetHistoricalBarDataEvent.ClientID > 0
-                        && onGetHistoricalBarDataEvent.AccountID > 0
-                        && onGetHistoricalBarDataEvent.BarData != null
-                        && onGetHistoricalBarDataEvent.AccountID == 692803787
-                        && onGetHistoricalBarDataEvent.ClientID == ClientId
-                    )
+                    // Inline method
+                    Func<string, long?> getTimestamp = (input) =>
+
                     {
-                        // Inline method
-                        Func<string, long?> getTimestamp = (input) =>
+                        string pattern = @"\[(\d+)\]"; // Pattern to find digits inside brackets
 
+                        Match match = Regex.Match(input, pattern);
+
+                        if (match.Success)
                         {
-                            string pattern = @"\[(\d+)\]"; // Pattern to find digits inside brackets
+                            string number = match.Groups[1].Value;
+                            return long.Parse(number);
+                        }
+                        return null;
+                    };
 
-                            Match match = Regex.Match(input, pattern);
+                    // Load the chart
+                    await tv.AddCandlestickSeriesAsync(onGetHistoricalBarDataEvent.BarData.Select(x => new BarData()
+                        {
+                            Time = x.Time,
+                            High = x.High,
+                            Low = x.Low,
+                            Open = x.Open,
+                            Close = x.Close,
+                            Color = orders.Any(f => f.Signal != null && f.Signal.EntryExpression != null && getTimestamp(f.Signal.EntryExpression) == x.Epoch) ? "#0000FF" : null
+                        }).ToList());
 
-                            if (match.Success)
-                            {
-                                string number = match.Groups[1].Value;
-                                return long.Parse(number);
-                            }
-                            return null;
-                        };
 
-                        // Get the data from the event
-                        var candleData = onGetHistoricalBarDataEvent.BarData.Select(x => new BarData()
-                            {
-                                Time = x.Time,
-                                High = x.High,
-                                Low = x.Low,
-                                Open = x.Open,
-                                Close = x.Close,
-                                Color = orders.Any(f => f.Signal != null && f.Signal.EntryExpression != null && getTimestamp(f.Signal.EntryExpression) == x.Epoch) ? "#0000FF" : null
-                            }).ToList();
-
-                        // Load the chart
-                        if (firstRender)
-                            await tv.AddCandlestickSeriesAsync(candleData);
-                        else
-                            await tv.UpdateCandlestickSeriesAsync(candleData);
-
-                        // Markers
-                        var markers = orders.Where(f => f.IsTradeClosed && f.CloseTime.HasValue).Select(x => new Marker()
+                    // Markers
+                    var markers = orders.Where(f => f.IsTradeClosed && f.CloseTime.HasValue).Select(x => new Marker()
                         {
                             Time = x.CloseTime != null ? x.CloseTime.Value : DateTime.MinValue,
                             Color = x.Pnl >= 0.0 ? "#228B22" : "#DC143C",
@@ -92,55 +92,53 @@
                             Position = x.Type.Contains("buy") ? Marker.MarkerPosition.AboveBar : Marker.MarkerPosition.BelowBar,
                             Shape = Marker.MarkerShape.Square,
                             Text = $"Exit {x.ID}",
-                            Size = 2,
                         }).ToList();
-                        markers.AddRange(orders.Where(f => f.IsTradeClosed && f.CloseTime.HasValue).Select(x => new Marker()
-                            {
-                                Time = x.OpenTime,
-                                Color = x.Pnl >= 0.0 ? "#228B22" : "#DC143C",
-                                Direction = x.Type.Contains("buy") ? Marker.MarkerDirection.Buy : Marker.MarkerDirection.Sell,
-                                Position = x.Type.Contains("buy") ? Marker.MarkerPosition.BelowBar : Marker.MarkerPosition.AboveBar,
-                                Shape = x.Type.Contains("buy") ? Marker.MarkerShape.ArrowUp : Marker.MarkerShape.ArrowDown,
-                                Text = $"Entry {x.ID}",
-                            }).ToList());
-                        markers = markers.OrderBy(f => f.Time).ToList();
+                    markers.AddRange(orders.Where(f => f.IsTradeClosed && f.CloseTime.HasValue).Select(x => new Marker()
+                        {
+                            Time = x.OpenTime,
+                            Color = x.Pnl >= 0.0 ? "#228B22" : "#DC143C",
+                            Direction = x.Type.Contains("buy") ? Marker.MarkerDirection.Buy : Marker.MarkerDirection.Sell,
+                            Position = x.Type.Contains("buy") ? Marker.MarkerPosition.BelowBar : Marker.MarkerPosition.AboveBar,
+                            Shape = x.Type.Contains("buy") ? Marker.MarkerShape.ArrowUp : Marker.MarkerShape.ArrowDown,
+                            Text = $"Entry {x.ID}",
+                        }).ToList());
+                    markers = markers.OrderBy(f => f.Time).ToList();
 
-                        // Add markers to chart
-                        await tv.SetMarkersToCandlestickSeriesAsync(markers);
-                    }
-                });
+                    // Add markers to chart
+                    await tv.SetMarkersToCandlestickSeriesAsync(markers);
+                }
+            });
 
-                _websocket.SubscribeToOnTickEvent(async (onTickEvent) =>
+            _websocket.SubscribeToOnTickEvent(async (onTickEvent) =>
+            {
+                // Do null reference check
+                if (onTickEvent != null
+                            && onTickEvent.ClientID > 0
+                            && onTickEvent.AccountID > 0
+                            && onTickEvent.MarketData != null
+                            && onTickEvent.AccountID == 692803787
+                            && onTickEvent.ClientID == ClientId
+                        )
                 {
-                    // Do null reference check
-                    if (onTickEvent != null
-                                && onTickEvent.ClientID > 0
-                                && onTickEvent.AccountID > 0
-                                && onTickEvent.MarketData != null
-                                && onTickEvent.AccountID == 692803787
-                                && onTickEvent.ClientID == ClientId
-                            )
-                    {
-                        // Get the data from the event
-                        var candleData = new Tick()
-                            {
-                                Time = DateTime.UtcNow,
-                                Price = onTickEvent.MarketData.Ask
-                            };
+                    // Get the data from the event
+                    var candleData = new Tick()
+                        {
+                            Time = DateTime.UtcNow,
+                            Price = onTickEvent.MarketData.Ask
+                        };
 
-                        // Load the chart
-                        await tv.UpdateCandleStickAsync(candleData);
-                    }
-                });
+                    // Load the chart
+                    await tv.UpdateCandleStickAsync(candleData);
+                }
+            });
 
-                // Send command to Metatrader
-                // await _pubSubClient.SendStartListeningToTicksCommand(692803787, new Command.OnSendStartListeningToTicksCommand()
-                //     {
-                //         AccountID = 692803787,
-                //         ClientID = ClientId,
-                //         Symbol = Symbol,
-                //     });
-            }
+            // Send command to Metatrader
+            // await _pubSubClient.SendStartListeningToTicksCommand(692803787, new Command.OnSendStartListeningToTicksCommand()
+            //     {
+            //         AccountID = 692803787,
+            //         ClientID = ClientId,
+            //         Symbol = Symbol,
+            //     });
 
             // Send command to Metatrader
             await _pubSubClient.SendGetHistoricalBarDataAsync(692803787, new Command.OnSendGetHistoricalBarDataCommand()
@@ -152,29 +150,6 @@
                     StartDate = DateTime.UtcNow.AddDays(-7),
                 });
         }
-    }
-
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        // Only on first render
-        if (!firstRender || tv == null)
-            return;
-
-
-
-        // Init tradingview Chart
-        await tv.InitAsync(new()
-            {
-                Width = -75,
-                Height = 1000,
-            });
-
-        // Load data
-        await UpdateChartAsync();
-
-        // Set flag
-        firstRender = false;
     }
 
     public void Dispose()
