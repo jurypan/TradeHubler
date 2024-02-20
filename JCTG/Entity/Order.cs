@@ -43,6 +43,7 @@ namespace JCTG.Entity
         public double Pnl { get; set; } // Managed by DEAL
         public double Commission { get; set; } // Managed by DEAL
         public double Swap { get; set; } // Managed by DEAL
+        public double SpreadCost { get; set; } // Managed by DEAL
         public string? Comment { get; set; } // Managed by ORDER
         public int Magic { get; set; } // Managed by ORDER
 

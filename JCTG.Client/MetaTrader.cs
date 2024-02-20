@@ -1410,6 +1410,12 @@ namespace JCTG.Client
                 // Get api
                 var api = _apis.First(f => f.ClientId == clientId);
 
+                // Get the metadata tick
+                var metadataTick = api.MarketData.FirstOrDefault(f => f.Key == trade.Symbol).Value;
+
+                // Get the spread
+                var spread = decimal.ToDouble(Math.Round(Math.Abs(metadataTick.Ask - metadataTick.Bid), metadataTick.Digits, MidpointRounding.AwayFromZero));
+
                 Task.Run(async () =>
                 {
                     // Send the tradejournal to Azure PubSub server
@@ -1420,7 +1426,10 @@ namespace JCTG.Client
                         Deal = trade,
                         Log = log,
                         AccountBalance = api.AccountInfo?.Balance,
-                        AccountEquity = api.AccountInfo?.Equity
+                        AccountEquity = api.AccountInfo?.Equity,
+                        Price = decimal.ToDouble(metadataTick.Ask),
+                        Spread = spread,
+                        SpreadCost = spread * trade.Lots * decimal.ToDouble(metadataTick.TickValue),
                     });
                 });
             }
@@ -1429,7 +1438,7 @@ namespace JCTG.Client
         private void OnAccountInfoChangedEvent(long clientId, AccountInfo accountInfo)
         {
             // Do null reference check
-            if (_appConfig != null) 
+            if (_appConfig != null)
             {
                 // Send log to files
                 var message = string.Format($"AccountInfoChanged || Name={accountInfo.Name},Balance={accountInfo.Balance},Equity={accountInfo.Equity}");
@@ -1450,7 +1459,7 @@ namespace JCTG.Client
 
         public async Task LoadLogFromFileAsync(long clientId)
         {
-            if(_appConfig != null && _appConfig.Brokers.Any(f => f.ClientId == clientId))
+            if (_appConfig != null && _appConfig.Brokers.Any(f => f.ClientId == clientId))
             {
                 var pair = _appConfig.Brokers.First(f => f.ClientId == clientId);
 
@@ -1480,7 +1489,7 @@ namespace JCTG.Client
                     _semaphore.Release();
                 }
             }
-           
+
         }
 
         private async Task LogAsync(long clientId, Log log, long? signalId = null)

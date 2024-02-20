@@ -361,6 +361,8 @@ public class WebsocketBackend(AzurePubSubServer server, IServiceScopeFactory sco
                                 Type = onDealCreatedEvent.Deal.Type,
                                 AccountBalance = onDealCreatedEvent.AccountBalance,
                                 AccountEquity = onDealCreatedEvent.AccountEquity,
+                                Spread = onDealCreatedEvent.Spread,
+                                SpreadCost = onDealCreatedEvent.SpreadCost,
                             };
                             await dbContext.Deal.AddAsync(deal);
 
@@ -368,6 +370,7 @@ public class WebsocketBackend(AzurePubSubServer server, IServiceScopeFactory sco
                             order.Swap += onDealCreatedEvent.Deal.Swap;
                             order.Commission += onDealCreatedEvent.Deal.Commission;
                             order.Pnl += onDealCreatedEvent.Deal.Pnl;
+                            order.SpreadCost += onDealCreatedEvent.SpreadCost;
 
                             // Log
                             _logger.Debug($"Order swap {onDealCreatedEvent.Deal.Swap}, commission {onDealCreatedEvent.Deal.Commission} and pnl {onDealCreatedEvent.Deal.Pnl} updated in the database ", onDealCreatedEvent);

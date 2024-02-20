@@ -30,5 +30,8 @@ namespace JCTG.Entity
         public double Swap { get; set; }
         public double? AccountBalance { get; set; }
         public double? AccountEquity { get; set; }
+
+        public double Spread { get; set; }
+        public double SpreadCost { get; set; }
     }
 }

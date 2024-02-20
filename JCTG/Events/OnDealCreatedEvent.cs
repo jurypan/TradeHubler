@@ -10,5 +10,11 @@ namespace JCTG.Events
         public required Log Log { get; set; }
         public double? AccountBalance { get; set; }
         public double? AccountEquity { get; set; }
+
+
+
+        public double Price { get; set; }
+        public double Spread { get; set; }
+        public double SpreadCost { get; set; }
     }
 }
