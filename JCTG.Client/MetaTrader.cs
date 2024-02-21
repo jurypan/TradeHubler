@@ -1410,28 +1410,32 @@ namespace JCTG.Client
                 // Get api
                 var api = _apis.First(f => f.ClientId == clientId);
 
-                // Get the metadata tick
-                var metadataTick = api.MarketData.FirstOrDefault(f => f.Key == trade.Symbol).Value;
-
-                // Get the spread
-                var spread = decimal.ToDouble(Math.Round(Math.Abs(metadataTick.Ask - metadataTick.Bid), metadataTick.Digits, MidpointRounding.AwayFromZero));
-
-                Task.Run(async () =>
+                // Do null reference chekc on metadatatick
+                if(api.MarketData != null)
                 {
-                    // Send the tradejournal to Azure PubSub server
-                    await new AzurePubSubServer().SendOnTradeEventAsync(new OnDealCreatedEvent()
+                    // Get the metadata tick
+                    var metadataTick = api.MarketData.FirstOrDefault(f => f.Key == trade.Symbol).Value;
+
+                    // Get the spread
+                    var spread = decimal.ToDouble(Math.Round(Math.Abs(metadataTick.Ask - metadataTick.Bid), metadataTick.Digits, MidpointRounding.AwayFromZero));
+
+                    Task.Run(async () =>
                     {
-                        ClientID = clientId,
-                        MtDealID = tradeId,
-                        Deal = trade,
-                        Log = log,
-                        AccountBalance = api.AccountInfo?.Balance,
-                        AccountEquity = api.AccountInfo?.Equity,
-                        Price = decimal.ToDouble(metadataTick.Ask),
-                        Spread = spread,
-                        SpreadCost = spread * trade.Lots * decimal.ToDouble(metadataTick.TickValue),
+                        // Send the tradejournal to Azure PubSub server
+                        await new AzurePubSubServer().SendOnTradeEventAsync(new OnDealCreatedEvent()
+                        {
+                            ClientID = clientId,
+                            MtDealID = tradeId,
+                            Deal = trade,
+                            Log = log,
+                            AccountBalance = api.AccountInfo?.Balance,
+                            AccountEquity = api.AccountInfo?.Equity,
+                            Price = decimal.ToDouble(metadataTick.Ask),
+                            Spread = spread,
+                            SpreadCost = spread * trade.Lots * decimal.ToDouble(metadataTick.TickValue),
+                        });
                     });
-                });
+                }
             }
         }
 

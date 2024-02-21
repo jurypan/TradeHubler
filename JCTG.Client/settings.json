@@ -983,6 +983,141 @@
           "CorrelatedPairs": [ "BTCUSD" ]
         }
       ]
+    },
+    {
+      "Name": "THE 5 ERS - MT5",
+      "MetaTraderDirPath": "C:\\Users\\joeri.pansaerts\\AppData\\Roaming\\MetaQuotes\\Terminal\\10CE948A1DFC9A8C27E56E827008EBD4\\MQL5\\Files",
+      "ClientId": 24066220,
+      "StartBalance": 25000,
+      "IsEnable": true,
+      "Risk": [
+        {
+          "Procent": -5.5,
+          "Multiplier": 0.90
+        },
+        {
+          "Procent": -4.0,
+          "Multiplier": 0.80
+        },
+        {
+          "Procent": -3.0,
+          "Multiplier": 0.60
+        },
+        {
+          "Procent": -2.0,
+          "Multiplier": 0.50
+        },
+        {
+          "Procent": -1.0,
+          "Multiplier": 0.75
+        },
+        {
+          "Procent": 0,
+          "Multiplier": 1
+        },
+        {
+          "Procent": 1.0,
+          "Multiplier": 1.1
+        },
+        {
+          "Procent": 2.0,
+          "Multiplier": 1.25
+        },
+        {
+          "Procent": 3.0,
+          "Multiplier": 1.40
+        },
+        {
+          "Procent": 4.0,
+          "Multiplier": 1.50
+        },
+        {
+          "Procent": 5.0,
+          "Multiplier": 2.00
+        }
+      ],
+      "Pairs": [
+        {
+          "TickerInTradingView": "UKX",
+          "TickerInMetatrader": "UK100",
+          "Timeframe": "M30",
+          "StrategyNr": 3,
+          "Risk": 0.25,
+          "SLtoBEafterR": 1.0,
+          "MaxSpread": 1.5,
+          "SLMultiplier": 1.02,
+          "MaxLotSize": 1000,
+          "OrderExecType": "Active",
+          "CancelStopOrLimitOrderWhenNewSignal": true,
+          "NumberOfHistoricalBarsRequested": 100,
+          "CloseAllTradesAt": null,
+          "SpreadEntry": "Add",
+          "SpreadSL": "Subtract",
+          "SpreadTP": "Add",
+          "RiskMinXTimesTheSpread": 4,
+          "CorrelatedPairs": [ "STOXX50" ]
+        },
+        {
+          "TickerInTradingView": "SPX",
+          "TickerInMetatrader": "SP500",
+          "Timeframe": "M30",
+          "StrategyNr": 3,
+          "Risk": 0.25,
+          "SLtoBEafterR": 1.0,
+          "MaxSpread": 1.5,
+          "SLMultiplier": 1.02,
+          "MaxLotSize": 1000,
+          "OrderExecType": "Active",
+          "CancelStopOrLimitOrderWhenNewSignal": true,
+          "NumberOfHistoricalBarsRequested": 100,
+          "CloseAllTradesAt": null,
+          "SpreadEntry": "Add",
+          "SpreadSL": "Subtract",
+          "SpreadTP": "Add",
+          "RiskMinXTimesTheSpread": 4,
+          "CorrelatedPairs": []
+        },
+        {
+          "TickerInTradingView": "BTCUSD",
+          "TickerInMetatrader": "BTCUSD",
+          "Timeframe": "M15",
+          "StrategyNr": 3,
+          "Risk": 0.25,
+          "SLtoBEafterR": 1.0,
+          "MaxSpread": 15.0,
+          "SLMultiplier": 1.02,
+          "MaxLotSize": 1000,
+          "OrderExecType": "Active",
+          "CancelStopOrLimitOrderWhenNewSignal": true,
+          "NumberOfHistoricalBarsRequested": 100,
+          "CloseAllTradesAt": null,
+          "SpreadEntry": "Add",
+          "SpreadSL": "Subtract",
+          "SpreadTP": "Add",
+          "RiskMinXTimesTheSpread": 4,
+          "CorrelatedPairs": [ "ETHUSD" ]
+        },
+        {
+          "TickerInTradingView": "ETHUSD",
+          "TickerInMetatrader": "ETHUSD",
+          "Timeframe": "M15",
+          "StrategyNr": 3,
+          "Risk": 0.25,
+          "SLtoBEafterR": 1.0,
+          "MaxSpread": 1.5,
+          "SLMultiplier": 1.02,
+          "MaxLotSize": 1000,
+          "OrderExecType": "Active",
+          "CancelStopOrLimitOrderWhenNewSignal": true,
+          "NumberOfHistoricalBarsRequested": 100,
+          "CloseAllTradesAt": null,
+          "SpreadEntry": "Add",
+          "SpreadSL": "Subtract",
+          "SpreadTP": "Add",
+          "RiskMinXTimesTheSpread": 4,
+          "CorrelatedPairs": [ "BTCUSD" ]
+        }
+      ]
     }
   ],
   "SleepDelay": 250,

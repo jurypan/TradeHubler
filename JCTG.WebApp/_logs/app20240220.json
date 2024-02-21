@@ -1,3 +1,12 @@
 {"@t":"2024-02-20T05:10:44.3218069Z","@mt":"Starting the app","SourceContext":"JCTG.WebApp","ApplicationName":"Trade Hubbing","Environment":"Production"}
 {"@t":"2024-02-20T05:10:44.3638963Z","@mt":"Init frontend event handlers","@l":"Debug","SourceContext":"JCTG.WebApp.Backend.Websocket.WebsocketFrontend","ApplicationName":"Trade Hubbing","Environment":"Production"}
 {"@t":"2024-02-20T05:10:44.6035662Z","@mt":"Websocket frontend started","SourceContext":"JCTG.WebApp.Backend.Websocket.WebsocketFrontend","ApplicationName":"Trade Hubbing","Environment":"Production"}
+{"@t":"2024-02-20T19:35:17.5553453Z","@mt":"Starting the app","SourceContext":"JCTG.WebApp","ApplicationName":"Trade Hubbing","Environment":"Production"}
+{"@t":"2024-02-20T19:35:17.5827902Z","@mt":"Init frontend event handlers","@l":"Debug","SourceContext":"JCTG.WebApp.Backend.Websocket.WebsocketFrontend","ApplicationName":"Trade Hubbing","Environment":"Production"}
+{"@t":"2024-02-20T19:35:17.7319496Z","@mt":"Websocket frontend started","SourceContext":"JCTG.WebApp.Backend.Websocket.WebsocketFrontend","ApplicationName":"Trade Hubbing","Environment":"Production"}
+{"@t":"2024-02-20T19:36:25.8643468Z","@mt":"Starting the app","SourceContext":"JCTG.WebApp","ApplicationName":"Trade Hubbing","Environment":"Production"}
+{"@t":"2024-02-20T19:36:25.8907369Z","@mt":"Init frontend event handlers","@l":"Debug","SourceContext":"JCTG.WebApp.Backend.Websocket.WebsocketFrontend","ApplicationName":"Trade Hubbing","Environment":"Production"}
+{"@t":"2024-02-20T19:36:26.0440158Z","@mt":"Websocket frontend started","SourceContext":"JCTG.WebApp.Backend.Websocket.WebsocketFrontend","ApplicationName":"Trade Hubbing","Environment":"Production"}
+{"@t":"2024-02-20T19:39:01.4963844Z","@mt":"Starting the app","SourceContext":"JCTG.WebApp","ApplicationName":"Trade Hubbing","Environment":"Production"}
+{"@t":"2024-02-20T19:39:01.5280550Z","@mt":"Init frontend event handlers","@l":"Debug","SourceContext":"JCTG.WebApp.Backend.Websocket.WebsocketFrontend","ApplicationName":"Trade Hubbing","Environment":"Production"}
+{"@t":"2024-02-20T19:39:01.7119868Z","@mt":"Websocket frontend started","SourceContext":"JCTG.WebApp.Backend.Websocket.WebsocketFrontend","ApplicationName":"Trade Hubbing","Environment":"Production"}

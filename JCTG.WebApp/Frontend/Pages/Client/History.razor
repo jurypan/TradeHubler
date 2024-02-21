@@ -1,20 +1,53 @@
 ﻿@page "/Clients/{clientid:long}/History";
 @inject ClientRepository _clientRepository;
 @inject DealRepository _dealRepository;
+@inject OrderRepository _orderRepository
 @using JCTG.WebApp.Frontend.Components.Tradingview
 
 <h1>History</h1>
 
 <Chart @ref=tv />
 
+<h1>Orders</h1>
+<table cellpadding="1" cellspacing="0" width="100%" style="width:100%; border:1px solid black;">
+    <tr>
+        <th style="width:10%;">ID</th>
+        <th style="width:20%;">Symbol</th>
+        <th style="width:10%;">Type</th>
+        <th style="width:20%;">Open</th>
+        <th style="width:10%;">PNL</th>
+        <th style="width:10%;">Commission</th>
+        <th style="width:10%;">Swap</th>
+        <th style="width:10%;">Spreadcost</th>
+    </tr>
+    @foreach (var order in _orders.OrderByDescending(f => f.DateCreated))
+    {
+        <tr>
+            <td>@order.ID</td>
+            <td>@order.Symbol</td>
+            <td>@order.Type</td>
+            <td>@order.OpenTime</td>
+            <td>@order.Pnl</td>
+            <td>@order.Commission</td>
+            <td>@order.Swap</td>
+            <td>@order.SpreadCost.ToString("0.################")</td>
+        </tr>
+    }
+</table>
+
 @code {
     [Parameter]
     public long ClientId { get; set; }
 
-    Chart? tv;
-    IEnumerable<Deal>? deals;
-    Client? client;
+    private Chart? tv;
+    private IEnumerable<Deal>? deals;
+    private List<Order> _orders = new();
+    private Client? client;
 
+    protected async override Task OnInitializedAsync()
+    {
+        _orders = await _orderRepository.GetAll(692803787, ClientId);
+    }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -43,6 +76,7 @@
             {
                 totalCommission += Convert.ToDecimal(deal.Commission);
                 totalCommission += Convert.ToDecimal(deal.Swap);
+                totalCommission += Convert.ToDecimal(deal.SpreadCost);
                 cumulativeCommissions[deal.DateCreated] = totalCommission;
             }
 
