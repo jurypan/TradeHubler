@@ -145,8 +145,14 @@ namespace JCTG.Client
                                                             && cmd.MarketOrder.TakeProfit.HasValue
                                                 )
                                                 {
-                                                    // Calculate SL Price
-                                                    var slPrice = RiskCalculator.SLForLong(
+                                                    // Do correlation check
+                                                    if (CorrelatedPairs.IsNotCorrelated(pair.TickerInMetatrader, "BUY", pair.CorrelatedPairs, api.OpenOrders))
+                                                    {
+                                                        // Do do not open a trade x minutes before close
+                                                        if (DailyTaskScheduler.CanOpenTrade(pair.CloseAllTradesAt, pair.DoNotOpenTradeXMinutesBeforeClose))
+                                                        {
+                                                            // Calculate SL Price
+                                                            var slPrice = RiskCalculator.SLForLong(
                                                             mtPrice: metadataTick.Ask,
                                                             mtSpread: spread,
                                                             mtDigits: metadataTick.Digits,
@@ -156,94 +162,106 @@ namespace JCTG.Client
                                                             pairSlMultiplier: pair.SLMultiplier
                                                             );
 
-                                                    // Send to logs
-                                                    if (_appConfig.Debug)
-                                                    {
-                                                        var message = string.Format($"StopLossPriceCalculated || Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},Magic={cmd.Magic},StrategyType={cmd.StrategyType},Price={cmd.MarketOrder.Price},TP={cmd.MarketOrder.TakeProfit},SL={cmd.MarketOrder.StopLoss}");
-                                                        var description = string.Format($"StopLoss || Ask={metadataTick.Ask},Spread={spread},Digits={metadataTick.Digits},SignalPrice={cmd.MarketOrder.Price},SignalSL={cmd.MarketOrder.StopLoss}");
-                                                        await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, cmd.SignalID);
-                                                    }
-
-                                                    // Calculate the lot size
-                                                    var lotSize = RiskCalculator.LotSize(startbalance, api.AccountInfo.Balance, pair.Risk, metadataTick.Ask, slPrice, metadataTick.TickValue, metadataTick.TickSize, metadataTick.LotStep, metadataTick.MinLotSize, metadataTick.MaxLotSize, dynRisk);
-
-                                                    // Send to logs
-                                                    if (_appConfig.Debug)
-                                                    {
-                                                        var message = string.Format($"LotSizeCalculated || Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},Magic={cmd.Magic},StrategyType={cmd.StrategyType},Price={cmd.MarketOrder.Price},TP={cmd.MarketOrder.TakeProfit},SL={cmd.MarketOrder.StopLoss}");
-                                                        var description = string.Format($"LotSize || StartBalance={startbalance},Balance={api.AccountInfo.Balance},Risk={pair.Risk},AskPrice={metadataTick.Ask},SlPrice={slPrice},TickValue={metadataTick.TickValue},TickSize={metadataTick.TickSize},LotStep={metadataTick.LotStep},MinLotSize={metadataTick.MinLotSize},MaxLotSize={metadataTick.MaxLotSize},DynRisk={RiskCalculator.ChooseClosestMultiplier(startbalance, api.AccountInfo.Balance, dynRisk)}");
-                                                        await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, cmd.SignalID);
-                                                    }
-
-                                                    // do 0.0 check
-                                                    if (lotSize > 0.0M && slPrice > 0.0M)
-                                                    {
-                                                        // Do lot size check
-                                                        if (pair.MaxLotSize == 0 || pair.MaxLotSize > 0 && lotSize <= pair.MaxLotSize)
-                                                        {
-                                                            // Do check if risk is x times the spread
-                                                            if (spread * pair.RiskMinXTimesTheSpread < metadataTick.Ask - slPrice)
+                                                            // Send to logs
+                                                            if (_appConfig.Debug)
                                                             {
-                                                                // Calculate TP Price
-                                                                var tpPrice = RiskCalculator.TPForLong(
-                                                                        mtPrice: metadataTick.Ask,
-                                                                        mtSpread: spread,
-                                                                        mtDigits: metadataTick.Digits,
-                                                                        signalPrice: cmd.MarketOrder.Price.Value,
-                                                                        signalTP: cmd.MarketOrder.TakeProfit.Value,
-                                                                        spreadExecType: pair.SpreadTP
-                                                                        );
+                                                                var message = string.Format($"StopLossPriceCalculated || Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},Magic={cmd.Magic},StrategyType={cmd.StrategyType},Price={cmd.MarketOrder.Price},TP={cmd.MarketOrder.TakeProfit},SL={cmd.MarketOrder.StopLoss}");
+                                                                var description = string.Format($"StopLoss || Ask={metadataTick.Ask},Spread={spread},Digits={metadataTick.Digits},SignalPrice={cmd.MarketOrder.Price},SignalSL={cmd.MarketOrder.StopLoss}");
+                                                                await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, cmd.SignalID);
+                                                            }
 
-                                                                // Send to logs
-                                                                if (_appConfig.Debug)
+                                                            // Calculate the lot size
+                                                            var lotSize = RiskCalculator.LotSize(startbalance, api.AccountInfo.Balance, pair.Risk, metadataTick.Ask, slPrice, metadataTick.TickValue, metadataTick.TickSize, metadataTick.LotStep, metadataTick.MinLotSize, metadataTick.MaxLotSize, dynRisk);
+
+                                                            // Send to logs
+                                                            if (_appConfig.Debug)
+                                                            {
+                                                                var message = string.Format($"LotSizeCalculated || Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},Magic={cmd.Magic},StrategyType={cmd.StrategyType},Price={cmd.MarketOrder.Price},TP={cmd.MarketOrder.TakeProfit},SL={cmd.MarketOrder.StopLoss}");
+                                                                var description = string.Format($"LotSize || StartBalance={startbalance},Balance={api.AccountInfo.Balance},Risk={pair.Risk},AskPrice={metadataTick.Ask},SlPrice={slPrice},TickValue={metadataTick.TickValue},TickSize={metadataTick.TickSize},LotStep={metadataTick.LotStep},MinLotSize={metadataTick.MinLotSize},MaxLotSize={metadataTick.MaxLotSize},DynRisk={RiskCalculator.ChooseClosestMultiplier(startbalance, api.AccountInfo.Balance, dynRisk)}");
+                                                                await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, cmd.SignalID);
+                                                            }
+
+                                                            // do 0.0 check
+                                                            if (lotSize > 0.0M && slPrice > 0.0M)
+                                                            {
+                                                                // Do lot size check
+                                                                if (pair.MaxLotSize == 0 || pair.MaxLotSize > 0 && lotSize <= pair.MaxLotSize)
                                                                 {
-                                                                    var message = string.Format($"TakeProfitCalculated || Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},Magic={cmd.Magic},StrategyType={cmd.StrategyType},Price={cmd.MarketOrder.Price},TP={cmd.MarketOrder.TakeProfit},SL={cmd.MarketOrder.StopLoss}");
-                                                                    var description = string.Format($"TakeProfit || Ask={metadataTick.Ask},Spread={spread},Digits={metadataTick.Digits},SignalPrice={cmd.MarketOrder.Price},SignalTP={cmd.MarketOrder.TakeProfit}");
-                                                                    await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, cmd.SignalID);
+                                                                    // Do check if risk is x times the spread
+                                                                    if (spread * pair.RiskMinXTimesTheSpread < metadataTick.Ask - slPrice)
+                                                                    {
+                                                                        // Calculate TP Price
+                                                                        var tpPrice = RiskCalculator.TPForLong(
+                                                                                mtPrice: metadataTick.Ask,
+                                                                                mtSpread: spread,
+                                                                                mtDigits: metadataTick.Digits,
+                                                                                signalPrice: cmd.MarketOrder.Price.Value,
+                                                                                signalTP: cmd.MarketOrder.TakeProfit.Value,
+                                                                                spreadExecType: pair.SpreadTP
+                                                                                );
+
+                                                                        // Send to logs
+                                                                        if (_appConfig.Debug)
+                                                                        {
+                                                                            var message = string.Format($"TakeProfitCalculated || Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},Magic={cmd.Magic},StrategyType={cmd.StrategyType},Price={cmd.MarketOrder.Price},TP={cmd.MarketOrder.TakeProfit},SL={cmd.MarketOrder.StopLoss}");
+                                                                            var description = string.Format($"TakeProfit || Ask={metadataTick.Ask},Spread={spread},Digits={metadataTick.Digits},SignalPrice={cmd.MarketOrder.Price},SignalTP={cmd.MarketOrder.TakeProfit}");
+                                                                            await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, cmd.SignalID);
+                                                                        }
+
+                                                                        // Print on the screen
+                                                                        Print(Environment.NewLine);
+                                                                        Print("--------- SEND NEW ORDER TO METATRADER ---------");
+                                                                        Print("Broker      : " + _appConfig.Brokers.First(f => f.ClientId == api.ClientId).Name);
+                                                                        Print("Date        : " + DateTime.UtcNow);
+                                                                        Print("Ticker      : " + pair.TickerInMetatrader);
+                                                                        Print("Order       : BUY MARKET ORDER");
+                                                                        Print("------------------------------------------------");
+
+                                                                        // Open order
+                                                                        var comment = string.Format($"{cmd.SignalID}/{Math.Round(cmd.MarketOrder.Price.Value, metadataTick.Digits, MidpointRounding.AwayFromZero)}/{Math.Round(cmd.MarketOrder.StopLoss.Value, metadataTick.Digits, MidpointRounding.AwayFromZero)}/{(int)pair.StrategyNr}/{spread}");
+                                                                        var orderType = OrderType.Buy;
+                                                                        if (pair.OrderExecType == OrderExecType.Passive && metadataTick.Ask < cmd.MarketOrder.Price.Value)
+                                                                            orderType = OrderType.BuyStop;
+                                                                        else if (pair.OrderExecType == OrderExecType.Passive && metadataTick.Ask > cmd.MarketOrder.Price.Value)
+                                                                            orderType = OrderType.BuyLimit;
+                                                                        api.ExecuteOrder(pair.TickerInMetatrader, orderType, lotSize, 0, slPrice, tpPrice, (int)cmd.Magic, comment);
+
+                                                                        // Send to logs
+                                                                        if (_appConfig.Debug)
+                                                                        {
+                                                                            var message = string.Format($"MetatraderOrderExecuted || Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},Magic={cmd.Magic},StrategyType={cmd.StrategyType},Price={cmd.MarketOrder.Price},TP={cmd.MarketOrder.TakeProfit},SL={cmd.MarketOrder.StopLoss}");
+                                                                            var description = string.Format($"ExecuteOrder || Symbol={pair.TickerInMetatrader},OrderType={orderType},LotSize={lotSize},Price=,SL={slPrice},TP={tpPrice},Magic={cmd.Magic},Comment={comment}");
+                                                                            await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, cmd.SignalID);
+                                                                        }
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        var message = string.Format($"Error || Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},Magic={cmd.Magic},StrategyType={cmd.StrategyType},Price={cmd.MarketOrder.Price},TP={cmd.MarketOrder.TakeProfit},SL={cmd.MarketOrder.StopLoss}");
+                                                                        await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = $"The risk {metadataTick.Ask - slPrice} should be at least {pair.RiskMinXTimesTheSpread} times the spread : {spread}" }, cmd.SignalID);
+                                                                    }
                                                                 }
-
-                                                                // Print on the screen
-                                                                Print(Environment.NewLine);
-                                                                Print("--------- SEND NEW ORDER TO METATRADER ---------");
-                                                                Print("Broker      : " + _appConfig.Brokers.First(f => f.ClientId == api.ClientId).Name);
-                                                                Print("Date        : " + DateTime.UtcNow);
-                                                                Print("Ticker      : " + pair.TickerInMetatrader);
-                                                                Print("Order       : BUY MARKET ORDER");
-                                                                Print("------------------------------------------------");
-
-                                                                // Open order
-                                                                var comment = string.Format($"{cmd.SignalID}/{Math.Round(cmd.MarketOrder.Price.Value, metadataTick.Digits, MidpointRounding.AwayFromZero)}/{Math.Round(cmd.MarketOrder.StopLoss.Value, metadataTick.Digits, MidpointRounding.AwayFromZero)}/{(int)pair.StrategyNr}/{spread}");
-                                                                var orderType = OrderType.Buy;
-                                                                if (pair.OrderExecType == OrderExecType.Passive && metadataTick.Ask < cmd.MarketOrder.Price.Value)
-                                                                    orderType = OrderType.BuyStop;
-                                                                else if (pair.OrderExecType == OrderExecType.Passive && metadataTick.Ask > cmd.MarketOrder.Price.Value)
-                                                                    orderType = OrderType.BuyLimit;
-                                                                api.ExecuteOrder(pair.TickerInMetatrader, orderType, lotSize, 0, slPrice, tpPrice, (int)cmd.Magic, comment);
-
-                                                                // Send to logs
-                                                                if (_appConfig.Debug)
+                                                                else
                                                                 {
-                                                                    var message = string.Format($"MetatraderOrderExecuted || Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},Magic={cmd.Magic},StrategyType={cmd.StrategyType},Price={cmd.MarketOrder.Price},TP={cmd.MarketOrder.TakeProfit},SL={cmd.MarketOrder.StopLoss}");
-                                                                    var description = string.Format($"ExecuteOrder || Symbol={pair.TickerInMetatrader},OrderType={orderType},LotSize={lotSize},Price=,SL={slPrice},TP={tpPrice},Magic={cmd.Magic},Comment={comment}");
-                                                                    await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, cmd.SignalID);
+                                                                    var message = string.Format($"Error || Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},Magic={cmd.Magic},StrategyType={cmd.StrategyType},Price={cmd.MarketOrder.Price},TP={cmd.MarketOrder.TakeProfit},SL={cmd.MarketOrder.StopLoss}");
+                                                                    await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = $"Unexpected error occurred with the calculation of the stop loss price" }, cmd.SignalID);
                                                                 }
                                                             }
                                                             else
                                                             {
-                                                                var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},Magic={cmd.Magic},StrategyType={cmd.StrategyType},Price={cmd.MarketOrder.Price},TP={cmd.MarketOrder.TakeProfit},SL={cmd.MarketOrder.StopLoss}");
-                                                                await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = $"The risk {metadataTick.Ask - slPrice} should be at least {pair.RiskMinXTimesTheSpread} times the spread : {spread}" }, cmd.SignalID);
+                                                                var message = string.Format($"Error || Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},Magic={cmd.Magic},StrategyType={cmd.StrategyType},Price={cmd.MarketOrder.Price},TP={cmd.MarketOrder.TakeProfit},SL={cmd.MarketOrder.StopLoss}");
+                                                                await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = $"Unexpected error occurred with the calculation of the stop loss price" }, cmd.SignalID);
                                                             }
                                                         }
                                                         else
                                                         {
-                                                            var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},Magic={cmd.Magic},StrategyType={cmd.StrategyType},Price={cmd.MarketOrder.Price},TP={cmd.MarketOrder.TakeProfit},SL={cmd.MarketOrder.StopLoss}");
-                                                            await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = $"Max lot size {lotSize} exceeded : {pair.MaxLotSize}" }, cmd.SignalID);
+                                                            var message = string.Format($"CanNotOpenTradeDueClosingTime || Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},Magic={cmd.Magic},StrategyType={cmd.StrategyType},Price={cmd.MarketOrder.Price},TP={cmd.MarketOrder.TakeProfit},SL={cmd.MarketOrder.StopLoss}");
+                                                            await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "WARNING", Message = message, ErrorType = $"Can't open trade {pair.TickerInMetatrader} because market will be closed within {pair.DoNotOpenTradeXMinutesBeforeClose} minutes. It's now {DateTime.UtcNow} UTC time." }, cmd.SignalID);
                                                         }
                                                     }
                                                     else
                                                     {
-                                                        var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},Magic={cmd.Magic},StrategyType={cmd.StrategyType},Price={cmd.MarketOrder.Price},TP={cmd.MarketOrder.TakeProfit},SL={cmd.MarketOrder.StopLoss}");
-                                                        await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = $"Unexpected error occurred with the calculation of the stop loss price" }, cmd.SignalID);
+                                                        var message = string.Format($"CorrelatedPairsFound || Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},Magic={cmd.Magic},StrategyType={cmd.StrategyType},Price={cmd.MarketOrder.Price},TP={cmd.MarketOrder.TakeProfit},SL={cmd.MarketOrder.StopLoss}");
+                                                        await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "WARNING", Message = message, ErrorType = $"Correlated pair found in the open orders : {pair.TickerInMetatrader}" }, cmd.SignalID);
                                                     }
                                                 }
 
@@ -256,147 +274,164 @@ namespace JCTG.Client
                                                             && cmd.PassiveOrder.RiskRewardRatio.HasValue
                                                 )
                                                 {
-
-                                                    // Get the entry price
-                                                    var price = await DynamicEvaluator.EvaluateExpressionAsync(cmd.PassiveOrder.EntryExpression, api.HistoricData.Where(f => f.Key == pair.TickerInMetatrader).SelectMany(f => f.Value.BarData).ToList());
-
-                                                    // Add the spread options
-                                                    if (pair.SpreadEntry.HasValue)
+                                                    // Do correlation check
+                                                    if (CorrelatedPairs.IsNotCorrelated(pair.TickerInMetatrader, "BUY", pair.CorrelatedPairs, api.OpenOrders))
                                                     {
-                                                        if (pair.SpreadEntry.Value == SpreadExecType.Add)
-                                                            price += spread;
-                                                        else if (pair.SpreadEntry.Value == SpreadExecType.Subtract)
-                                                            price -= spread;
-                                                    }
-
-                                                    // Get the Stop Loss price
-                                                    var sl = price - (cmd.PassiveOrder.Risk.Value * Convert.ToDecimal(pair.SLMultiplier));
-
-                                                    // Add the spread options
-                                                    if (pair.SpreadSL.HasValue)
-                                                    {
-                                                        if (pair.SpreadSL.Value == SpreadExecType.Add)
-                                                            sl += spread;
-                                                        else if (pair.SpreadSL.Value == SpreadExecType.Subtract)
-                                                            sl -= spread;
-                                                    }
-
-                                                    // Get the Take Profit Price
-                                                    var tp = price + (cmd.PassiveOrder.Risk.Value * cmd.PassiveOrder.RiskRewardRatio.Value);
-
-                                                    // Add the spread options
-                                                    if (pair.SpreadTP.HasValue)
-                                                    {
-                                                        if (pair.SpreadTP.Value == SpreadExecType.Add)
-                                                            tp += spread;
-                                                        else if (pair.SpreadTP.Value == SpreadExecType.Subtract)
-                                                            tp -= spread;
-                                                    }
-
-                                                    // Round
-                                                    price = Math.Round(price, metadataTick.Digits, MidpointRounding.AwayFromZero);
-                                                    sl = Math.Round(sl, metadataTick.Digits, MidpointRounding.AwayFromZero);
-                                                    tp = Math.Round(tp, metadataTick.Digits, MidpointRounding.AwayFromZero);
-
-                                                    // Send to logs
-                                                    if (_appConfig.Debug)
-                                                    {
-                                                        var message = string.Format($"EntryPriceCalculated || Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},Magic={cmd.Magic},StrategyType={cmd.StrategyType},EntryExpr={cmd.PassiveOrder.EntryExpression},Risk={cmd.PassiveOrder.Risk},RR={cmd.PassiveOrder.RiskRewardRatio}");
-                                                        var description = string.Format($"EntryPrice || Price={price},Spread={spread},EntryExpression={cmd.PassiveOrder.EntryExpression}");
-                                                        await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, cmd.SignalID);
-
-                                                        description = string.Format($"StopLoss ||  Price={price},Spread={spread},Risk={cmd.PassiveOrder.Risk.Value},SLMultiplier={pair.SLMultiplier}");
-                                                        await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, cmd.SignalID);
-
-                                                        description = string.Format($"TakeProfit ||  Price={price},Spread={spread},Risk={cmd.PassiveOrder.Risk.Value},RiskRewardRatio={cmd.PassiveOrder.RiskRewardRatio.Value}");
-                                                        await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, cmd.SignalID);
-                                                    }
-
-                                                    // Calculate the lot size
-                                                    var lotSize = RiskCalculator.LotSize(startbalance, api.AccountInfo.Balance, pair.Risk, price, sl, metadataTick.TickValue, metadataTick.TickSize, metadataTick.LotStep, metadataTick.MinLotSize, metadataTick.MaxLotSize, dynRisk); ;
-
-                                                    // Send to logs
-                                                    if (_appConfig.Debug)
-                                                    {
-                                                        var message = string.Format($"LotSizeCalculated || Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},Magic={cmd.Magic},StrategyType={cmd.StrategyType},EntryExpr={cmd.PassiveOrder.EntryExpression},Risk={cmd.PassiveOrder.Risk},RR={cmd.PassiveOrder.RiskRewardRatio}");
-                                                        var description = string.Format($"LotSize: StartBalance={startbalance},Balance={api.AccountInfo.Balance},Risk={pair.Risk},AskPrice={metadataTick.Ask},SlPrice={sl},TickValue={metadataTick.TickValue},TickSize={metadataTick.TickSize},LotStep={metadataTick.LotStep},MinLotSize={metadataTick.MinLotSize},MaxLotSize={metadataTick.MaxLotSize},DynRisk={RiskCalculator.ChooseClosestMultiplier(startbalance, api.AccountInfo.Balance, dynRisk)}");
-                                                        await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, cmd.SignalID);
-                                                    }
-
-                                                    // do 0.0 check
-                                                    if (lotSize > 0.0M && price > 0.0M && sl > 0.0M && tp > 0.0M)
-                                                    {
-                                                        // Do lot size check
-                                                        if (pair.MaxLotSize == 0 || pair.MaxLotSize > 0 && lotSize <= pair.MaxLotSize)
+                                                        // Do do not open a trade x minutes before close
+                                                        if (DailyTaskScheduler.CanOpenTrade(pair.CloseAllTradesAt, pair.DoNotOpenTradeXMinutesBeforeClose))
                                                         {
-                                                            // Do check if risk is x times the spread
-                                                            if (spread * pair.RiskMinXTimesTheSpread < cmd.PassiveOrder.Risk.Value)
-                                                            {
-                                                                // Print on the screen
-                                                                Print(Environment.NewLine);
-                                                                Print("--------- SEND NEW ORDER TO METATRADER ---------");
-                                                                Print("Broker      : " + _appConfig.Brokers.First(f => f.ClientId == api.ClientId).Name);
-                                                                Print("Date        : " + DateTime.UtcNow);
-                                                                Print("Ticker      : " + pair.TickerInMetatrader);
-                                                                if (metadataTick.Ask > price)
-                                                                    Print("Order       : BUY LIMIT ORDER");
-                                                                else
-                                                                    Print("Order       : BUY STOP ORDER");
-                                                                Print("------------------------------------------------");
+                                                            // Get the entry price
+                                                            var price = await DynamicEvaluator.EvaluateExpressionAsync(cmd.PassiveOrder.EntryExpression, api.HistoricData.Where(f => f.Key == pair.TickerInMetatrader).SelectMany(f => f.Value.BarData).ToList());
 
-                                                                // Cancel open buy or limit orders
-                                                                if (pair.CancelStopOrLimitOrderWhenNewSignal)
+                                                            // Add the spread options
+                                                            if (pair.SpreadEntry.HasValue)
+                                                            {
+                                                                if (pair.SpreadEntry.Value == SpreadExecType.Add)
+                                                                    price += spread;
+                                                                else if (pair.SpreadEntry.Value == SpreadExecType.Subtract)
+                                                                    price -= spread;
+                                                            }
+
+                                                            // Get the Stop Loss price
+                                                            var sl = price - (cmd.PassiveOrder.Risk.Value * Convert.ToDecimal(pair.SLMultiplier));
+
+                                                            // Add the spread options
+                                                            if (pair.SpreadSL.HasValue)
+                                                            {
+                                                                if (pair.SpreadSL.Value == SpreadExecType.Add)
+                                                                    sl += spread;
+                                                                else if (pair.SpreadSL.Value == SpreadExecType.Subtract)
+                                                                    sl -= spread;
+                                                            }
+
+                                                            // Get the Take Profit Price
+                                                            var tp = price + (cmd.PassiveOrder.Risk.Value * cmd.PassiveOrder.RiskRewardRatio.Value);
+
+                                                            // Add the spread options
+                                                            if (pair.SpreadTP.HasValue)
+                                                            {
+                                                                if (pair.SpreadTP.Value == SpreadExecType.Add)
+                                                                    tp += spread;
+                                                                else if (pair.SpreadTP.Value == SpreadExecType.Subtract)
+                                                                    tp -= spread;
+                                                            }
+
+                                                            // Round
+                                                            price = Math.Round(price, metadataTick.Digits, MidpointRounding.AwayFromZero);
+                                                            sl = Math.Round(sl, metadataTick.Digits, MidpointRounding.AwayFromZero);
+                                                            tp = Math.Round(tp, metadataTick.Digits, MidpointRounding.AwayFromZero);
+
+                                                            // Send to logs
+                                                            if (_appConfig.Debug)
+                                                            {
+                                                                var message = string.Format($"EntryPriceCalculated || Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},Magic={cmd.Magic},StrategyType={cmd.StrategyType},EntryExpr={cmd.PassiveOrder.EntryExpression},Risk={cmd.PassiveOrder.Risk},RR={cmd.PassiveOrder.RiskRewardRatio}");
+                                                                var description = string.Format($"EntryPrice || Price={price},Spread={spread},EntryExpression={cmd.PassiveOrder.EntryExpression}");
+                                                                await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, cmd.SignalID);
+
+                                                                description = string.Format($"StopLoss ||  Price={price},Spread={spread},Risk={cmd.PassiveOrder.Risk.Value},SLMultiplier={pair.SLMultiplier}");
+                                                                await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, cmd.SignalID);
+
+                                                                description = string.Format($"TakeProfit ||  Price={price},Spread={spread},Risk={cmd.PassiveOrder.Risk.Value},RiskRewardRatio={cmd.PassiveOrder.RiskRewardRatio.Value}");
+                                                                await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, cmd.SignalID);
+                                                            }
+
+                                                            // Calculate the lot size
+                                                            var lotSize = RiskCalculator.LotSize(startbalance, api.AccountInfo.Balance, pair.Risk, price, sl, metadataTick.TickValue, metadataTick.TickSize, metadataTick.LotStep, metadataTick.MinLotSize, metadataTick.MaxLotSize, dynRisk); ;
+
+                                                            // Send to logs
+                                                            if (_appConfig.Debug)
+                                                            {
+                                                                var message = string.Format($"LotSizeCalculated || Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},Magic={cmd.Magic},StrategyType={cmd.StrategyType},EntryExpr={cmd.PassiveOrder.EntryExpression},Risk={cmd.PassiveOrder.Risk},RR={cmd.PassiveOrder.RiskRewardRatio}");
+                                                                var description = string.Format($"LotSize: StartBalance={startbalance},Balance={api.AccountInfo.Balance},Risk={pair.Risk},AskPrice={metadataTick.Ask},SlPrice={sl},TickValue={metadataTick.TickValue},TickSize={metadataTick.TickSize},LotStep={metadataTick.LotStep},MinLotSize={metadataTick.MinLotSize},MaxLotSize={metadataTick.MaxLotSize},DynRisk={RiskCalculator.ChooseClosestMultiplier(startbalance, api.AccountInfo.Balance, dynRisk)}");
+                                                                await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, cmd.SignalID);
+                                                            }
+
+                                                            // do 0.0 check
+                                                            if (lotSize > 0.0M && price > 0.0M && sl > 0.0M && tp > 0.0M)
+                                                            {
+                                                                // Do lot size check
+                                                                if (pair.MaxLotSize == 0 || pair.MaxLotSize > 0 && lotSize <= pair.MaxLotSize)
                                                                 {
-                                                                    foreach (var order in api.OpenOrders.Where(f => f.Value.Symbol == pair.TickerInMetatrader
-                                                                                                                    && f.Value.Type != null
-                                                                                                                    && (f.Value.Type.Equals("buystop") || f.Value.Type.Equals("buylimit"))
-                                                                                                                    ))
+                                                                    // Do check if risk is x times the spread
+                                                                    if (spread * pair.RiskMinXTimesTheSpread < cmd.PassiveOrder.Risk.Value)
                                                                     {
-                                                                        api.CloseOrder(order.Key, decimal.ToDouble(order.Value.Lots));
+                                                                        // Print on the screen
+                                                                        Print(Environment.NewLine);
+                                                                        Print("--------- SEND NEW ORDER TO METATRADER ---------");
+                                                                        Print("Broker      : " + _appConfig.Brokers.First(f => f.ClientId == api.ClientId).Name);
+                                                                        Print("Date        : " + DateTime.UtcNow);
+                                                                        Print("Ticker      : " + pair.TickerInMetatrader);
+                                                                        if (metadataTick.Ask > price)
+                                                                            Print("Order       : BUY LIMIT ORDER");
+                                                                        else
+                                                                            Print("Order       : BUY STOP ORDER");
+                                                                        Print("------------------------------------------------");
+
+                                                                        // Cancel open buy or limit orders
+                                                                        if (pair.CancelStopOrLimitOrderWhenNewSignal)
+                                                                        {
+                                                                            foreach (var order in api.OpenOrders.Where(f => f.Value.Symbol == pair.TickerInMetatrader
+                                                                                                                            && f.Value.Type != null
+                                                                                                                            && (f.Value.Type.Equals("buystop") || f.Value.Type.Equals("buylimit"))
+                                                                                                                            ))
+                                                                            {
+                                                                                api.CloseOrder(order.Key, decimal.ToDouble(order.Value.Lots));
+
+                                                                                // Send to logs
+                                                                                if (_appConfig.Debug)
+                                                                                {
+                                                                                    var message = string.Format($"CancelledPassiveOrder || Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},Magic={cmd.Magic},StrategyType={cmd.StrategyType},EntryExpr={cmd.PassiveOrder.EntryExpression},Risk={cmd.PassiveOrder.Risk},RR={cmd.PassiveOrder.RiskRewardRatio}");
+                                                                                    var description = string.Format($"CloseOrder || Symbol={pair.TickerInMetatrader}");
+                                                                                    await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, cmd.SignalID);
+                                                                                }
+                                                                            }
+                                                                        }
+
+                                                                        // Open order
+                                                                        var comment = string.Format($"{cmd.SignalID}/{price}/{sl}/{(int)pair.StrategyNr}/{spread}");
+                                                                        var orderType = OrderType.BuyStop;
+                                                                        if (pair.OrderExecType == OrderExecType.Passive && metadataTick.Ask > price)
+                                                                            orderType = OrderType.BuyLimit;
+                                                                        else if (pair.OrderExecType == OrderExecType.Active && metadataTick.Ask > price)
+                                                                            orderType = OrderType.Buy;
+                                                                        api.ExecuteOrder(pair.TickerInMetatrader, orderType, lotSize, price, sl, tp, (int)cmd.Magic, comment);
 
                                                                         // Send to logs
                                                                         if (_appConfig.Debug)
                                                                         {
-                                                                            var message = string.Format($"CancelledPassiveOrder || Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},Magic={cmd.Magic},StrategyType={cmd.StrategyType},EntryExpr={cmd.PassiveOrder.EntryExpression},Risk={cmd.PassiveOrder.Risk},RR={cmd.PassiveOrder.RiskRewardRatio}");
-                                                                            var description = string.Format($"CloseOrder || Symbol={pair.TickerInMetatrader}");
+                                                                            var message = string.Format($"MetatraderOrderCreated || Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},Magic={cmd.Magic},StrategyType={cmd.StrategyType},EntryExpr={cmd.PassiveOrder.EntryExpression},Risk={cmd.PassiveOrder.Risk},RR={cmd.PassiveOrder.RiskRewardRatio}");
+                                                                            var description = string.Format($"ExecuteOrder || Symbol={pair.TickerInMetatrader},OrderType={orderType},LotSize={lotSize},Price={price},SL={sl},TP={tp},Magic={cmd.Magic},Comment={comment}");
                                                                             await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, cmd.SignalID);
                                                                         }
                                                                     }
+                                                                    else
+                                                                    {
+                                                                        var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},Magic={cmd.Magic},StrategyType={cmd.StrategyType},EntryExpr={cmd.PassiveOrder.EntryExpression},Risk={cmd.PassiveOrder.Risk},RR={cmd.PassiveOrder.RiskRewardRatio}");
+                                                                        await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = $"The risk {cmd.PassiveOrder.Risk.Value} should be at least {pair.RiskMinXTimesTheSpread} times the spread : {spread}" }, cmd.SignalID);
+                                                                    }
                                                                 }
-
-                                                                // Open order
-                                                                var comment = string.Format($"{cmd.SignalID}/{price}/{sl}/{(int)pair.StrategyNr}/{spread}");
-                                                                var orderType = OrderType.BuyStop;
-                                                                if (pair.OrderExecType == OrderExecType.Passive && metadataTick.Ask > price)
-                                                                    orderType = OrderType.BuyLimit;
-                                                                else if (pair.OrderExecType == OrderExecType.Active && metadataTick.Ask > price)
-                                                                    orderType = OrderType.Buy;
-                                                                api.ExecuteOrder(pair.TickerInMetatrader, orderType, lotSize, price, sl, tp, (int)cmd.Magic, comment);
-
-                                                                // Send to logs
-                                                                if (_appConfig.Debug)
+                                                                else
                                                                 {
-                                                                    var message = string.Format($"MetatraderOrderCreated || Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},Magic={cmd.Magic},StrategyType={cmd.StrategyType},EntryExpr={cmd.PassiveOrder.EntryExpression},Risk={cmd.PassiveOrder.Risk},RR={cmd.PassiveOrder.RiskRewardRatio}");
-                                                                    var description = string.Format($"ExecuteOrder || Symbol={pair.TickerInMetatrader},OrderType={orderType},LotSize={lotSize},Price={price},SL={sl},TP={tp},Magic={cmd.Magic},Comment={comment}");
-                                                                    await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, cmd.SignalID);
+                                                                    var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},Magic={cmd.Magic},StrategyType={cmd.StrategyType},EntryExpr={cmd.PassiveOrder.EntryExpression},Risk={cmd.PassiveOrder.Risk},RR={cmd.PassiveOrder.RiskRewardRatio}");
+                                                                    await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = $"Max lot size {lotSize} exceeded : {pair.MaxLotSize}" }, cmd.SignalID);
                                                                 }
                                                             }
                                                             else
                                                             {
                                                                 var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},Magic={cmd.Magic},StrategyType={cmd.StrategyType},EntryExpr={cmd.PassiveOrder.EntryExpression},Risk={cmd.PassiveOrder.Risk},RR={cmd.PassiveOrder.RiskRewardRatio}");
-                                                                await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = $"The risk {cmd.PassiveOrder.Risk.Value} should be at least {pair.RiskMinXTimesTheSpread} times the spread : {spread}" }, cmd.SignalID);
+                                                                await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = $"Can't find entry candle {cmd.PassiveOrder.EntryExpression} with date : {DynamicEvaluator.GetDateFromBarString(cmd.PassiveOrder.EntryExpression)}" }, cmd.SignalID);
                                                             }
                                                         }
                                                         else
                                                         {
-                                                            var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},Magic={cmd.Magic},StrategyType={cmd.StrategyType},EntryExpr={cmd.PassiveOrder.EntryExpression},Risk={cmd.PassiveOrder.Risk},RR={cmd.PassiveOrder.RiskRewardRatio}");
-                                                            await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = $"Max lot size {lotSize} exceeded : {pair.MaxLotSize}" }, cmd.SignalID);
+                                                            var message = string.Format($"CanNotOpenTradeDueClosingTime || Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},Magic={cmd.Magic},StrategyType={cmd.StrategyType},EntryExpr={cmd.PassiveOrder.EntryExpression},Risk={cmd.PassiveOrder.Risk},RR={cmd.PassiveOrder.RiskRewardRatio}");
+                                                            await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "WARNING", Message = message, ErrorType = $"Can't open trade {pair.TickerInMetatrader} because market will be closed within {pair.DoNotOpenTradeXMinutesBeforeClose} minutes. It's now {DateTime.UtcNow} UTC time." }, cmd.SignalID);
                                                         }
                                                     }
                                                     else
                                                     {
-                                                        var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},Magic={cmd.Magic},StrategyType={cmd.StrategyType},EntryExpr={cmd.PassiveOrder.EntryExpression},Risk={cmd.PassiveOrder.Risk},RR={cmd.PassiveOrder.RiskRewardRatio}");
-                                                        await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = $"Can't find entry candle {cmd.PassiveOrder.EntryExpression} with date : {DynamicEvaluator.GetDateFromBarString(cmd.PassiveOrder.EntryExpression)}" }, cmd.SignalID);
+                                                        var message = string.Format($"CorrelatedPairsFound || Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},Magic={cmd.Magic},StrategyType={cmd.StrategyType},EntryExpr={cmd.PassiveOrder.EntryExpression},Risk={cmd.PassiveOrder.Risk},RR={cmd.PassiveOrder.RiskRewardRatio}");
+                                                        await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "WARNING", Message = message, ErrorType = $"Correlated pair found in the open orders : {pair.TickerInMetatrader}" }, cmd.SignalID);
                                                     }
                                                 }
 
@@ -409,8 +444,14 @@ namespace JCTG.Client
                                                                     && cmd.MarketOrder.TakeProfit.HasValue
                                                                     )
                                                 {
-                                                    // Calculate SL Price
-                                                    var slPrice = RiskCalculator.SLForShort(
+                                                    // Do correlation check
+                                                    if (CorrelatedPairs.IsNotCorrelated(pair.TickerInMetatrader, "SELL", pair.CorrelatedPairs, api.OpenOrders))
+                                                    {
+                                                        // Do do not open a trade x minutes before close
+                                                        if (DailyTaskScheduler.CanOpenTrade(pair.CloseAllTradesAt, pair.DoNotOpenTradeXMinutesBeforeClose))
+                                                        {
+                                                            // Calculate SL Price
+                                                            var slPrice = RiskCalculator.SLForShort(
                                                             mtPrice: metadataTick.Ask,
                                                             mtSpread: spread,
                                                             mtDigits: metadataTick.Digits,
@@ -420,99 +461,111 @@ namespace JCTG.Client
                                                             pairSlMultiplier: pair.SLMultiplier
                                                             );
 
-                                                    // Send to logs
-                                                    if (_appConfig.Debug)
-                                                    {
-                                                        var message = string.Format($"StopLossCalculated || Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},Magic={cmd.Magic},StrategyType={cmd.StrategyType},Price={cmd.MarketOrder.Price},TP={cmd.MarketOrder.TakeProfit},SL={cmd.MarketOrder.StopLoss}");
-                                                        var description = string.Format($"SLForShort: Ask={metadataTick.Ask},Spread={spread},Digits={metadataTick.Digits},SignalPrice={cmd.MarketOrder.Price},SignalSL={cmd.MarketOrder.StopLoss}");
-                                                        await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, cmd.SignalID);
-                                                    }
-
-                                                    // Calculate the lot size
-                                                    var lotSize = RiskCalculator.LotSize(startbalance, api.AccountInfo.Balance, pair.Risk, metadataTick.Ask, slPrice, metadataTick.TickValue, metadataTick.TickSize, metadataTick.LotStep, metadataTick.MinLotSize, metadataTick.MaxLotSize, dynRisk);
-
-                                                    // Send to logs
-                                                    if (_appConfig.Debug)
-                                                    {
-                                                        var message = string.Format($"LotSizeCalculated || Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},Magic={cmd.Magic},StrategyType={cmd.StrategyType},Price={cmd.MarketOrder.Price},TP={cmd.MarketOrder.TakeProfit},SL={cmd.MarketOrder.StopLoss}");
-                                                        var description = string.Format($"LotSize: StartBalance={startbalance},Balance={api.AccountInfo.Balance},Risk={pair.Risk},AskPrice={metadataTick.Ask},SlPrice={slPrice},TickValue={metadataTick.TickValue},TickSize={metadataTick.TickSize},LotStep={metadataTick.LotStep},MinLotSize={metadataTick.MinLotSize},MaxLotSize={metadataTick.MaxLotSize},DynRisk={RiskCalculator.ChooseClosestMultiplier(startbalance, api.AccountInfo.Balance, dynRisk)}");
-                                                        await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, cmd.SignalID);
-                                                    }
-
-                                                    // do 0.0 check
-                                                    if (lotSize > 0.0M && slPrice > 0.0M)
-                                                    {
-                                                        // Do lot size check
-                                                        if (pair.MaxLotSize == 0 || pair.MaxLotSize > 0 && lotSize <= pair.MaxLotSize)
-                                                        {
-                                                            // Do check if risk is x times the spread
-                                                            if (spread * pair.RiskMinXTimesTheSpread < slPrice - metadataTick.Ask)
+                                                            // Send to logs
+                                                            if (_appConfig.Debug)
                                                             {
-                                                                // Calculate TP Price
-                                                                var tpPrice = RiskCalculator.TPForShort(
-                                                                        mtPrice: metadataTick.Ask,
-                                                                        mtSpread: spread,
-                                                                        mtDigits: metadataTick.Digits,
-                                                                        signalPrice: cmd.MarketOrder.Price.Value,
-                                                                        signalTP: cmd.MarketOrder.TakeProfit.Value,
-                                                                        spreadExecType: pair.SpreadTP
-                                                                        );
+                                                                var message = string.Format($"StopLossCalculated || Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},Magic={cmd.Magic},StrategyType={cmd.StrategyType},Price={cmd.MarketOrder.Price},TP={cmd.MarketOrder.TakeProfit},SL={cmd.MarketOrder.StopLoss}");
+                                                                var description = string.Format($"SLForShort: Ask={metadataTick.Ask},Spread={spread},Digits={metadataTick.Digits},SignalPrice={cmd.MarketOrder.Price},SignalSL={cmd.MarketOrder.StopLoss}");
+                                                                await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, cmd.SignalID);
+                                                            }
 
-                                                                // Send to logs
-                                                                if (_appConfig.Debug)
+                                                            // Calculate the lot size
+                                                            var lotSize = RiskCalculator.LotSize(startbalance, api.AccountInfo.Balance, pair.Risk, metadataTick.Ask, slPrice, metadataTick.TickValue, metadataTick.TickSize, metadataTick.LotStep, metadataTick.MinLotSize, metadataTick.MaxLotSize, dynRisk);
+
+                                                            // Send to logs
+                                                            if (_appConfig.Debug)
+                                                            {
+                                                                var message = string.Format($"LotSizeCalculated || Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},Magic={cmd.Magic},StrategyType={cmd.StrategyType},Price={cmd.MarketOrder.Price},TP={cmd.MarketOrder.TakeProfit},SL={cmd.MarketOrder.StopLoss}");
+                                                                var description = string.Format($"LotSize: StartBalance={startbalance},Balance={api.AccountInfo.Balance},Risk={pair.Risk},AskPrice={metadataTick.Ask},SlPrice={slPrice},TickValue={metadataTick.TickValue},TickSize={metadataTick.TickSize},LotStep={metadataTick.LotStep},MinLotSize={metadataTick.MinLotSize},MaxLotSize={metadataTick.MaxLotSize},DynRisk={RiskCalculator.ChooseClosestMultiplier(startbalance, api.AccountInfo.Balance, dynRisk)}");
+                                                                await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, cmd.SignalID);
+                                                            }
+
+                                                            // do 0.0 check
+                                                            if (lotSize > 0.0M && slPrice > 0.0M)
+                                                            {
+                                                                // Do lot size check
+                                                                if (pair.MaxLotSize == 0 || pair.MaxLotSize > 0 && lotSize <= pair.MaxLotSize)
                                                                 {
-                                                                    var message = string.Format($"TakeProfitCalculated || Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},Magic={cmd.Magic},StrategyType={cmd.StrategyType},Price={cmd.MarketOrder.Price},TP={cmd.MarketOrder.TakeProfit},SL={cmd.MarketOrder.StopLoss}");
-                                                                    var description = string.Format($"TPForShort: Ask={metadataTick.Ask},Spread={spread},Digits={metadataTick.Digits},SignalPrice={cmd.MarketOrder.Price},SignalTP={cmd.MarketOrder.TakeProfit}");
-                                                                    await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, cmd.SignalID);
+                                                                    // Do check if risk is x times the spread
+                                                                    if (spread * pair.RiskMinXTimesTheSpread < slPrice - metadataTick.Ask)
+                                                                    {
+                                                                        // Calculate TP Price
+                                                                        var tpPrice = RiskCalculator.TPForShort(
+                                                                                mtPrice: metadataTick.Ask,
+                                                                                mtSpread: spread,
+                                                                                mtDigits: metadataTick.Digits,
+                                                                                signalPrice: cmd.MarketOrder.Price.Value,
+                                                                                signalTP: cmd.MarketOrder.TakeProfit.Value,
+                                                                                spreadExecType: pair.SpreadTP
+                                                                                );
+
+                                                                        // Send to logs
+                                                                        if (_appConfig.Debug)
+                                                                        {
+                                                                            var message = string.Format($"TakeProfitCalculated || Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},Magic={cmd.Magic},StrategyType={cmd.StrategyType},Price={cmd.MarketOrder.Price},TP={cmd.MarketOrder.TakeProfit},SL={cmd.MarketOrder.StopLoss}");
+                                                                            var description = string.Format($"TPForShort: Ask={metadataTick.Ask},Spread={spread},Digits={metadataTick.Digits},SignalPrice={cmd.MarketOrder.Price},SignalTP={cmd.MarketOrder.TakeProfit}");
+                                                                            await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, cmd.SignalID);
+                                                                        }
+
+                                                                        // Print on the screen
+                                                                        Print(Environment.NewLine);
+                                                                        Print("--------- SEND NEW ORDER TO METATRADER ---------");
+                                                                        Print("Broker      : " + _appConfig.Brokers.First(f => f.ClientId == api.ClientId).Name);
+                                                                        Print("Date        : " + DateTime.UtcNow);
+                                                                        Print("Ticker      : " + pair.TickerInMetatrader);
+                                                                        Print("Order       : SELL MARKET ORDER");
+                                                                        Print("------------------------------------------------");
+
+
+                                                                        // Open order
+                                                                        var comment = string.Format($"{cmd.SignalID}/{Math.Round(cmd.MarketOrder.Price.Value, metadataTick.Digits, MidpointRounding.AwayFromZero)}/{Math.Round(cmd.MarketOrder.StopLoss.Value, metadataTick.Digits, MidpointRounding.AwayFromZero)}/{(int)pair.StrategyNr}/{spread}");
+
+                                                                        // Passive / Active
+                                                                        var orderType = OrderType.Sell;
+                                                                        if (pair.OrderExecType == OrderExecType.Passive && metadataTick.Ask > cmd.MarketOrder.Price.Value)
+                                                                            orderType = OrderType.SellStop;
+                                                                        else if (pair.OrderExecType == OrderExecType.Passive && metadataTick.Ask < cmd.MarketOrder.Price.Value)
+                                                                            orderType = OrderType.SellLimit;
+
+                                                                        // Execute order
+                                                                        api.ExecuteOrder(pair.TickerInMetatrader, orderType, lotSize, 0, slPrice, tpPrice, (int)cmd.Magic, comment);
+
+                                                                        // Send to logs
+                                                                        if (_appConfig.Debug)
+                                                                        {
+                                                                            var message = string.Format($"MetatraderOrderCreated || Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},Magic={cmd.Magic},StrategyType={cmd.StrategyType},Price={cmd.MarketOrder.Price},TP={cmd.MarketOrder.TakeProfit},SL={cmd.MarketOrder.StopLoss}");
+                                                                            var description = string.Format($"ExecuteOrder: Symbol={pair.TickerInMetatrader},OrderType={orderType},LotSize={lotSize},Price=,SL={slPrice},TP={tpPrice},Magic={cmd.Magic},Comment={comment}");
+                                                                            await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, cmd.SignalID);
+                                                                        }
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},Magic={cmd.Magic},StrategyType={cmd.StrategyType},Price={cmd.MarketOrder.Price},TP={cmd.MarketOrder.TakeProfit},SL={cmd.MarketOrder.StopLoss}");
+                                                                        await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = $"The risk {slPrice - metadataTick.Ask} should be at least {pair.RiskMinXTimesTheSpread} times the spread : {spread}" }, cmd.SignalID);
+                                                                    }
                                                                 }
-
-                                                                // Print on the screen
-                                                                Print(Environment.NewLine);
-                                                                Print("--------- SEND NEW ORDER TO METATRADER ---------");
-                                                                Print("Broker      : " + _appConfig.Brokers.First(f => f.ClientId == api.ClientId).Name);
-                                                                Print("Date        : " + DateTime.UtcNow);
-                                                                Print("Ticker      : " + pair.TickerInMetatrader);
-                                                                Print("Order       : SELL MARKET ORDER");
-                                                                Print("------------------------------------------------");
-
-
-                                                                // Open order
-                                                                var comment = string.Format($"{cmd.SignalID}/{Math.Round(cmd.MarketOrder.Price.Value, metadataTick.Digits, MidpointRounding.AwayFromZero)}/{Math.Round(cmd.MarketOrder.StopLoss.Value, metadataTick.Digits, MidpointRounding.AwayFromZero)}/{(int)pair.StrategyNr}/{spread}");
-
-                                                                // Passive / Active
-                                                                var orderType = OrderType.Sell;
-                                                                if (pair.OrderExecType == OrderExecType.Passive && metadataTick.Ask > cmd.MarketOrder.Price.Value)
-                                                                    orderType = OrderType.SellStop;
-                                                                else if (pair.OrderExecType == OrderExecType.Passive && metadataTick.Ask < cmd.MarketOrder.Price.Value)
-                                                                    orderType = OrderType.SellLimit;
-
-                                                                // Execute order
-                                                                api.ExecuteOrder(pair.TickerInMetatrader, orderType, lotSize, 0, slPrice, tpPrice, (int)cmd.Magic, comment);
-
-                                                                // Send to logs
-                                                                if (_appConfig.Debug)
+                                                                else
                                                                 {
-                                                                    var message = string.Format($"MetatraderOrderCreated || Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},Magic={cmd.Magic},StrategyType={cmd.StrategyType},Price={cmd.MarketOrder.Price},TP={cmd.MarketOrder.TakeProfit},SL={cmd.MarketOrder.StopLoss}");
-                                                                    var description = string.Format($"ExecuteOrder: Symbol={pair.TickerInMetatrader},OrderType={orderType},LotSize={lotSize},Price=,SL={slPrice},TP={tpPrice},Magic={cmd.Magic},Comment={comment}");
-                                                                    await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, cmd.SignalID);
+                                                                    var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},Magic={cmd.Magic},StrategyType={cmd.StrategyType},Price={cmd.MarketOrder.Price},TP={cmd.MarketOrder.TakeProfit},SL={cmd.MarketOrder.StopLoss}");
+                                                                    await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = $"Max lot size {lotSize} exceeded : {pair.MaxLotSize}" }, cmd.SignalID);
                                                                 }
                                                             }
                                                             else
                                                             {
                                                                 var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},Magic={cmd.Magic},StrategyType={cmd.StrategyType},Price={cmd.MarketOrder.Price},TP={cmd.MarketOrder.TakeProfit},SL={cmd.MarketOrder.StopLoss}");
-                                                                await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = $"The risk {slPrice - metadataTick.Ask} should be at least {pair.RiskMinXTimesTheSpread} times the spread : {spread}" }, cmd.SignalID);
+                                                                await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = $"Unexpected error occurred with the calculation of the stop loss price" }, cmd.SignalID);
                                                             }
                                                         }
                                                         else
                                                         {
-                                                            var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},Magic={cmd.Magic},StrategyType={cmd.StrategyType},Price={cmd.MarketOrder.Price},TP={cmd.MarketOrder.TakeProfit},SL={cmd.MarketOrder.StopLoss}");
-                                                            await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = $"Max lot size {lotSize} exceeded : {pair.MaxLotSize}" }, cmd.SignalID);
+                                                            var message = string.Format($"CanNotOpenTradeDueClosingTime || Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},Magic={cmd.Magic},StrategyType={cmd.StrategyType},Price={cmd.MarketOrder.Price},TP={cmd.MarketOrder.TakeProfit},SL={cmd.MarketOrder.StopLoss}");
+                                                            await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "WARNING", Message = message, ErrorType = $"Can't open trade {pair.TickerInMetatrader} because market will be closed within {pair.DoNotOpenTradeXMinutesBeforeClose} minutes. It's now {DateTime.UtcNow} UTC time." }, cmd.SignalID);
                                                         }
                                                     }
                                                     else
                                                     {
-                                                        var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},Magic={cmd.Magic},StrategyType={cmd.StrategyType},Price={cmd.MarketOrder.Price},TP={cmd.MarketOrder.TakeProfit},SL={cmd.MarketOrder.StopLoss}");
-                                                        await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = $"Unexpected error occurred with the calculation of the stop loss price" }, cmd.SignalID);
+                                                        var message = string.Format($"CorrelatedPairsFound || Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},Magic={cmd.Magic},StrategyType={cmd.StrategyType},Price={cmd.MarketOrder.Price},TP={cmd.MarketOrder.TakeProfit},SL={cmd.MarketOrder.StopLoss}");
+                                                        await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "WARNING", Message = message, ErrorType = $"Correlated pair found in the open orders : {pair.TickerInMetatrader}" }, cmd.SignalID);
                                                     }
                                                 }
 
@@ -525,147 +578,164 @@ namespace JCTG.Client
                                                             && cmd.PassiveOrder.RiskRewardRatio.HasValue
                                                 )
                                                 {
-
-                                                    // Get the entry price
-                                                    var price = await DynamicEvaluator.EvaluateExpressionAsync(cmd.PassiveOrder.EntryExpression, api.HistoricData.Where(f => f.Key == pair.TickerInMetatrader).SelectMany(f => f.Value.BarData).ToList());
-
-                                                    // Add the spread options
-                                                    if (pair.SpreadEntry.HasValue)
+                                                    // Do correlation check
+                                                    if (CorrelatedPairs.IsNotCorrelated(pair.TickerInMetatrader, "SELL", pair.CorrelatedPairs, api.OpenOrders))
                                                     {
-                                                        if (pair.SpreadEntry.Value == SpreadExecType.Add)
-                                                            price -= spread;
-                                                        else if (pair.SpreadEntry.Value == SpreadExecType.Subtract)
-                                                            price += spread;
-                                                    }
-
-                                                    // Get the Stop Loss price
-                                                    var sl = price + (cmd.PassiveOrder.Risk.Value * Convert.ToDecimal(pair.SLMultiplier));
-
-                                                    // Add the spread options
-                                                    if (pair.SpreadSL.HasValue)
-                                                    {
-                                                        if (pair.SpreadSL.Value == SpreadExecType.Add)
-                                                            sl -= spread;
-                                                        else if (pair.SpreadSL.Value == SpreadExecType.Subtract)
-                                                            sl += spread;
-                                                    }
-
-                                                    // Get the Take Profit Price
-                                                    var tp = price - (cmd.PassiveOrder.Risk.Value * cmd.PassiveOrder.RiskRewardRatio.Value);
-                                                    if (pair.SpreadTP.HasValue)
-                                                    {
-                                                        if (pair.SpreadTP.Value == SpreadExecType.Add)
-                                                            tp -= spread;
-                                                        else if (pair.SpreadTP.Value == SpreadExecType.Subtract)
-                                                            tp += spread;
-                                                    }
-
-                                                    // Round
-                                                    price = Math.Round(price, metadataTick.Digits, MidpointRounding.AwayFromZero);
-                                                    sl = Math.Round(sl, metadataTick.Digits, MidpointRounding.AwayFromZero);
-                                                    tp = Math.Round(tp, metadataTick.Digits, MidpointRounding.AwayFromZero);
-
-                                                    // Send to logs
-                                                    if (_appConfig.Debug)
-                                                    {
-                                                        var message = string.Format($"EntryPriceCalculated || Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},Magic={cmd.Magic},StrategyType={cmd.StrategyType},EntryExpr={cmd.PassiveOrder.EntryExpression},Risk={cmd.PassiveOrder.Risk},RR={cmd.PassiveOrder.RiskRewardRatio}");
-                                                        var description = string.Format($"Price: Price={price},Spread={spread},EntryExpression={cmd.PassiveOrder.EntryExpression}");
-                                                        await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, cmd.SignalID);
-
-                                                        description = string.Format($"StopLossCalculated ||  Price={price},Spread={spread},Risk={cmd.PassiveOrder.Risk.Value},SLMultiplier={pair.SLMultiplier}");
-                                                        await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, cmd.SignalID);
-
-                                                        description = string.Format($"TakeProfitCalculated ||  Price={price},Spread={spread},Risk={cmd.PassiveOrder.Risk.Value},RiskRewardRatio={cmd.PassiveOrder.RiskRewardRatio.Value}");
-                                                        await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, cmd.SignalID);
-                                                    }
-
-                                                    // Calculate the lot size
-                                                    var lotSize = RiskCalculator.LotSize(startbalance, api.AccountInfo.Balance, pair.Risk, price, sl, metadataTick.TickValue, metadataTick.TickSize, metadataTick.LotStep, metadataTick.MinLotSize, metadataTick.MaxLotSize, dynRisk); ;
-
-                                                    // Send to logs
-                                                    if (_appConfig.Debug)
-                                                    {
-                                                        var message = string.Format($"LotSizeCalculated || Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},Magic={cmd.Magic},StrategyType={cmd.StrategyType},EntryExpr={cmd.PassiveOrder.EntryExpression},Risk={cmd.PassiveOrder.Risk},RR={cmd.PassiveOrder.RiskRewardRatio}");
-                                                        var description = string.Format($"LotSize: StartBalance={startbalance},Balance={api.AccountInfo.Balance},Risk={pair.Risk},AskPrice={metadataTick.Ask},SlPrice={sl},TickValue={metadataTick.TickValue},TickSize={metadataTick.TickSize},LotStep={metadataTick.LotStep},MinLotSize={metadataTick.MinLotSize},MaxLotSize={metadataTick.MaxLotSize},DynRisk={RiskCalculator.ChooseClosestMultiplier(startbalance, api.AccountInfo.Balance, dynRisk)}");
-                                                        await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, cmd.SignalID);
-                                                    }
-
-                                                    // do 0.0 check
-                                                    if (lotSize > 0.0M && price > 0.0M && sl > 0.0M && tp > 0.0M)
-                                                    {
-                                                        // Do lot size check
-                                                        if (pair.MaxLotSize == 0 || pair.MaxLotSize > 0 && lotSize <= pair.MaxLotSize)
+                                                        // Do do not open a trade x minutes before close
+                                                        if (DailyTaskScheduler.CanOpenTrade(pair.CloseAllTradesAt, pair.DoNotOpenTradeXMinutesBeforeClose))
                                                         {
-                                                            // Do check if risk is x times the spread
-                                                            if (spread * pair.RiskMinXTimesTheSpread < cmd.PassiveOrder.Risk.Value)
-                                                            {
-                                                                // Print on the screen
-                                                                Print(Environment.NewLine);
-                                                                Print("--------- SEND NEW ORDER TO METATRADER ---------");
-                                                                Print("Broker      : " + _appConfig.Brokers.First(f => f.ClientId == api.ClientId).Name);
-                                                                Print("Date        : " + DateTime.UtcNow);
-                                                                Print("Ticker      : " + pair.TickerInMetatrader);
-                                                                if (metadataTick.Ask < price)
-                                                                    Print("Order       : SELL LIMIT ORDER");
-                                                                else
-                                                                    Print("Order       : SELL STOP ORDER");
-                                                                Print("------------------------------------------------");
+                                                            // Get the entry price
+                                                            var price = await DynamicEvaluator.EvaluateExpressionAsync(cmd.PassiveOrder.EntryExpression, api.HistoricData.Where(f => f.Key == pair.TickerInMetatrader).SelectMany(f => f.Value.BarData).ToList());
 
-                                                                // Cancel open buy or limit orders
-                                                                if (pair.CancelStopOrLimitOrderWhenNewSignal)
+                                                            // Add the spread options
+                                                            if (pair.SpreadEntry.HasValue)
+                                                            {
+                                                                if (pair.SpreadEntry.Value == SpreadExecType.Add)
+                                                                    price -= spread;
+                                                                else if (pair.SpreadEntry.Value == SpreadExecType.Subtract)
+                                                                    price += spread;
+                                                            }
+
+                                                            // Get the Stop Loss price
+                                                            var sl = price + (cmd.PassiveOrder.Risk.Value * Convert.ToDecimal(pair.SLMultiplier));
+
+                                                            // Add the spread options
+                                                            if (pair.SpreadSL.HasValue)
+                                                            {
+                                                                if (pair.SpreadSL.Value == SpreadExecType.Add)
+                                                                    sl -= spread;
+                                                                else if (pair.SpreadSL.Value == SpreadExecType.Subtract)
+                                                                    sl += spread;
+                                                            }
+
+                                                            // Get the Take Profit Price
+                                                            var tp = price - (cmd.PassiveOrder.Risk.Value * cmd.PassiveOrder.RiskRewardRatio.Value);
+                                                            if (pair.SpreadTP.HasValue)
+                                                            {
+                                                                if (pair.SpreadTP.Value == SpreadExecType.Add)
+                                                                    tp -= spread;
+                                                                else if (pair.SpreadTP.Value == SpreadExecType.Subtract)
+                                                                    tp += spread;
+                                                            }
+
+                                                            // Round
+                                                            price = Math.Round(price, metadataTick.Digits, MidpointRounding.AwayFromZero);
+                                                            sl = Math.Round(sl, metadataTick.Digits, MidpointRounding.AwayFromZero);
+                                                            tp = Math.Round(tp, metadataTick.Digits, MidpointRounding.AwayFromZero);
+
+                                                            // Send to logs
+                                                            if (_appConfig.Debug)
+                                                            {
+                                                                var message = string.Format($"EntryPriceCalculated || Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},Magic={cmd.Magic},StrategyType={cmd.StrategyType},EntryExpr={cmd.PassiveOrder.EntryExpression},Risk={cmd.PassiveOrder.Risk},RR={cmd.PassiveOrder.RiskRewardRatio}");
+                                                                var description = string.Format($"Price: Price={price},Spread={spread},EntryExpression={cmd.PassiveOrder.EntryExpression}");
+                                                                await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, cmd.SignalID);
+
+                                                                description = string.Format($"StopLossCalculated ||  Price={price},Spread={spread},Risk={cmd.PassiveOrder.Risk.Value},SLMultiplier={pair.SLMultiplier}");
+                                                                await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, cmd.SignalID);
+
+                                                                description = string.Format($"TakeProfitCalculated ||  Price={price},Spread={spread},Risk={cmd.PassiveOrder.Risk.Value},RiskRewardRatio={cmd.PassiveOrder.RiskRewardRatio.Value}");
+                                                                await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, cmd.SignalID);
+                                                            }
+
+                                                            // Calculate the lot size
+                                                            var lotSize = RiskCalculator.LotSize(startbalance, api.AccountInfo.Balance, pair.Risk, price, sl, metadataTick.TickValue, metadataTick.TickSize, metadataTick.LotStep, metadataTick.MinLotSize, metadataTick.MaxLotSize, dynRisk); ;
+
+                                                            // Send to logs
+                                                            if (_appConfig.Debug)
+                                                            {
+                                                                var message = string.Format($"LotSizeCalculated || Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},Magic={cmd.Magic},StrategyType={cmd.StrategyType},EntryExpr={cmd.PassiveOrder.EntryExpression},Risk={cmd.PassiveOrder.Risk},RR={cmd.PassiveOrder.RiskRewardRatio}");
+                                                                var description = string.Format($"LotSize: StartBalance={startbalance},Balance={api.AccountInfo.Balance},Risk={pair.Risk},AskPrice={metadataTick.Ask},SlPrice={sl},TickValue={metadataTick.TickValue},TickSize={metadataTick.TickSize},LotStep={metadataTick.LotStep},MinLotSize={metadataTick.MinLotSize},MaxLotSize={metadataTick.MaxLotSize},DynRisk={RiskCalculator.ChooseClosestMultiplier(startbalance, api.AccountInfo.Balance, dynRisk)}");
+                                                                await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, cmd.SignalID);
+                                                            }
+
+                                                            // do 0.0 check
+                                                            if (lotSize > 0.0M && price > 0.0M && sl > 0.0M && tp > 0.0M)
+                                                            {
+                                                                // Do lot size check
+                                                                if (pair.MaxLotSize == 0 || pair.MaxLotSize > 0 && lotSize <= pair.MaxLotSize)
                                                                 {
-                                                                    foreach (var order in api.OpenOrders.Where(f => f.Value.Symbol == pair.TickerInMetatrader
-                                                                                                                    && f.Value.Type != null
-                                                                                                                    && (f.Value.Type.Equals("sellstop") || f.Value.Type.Equals("selllimit"))
-                                                                                                                    ))
+                                                                    // Do check if risk is x times the spread
+                                                                    if (spread * pair.RiskMinXTimesTheSpread < cmd.PassiveOrder.Risk.Value)
                                                                     {
-                                                                        api.CloseOrder(order.Key, decimal.ToDouble(order.Value.Lots));
+                                                                        // Print on the screen
+                                                                        Print(Environment.NewLine);
+                                                                        Print("--------- SEND NEW ORDER TO METATRADER ---------");
+                                                                        Print("Broker      : " + _appConfig.Brokers.First(f => f.ClientId == api.ClientId).Name);
+                                                                        Print("Date        : " + DateTime.UtcNow);
+                                                                        Print("Ticker      : " + pair.TickerInMetatrader);
+                                                                        if (metadataTick.Ask < price)
+                                                                            Print("Order       : SELL LIMIT ORDER");
+                                                                        else
+                                                                            Print("Order       : SELL STOP ORDER");
+                                                                        Print("------------------------------------------------");
+
+                                                                        // Cancel open buy or limit orders
+                                                                        if (pair.CancelStopOrLimitOrderWhenNewSignal)
+                                                                        {
+                                                                            foreach (var order in api.OpenOrders.Where(f => f.Value.Symbol == pair.TickerInMetatrader
+                                                                                                                            && f.Value.Type != null
+                                                                                                                            && (f.Value.Type.Equals("sellstop") || f.Value.Type.Equals("selllimit"))
+                                                                                                                            ))
+                                                                            {
+                                                                                api.CloseOrder(order.Key, decimal.ToDouble(order.Value.Lots));
+
+                                                                                // Send to logs
+                                                                                if (_appConfig.Debug)
+                                                                                {
+                                                                                    var message = string.Format($"CancelledPassiveOrder || Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},Magic={cmd.Magic},StrategyType={cmd.StrategyType},EntryExpr={cmd.PassiveOrder.EntryExpression},Risk={cmd.PassiveOrder.Risk},RR={cmd.PassiveOrder.RiskRewardRatio}");
+                                                                                    var description = string.Format($"CancelStopOrLimitOrderWhenNewSignal: Symbol={pair.TickerInMetatrader}");
+                                                                                    await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, cmd.SignalID);
+                                                                                }
+                                                                            }
+                                                                        }
+
+                                                                        // Setup the order
+                                                                        var comment = string.Format($"{cmd.SignalID}/{price}/{sl}/{(int)pair.StrategyNr}/{spread}");
+                                                                        var orderType = OrderType.SellStop;
+                                                                        if (pair.OrderExecType == OrderExecType.Passive && metadataTick.Ask < price)
+                                                                            orderType = OrderType.SellLimit;
+                                                                        else if (pair.OrderExecType == OrderExecType.Active && metadataTick.Ask < price)
+                                                                            orderType = OrderType.Sell;
+
+                                                                        // Execute order
+                                                                        api.ExecuteOrder(pair.TickerInMetatrader, orderType, lotSize, price, sl, tp, (int)cmd.Magic, comment);
 
                                                                         // Send to logs
                                                                         if (_appConfig.Debug)
                                                                         {
-                                                                            var message = string.Format($"CancelledPassiveOrder || Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},Magic={cmd.Magic},StrategyType={cmd.StrategyType},EntryExpr={cmd.PassiveOrder.EntryExpression},Risk={cmd.PassiveOrder.Risk},RR={cmd.PassiveOrder.RiskRewardRatio}");
-                                                                            var description = string.Format($"CancelStopOrLimitOrderWhenNewSignal: Symbol={pair.TickerInMetatrader}");
+                                                                            var message = string.Format($"MetatraderOrderExecuted || Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},Magic={cmd.Magic},StrategyType={cmd.StrategyType},EntryExpr={cmd.PassiveOrder.EntryExpression},Risk={cmd.PassiveOrder.Risk},RR={cmd.PassiveOrder.RiskRewardRatio}");
+                                                                            var description = string.Format($"ExecuteOrder: Symbol={pair.TickerInMetatrader},OrderType={orderType},LotSize={lotSize},Price={price},SL={sl},TP={tp},Magic={cmd.Magic},Comment={comment}");
                                                                             await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, cmd.SignalID);
                                                                         }
                                                                     }
+                                                                    else
+                                                                    {
+                                                                        var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},Magic={cmd.Magic},StrategyType={cmd.StrategyType},EntryExpr={cmd.PassiveOrder.EntryExpression},Risk={cmd.PassiveOrder.Risk},RR={cmd.PassiveOrder.RiskRewardRatio}");
+                                                                        await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = $"The risk {cmd.PassiveOrder.Risk.Value} should be at least {pair.RiskMinXTimesTheSpread} times the spread : {spread}" }, cmd.SignalID);
+                                                                    }
                                                                 }
-
-                                                                // Setup the order
-                                                                var comment = string.Format($"{cmd.SignalID}/{price}/{sl}/{(int)pair.StrategyNr}/{spread}");
-                                                                var orderType = OrderType.SellStop;
-                                                                if (pair.OrderExecType == OrderExecType.Passive && metadataTick.Ask < price)
-                                                                    orderType = OrderType.SellLimit;
-                                                                else if (pair.OrderExecType == OrderExecType.Active && metadataTick.Ask < price)
-                                                                    orderType = OrderType.Sell;
-
-                                                                // Execute order
-                                                                api.ExecuteOrder(pair.TickerInMetatrader, orderType, lotSize, price, sl, tp, (int)cmd.Magic, comment);
-
-                                                                // Send to logs
-                                                                if (_appConfig.Debug)
+                                                                else
                                                                 {
-                                                                    var message = string.Format($"MetatraderOrderExecuted || Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},Magic={cmd.Magic},StrategyType={cmd.StrategyType},EntryExpr={cmd.PassiveOrder.EntryExpression},Risk={cmd.PassiveOrder.Risk},RR={cmd.PassiveOrder.RiskRewardRatio}");
-                                                                    var description = string.Format($"ExecuteOrder: Symbol={pair.TickerInMetatrader},OrderType={orderType},LotSize={lotSize},Price={price},SL={sl},TP={tp},Magic={cmd.Magic},Comment={comment}");
-                                                                    await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, cmd.SignalID);
+                                                                    var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},Magic={cmd.Magic},StrategyType={cmd.StrategyType},EntryExpr={cmd.PassiveOrder.EntryExpression},Risk={cmd.PassiveOrder.Risk},RR={cmd.PassiveOrder.RiskRewardRatio}");
+                                                                    await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = $"Max lot size {lotSize} exceeded : {pair.MaxLotSize}" }, cmd.SignalID);
                                                                 }
                                                             }
                                                             else
                                                             {
                                                                 var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},Magic={cmd.Magic},StrategyType={cmd.StrategyType},EntryExpr={cmd.PassiveOrder.EntryExpression},Risk={cmd.PassiveOrder.Risk},RR={cmd.PassiveOrder.RiskRewardRatio}");
-                                                                await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = $"The risk {cmd.PassiveOrder.Risk.Value} should be at least {pair.RiskMinXTimesTheSpread} times the spread : {spread}" }, cmd.SignalID);
+                                                                await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = $"Can't find entry candle {cmd.PassiveOrder.EntryExpression} with date : {DynamicEvaluator.GetDateFromBarString(cmd.PassiveOrder.EntryExpression)}" }, cmd.SignalID);
                                                             }
                                                         }
                                                         else
                                                         {
-                                                            var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},Magic={cmd.Magic},StrategyType={cmd.StrategyType},EntryExpr={cmd.PassiveOrder.EntryExpression},Risk={cmd.PassiveOrder.Risk},RR={cmd.PassiveOrder.RiskRewardRatio}");
-                                                            await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = $"Max lot size {lotSize} exceeded : {pair.MaxLotSize}" }, cmd.SignalID);
+                                                            var message = string.Format($"CanNotOpenTradeDueClosingTime || Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},Magic={cmd.Magic},StrategyType={cmd.StrategyType},EntryExpr={cmd.PassiveOrder.EntryExpression},Risk={cmd.PassiveOrder.Risk},RR={cmd.PassiveOrder.RiskRewardRatio}");
+                                                            await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "WARNING", Message = message, ErrorType = $"Can't open trade {pair.TickerInMetatrader} because market will be closed within {pair.DoNotOpenTradeXMinutesBeforeClose} minutes. It's now {DateTime.UtcNow} UTC time." }, cmd.SignalID);
                                                         }
                                                     }
                                                     else
                                                     {
-                                                        var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},Magic={cmd.Magic},StrategyType={cmd.StrategyType},EntryExpr={cmd.PassiveOrder.EntryExpression},Risk={cmd.PassiveOrder.Risk},RR={cmd.PassiveOrder.RiskRewardRatio}");
-                                                        await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = $"Can't find entry candle {cmd.PassiveOrder.EntryExpression} with date : {DynamicEvaluator.GetDateFromBarString(cmd.PassiveOrder.EntryExpression)}" }, cmd.SignalID);
+                                                        var message = string.Format($"CorrelatedPairsFound || Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},Magic={cmd.Magic},StrategyType={cmd.StrategyType},EntryExpr={cmd.PassiveOrder.EntryExpression},Risk={cmd.PassiveOrder.Risk},RR={cmd.PassiveOrder.RiskRewardRatio}");
+                                                        await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "WARNING", Message = message, ErrorType = $"Correlated pair found in the open orders : {pair.TickerInMetatrader}" }, cmd.SignalID);
                                                     }
                                                 }
 
@@ -1371,8 +1441,7 @@ namespace JCTG.Client
 
                 // Get pair
                 var api = _apis.First(f => f.ClientId == clientId);
-                var marketdata = api.MarketData.FirstOrDefault(f => f.Key == order.Symbol).Value;
-
+                var marketdata = api.MarketData?.FirstOrDefault(f => f.Key == order.Symbol).Value;
 
                 Task.Run(async () =>
                 {
@@ -1411,30 +1480,34 @@ namespace JCTG.Client
                 var api = _apis.First(f => f.ClientId == clientId);
 
                 // Do null reference chekc on metadatatick
-                if(api.MarketData != null)
+                if (api.MarketData != null)
                 {
                     // Get the metadata tick
                     var metadataTick = api.MarketData.FirstOrDefault(f => f.Key == trade.Symbol).Value;
 
-                    // Get the spread
-                    var spread = decimal.ToDouble(Math.Round(Math.Abs(metadataTick.Ask - metadataTick.Bid), metadataTick.Digits, MidpointRounding.AwayFromZero));
-
-                    Task.Run(async () =>
+                    // Do null reference chekc on metadatatick
+                    if (metadataTick != null)
                     {
-                        // Send the tradejournal to Azure PubSub server
-                        await new AzurePubSubServer().SendOnTradeEventAsync(new OnDealCreatedEvent()
+                        // Get the spread
+                        var spread = decimal.ToDouble(Math.Round(Math.Abs(metadataTick.Ask - metadataTick.Bid), metadataTick.Digits, MidpointRounding.AwayFromZero));
+
+                        Task.Run(async () =>
                         {
-                            ClientID = clientId,
-                            MtDealID = tradeId,
-                            Deal = trade,
-                            Log = log,
-                            AccountBalance = api.AccountInfo?.Balance,
-                            AccountEquity = api.AccountInfo?.Equity,
-                            Price = decimal.ToDouble(metadataTick.Ask),
-                            Spread = spread,
-                            SpreadCost = spread * trade.Lots * decimal.ToDouble(metadataTick.TickValue),
+                            // Send the tradejournal to Azure PubSub server
+                            await new AzurePubSubServer().SendOnTradeEventAsync(new OnDealCreatedEvent()
+                            {
+                                ClientID = clientId,
+                                MtDealID = tradeId,
+                                Deal = trade,
+                                Log = log,
+                                AccountBalance = api.AccountInfo?.Balance,
+                                AccountEquity = api.AccountInfo?.Equity,
+                                Price = decimal.ToDouble(metadataTick.Ask),
+                                Spread = spread,
+                                SpreadCost = spread * trade.Lots * decimal.ToDouble(metadataTick.TickValue),
+                            });
                         });
-                    });
+                    }
                 }
             }
         }

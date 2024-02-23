@@ -1,5 +1,4 @@
-﻿using JCTG.Models;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
 namespace JCTG.Models
@@ -65,6 +64,7 @@ namespace JCTG.Models
         public bool CancelStopOrLimitOrderWhenNewSignal { get; set; }
         public int NumberOfHistoricalBarsRequested { get; set; }
         public TimeSpan? CloseAllTradesAt { get; set; }
+        public int? DoNotOpenTradeXMinutesBeforeClose { get; set; }
         [JsonConverter(typeof(StringEnumConverter))]
         public SpreadExecType? SpreadEntry { get; set; }
         [JsonConverter(typeof(StringEnumConverter))]
@@ -72,7 +72,7 @@ namespace JCTG.Models
         [JsonConverter(typeof(StringEnumConverter))]
         public SpreadExecType? SpreadTP { get; set; }
         public int RiskMinXTimesTheSpread { get; set; }
-        public List<string> CorrelatedPairs { get; set; }
+        public List<string> CorrelatedPairs { get; set; } = [];
     }
 
     public class Risk

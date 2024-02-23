@@ -35,9 +35,30 @@
       ],
       "Pairs": [
         {
+          "TickerInTradingView": "XJO",
+          "TickerInMetatrader": "AUS200",
+          "Timeframe": "M10",
+          "StrategyNr": 4,
+          "Risk": 0.15,
+          "SLtoBEafterR": 1.0,
+          "MaxSpread": 2.0,
+          "SLMultiplier": 1.02,
+          "MaxLotSize": 1000,
+          "OrderExecType": "Active",
+          "CancelStopOrLimitOrderWhenNewSignal": true,
+          "NumberOfHistoricalBarsRequested": 100,
+          "CloseAllTradesAt": "04:55",
+          "DoNotOpenTradeXMinutesBeforeClose": 20,
+          "SpreadEntry": "Add",
+          "SpreadSL": "Subtract",
+          "SpreadTP": "Add",
+          "RiskMinXTimesTheSpread": 3,
+          "CorrelatedPairs": []
+        },
+        {
           "TickerInTradingView": "UKX",
           "TickerInMetatrader": "UK100",
-          "Timeframe": "M5",
+          "Timeframe": "M10",
           "StrategyNr": 4,
           "Risk": 0.15,
           "SLtoBEafterR": 1.0,
@@ -48,16 +69,17 @@
           "CancelStopOrLimitOrderWhenNewSignal": true,
           "NumberOfHistoricalBarsRequested": 100,
           "CloseAllTradesAt": "16:25",
+          "DoNotOpenTradeXMinutesBeforeClose": 20,
           "SpreadEntry": "Add",
           "SpreadSL": "Subtract",
           "SpreadTP": "Add",
-          "RiskMinXTimesTheSpread": 4,
+          "RiskMinXTimesTheSpread": 3,
           "CorrelatedPairs": []
         },
         {
-          "TickerInTradingView": "SPX",
-          "TickerInMetatrader": "SP500",
-          "Timeframe": "M5",
+          "TickerInTradingView": "NDX",
+          "TickerInMetatrader": "NDX",
+          "Timeframe": "M10",
           "StrategyNr": 4,
           "Risk": 0.15,
           "SLtoBEafterR": 1.0,
@@ -68,10 +90,11 @@
           "CancelStopOrLimitOrderWhenNewSignal": true,
           "NumberOfHistoricalBarsRequested": 100,
           "CloseAllTradesAt": "20:55",
+          "DoNotOpenTradeXMinutesBeforeClose": 20,
           "SpreadEntry": "Add",
           "SpreadSL": "Subtract",
           "SpreadTP": "Add",
-          "RiskMinXTimesTheSpread": 4,
+          "RiskMinXTimesTheSpread": 3,
           "CorrelatedPairs": []
         }
       ]
@@ -123,6 +146,7 @@
           "CancelStopOrLimitOrderWhenNewSignal": false,
           "NumberOfHistoricalBarsRequested": 100,
           "CloseAllTradesAt": null,
+          "DoNotOpenTradeXMinutesBeforeClose": null,
           "SpreadEntry": null,
           "SpreadSL": null,
           "SpreadTP": null,
@@ -143,6 +167,7 @@
           "CancelStopOrLimitOrderWhenNewSignal": false,
           "NumberOfHistoricalBarsRequested": 100,
           "CloseAllTradesAt": null,
+          "DoNotOpenTradeXMinutesBeforeClose": null,
           "SpreadEntry": null,
           "SpreadSL": null,
           "SpreadTP": null,
@@ -163,6 +188,7 @@
           "CancelStopOrLimitOrderWhenNewSignal": false,
           "NumberOfHistoricalBarsRequested": 100,
           "CloseAllTradesAt": null,
+          "DoNotOpenTradeXMinutesBeforeClose": null,
           "SpreadEntry": null,
           "SpreadSL": null,
           "SpreadTP": null,
@@ -183,6 +209,7 @@
           "CancelStopOrLimitOrderWhenNewSignal": false,
           "NumberOfHistoricalBarsRequested": 100,
           "CloseAllTradesAt": null,
+          "DoNotOpenTradeXMinutesBeforeClose": null,
           "SpreadEntry": null,
           "SpreadSL": null,
           "SpreadTP": null,
@@ -203,6 +230,7 @@
           "CancelStopOrLimitOrderWhenNewSignal": false,
           "NumberOfHistoricalBarsRequested": 100,
           "CloseAllTradesAt": null,
+          "DoNotOpenTradeXMinutesBeforeClose": null,
           "SpreadEntry": null,
           "SpreadSL": null,
           "SpreadTP": null,
@@ -223,6 +251,7 @@
           "CancelStopOrLimitOrderWhenNewSignal": false,
           "NumberOfHistoricalBarsRequested": 100,
           "CloseAllTradesAt": null,
+          "DoNotOpenTradeXMinutesBeforeClose": null,
           "SpreadEntry": null,
           "SpreadSL": null,
           "SpreadTP": null,
@@ -243,6 +272,7 @@
           "CancelStopOrLimitOrderWhenNewSignal": false,
           "NumberOfHistoricalBarsRequested": 100,
           "CloseAllTradesAt": null,
+          "DoNotOpenTradeXMinutesBeforeClose": null,
           "SpreadEntry": null,
           "SpreadSL": null,
           "SpreadTP": null,
@@ -263,6 +293,7 @@
           "CancelStopOrLimitOrderWhenNewSignal": false,
           "NumberOfHistoricalBarsRequested": 100,
           "CloseAllTradesAt": null,
+          "DoNotOpenTradeXMinutesBeforeClose": null,
           "SpreadEntry": null,
           "SpreadSL": null,
           "SpreadTP": null,
@@ -283,6 +314,7 @@
           "CancelStopOrLimitOrderWhenNewSignal": false,
           "NumberOfHistoricalBarsRequested": 100,
           "CloseAllTradesAt": null,
+          "DoNotOpenTradeXMinutesBeforeClose": null,
           "SpreadEntry": null,
           "SpreadSL": null,
           "SpreadTP": null,
@@ -303,6 +335,7 @@
           "CancelStopOrLimitOrderWhenNewSignal": false,
           "NumberOfHistoricalBarsRequested": 100,
           "CloseAllTradesAt": null,
+          "DoNotOpenTradeXMinutesBeforeClose": null,
           "SpreadEntry": null,
           "SpreadSL": null,
           "SpreadTP": null,
@@ -323,11 +356,12 @@
           "CancelStopOrLimitOrderWhenNewSignal": false,
           "NumberOfHistoricalBarsRequested": 100,
           "CloseAllTradesAt": null,
+          "DoNotOpenTradeXMinutesBeforeClose": null,
           "SpreadEntry": null,
           "SpreadSL": null,
           "SpreadTP": null,
           "RiskMinXTimesTheSpread": 4,
-          "CorrelatedPairs": []
+          "CorrelatedPairs": [ "FRA40.cash", "UK100.cash" ]
         },
         {
           "TickerInTradingView": "PX1",
@@ -343,11 +377,12 @@
           "CancelStopOrLimitOrderWhenNewSignal": false,
           "NumberOfHistoricalBarsRequested": 100,
           "CloseAllTradesAt": null,
+          "DoNotOpenTradeXMinutesBeforeClose": null,
           "SpreadEntry": null,
           "SpreadSL": null,
           "SpreadTP": null,
           "RiskMinXTimesTheSpread": 4,
-          "CorrelatedPairs": []
+          "CorrelatedPairs": [ "EU50.cash", "UK100.cash" ]
         },
         {
           "TickerInTradingView": "UKX",
@@ -363,11 +398,12 @@
           "CancelStopOrLimitOrderWhenNewSignal": false,
           "NumberOfHistoricalBarsRequested": 100,
           "CloseAllTradesAt": null,
+          "DoNotOpenTradeXMinutesBeforeClose": null,
           "SpreadEntry": null,
           "SpreadSL": null,
           "SpreadTP": null,
           "RiskMinXTimesTheSpread": 4,
-          "CorrelatedPairs": []
+          "CorrelatedPairs": [ "EU50.cash", "FRA40.cash" ]
         },
         {
           "TickerInTradingView": "SPX",
@@ -382,11 +418,12 @@
           "CancelStopOrLimitOrderWhenNewSignal": false,
           "NumberOfHistoricalBarsRequested": 100,
           "CloseAllTradesAt": null,
+          "DoNotOpenTradeXMinutesBeforeClose": null,
           "SpreadEntry": null,
           "SpreadSL": null,
           "SpreadTP": null,
           "RiskMinXTimesTheSpread": 4,
-          "CorrelatedPairs": []
+          "CorrelatedPairs": [ "US30.cash" ]
         },
         {
           "TickerInTradingView": "DJI",
@@ -402,11 +439,12 @@
           "CancelStopOrLimitOrderWhenNewSignal": false,
           "NumberOfHistoricalBarsRequested": 100,
           "CloseAllTradesAt": null,
+          "DoNotOpenTradeXMinutesBeforeClose": null,
           "SpreadEntry": null,
           "SpreadSL": null,
           "SpreadTP": null,
           "RiskMinXTimesTheSpread": 4,
-          "CorrelatedPairs": []
+          "CorrelatedPairs": [ "US500.cash" ]
         },
         {
           "TickerInTradingView": "BTCUSD",
@@ -422,11 +460,12 @@
           "CancelStopOrLimitOrderWhenNewSignal": true,
           "NumberOfHistoricalBarsRequested": 100,
           "CloseAllTradesAt": null,
+          "DoNotOpenTradeXMinutesBeforeClose": null,
           "SpreadEntry": null,
           "SpreadSL": null,
           "SpreadTP": null,
           "RiskMinXTimesTheSpread": 4,
-          "CorrelatedPairs": []
+          "CorrelatedPairs": [ "ETHUSD" ]
         },
         {
           "TickerInTradingView": "ETHUSD",
@@ -442,11 +481,12 @@
           "CancelStopOrLimitOrderWhenNewSignal": true,
           "NumberOfHistoricalBarsRequested": 100,
           "CloseAllTradesAt": null,
+          "DoNotOpenTradeXMinutesBeforeClose": null,
           "SpreadEntry": null,
           "SpreadSL": null,
           "SpreadTP": null,
           "RiskMinXTimesTheSpread": 4,
-          "CorrelatedPairs": []
+          "CorrelatedPairs": [ "BTCUSD" ]
         }
       ]
     },
@@ -464,9 +504,30 @@
       ],
       "Pairs": [
         {
+          "TickerInTradingView": "XJO",
+          "TickerInMetatrader": "ASXAUD",
+          "Timeframe": "M10",
+          "StrategyNr": 4,
+          "Risk": 0.15,
+          "SLtoBEafterR": 1.0,
+          "MaxSpread": 2.0,
+          "SLMultiplier": 1.02,
+          "MaxLotSize": 1000,
+          "OrderExecType": "Active",
+          "CancelStopOrLimitOrderWhenNewSignal": true,
+          "NumberOfHistoricalBarsRequested": 100,
+          "CloseAllTradesAt": "04:55",
+          "DoNotOpenTradeXMinutesBeforeClose": 20,
+          "SpreadEntry": "Add",
+          "SpreadSL": "Subtract",
+          "SpreadTP": "Add",
+          "RiskMinXTimesTheSpread": 3,
+          "CorrelatedPairs": []
+        },
+        {
           "TickerInTradingView": "UKX",
           "TickerInMetatrader": "FTSGBP",
-          "Timeframe": "M5",
+          "Timeframe": "M10",
           "StrategyNr": 4,
           "Risk": 0.15,
           "SLtoBEafterR": 1.0,
@@ -477,16 +538,17 @@
           "CancelStopOrLimitOrderWhenNewSignal": true,
           "NumberOfHistoricalBarsRequested": 100,
           "CloseAllTradesAt": "16:25",
+          "DoNotOpenTradeXMinutesBeforeClose": 20,
           "SpreadEntry": "Add",
           "SpreadSL": "Subtract",
           "SpreadTP": "Add",
-          "RiskMinXTimesTheSpread": 4,
+          "RiskMinXTimesTheSpread": 3,
           "CorrelatedPairs": []
         },
         {
-          "TickerInTradingView": "SPX",
-          "TickerInMetatrader": "SPXUSD",
-          "Timeframe": "M5",
+          "TickerInTradingView": "NDX",
+          "TickerInMetatrader": "NDXUSD",
+          "Timeframe": "M10",
           "StrategyNr": 4,
           "Risk": 0.15,
           "SLtoBEafterR": 1.0,
@@ -497,10 +559,11 @@
           "CancelStopOrLimitOrderWhenNewSignal": true,
           "NumberOfHistoricalBarsRequested": 100,
           "CloseAllTradesAt": "20:55",
+          "DoNotOpenTradeXMinutesBeforeClose": 20,
           "SpreadEntry": "Add",
           "SpreadSL": "Subtract",
           "SpreadTP": "Add",
-          "RiskMinXTimesTheSpread": 4,
+          "RiskMinXTimesTheSpread": 3,
           "CorrelatedPairs": []
         }
       ]
@@ -552,6 +615,7 @@
           "CancelStopOrLimitOrderWhenNewSignal": true,
           "NumberOfHistoricalBarsRequested": 100,
           "CloseAllTradesAt": null,
+          "DoNotOpenTradeXMinutesBeforeClose": null,
           "SpreadEntry": "Add",
           "SpreadSL": "Subtract",
           "SpreadTP": "Add",
@@ -572,11 +636,12 @@
           "CancelStopOrLimitOrderWhenNewSignal": true,
           "NumberOfHistoricalBarsRequested": 100,
           "CloseAllTradesAt": null,
+          "DoNotOpenTradeXMinutesBeforeClose": null,
           "SpreadEntry": "Add",
           "SpreadSL": "Subtract",
           "SpreadTP": "Add",
           "RiskMinXTimesTheSpread": 4,
-          "CorrelatedPairs": []
+          "CorrelatedPairs": [ "UK100.r" ]
         },
         {
           "TickerInTradingView": "UKX",
@@ -592,11 +657,12 @@
           "CancelStopOrLimitOrderWhenNewSignal": true,
           "NumberOfHistoricalBarsRequested": 100,
           "CloseAllTradesAt": null,
+          "DoNotOpenTradeXMinutesBeforeClose": null,
           "SpreadEntry": "Add",
           "SpreadSL": "Subtract",
           "SpreadTP": "Add",
           "RiskMinXTimesTheSpread": 4,
-          "CorrelatedPairs": []
+          "CorrelatedPairs": [ "STOXX50.r" ]
         },
         {
           "TickerInTradingView": "SPX",
@@ -612,11 +678,33 @@
           "CancelStopOrLimitOrderWhenNewSignal": true,
           "NumberOfHistoricalBarsRequested": 100,
           "CloseAllTradesAt": null,
+          "DoNotOpenTradeXMinutesBeforeClose": null,
           "SpreadEntry": "Add",
           "SpreadSL": "Subtract",
           "SpreadTP": "Add",
           "RiskMinXTimesTheSpread": 4,
-          "CorrelatedPairs": []
+          "CorrelatedPairs": [ "USTEC.r" ]
+        },
+        {
+          "TickerInTradingView": "NDX",
+          "TickerInMetatrader": "USTEC.r",
+          "Timeframe": "M30",
+          "StrategyNr": 3,
+          "Risk": 0.15,
+          "SLtoBEafterR": 1.0,
+          "MaxSpread": 3.0,
+          "SLMultiplier": 1.02,
+          "MaxLotSize": 1000,
+          "OrderExecType": "Active",
+          "CancelStopOrLimitOrderWhenNewSignal": true,
+          "NumberOfHistoricalBarsRequested": 100,
+          "CloseAllTradesAt": null,
+          "DoNotOpenTradeXMinutesBeforeClose": null,
+          "SpreadEntry": "Add",
+          "SpreadSL": "Subtract",
+          "SpreadTP": "Add",
+          "RiskMinXTimesTheSpread": 4,
+          "CorrelatedPairs": [ "US500.r" ]
         },
         {
           "TickerInTradingView": "BTCUSD",
@@ -632,11 +720,12 @@
           "CancelStopOrLimitOrderWhenNewSignal": true,
           "NumberOfHistoricalBarsRequested": 100,
           "CloseAllTradesAt": null,
+          "DoNotOpenTradeXMinutesBeforeClose": null,
           "SpreadEntry": "Add",
           "SpreadSL": "Subtract",
           "SpreadTP": "Add",
           "RiskMinXTimesTheSpread": 4,
-          "CorrelatedPairs": []
+          "CorrelatedPairs": [ "ETHUSD.r" ]
         },
         {
           "TickerInTradingView": "ETHUSD",
@@ -652,6 +741,28 @@
           "CancelStopOrLimitOrderWhenNewSignal": true,
           "NumberOfHistoricalBarsRequested": 100,
           "CloseAllTradesAt": null,
+          "DoNotOpenTradeXMinutesBeforeClose": null,
+          "SpreadEntry": "Add",
+          "SpreadSL": "Subtract",
+          "SpreadTP": "Add",
+          "RiskMinXTimesTheSpread": 4,
+          "CorrelatedPairs": [ "BTCUSD.r" ]
+        },
+        {
+          "TickerInTradingView": "USDJPY",
+          "TickerInMetatrader": "USDJPY.r",
+          "Timeframe": "M30",
+          "StrategyNr": 3,
+          "Risk": 0.15,
+          "SLtoBEafterR": 1.0,
+          "MaxSpread": 1.0,
+          "SLMultiplier": 1.02,
+          "MaxLotSize": 1000,
+          "OrderExecType": "Active",
+          "CancelStopOrLimitOrderWhenNewSignal": true,
+          "NumberOfHistoricalBarsRequested": 100,
+          "CloseAllTradesAt": null,
+          "DoNotOpenTradeXMinutesBeforeClose": null,
           "SpreadEntry": "Add",
           "SpreadSL": "Subtract",
           "SpreadTP": "Add",
@@ -707,10 +818,12 @@
           "CancelStopOrLimitOrderWhenNewSignal": true,
           "NumberOfHistoricalBarsRequested": 100,
           "CloseAllTradesAt": null,
+          "DoNotOpenTradeXMinutesBeforeClose": null,
           "SpreadEntry": null,
           "SpreadSL": "Subtract",
           "SpreadTP": "Add",
-          "RiskMinXTimesTheSpread": 4
+          "RiskMinXTimesTheSpread": 4,
+          "CorrelatedPairs": []
         },
         {
           "TickerInTradingView": "MATICUSD",
@@ -726,10 +839,12 @@
           "CancelStopOrLimitOrderWhenNewSignal": true,
           "NumberOfHistoricalBarsRequested": 100,
           "CloseAllTradesAt": null,
+          "DoNotOpenTradeXMinutesBeforeClose": null,
           "SpreadEntry": null,
           "SpreadSL": "Subtract",
           "SpreadTP": "Add",
-          "RiskMinXTimesTheSpread": 4
+          "RiskMinXTimesTheSpread": 4,
+          "CorrelatedPairs": []
         },
         {
           "TickerInTradingView": "ETHUSD",
@@ -745,10 +860,12 @@
           "CancelStopOrLimitOrderWhenNewSignal": true,
           "NumberOfHistoricalBarsRequested": 100,
           "CloseAllTradesAt": null,
+          "DoNotOpenTradeXMinutesBeforeClose": null,
           "SpreadEntry": null,
           "SpreadSL": "Subtract",
           "SpreadTP": "Add",
-          "RiskMinXTimesTheSpread": 4
+          "RiskMinXTimesTheSpread": 4,
+          "CorrelatedPairs": []
         },
         {
           "TickerInTradingView": "UNIUSD",
@@ -764,10 +881,12 @@
           "CancelStopOrLimitOrderWhenNewSignal": true,
           "NumberOfHistoricalBarsRequested": 100,
           "CloseAllTradesAt": null,
+          "DoNotOpenTradeXMinutesBeforeClose": null,
           "SpreadEntry": null,
           "SpreadSL": "Subtract",
           "SpreadTP": "Add",
-          "RiskMinXTimesTheSpread": 4
+          "RiskMinXTimesTheSpread": 4,
+          "CorrelatedPairs": []
         },
         {
           "TickerInTradingView": "SOLUSD",
@@ -783,10 +902,12 @@
           "CancelStopOrLimitOrderWhenNewSignal": true,
           "NumberOfHistoricalBarsRequested": 100,
           "CloseAllTradesAt": null,
+          "DoNotOpenTradeXMinutesBeforeClose": null,
           "SpreadEntry": null,
           "SpreadSL": "Subtract",
           "SpreadTP": "Add",
-          "RiskMinXTimesTheSpread": 4
+          "RiskMinXTimesTheSpread": 4,
+          "CorrelatedPairs": []
         },
         {
           "TickerInTradingView": "SKLUSD",
@@ -802,10 +923,12 @@
           "CancelStopOrLimitOrderWhenNewSignal": true,
           "NumberOfHistoricalBarsRequested": 100,
           "CloseAllTradesAt": null,
+          "DoNotOpenTradeXMinutesBeforeClose": null,
           "SpreadEntry": null,
           "SpreadSL": "Subtract",
           "SpreadTP": "Add",
-          "RiskMinXTimesTheSpread": 4
+          "RiskMinXTimesTheSpread": 4,
+          "CorrelatedPairs": []
         }
       ]
     },
@@ -876,6 +999,7 @@
           "CancelStopOrLimitOrderWhenNewSignal": true,
           "NumberOfHistoricalBarsRequested": 100,
           "CloseAllTradesAt": null,
+          "DoNotOpenTradeXMinutesBeforeClose": null,
           "SpreadEntry": "Add",
           "SpreadSL": "Subtract",
           "SpreadTP": "Add",
@@ -896,6 +1020,7 @@
           "CancelStopOrLimitOrderWhenNewSignal": true,
           "NumberOfHistoricalBarsRequested": 100,
           "CloseAllTradesAt": null,
+          "DoNotOpenTradeXMinutesBeforeClose": null,
           "SpreadEntry": "Add",
           "SpreadSL": "Subtract",
           "SpreadTP": "Add",
@@ -916,6 +1041,7 @@
           "CancelStopOrLimitOrderWhenNewSignal": true,
           "NumberOfHistoricalBarsRequested": 100,
           "CloseAllTradesAt": null,
+          "DoNotOpenTradeXMinutesBeforeClose": null,
           "SpreadEntry": "Add",
           "SpreadSL": "Subtract",
           "SpreadTP": "Add",
@@ -936,11 +1062,33 @@
           "CancelStopOrLimitOrderWhenNewSignal": true,
           "NumberOfHistoricalBarsRequested": 100,
           "CloseAllTradesAt": null,
+          "DoNotOpenTradeXMinutesBeforeClose": null,
           "SpreadEntry": "Add",
           "SpreadSL": "Subtract",
           "SpreadTP": "Add",
           "RiskMinXTimesTheSpread": 4,
-          "CorrelatedPairs": []
+          "CorrelatedPairs": [ "USTEC" ]
+        },
+        {
+          "TickerInTradingView": "NDX",
+          "TickerInMetatrader": "USTEC",
+          "Timeframe": "M30",
+          "StrategyNr": 3,
+          "Risk": 0.15,
+          "SLtoBEafterR": 1.0,
+          "MaxSpread": 1.5,
+          "SLMultiplier": 1.02,
+          "MaxLotSize": 1000,
+          "OrderExecType": "Active",
+          "CancelStopOrLimitOrderWhenNewSignal": true,
+          "NumberOfHistoricalBarsRequested": 100,
+          "CloseAllTradesAt": null,
+          "DoNotOpenTradeXMinutesBeforeClose": null,
+          "SpreadEntry": "Add",
+          "SpreadSL": "Subtract",
+          "SpreadTP": "Add",
+          "RiskMinXTimesTheSpread": 4,
+          "CorrelatedPairs": [ "US500" ]
         },
         {
           "TickerInTradingView": "BTCUSD",
@@ -956,6 +1104,7 @@
           "CancelStopOrLimitOrderWhenNewSignal": true,
           "NumberOfHistoricalBarsRequested": 100,
           "CloseAllTradesAt": null,
+          "DoNotOpenTradeXMinutesBeforeClose": null,
           "SpreadEntry": "Add",
           "SpreadSL": "Subtract",
           "SpreadTP": "Add",
@@ -976,11 +1125,33 @@
           "CancelStopOrLimitOrderWhenNewSignal": true,
           "NumberOfHistoricalBarsRequested": 100,
           "CloseAllTradesAt": null,
+          "DoNotOpenTradeXMinutesBeforeClose": null,
           "SpreadEntry": "Add",
           "SpreadSL": "Subtract",
           "SpreadTP": "Add",
           "RiskMinXTimesTheSpread": 4,
           "CorrelatedPairs": [ "BTCUSD" ]
+        },
+        {
+          "TickerInTradingView": "USDJPY",
+          "TickerInMetatrader": "USDJPY",
+          "Timeframe": "M30",
+          "StrategyNr": 3,
+          "Risk": 0.15,
+          "SLtoBEafterR": 1.0,
+          "MaxSpread": 1.0,
+          "SLMultiplier": 1.02,
+          "MaxLotSize": 1000,
+          "OrderExecType": "Active",
+          "CancelStopOrLimitOrderWhenNewSignal": true,
+          "NumberOfHistoricalBarsRequested": 100,
+          "CloseAllTradesAt": null,
+          "DoNotOpenTradeXMinutesBeforeClose": null,
+          "SpreadEntry": "Add",
+          "SpreadSL": "Subtract",
+          "SpreadTP": "Add",
+          "RiskMinXTimesTheSpread": 4,
+          "CorrelatedPairs": []
         }
       ]
     },
@@ -1051,11 +1222,12 @@
           "CancelStopOrLimitOrderWhenNewSignal": true,
           "NumberOfHistoricalBarsRequested": 100,
           "CloseAllTradesAt": null,
+          "DoNotOpenTradeXMinutesBeforeClose": null,
           "SpreadEntry": "Add",
           "SpreadSL": "Subtract",
           "SpreadTP": "Add",
           "RiskMinXTimesTheSpread": 4,
-          "CorrelatedPairs": [ "STOXX50" ]
+          "CorrelatedPairs": []
         },
         {
           "TickerInTradingView": "SPX",
@@ -1071,6 +1243,49 @@
           "CancelStopOrLimitOrderWhenNewSignal": true,
           "NumberOfHistoricalBarsRequested": 100,
           "CloseAllTradesAt": null,
+          "DoNotOpenTradeXMinutesBeforeClose": null,
+          "SpreadEntry": "Add",
+          "SpreadSL": "Subtract",
+          "SpreadTP": "Add",
+          "RiskMinXTimesTheSpread": 4,
+          "CorrelatedPairs": [ "NAS100"]
+        },
+        {
+          "TickerInTradingView": "NDX",
+          "TickerInMetatrader": "NAS100",
+          "Timeframe": "M30",
+          "StrategyNr": 3,
+          "Risk": 0.25,
+          "SLtoBEafterR": 1.0,
+          "MaxSpread": 1.5,
+          "SLMultiplier": 1.02,
+          "MaxLotSize": 1000,
+          "OrderExecType": "Active",
+          "CancelStopOrLimitOrderWhenNewSignal": true,
+          "NumberOfHistoricalBarsRequested": 100,
+          "CloseAllTradesAt": null,
+          "DoNotOpenTradeXMinutesBeforeClose": null,
+          "SpreadEntry": "Add",
+          "SpreadSL": "Subtract",
+          "SpreadTP": "Add",
+          "RiskMinXTimesTheSpread": 4,
+          "CorrelatedPairs": [ "SP500" ]
+        },
+        {
+          "TickerInTradingView": "NDX",
+          "TickerInMetatrader": "NAS100",
+          "Timeframe": "M30",
+          "StrategyNr": 3,
+          "Risk": 0.5,
+          "SLtoBEafterR": 1.0,
+          "MaxSpread": 1.5,
+          "SLMultiplier": 1.02,
+          "MaxLotSize": 1000,
+          "OrderExecType": "Active",
+          "CancelStopOrLimitOrderWhenNewSignal": true,
+          "NumberOfHistoricalBarsRequested": 100,
+          "CloseAllTradesAt": null,
+          "DoNotOpenTradeXMinutesBeforeClose": null,
           "SpreadEntry": "Add",
           "SpreadSL": "Subtract",
           "SpreadTP": "Add",
@@ -1082,7 +1297,7 @@
           "TickerInMetatrader": "BTCUSD",
           "Timeframe": "M15",
           "StrategyNr": 3,
-          "Risk": 0.25,
+          "Risk": 0.05,
           "SLtoBEafterR": 1.0,
           "MaxSpread": 15.0,
           "SLMultiplier": 1.02,
@@ -1091,6 +1306,7 @@
           "CancelStopOrLimitOrderWhenNewSignal": true,
           "NumberOfHistoricalBarsRequested": 100,
           "CloseAllTradesAt": null,
+          "DoNotOpenTradeXMinutesBeforeClose": null,
           "SpreadEntry": "Add",
           "SpreadSL": "Subtract",
           "SpreadTP": "Add",
@@ -1102,7 +1318,7 @@
           "TickerInMetatrader": "ETHUSD",
           "Timeframe": "M15",
           "StrategyNr": 3,
-          "Risk": 0.25,
+          "Risk": 0.05,
           "SLtoBEafterR": 1.0,
           "MaxSpread": 1.5,
           "SLMultiplier": 1.02,
@@ -1111,11 +1327,193 @@
           "CancelStopOrLimitOrderWhenNewSignal": true,
           "NumberOfHistoricalBarsRequested": 100,
           "CloseAllTradesAt": null,
+          "DoNotOpenTradeXMinutesBeforeClose": null,
           "SpreadEntry": "Add",
           "SpreadSL": "Subtract",
           "SpreadTP": "Add",
           "RiskMinXTimesTheSpread": 4,
           "CorrelatedPairs": [ "BTCUSD" ]
+        },
+        {
+          "TickerInTradingView": "USDJPY",
+          "TickerInMetatrader": "USDJPY",
+          "Timeframe": "M30",
+          "StrategyNr": 3,
+          "Risk": 0.5,
+          "SLtoBEafterR": 1.0,
+          "MaxSpread": 1.5,
+          "SLMultiplier": 1.02,
+          "MaxLotSize": 1000,
+          "OrderExecType": "Active",
+          "CancelStopOrLimitOrderWhenNewSignal": true,
+          "NumberOfHistoricalBarsRequested": 100,
+          "CloseAllTradesAt": null,
+          "DoNotOpenTradeXMinutesBeforeClose": null,
+          "SpreadEntry": "Add",
+          "SpreadSL": "Subtract",
+          "SpreadTP": "Add",
+          "RiskMinXTimesTheSpread": 4,
+          "CorrelatedPairs": []
+        }
+      ]
+    },
+    {
+      "Name": "TRADIAC - MT5",
+      "MetaTraderDirPath": "C:\\Users\\joeri.pansaerts\\AppData\\Roaming\\MetaQuotes\\Terminal\\B3D74D5B5DF8C58079A4A71DEDBED39F\\MQL5\\Files\\",
+      "ClientId": 242455,
+      "StartBalance": 20000,
+      "IsEnable": true,
+      "Risk": [
+        {
+          "Procent": -5.5,
+          "Multiplier": 0.90
+        },
+        {
+          "Procent": -4.0,
+          "Multiplier": 0.80
+        },
+        {
+          "Procent": -3.0,
+          "Multiplier": 0.60
+        },
+        {
+          "Procent": -2.0,
+          "Multiplier": 0.50
+        },
+        {
+          "Procent": -1.0,
+          "Multiplier": 0.75
+        },
+        {
+          "Procent": 0,
+          "Multiplier": 1
+        },
+        {
+          "Procent": 1.0,
+          "Multiplier": 1.1
+        },
+        {
+          "Procent": 2.0,
+          "Multiplier": 1.25
+        },
+        {
+          "Procent": 3.0,
+          "Multiplier": 1.40
+        },
+        {
+          "Procent": 4.0,
+          "Multiplier": 1.50
+        },
+        {
+          "Procent": 5.0,
+          "Multiplier": 2.00
+        }
+      ],
+      "Pairs": [
+        {
+          "TickerInTradingView": "SX5E",
+          "TickerInMetatrader": "EU50",
+          "Timeframe": "M30",
+          "StrategyNr": 3,
+          "Risk": 0.5,
+          "SLtoBEafterR": 1.0,
+          "MaxSpread": 1.5,
+          "SLMultiplier": 1.02,
+          "MaxLotSize": 1000,
+          "OrderExecType": "Active",
+          "CancelStopOrLimitOrderWhenNewSignal": true,
+          "NumberOfHistoricalBarsRequested": 100,
+          "CloseAllTradesAt": null,
+          "DoNotOpenTradeXMinutesBeforeClose": null,
+          "SpreadEntry": "Add",
+          "SpreadSL": "Subtract",
+          "SpreadTP": "Add",
+          "RiskMinXTimesTheSpread": 4,
+          "CorrelatedPairs": [ "UK100" ]
+        },
+        {
+          "TickerInTradingView": "UKX",
+          "TickerInMetatrader": "UK100",
+          "Timeframe": "M30",
+          "StrategyNr": 3,
+          "Risk": 0.5,
+          "SLtoBEafterR": 1.0,
+          "MaxSpread": 1.5,
+          "SLMultiplier": 1.02,
+          "MaxLotSize": 1000,
+          "OrderExecType": "Active",
+          "CancelStopOrLimitOrderWhenNewSignal": true,
+          "NumberOfHistoricalBarsRequested": 100,
+          "CloseAllTradesAt": null,
+          "DoNotOpenTradeXMinutesBeforeClose": null,
+          "SpreadEntry": "Add",
+          "SpreadSL": "Subtract",
+          "SpreadTP": "Add",
+          "RiskMinXTimesTheSpread": 4,
+          "CorrelatedPairs": [ "EU50" ]
+        },
+        {
+          "TickerInTradingView": "SPX",
+          "TickerInMetatrader": "US500",
+          "Timeframe": "M30",
+          "StrategyNr": 3,
+          "Risk": 0.5,
+          "SLtoBEafterR": 1.0,
+          "MaxSpread": 1.5,
+          "SLMultiplier": 1.02,
+          "MaxLotSize": 1000,
+          "OrderExecType": "Active",
+          "CancelStopOrLimitOrderWhenNewSignal": true,
+          "NumberOfHistoricalBarsRequested": 100,
+          "CloseAllTradesAt": null,
+          "DoNotOpenTradeXMinutesBeforeClose": null,
+          "SpreadEntry": "Add",
+          "SpreadSL": "Subtract",
+          "SpreadTP": "Add",
+          "RiskMinXTimesTheSpread": 4,
+          "CorrelatedPairs": []
+        },
+        {
+          "TickerInTradingView": "NDX",
+          "TickerInMetatrader": "US100",
+          "Timeframe": "M30",
+          "StrategyNr": 3,
+          "Risk": 0.5,
+          "SLtoBEafterR": 1.0,
+          "MaxSpread": 1.5,
+          "SLMultiplier": 1.02,
+          "MaxLotSize": 1000,
+          "OrderExecType": "Active",
+          "CancelStopOrLimitOrderWhenNewSignal": true,
+          "NumberOfHistoricalBarsRequested": 100,
+          "CloseAllTradesAt": null,
+          "DoNotOpenTradeXMinutesBeforeClose": null,
+          "SpreadEntry": "Add",
+          "SpreadSL": "Subtract",
+          "SpreadTP": "Add",
+          "RiskMinXTimesTheSpread": 4,
+          "CorrelatedPairs": []
+        },
+        {
+          "TickerInTradingView": "USDJPY",
+          "TickerInMetatrader": "USDJPY",
+          "Timeframe": "M30",
+          "StrategyNr": 3,
+          "Risk": 0.5,
+          "SLtoBEafterR": 1.0,
+          "MaxSpread": 1.5,
+          "SLMultiplier": 1.02,
+          "MaxLotSize": 1000,
+          "OrderExecType": "Active",
+          "CancelStopOrLimitOrderWhenNewSignal": true,
+          "NumberOfHistoricalBarsRequested": 100,
+          "CloseAllTradesAt": null,
+          "DoNotOpenTradeXMinutesBeforeClose": null,
+          "SpreadEntry": "Add",
+          "SpreadSL": "Subtract",
+          "SpreadTP": "Add",
+          "RiskMinXTimesTheSpread": 4,
+          "CorrelatedPairs": []
         }
       ]
     }
