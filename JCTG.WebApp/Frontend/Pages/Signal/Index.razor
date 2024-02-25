@@ -29,8 +29,9 @@ else
                 <div class="card">
                     <div class="card-body">
                         <h5 class="card-title">@signal.Instrument @signal.OrderType</h5>
-                        <p class="card-text">@signal.StrategyType</p>
                         <p class="card-text">@signal.DateCreated</p>
+                        <p class="card-text">@signal.StrategyType</p>
+                        <p class="card-text">@signal.TradingviewStateType</p>
                         <div>
                             <a href="@($"Signals/{signal.ID}/Orders")"> View trading Journal</a>
                         </div>

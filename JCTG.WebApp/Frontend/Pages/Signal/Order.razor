@@ -1,7 +1,6 @@
 ﻿@page "/Signals/{signalid:long}/Orders";
 @inject SignalRepository _signalRepository;
 @inject ClientRepository _clientRepository;
-@inject NavigationManager _navigationManager;
 
 <h3>Orders</h3>
 @if (_orders.Count() <= 0)
@@ -10,6 +9,28 @@
 }
 else
 {
+
+    @if (_signal != null)
+    {
+        <div class="row" style="background-color:lightgray;">
+            <div class="col-md-6 mb-6">
+                Date created: @_signal.DateCreated<br />
+                Magic: @_signal.Magic<br />
+                EntryPrice: @_signal.EntryPrice<br />
+                StopLoss: @_signal.StopLoss<br />
+                TakeProfit: @_signal.TakeProfit<br />
+            </div>
+            <div class="col-md-6 mb-6">
+                EntryExpression: @_signal.EntryExpression<br />
+                Risk: @_signal.Risk<br />
+                RiskRewardRatio: @_signal.RiskRewardRatio<br />
+                TradingviewStateType: @_signal.TradingviewStateType<br />
+            </div>
+        </div>
+        <br />
+        <br />
+    }
+
     <div class="row">
         @foreach (var order in _orders)
         {
@@ -25,25 +46,27 @@ else
             </div>
         }
     </div>
-}
 
-<br />
-<br />
-<h3>Clients with orders for this signal</h3>
-<div class="row">
-    @foreach (var client in _clients)
-    {
-        <div class="col-md-6 mb-6">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">@client.Name</h5>
-                    <p class="card-text"></p>
-                    <div><a href="@($"Signals/{SignalId}/Orders/{client.ID}/Logs")"> View logs</a></div>
+    <br />
+    <br />
+    <h3>Clients with orders for this signal</h3>
+    <div class="row">
+        @foreach (var client in _clients)
+        {
+            <div class="col-md-6 mb-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">@client.Name</h5>
+                        <p class="card-text"></p>
+                        <div><a href="@($"Signals/{SignalId}/Orders/{client.ID}/Logs")"> View logs</a></div>
+                    </div>
                 </div>
             </div>
-        </div>
-    }
-</div>
+        }
+    </div>
+
+}
+
 
 
 @code {
@@ -52,22 +75,23 @@ else
     public long SignalId { get; set; }
 
 
+    private Entity.Signal? _signal = null;
     private List<Entity.Order> _orders = new List<Entity.Order>();
     private List<Entity.Client> _clients = new List<Entity.Client>();
 
     protected async override Task OnInitializedAsync()
     {
-        var signal = await _signalRepository.GetById(692803787, SignalId);
+        _signal = await _signalRepository.GetById(692803787, SignalId);
         var clients = await _clientRepository.GetAll(692803787);
 
-        if (signal != null)
+        if (_signal != null)
         {
-            _orders = signal.Orders;
+            _orders = _signal.Orders;
         }
 
         foreach (var client in clients)
         {
-            if(!_orders.Any(f => f.ClientID == client.ID))
+            if (!_orders.Any(f => f.ClientID == client.ID))
             {
                 _clients.Add(client);
             }

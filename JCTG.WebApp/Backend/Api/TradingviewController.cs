@@ -65,6 +65,20 @@ namespace JCTG.WebApp.Backend.Api
                         case "sellstop":
                             // If the order type is one of the order types, add the signal to the database
                             await _dbContext.Signal.AddAsync(signal);
+
+                            // Save to the database
+                            await _dbContext.SaveChangesAsync();
+
+                            // Add to the tradingview alert
+                            await _dbContext.TradingviewAlert.AddAsync(new TradingviewAlert()
+                            {
+                                DateCreated = DateTime.UtcNow,
+                                RawMessage = requestBody,
+                                SignalID = signal.ID,
+                                Type = TradingviewAlert.ParseTradingviewAlertTypeOrDefault(signal.OrderType.ToLower()),
+                            });
+
+                            // Save to the database
                             await _dbContext.SaveChangesAsync();
 
                             // Add log
@@ -114,14 +128,29 @@ namespace JCTG.WebApp.Backend.Api
                                 else if (signal.OrderType.Equals("behit", StringComparison.CurrentCultureIgnoreCase))
                                     existingSignal.TradingviewStateType = TradingviewStateType.BeHit;
                                 _dbContext.Signal.Update(existingSignal);
+
+                                // Add to the tradingview alert
+                                await _dbContext.TradingviewAlert.AddAsync(new TradingviewAlert()
+                                {
+                                    DateCreated = DateTime.UtcNow,
+                                    RawMessage = requestBody,
+                                    SignalID = existingSignal.ID,
+                                    Type = TradingviewAlert.ParseTradingviewAlertTypeOrDefault(signal.OrderType.ToLower()),
+                                });
                             }
+
+                            // Save to the database
                             await _dbContext.SaveChangesAsync();
+
                             break;
                         default:
                             // Optionally, handle unknown order types
                             _logger.Warning($"Unknown or not used ordertype: {signal.OrderType}");
                             break;
                     }
+
+
+                   
                 }
                 catch (Exception ex)
                 {

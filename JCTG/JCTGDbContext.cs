@@ -11,6 +11,8 @@ namespace JCTG
 
         public DbSet<Signal> Signal { get; set; }
 
+        public DbSet<TradingviewAlert> TradingviewAlert { get; set; }
+
         public DbSet<Order> Order { get; set; }
 
         public DbSet<Deal> Deal { get; set; }
@@ -25,6 +27,11 @@ namespace JCTG
                 .HasOne(ta => ta.Account)
                 .WithMany(t => t.Signals)
                 .HasForeignKey(ta => ta.AccountID);
+
+            modelBuilder.Entity<TradingviewAlert>()
+               .HasOne(ta => ta.Signal)
+               .WithMany(t => t.TradingviewAlerts)
+               .HasForeignKey(ta => ta.SignalID);
 
             modelBuilder.Entity<Order>()
                .HasOne(tj => tj.Client)
