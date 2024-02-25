@@ -45,7 +45,7 @@
     public required string Symbol { get; set; } = "BTCUSDT";
 
     private Chart? tv;
-    private List<Order> _orders = new();
+    private List<Entity.Order> _orders = new();
 
     protected async override Task OnInitializedAsync()
     {

@@ -1,4 +1,5 @@
 ﻿using JCTG.Entity;
+using JCTG.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace JCTG.WebApp.Backend.Repository;
@@ -9,6 +10,12 @@ public class SignalRepository(IDbContextFactory<JCTGDbContext> dbContextFactory)
     {
         using var context = await dbContextFactory.CreateDbContextAsync();
         return await context.Signal.Where(f => f.AccountID == accountId).OrderByDescending(f => f.DateCreated).ToListAsync();
+    }
+
+    public async Task<List<Signal>> GetAllByStrategy(int accountId, StrategyType strategyType)
+    {
+        using var context = await dbContextFactory.CreateDbContextAsync();
+        return await context.Signal.Where(f => f.AccountID == accountId && f.StrategyType == strategyType).OrderByDescending(f => f.DateCreated).ToListAsync();
     }
 
     public async Task<Signal?> GetById(int accountId,  long signalId)

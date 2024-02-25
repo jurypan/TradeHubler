@@ -10,39 +10,51 @@
 else
 {
     <div class="row">
-        <div class="col-4 border border-primary">
+        <div class="col-2 border border-primary">
             Date created
         </div>
-        <div class="col-4 border border-primary">
+        <div class="col-2 border border-primary">
             Type
         </div>
-        <div class="col-4 border border-primary">
+        <div class="col-2 border border-primary">
             Error Type
+        </div>
+         <div class="col-3 border border-primary">
+            Message
+        </div>
+        <div class="col-3 border border-primary">
+           Description
         </div>
     </div>
     <br />
     @foreach (var log in _logs)
     {
         <div class="row">
-            <div class="col-4 border border-secondary">
+            <div class="col-2 border border-secondary">
                 @log.DateCreated
             </div>
-            <div class="col-4  border border-secondary">
+            <div class="col-2  border border-secondary">
                 @log.Type
             </div>
-            <div class="col-4  border border-secondary">
+            <div class="col-2  border border-secondary">
                 @log.ErrorType
             </div>
-            <div class="col-12  border border-secondary">
-                @log.Message
-            </div>
-            @if (!string.IsNullOrEmpty(log.Description))
+           
+            @if (log.Description == null)
             {
-                <div class="col-12  border border-secondary">
-                    @log.Description
+                <div class="col-6  border border-secondary">
+                    @((MarkupString)log.Message?.Replace("||", "<br />").Replace(",", "<br />"))
                 </div>
             }
-            
+            else
+            {
+                <div class="col-3  border border-secondary">
+                    @((MarkupString)log.Message?.Replace("||", "<br />").Replace(",", "<br />"))
+                </div>
+                <div class="col-3  border border-secondary">
+                    @((MarkupString)log.Description?.Replace("||", "<br />").Replace(",", "<br />"))
+                </div>
+            }
         </div>
         <br />
     }

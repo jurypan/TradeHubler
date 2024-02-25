@@ -40,8 +40,8 @@
     public long ClientId { get; set; }
 
     private Chart? tv;
-    private IEnumerable<Deal>? deals;
-    private List<Order> _orders = new();
+    private IEnumerable<Entity.Deal>? deals;
+    private List<Entity.Order> _orders = new();
     private Client? client;
 
     protected async override Task OnInitializedAsync()

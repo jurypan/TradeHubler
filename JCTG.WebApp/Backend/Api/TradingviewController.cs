@@ -54,37 +54,74 @@ namespace JCTG.WebApp.Backend.Api
 
                     _logger.Information($"Parsed object to Signal : {JsonConvert.SerializeObject(signal)}", signal);
 
-                    await _dbContext.Signal.AddAsync(signal);
-                    await _dbContext.SaveChangesAsync();
-
-                    _logger.Information($"Added to database in table Signal with ID: {signal.ID}", signal);
-
-                    // Create model
-                    var id = await _server.SendOnTradingviewSignalCommandAsync(signal.AccountID, new OnSendTradingviewSignalCommand()
+                    // Check the order type of the signal
+                    switch (signal.OrderType.ToLower())
                     {
-                        SignalID = signal.ID,
-                        AccountID = signal.AccountID,
-                        Instrument = signal.Instrument,
-                        Magic = signal.ID,
-                        OrderType = signal.OrderType,
-                        StrategyType = signal.StrategyType,
-                        MarketOrder = signal.OrderType == "BUY" || signal.OrderType == "SELL" ? new OnReceivingTradingviewSignalEventMarketOrder()
-                        {
-                            StopLoss = Convert.ToDecimal(signal.StopLoss),
-                            Price = Convert.ToDecimal(signal.EntryPrice),
-                            TakeProfit = Convert.ToDecimal(signal.TakeProfit),
-                        } : null,
-                        PassiveOrder = signal.OrderType == "BUYSTOP" || signal.OrderType == "SELLSTOP" ? new OnReceivingTradingviewSignalEventPassiveOrder()
-                        {
-                            EntryExpression = signal.EntryExpression,
-                            Risk = Convert.ToDecimal(signal.Risk),
-                            RiskRewardRatio = Convert.ToDecimal(signal.RiskRewardRatio),
-                        } : null,
-                    });
+                        case "buy":
+                        case "buystop":
+                        case "buylimit":
+                        case "sell":
+                        case "selllimit":
+                        case "sellstop":
+                            // If the order type is one of the order types, add the signal to the database
+                            await _dbContext.Signal.AddAsync(signal);
+                            await _dbContext.SaveChangesAsync();
 
-                    _logger.Information($"Sent to Azure Web PubSub with response client request id: {id}", id);
+                            // Add log
+                            _logger.Information($"Added to database in table Signal with ID: {signal.ID}", signal);
 
+                            // Create model and send to the client
+                            var id = await _server.SendOnTradingviewSignalCommandAsync(signal.AccountID, new OnSendTradingviewSignalCommand()
+                            {
+                                SignalID = signal.ID,
+                                AccountID = signal.AccountID,
+                                Instrument = signal.Instrument,
+                                Magic = signal.ID,
+                                OrderType = signal.OrderType,
+                                StrategyType = signal.StrategyType,
+                                MarketOrder = signal.OrderType == "BUY" || signal.OrderType == "SELL" ? new OnReceivingTradingviewSignalEventMarketOrder()
+                                {
+                                    StopLoss = Convert.ToDecimal(signal.StopLoss),
+                                    Price = Convert.ToDecimal(signal.EntryPrice),
+                                    TakeProfit = Convert.ToDecimal(signal.TakeProfit),
+                                } : null,
+                                PassiveOrder = signal.OrderType == "BUYSTOP" || signal.OrderType == "SELLSTOP" ? new OnReceivingTradingviewSignalEventPassiveOrder()
+                                {
+                                    EntryExpression = signal.EntryExpression,
+                                    Risk = Convert.ToDecimal(signal.Risk),
+                                    RiskRewardRatio = Convert.ToDecimal(signal.RiskRewardRatio),
+                                } : null,
+                            });
 
+                            // Add log
+                            _logger.Information($"Sent to Azure Web PubSub with response client request id: {id}", id);
+                            break;
+                        case "tphit":
+                        case "slhit":
+                        case "behit":
+                            // Implement the logic to update the database based on instrument, client, and magic number.
+                            // This is a placeholder for your actual update logic.
+                            var existingSignals = _dbContext.Signal.Where(s => s.Instrument == signal.Instrument && s.AccountID == signal.AccountID && s.Magic == signal.Magic && s.StrategyType == signal.StrategyType);
+
+                            foreach (var existingSignal in existingSignals)
+                            {
+                                // Update properties based on your logic
+                                // For example: existingSignal.Status = "Updated";
+                                if (signal.OrderType.Equals("tphit", StringComparison.CurrentCultureIgnoreCase))
+                                    existingSignal.TradingviewStateType = TradingviewStateType.TpHit;
+                                else if (signal.OrderType.Equals("slhit", StringComparison.CurrentCultureIgnoreCase))
+                                    existingSignal.TradingviewStateType = TradingviewStateType.SlHit;
+                                else if (signal.OrderType.Equals("behit", StringComparison.CurrentCultureIgnoreCase))
+                                    existingSignal.TradingviewStateType = TradingviewStateType.BeHit;
+                                _dbContext.Signal.Update(existingSignal);
+                            }
+                            await _dbContext.SaveChangesAsync();
+                            break;
+                        default:
+                            // Optionally, handle unknown order types
+                            _logger.Warning($"Unknown or not used ordertype: {signal.OrderType}");
+                            break;
+                    }
                 }
                 catch (Exception ex)
                 {

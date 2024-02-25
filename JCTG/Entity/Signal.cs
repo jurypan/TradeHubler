@@ -9,6 +9,8 @@ namespace JCTG.Entity
         {
             DateCreated = DateTime.UtcNow;
             Logs = new List<Log>();
+            StrategyType = StrategyType.None;
+            TradingviewStateType = TradingviewStateType.None;
         }
 
         [Key]
@@ -35,7 +37,11 @@ namespace JCTG.Entity
         public double? RiskRewardRatio { get; set; }
 
 
+        // Tradingview State
+        public TradingviewStateType TradingviewStateType { get; set; }
 
+
+        // Links
         public List<Order> Orders { get; set; }
         public List<Log> Logs { get; set; }
 
@@ -49,7 +55,7 @@ namespace JCTG.Entity
                 throw new ArgumentException("Insufficient data. AccountID, Order Type, and Symbol are mandatory.");
             }
 
-            var tradeInfo = new Signal
+            var signal = new Signal
             {
                 AccountID = int.Parse(parts[0]),
                 OrderType = parts[1].ToUpper(),
@@ -58,15 +64,15 @@ namespace JCTG.Entity
 
             var optionalParams = new Dictionary<string, Action<string>>
             {
-                { "entryprice", value => tradeInfo.EntryPrice = double.Parse(value) },
-                { "currentprice", value => tradeInfo.CurrentPrice = double.Parse(value) },
-                { "sl", value => tradeInfo.StopLoss = double.Parse(value) },
-                { "tp", value => tradeInfo.TakeProfit = double.Parse(value) },
-                { "magic", value => tradeInfo.Magic = long.Parse(value) },
-                { "strategytype", value => tradeInfo.StrategyType = Enum.Parse<StrategyType>(value) },
-                { "entryexpr", value => tradeInfo.EntryExpression = value },
-                { "risk", value => tradeInfo.Risk = double.Parse(value) },
-                { "rr", value => tradeInfo.RiskRewardRatio = double.Parse(value)  },
+                { "entryprice", value => signal.EntryPrice = double.Parse(value) },
+                { "currentprice", value => signal.CurrentPrice = double.Parse(value) },
+                { "sl", value => signal.StopLoss = double.Parse(value) },
+                { "tp", value => signal.TakeProfit = double.Parse(value) },
+                { "magic", value => signal.Magic = long.Parse(value) },
+                { "strategytype", value => signal.StrategyType = Enum.Parse<StrategyType>(value) },
+                { "entryexpr", value => signal.EntryExpression = value },
+                { "risk", value => signal.Risk = double.Parse(value) },
+                { "rr", value => signal.RiskRewardRatio = double.Parse(value)  },
             };
 
             foreach (var part in parts[3..])
@@ -78,7 +84,20 @@ namespace JCTG.Entity
                 }
             }
 
-            return tradeInfo;
+            if (signal.StrategyType == StrategyType.None)
+            {
+                throw new ArgumentException("Insufficient data. StrategyType is mandatory.");
+            }
+
+            return signal;
         }
+    }
+
+    public enum TradingviewStateType
+    {
+        None = 0,
+        TpHit = 1,
+        SlHit = 2,
+        BeHit = 3
     }
 }

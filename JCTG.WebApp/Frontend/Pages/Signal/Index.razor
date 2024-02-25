@@ -1,5 +1,6 @@
 ﻿@page "/Signals";
 @inject SignalRepository _signalRepository;
+@using JCTG.Models;
 
 <h3>Signals</h3>
 @if (_signals.Count() <= 0)
@@ -8,6 +9,19 @@
 }
 else
 {
+    <div class="row">
+        <select @onchange="FilterChanged">
+            <option value="0">All</option>
+            @foreach (var strategy in Enum.GetValues(typeof(StrategyType)))
+            {
+                <option value="@((int)strategy)">@strategy</option>
+            }
+        </select>
+
+    </div>
+
+    <br />
+
     <div class="row">
         @foreach (var signal in _signals)
         {
@@ -28,10 +42,32 @@ else
 }
 
 @code {
-    private List<JCTG.Entity.Signal> _signals = new List<Entity.Signal>();
+    private List<Entity.Signal> _signals = new ();
 
-    protected async override Task OnInitializedAsync()
+    protected override async Task OnInitializedAsync()
     {
         _signals = await _signalRepository.GetAll(692803787);
+    }
+
+    private async Task FilterChanged(ChangeEventArgs e)
+    {
+        if (!int.TryParse(e.Value?.ToString(), out int strategyValue))
+        {
+            _signals = await _signalRepository.GetAll(692803787);
+        }
+        else
+        {
+            var strategy = (StrategyType)strategyValue;
+            if (strategy == StrategyType.None)
+            {
+                _signals = await _signalRepository.GetAll(692803787);
+            }
+            else
+            {
+                _signals = await _signalRepository.GetAllByStrategy(692803787, strategy);
+            }
+        }
+
+        StateHasChanged();
     }
 }

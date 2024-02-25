@@ -7,12 +7,16 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Frontend\NewFolder\**" />
     <Compile Remove="Logs\**" />
     <Compile Remove="_logs\**" />
+    <Content Remove="Frontend\NewFolder\**" />
     <Content Remove="Logs\**" />
     <Content Remove="_logs\**" />
+    <EmbeddedResource Remove="Frontend\NewFolder\**" />
     <EmbeddedResource Remove="Logs\**" />
     <EmbeddedResource Remove="_logs\**" />
+    <None Remove="Frontend\NewFolder\**" />
     <None Remove="Logs\**" />
     <None Remove="_logs\**" />
   </ItemGroup>
