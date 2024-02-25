@@ -1,0 +1,39 @@
+﻿@page "/Signals/{signalid:long}/History";
+@inject TradingviewAlertRepository _tradingviewAlertRepository;
+
+
+<h1>History</h1>
+
+
+<table cellpadding="1" cellspacing="1" width="100%" style="width:100%; border:1px solid black;" border="1">
+    <tr>
+        <th style="width:10%; border:1px solid gray; text-align:center;">ID</th>
+        <th style="width:20%; border:1px solid gray; text-align:center;">Date Created</th>
+        <th style="width:10%; border:1px solid gray; text-align:center;">Type</th>
+        <th style="width:60%; border:1px solid gray; text-align:center;">Raw Message</th>
+    </tr>
+    @foreach (var alert in _tradingviewAlerts)
+    {
+        <tr>
+            <td style="width:10%; border:1px solid gray; text-align:center;">@alert.ID</td>
+            <td style="width:20%; border:1px solid gray; text-align:center;">@alert.DateCreated</td>
+            <td style="width:10%; border:1px solid gray; text-align:center;">@alert.Type</td>
+            <td style="width:60%; border:1px solid gray; text-align:left;"> @((MarkupString)alert.RawMessage.Replace("||", "<br />").Replace(",", "<br />"))</td>
+        </tr>
+    }
+</table>
+
+@code {
+    [Parameter]
+    public long SignalId { get; set; }
+
+
+    private List<Entity.TradingviewAlert> _tradingviewAlerts = new();
+
+
+
+    protected async override Task OnInitializedAsync()
+    {
+        _tradingviewAlerts = await _tradingviewAlertRepository.GetAll(SignalId);
+    }
+}

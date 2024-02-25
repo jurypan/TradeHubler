@@ -37,6 +37,7 @@ namespace JCTG.Entity
         Unknown = -1,
 
         Entry = 0,
+        MoveSlToBe = 1,
 
         TpHit = 10,
         SlHit = 11,

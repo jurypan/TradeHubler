@@ -10,7 +10,7 @@ namespace JCTG.Entity
             DateCreated = DateTime.UtcNow;
             Logs = new List<Log>();
             StrategyType = StrategyType.None;
-            TradingviewStateType = TradingviewStateType.None;
+            TradingviewStateType = TradingviewStateType.Init;
         }
 
         [Key]
@@ -85,6 +85,11 @@ namespace JCTG.Entity
                 }
             }
 
+            if(signal.OrderType.Equals("buy", StringComparison.CurrentCultureIgnoreCase) || signal.OrderType.Equals("sell", StringComparison.CurrentCultureIgnoreCase)) 
+            {
+                signal.TradingviewStateType = TradingviewStateType.Entry;
+            }
+
             if (signal.StrategyType == StrategyType.None)
             {
                 throw new ArgumentException("Insufficient data. StrategyType is mandatory.");
@@ -96,9 +101,10 @@ namespace JCTG.Entity
 
     public enum TradingviewStateType
     {
-        None = 0,
+        Init = 0,
         TpHit = 1,
         SlHit = 2,
-        BeHit = 3
+        BeHit = 3,
+        Entry = 10,
     }
 }
