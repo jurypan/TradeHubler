@@ -17,33 +17,81 @@ public class JSInteropt(IJSRuntime jsRuntime) : IAsyncDisposable
 
     public async Task AddCandleStickSeriesAsync(ElementReference eleRef, List<BarData> data, ChartOptions options)
     {
-        // Call loadChart JS function
-        var module = await moduleTask.Value;
-        await module.InvokeVoidAsync("addCandleStickSeries", eleRef, eleRef.Id, data.Select(x => new
+        // Remove duplicates: Keep the first occurrence of each time and discard the others
+        var filteredData = data
+            // Convert to intermediate object with Unix time to ease comparison and sorting
+            .Select(x => new
+            {
+                Time = new DateTimeOffset(x.Time, TimeSpan.Zero).ToUnixTimeSeconds(),
+                x.Open,
+                x.High,
+                x.Low,
+                x.Close,
+                x.Color
+            })
+            // Group by the Unix time to find duplicates
+            .GroupBy(x => x.Time)
+            // Select the first occurrence from each group
+            .Select(g => g.First())
+            // Order by time to ensure the series is chronological
+            .OrderBy(x => x.Time)
+            .ToList();
+
+        // Prepare the data for the JavaScript function
+        var jsData = filteredData.Select(x => new
         {
-            time = new DateTimeOffset(x.Time, TimeSpan.Zero).ToUnixTimeSeconds(),
+            time = x.Time,
             open = x.Open,
             high = x.High,
             low = x.Low,
             close = x.Close,
             color = x.Color
-        }), options);
+        }).ToList();
+
+        // Call loadChart JS function
+        var module = await moduleTask.Value;
+        await module.InvokeVoidAsync("addCandleStickSeries", eleRef, eleRef.Id, jsData, options);
     }
+
 
     public async Task UpdateCandleStickSeriesAsync(ElementReference eleRef, List<BarData> data)
     {
-        // Call loadChart JS function
-        var module = await moduleTask.Value;
-        await module.InvokeVoidAsync("updateCandleStickSeries", eleRef, eleRef.Id, data.Select(x => new
+        // Remove duplicates: Keep the first occurrence of each time and discard the others
+        var filteredData = data
+            // Convert to intermediate object with Unix time to ease comparison and sorting
+            .Select(x => new
+            {
+                Time = new DateTimeOffset(x.Time, TimeSpan.Zero).ToUnixTimeSeconds(),
+                x.Open,
+                x.High,
+                x.Low,
+                x.Close,
+                x.Color
+            })
+            // Group by the Unix time to find duplicates
+            .GroupBy(x => x.Time)
+            // Select the first occurrence from each group
+            .Select(g => g.First())
+            // Order by time to ensure the series is chronological
+            .OrderBy(x => x.Time)
+            .ToList();
+
+        // Prepare the data for the JavaScript function
+        var jsData = filteredData.Select(x => new
         {
-            time = new DateTimeOffset(x.Time, TimeSpan.Zero).ToUnixTimeSeconds(),
+            time = x.Time,
             open = x.Open,
             high = x.High,
             low = x.Low,
             close = x.Close,
             color = x.Color
-        }));
+        }).ToList();
+
+        // Call updateChart JS function
+        var module = await moduleTask.Value;
+        await module.InvokeVoidAsync("updateCandleStickSeries", eleRef, eleRef.Id, jsData);
     }
+
 
     public async Task UpdateCandleStickAsync(ElementReference eleRef, Tick data)
     {
@@ -89,112 +137,232 @@ public class JSInteropt(IJSRuntime jsRuntime) : IAsyncDisposable
                 return "belowBar";
         };
 
-        // Invoke javascript
-        await module.InvokeVoidAsync("setMarkersToCandlestickSeriesAsync", eleRef, eleRef.Id, data.Select(x => new
+        // Remove duplicates: Keep the first occurrence of each time and discard the others
+        var filteredData = data
+            .Select(x => new
+            {
+                Time = new DateTimeOffset(x.Time, TimeSpan.Zero).ToUnixTimeSeconds(),
+                Position = getPosition(x.Position),
+                Shape = getShape(x.Shape),
+                x.Color,
+                x.Id,
+                x.Text,
+                x.Size,
+            })
+            // Group by the Unix time to find duplicates
+            .GroupBy(x => x.Time)
+            // Select the first occurrence from each group
+            .Select(g => g.First())
+            // Order by time to ensure the series is chronological
+            .OrderBy(x => x.Time)
+            .ToList();
+
+        // Prepare the data for the JavaScript function
+        var jsData = filteredData.Select(x => new
         {
-            time = new DateTimeOffset(x.Time, TimeSpan.Zero).ToUnixTimeSeconds(),
-            position = getPosition(x.Position),
-            shape = getShape(x.Shape),
+            time = x.Time,
+            position = x.Position,
+            shape = x.Shape,
             color = x.Color,
             id = x.Id,
             text = x.Text,
             size = x.Size,
-        }));
+        }).ToList();
+
+        // Call setMarkers JS function
+        await module.InvokeVoidAsync("setMarkersToCandlestickSeriesAsync", eleRef, eleRef.Id, jsData);
     }
 
     public async Task AddAreaSeriesAsync(ElementReference eleRef, List<AreaPoint> data, ChartOptions options)
     {
+        // Remove duplicates: Keep the first occurrence of each time and discard the others
+        var filteredData = data
+            // Convert to intermediate object with Unix time to ease comparison and sorting
+            .Select(x => new
+            {
+                Time = new DateTimeOffset(x.Time, TimeSpan.Zero).ToUnixTimeSeconds(),
+                x.DisplayPrice,
+            })
+            // Group by the Unix time to find duplicates
+            .GroupBy(x => x.Time)
+            // Select the first occurrence from each group
+            .Select(g => g.First())
+            // Order by time to ensure the series is chronological
+            .OrderBy(x => x.Time)
+            .ToList();
+
+        // Prepare the data for the JavaScript function
+        var jsData = filteredData.Select(x => new
+        {
+            time = x.Time,
+            value = x.DisplayPrice,
+        }).ToList();
+
         // Call loadChart JS function
         var module = await moduleTask.Value;
-        await module.InvokeVoidAsync("addAreaSeries", eleRef, eleRef.Id, data.Select(x => new
-        {
-            time = new DateTimeOffset(x.Time, TimeSpan.Zero).ToUnixTimeSeconds(),
-            value = x.DisplayPrice,
-        }), options);
+        await module.InvokeVoidAsync("addAreaSeries", eleRef, eleRef.Id, jsData, options);
     }
+
 
     public async Task UpdateAreaSeriesAsync(ElementReference eleRef, List<AreaPoint> data)
     {
-        // Call loadChart JS function
-        var module = await moduleTask.Value;
-        await module.InvokeVoidAsync("updateAreaSeries", eleRef, eleRef.Id, data.Select(x => new
+        // Remove duplicates: Keep the first occurrence of each time and discard the others
+        var filteredData = data
+            // Convert to intermediate object with Unix time to ease comparison and sorting
+            .Select(x => new
+            {
+                Time = new DateTimeOffset(x.Time, TimeSpan.Zero).ToUnixTimeSeconds(),
+                x.DisplayPrice,
+            })
+            // Group by the Unix time to find duplicates
+            .GroupBy(x => x.Time)
+            // Select the first occurrence from each group
+            .Select(g => g.First())
+            // Order by time to ensure the series is chronological
+            .OrderBy(x => x.Time)
+            .ToList();
+
+        // Prepare the data for the JavaScript function
+        var jsData = filteredData.Select(x => new
         {
-            time = new DateTimeOffset(x.Time, TimeSpan.Zero).ToUnixTimeSeconds(),
+            time = x.Time,
             value = x.DisplayPrice,
-        }));
+        }).ToList();
+
+        // Call updateChart JS function
+        var module = await moduleTask.Value;
+        await module.InvokeVoidAsync("updateAreaSeries", eleRef, eleRef.Id, jsData);
     }
 
     public async Task AddLineSeriesAsync(ElementReference eleRef, List<PricePoint> data, ChartOptions options)
     {
+        // Remove duplicates: Keep the first occurrence of each time and discard the others
+        var filteredData = data
+            // Convert to intermediate object with Unix time to ease comparison and sorting
+            .Select(x => new
+            {
+                Time = new DateTimeOffset(x.Time, TimeSpan.Zero).ToUnixTimeSeconds(),
+                x.Price,
+            })
+            // Group by the Unix time to find duplicates
+            .GroupBy(x => x.Time)
+            // Select the first occurrence from each group
+            .Select(g => g.First())
+            // Order by time to ensure the series is chronological
+            .OrderBy(x => x.Time)
+            .ToList();
+
+        // Prepare the data for the JavaScript function
+        var jsData = filteredData.Select(x => new
+        {
+            time = x.Time,
+            value = x.Price,
+        }).ToList();
+
         // Call loadChart JS function
         var module = await moduleTask.Value;
-        await module.InvokeVoidAsync("addLineSeries", eleRef, eleRef.Id, data.Select(x => new
-        {
-            time = new DateTimeOffset(x.Time, TimeSpan.Zero).ToUnixTimeSeconds(),
-            value = x.Price,
-        }), options);
+        await module.InvokeVoidAsync("addLineSeries", eleRef, eleRef.Id, jsData, options);
     }
 
     public async Task UpdateLineSeriesAsync(ElementReference eleRef, List<PricePoint> data)
     {
-        // Call loadChart JS function
-        var module = await moduleTask.Value;
-        await module.InvokeVoidAsync("updateLineSeries", eleRef, eleRef.Id, data.Select(x => new
+        // Remove duplicates: Keep the first occurrence of each time and discard the others
+        var filteredData = data
+            // Convert to intermediate object with Unix time to ease comparison and sorting
+            .Select(x => new
+            {
+                Time = new DateTimeOffset(x.Time, TimeSpan.Zero).ToUnixTimeSeconds(),
+                x.Price,
+            })
+            // Group by the Unix time to find duplicates
+            .GroupBy(x => x.Time)
+            // Select the first occurrence from each group
+            .Select(g => g.First())
+            // Order by time to ensure the series is chronological
+            .OrderBy(x => x.Time)
+            .ToList();
+
+        // Prepare the data for the JavaScript function
+        var jsData = filteredData.Select(x => new
         {
-            time = new DateTimeOffset(x.Time, TimeSpan.Zero).ToUnixTimeSeconds(),
+            time = x.Time,
             value = x.Price,
-        }));
+        }).ToList();
+
+        // Call updateChart JS function
+        var module = await moduleTask.Value;
+        await module.InvokeVoidAsync("updateLineSeries", eleRef, eleRef.Id, jsData);
     }
+
 
     public async Task AddVolumeSeriesAsync(ElementReference eleRef, List<BarData> data, ChartOptions options)
     {
-        // Call loadChart JS function
-        var module = await moduleTask.Value;
-
-        // Extract volume data
+        // Initialize lastPrice outside the selection to maintain state across the data
         decimal lastPrice = 0;
-        Func<decimal, string> getVolumeColor = (nextPrice) =>
-        {
-            bool isLower = lastPrice < nextPrice;
-            lastPrice = nextPrice;
-            return isLower ? options.VolumeColorUp : options.VolumeColorDown;
-        };
 
-        await module.InvokeVoidAsync("addVolumeSeries", eleRef, eleRef.Id, data.Select(x => new
+        // Deduplicate and order data first, assuming color logic can adapt based on deduplicated data
+        var orderedData = data
+            .GroupBy(x => new DateTimeOffset(x.Time, TimeSpan.Zero).ToUnixTimeSeconds())
+            .Select(g => g.First()) // Take the first occurrence in each group
+            .OrderBy(x => x.Time)
+            .ToList();
+
+        // Now apply color logic on ordered, deduplicated data
+        var volumeData = orderedData.Select(x =>
         {
-            time = new DateTimeOffset(x.Time, TimeSpan.Zero).ToUnixTimeSeconds(),
-            value = x.Volume,
-            color = getVolumeColor(x.Close),
-        }), options);
+            var color = lastPrice < x.Close ? options.VolumeColorUp : options.VolumeColorDown;
+            lastPrice = x.Close; // Update lastPrice for the next iteration
+            return new
+            {
+                time = new DateTimeOffset(x.Time, TimeSpan.Zero).ToUnixTimeSeconds(),
+                value = x.Volume,
+                color = color,
+            };
+        }).ToList();
+
+        // Call loadChart JS function with deduplicated, color-coded data
+        var module = await moduleTask.Value;
+        await module.InvokeVoidAsync("addVolumeSeries", eleRef, eleRef.Id, volumeData, options);
     }
 
     public async Task UpdateVolumeSeriesAsync(ElementReference eleRef, List<BarData> data, ChartOptions options)
     {
-        // Call loadChart JS function
-        var module = await moduleTask.Value;
-
-        // Extract volume data
+        // Initialize lastPrice for color determination
         decimal lastPrice = 0;
-        Func<decimal, string> getVolumeColor = (nextPrice) =>
-        {
-            bool isLower = lastPrice < nextPrice;
-            lastPrice = nextPrice;
-            return isLower ? options.VolumeColorUp : options.VolumeColorDown;
-        };
 
-        // Invoke
-        await module.InvokeVoidAsync("updateVolumeSeries", eleRef, eleRef.Id, data.Select(x => new
+        // Deduplicate and order data
+        var orderedData = data
+            .GroupBy(x => new DateTimeOffset(x.Time, TimeSpan.Zero).ToUnixTimeSeconds())
+            .Select(g => g.First()) // Take the first occurrence in each group
+            .OrderBy(x => x.Time)
+            .ToList();
+
+        // Apply color logic
+        var volumeData = orderedData.Select(x =>
         {
-            time = new DateTimeOffset(x.Time, TimeSpan.Zero).ToUnixTimeSeconds(),
-            value = x.Volume,
-            color = getVolumeColor(x.Close),
-        }));
+            var color = lastPrice < x.Close ? options.VolumeColorUp : options.VolumeColorDown;
+            lastPrice = x.Close;
+            return new
+            {
+                time = new DateTimeOffset(x.Time, TimeSpan.Zero).ToUnixTimeSeconds(),
+                value = x.Volume,
+                color = color,
+            };
+        }).ToList();
+
+        // Invoke update
+        var module = await moduleTask.Value;
+        await module.InvokeVoidAsync("updateVolumeSeries", eleRef, eleRef.Id, volumeData);
     }
+
 
     public async Task AddVolumeSeriesAsync(ElementReference eleRef, List<PricePoint> data, ChartOptions options)
     {
-        // Call loadChart JS function
-        var module = await moduleTask.Value;
+        var filteredData = data
+                            .GroupBy(x => new DateTimeOffset(x.Time, TimeSpan.Zero).ToUnixTimeSeconds())
+                            .Select(g => g.First())
+                            .OrderBy(x => x.Time)
+                            .ToList();
 
         // Extract volume data
         decimal lastPrice = 0;
@@ -206,21 +374,30 @@ public class JSInteropt(IJSRuntime jsRuntime) : IAsyncDisposable
         };
 
         // Invoke
-        await module.InvokeVoidAsync("addVolumeSeries", eleRef, eleRef.Id, data.Select(x => new
-        {
-            time = new DateTimeOffset(x.Time, TimeSpan.Zero).ToUnixTimeSeconds(),
-            value = x.Volume,
-            color = getVolumeColor(x.DisplayPrice),
-        }), options);
+        var volumeData = filteredData.Select(x => {
+            return new
+            {
+                time = new DateTimeOffset(x.Time, TimeSpan.Zero).ToUnixTimeSeconds(),
+                value = x.Volume,
+                color = getVolumeColor(x.DisplayPrice), // Apply color logic based on the DisplayPrice
+        };
+        }).ToList();
+
+        // Call loadChart JS function with processed data
+        var module = await moduleTask.Value;
+        await module.InvokeVoidAsync("addVolumeSeries", eleRef, eleRef.Id, volumeData, options);
     }
 
     public async Task UpdateVolumeSeriesAsync(ElementReference eleRef, List<PricePoint> data, ChartOptions options)
     {
-        // Call loadChart JS function
-        var module = await moduleTask.Value;
-
-        // Extract volume data
         decimal lastPrice = 0;
+
+        var filteredData = data
+            .GroupBy(x => new DateTimeOffset(x.Time, TimeSpan.Zero).ToUnixTimeSeconds())
+            .Select(g => g.First())
+            .OrderBy(x => x.Time)
+            .ToList();
+
         Func<decimal, string> getVolumeColor = (nextPrice) =>
         {
             bool isLower = lastPrice < nextPrice;
@@ -228,13 +405,18 @@ public class JSInteropt(IJSRuntime jsRuntime) : IAsyncDisposable
             return isLower ? options.VolumeColorUp : options.VolumeColorDown;
         };
 
-        // Invoke
-        await module.InvokeVoidAsync("updateVolumeSeries", eleRef, eleRef.Id, data.Select(x => new
-        {
-            time = new DateTimeOffset(x.Time, TimeSpan.Zero).ToUnixTimeSeconds(),
-            value = x.Volume,
-            color = getVolumeColor(x.DisplayPrice),
-        }));
+        var volumeData = filteredData.Select(x => {
+            return new
+            {
+                time = new DateTimeOffset(x.Time, TimeSpan.Zero).ToUnixTimeSeconds(),
+                value = x.Volume,
+                color = getVolumeColor(x.DisplayPrice),
+            };
+        }).ToList();
+
+        // Invoke update with processed data
+        var module = await moduleTask.Value;
+        await module.InvokeVoidAsync("updateVolumeSeries", eleRef, eleRef.Id, volumeData);
     }
 
     public async Task AddMarkersToCandleStickSeriesAsync(ElementReference eleRef, List<Marker> data)

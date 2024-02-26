@@ -60,7 +60,10 @@
             return;
 
         // Exec javascript
-        await JS.AddAreaSeriesAsync(el, data, Options);
+        await JS.AddAreaSeriesAsync(el, data.OrderBy(f => f.Time)
+                        .GroupBy(x => new { x.Time.Date, x.Time.Hour, x.Time.Minute }) // Group by date, hour, and minute
+                       .Select(group => group.First()) // Select the first item from each group
+                       .ToList(), Options);
     }
 
     public async Task UpdateAreaSeriesAsync(List<AreaPoint> data)

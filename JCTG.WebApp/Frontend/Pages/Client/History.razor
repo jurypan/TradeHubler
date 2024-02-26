@@ -35,6 +35,7 @@
         <th style="width:10%; border:1px solid gray; text-align:center;">Commission</th>
         <th style="width:10%; border:1px solid gray; text-align:center;">Swap</th>
         <th style="width:10%; border:1px solid gray; text-align:center;">Spreadcost</th>
+        <th style="width:10%; border:1px solid gray; text-align:center;">Signal</th>
     </tr>
     @foreach (var order in _orders.OrderByDescending(f => f.DateCreated))
     {
@@ -48,6 +49,7 @@
             <td style="width:10%; border:1px solid gray; text-align:center;">@Math.Round(order.Commission, 4)</td>
             <td style="width:10%; border:1px solid gray; text-align:center;">@Math.Round(order.Swap, 4)</td>
             <td style="width:10%; border:1px solid gray; text-align:center;">@Math.Round(order.SpreadCost, 4)</td>
+            <td style="width:10%; border:1px solid gray; text-align:center;">@order.Signal.TradingviewStateType</td>
         </tr>
     }
 </table>

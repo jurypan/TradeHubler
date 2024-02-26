@@ -5,22 +5,22 @@
 <h1>Logs</h1>
 <table cellpadding="1" cellspacing="0" width="100%" style="width:100%; border:1px solid black;">
     <tr>
-        <th style="width:10%;">ID</th>
-        <th style="width:10%;">Date</th>
-        <th style="width:10%;">Type</th>
-        <th style="width:10%;">Signal ID</th>
-        <th style="width:30%;">Message</th>
-        <th style="width:30%;">Description</th>
+        <th style="width:10%; border:1px solid gray; text-align:center;">ID</th>
+        <th style="width:10%; border:1px solid gray; text-align:center;">Date</th>
+        <th style="width:10%; border:1px solid gray; text-align:center;">Type</th>
+        <th style="width:10%; border:1px solid gray; text-align:center;">Signal ID</th>
+        <th style="width:30%; border:1px solid gray; text-align:center;">Message</th>
+        <th style="width:30%; border:1px solid gray; text-align:center;">Description</th>
     </tr>
     @foreach (var log in _logs)
     {
         <tr>
-            <td>@log.ID</td>
-            <td>@log.DateCreated</td>
-            <td>@log.Type</td>
-            <td>@log.SignalID</td>
-            <td>@log.Message?.Replace(",", " ")</td>
-            <td>@log.Description?.Replace(",", " ")</td>
+            <td style="border:1px solid gray; text-align:center;">@log.ID</td>
+            <td style="border:1px solid gray; text-align:center;">@log.DateCreated</td>
+            <td style="border:1px solid gray; text-align:center;">@log.Type</td>
+            <td style="border:1px solid gray; text-align:center;">@log.SignalID</td>
+            <td style="border:1px solid gray; text-align:center;">@log.Message?.Replace(",", " ")</td>
+            <td style="border:1px solid gray; text-align:center;">@log.Description?.Replace(",", " ")</td>
         </tr>
     }
 </table>

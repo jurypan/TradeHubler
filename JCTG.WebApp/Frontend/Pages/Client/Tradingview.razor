@@ -13,26 +13,26 @@
 <h1>Orders</h1>
 <table cellpadding="1" cellspacing="0" width="100%" style="width:100%; border:1px solid black;">
     <tr>
-        <th style="width:10%;">ID</th>
-        <th style="width:20%;">Symbol</th>
-        <th style="width:10%;">Type</th>
-        <th style="width:20%;">Open</th>
-        <th style="width:10%;">PNL</th>
-        <th style="width:10%;">Commission</th>
-        <th style="width:10%;">Swap</th>
-        <th style="width:10%;">Spreadcost</th>
+        <th style="width:10%; border:1px solid gray; text-align:center;">ID</th>
+        <th style="width:20%; border:1px solid gray; text-align:center;">Symbol</th>
+        <th style="width:10%; border:1px solid gray; text-align:center;">Type</th>
+        <th style="width:20%; border:1px solid gray; text-align:center;">Open</th>
+        <th style="width:10%; border:1px solid gray; text-align:center;">PNL</th>
+        <th style="width:10%; border:1px solid gray; text-align:center;">Commission</th>
+        <th style="width:10%; border:1px solid gray; text-align:center;">Swap</th>
+        <th style="width:10%; border:1px solid gray; text-align:center;">Spreadcost</th>
     </tr>
     @foreach (var order in _orders.OrderByDescending(f => f.DateCreated))
     {
         <tr>
-            <td>@order.ID</td>
-            <td>@order.Symbol</td>
-            <td>@order.Type</td>
-            <td>@order.OpenTime</td>
-            <td>@order.Pnl</td>
-            <td>@order.Commission</td>
-            <td>@order.Swap</td>
-            <td>@order.SpreadCost.ToString("0.################")</td>
+            <td style=" border:1px solid gray; text-align:center;">@order.ID</td>
+            <td style=" border:1px solid gray; text-align:center;">@order.Symbol</td>
+            <td style=" border:1px solid gray; text-align:center;">@order.Type</td>
+            <td style=" border:1px solid gray; text-align:center;">@order.OpenTime</td>
+            <td style=" border:1px solid gray; text-align:center;">@order.Pnl</td>
+            <td style=" border:1px solid gray; text-align:center;">@order.Commission</td>
+            <td style=" border:1px solid gray; text-align:center;">@order.Swap</td>
+            <td style=" border:1px solid gray; text-align:center;">@order.SpreadCost.ToString("0.################")</td>
         </tr>
     }
 </table>
@@ -112,7 +112,7 @@
                             Open = x.Open,
                             Close = x.Close,
                             Color = orders.Any(f => f.Signal != null && f.Signal.EntryExpression != null && getTimestamp(f.Signal.EntryExpression) == x.Epoch) ? "#0000FF" : null
-                        }).ToList());
+                        }).OrderBy(f => f.Time).ToList());
 
 
                     // Markers
@@ -124,7 +124,7 @@
                             Position = x.Type.Contains("buy") ? Marker.MarkerPosition.AboveBar : Marker.MarkerPosition.BelowBar,
                             Shape = Marker.MarkerShape.Square,
                             Text = $"Exit {x.ID}",
-                        }).ToList();
+                        }).OrderBy(f => f.Time).ToList();
                     markers.AddRange(orders.Where(f => f.IsTradeClosed && f.CloseTime.HasValue).Select(x => new Marker()
                         {
                             Time = x.OpenTime,
@@ -133,7 +133,7 @@
                             Position = x.Type.Contains("buy") ? Marker.MarkerPosition.BelowBar : Marker.MarkerPosition.AboveBar,
                             Shape = x.Type.Contains("buy") ? Marker.MarkerShape.ArrowUp : Marker.MarkerShape.ArrowDown,
                             Text = $"Entry {x.ID}",
-                        }).ToList());
+                        }).OrderBy(f => f.Time).ToList());
                     markers = markers.OrderBy(f => f.Time).ToList();
 
                     // Add markers to chart

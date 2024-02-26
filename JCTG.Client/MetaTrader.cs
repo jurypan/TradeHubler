@@ -108,7 +108,7 @@ namespace JCTG.Client
                         if (cmd != null && cmd.SignalID > 0 && cmd.AccountID == _appConfig.AccountId)
                         {
                             // Iterate through the broker's
-                            foreach (var api in _apis)
+                            Parallel.ForEach(_apis, async api =>
                             {
                                 // Get the right pair back from the local database
                                 var pair = new List<Pairs>(_appConfig.Brokers.Where(f => f.ClientId == api.ClientId).SelectMany(f => f.Pairs)).FirstOrDefault(f => f.TickerInTradingView.Equals(cmd.Instrument) && f.StrategyNr == cmd.StrategyType);
@@ -934,11 +934,6 @@ namespace JCTG.Client
                                                     var message = string.Format($"Symbol={cmd.Instrument},Type={cmd.OrderType},Magic={cmd.Magic},StrategyType={cmd.StrategyType}");
                                                     await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = $"Spread is too high. Current spread is {spread} and expect max {pair.MaxSpread}" }, cmd.SignalID);
                                                 }
-                                                else
-                                                {
-                                                    // Send signal to log file
-                                                    await SendSignalToJournalFileAsync(api.ClientId, cmd);
-                                                }
                                             }
                                             else
                                             {
@@ -963,7 +958,7 @@ namespace JCTG.Client
                                     var message = string.Format($"Symbol={cmd.Instrument},Type={cmd.OrderType},Magic={cmd.Magic},StrategyType={cmd.StrategyType}");
                                     await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = "No account info available for this metatrader" }, cmd.SignalID);
                                 }
-                            }
+                            });
                         }
                         else
                         {
@@ -1348,12 +1343,6 @@ namespace JCTG.Client
 
                     // Send log to files
                     await LogAsync(clientId, log, signalId);
-
-                    // Send log to the journal
-                    await SendLogToJournalFileAsync(clientId, signalId, log);
-
-                    // Send order to the journal
-                    await SendOrderToJournalFileAsync(clientId, signalId, order);
                 });
             }
         }
@@ -1400,12 +1389,6 @@ namespace JCTG.Client
 
                     // Send log to files
                     await LogAsync(clientId, log, signalId);
-
-                    // Send log to the journal
-                    await SendLogToJournalFileAsync(clientId, signalId, log);
-
-                    // Send order to the journal
-                    await SendOrderToJournalFileAsync(clientId, signalId, order);
                 });
             }
         }
@@ -1457,12 +1440,6 @@ namespace JCTG.Client
 
                     // Send logs to file
                     await LogAsync(clientId, log, signalId);
-
-                    // Send log to the journal
-                    await SendLogToJournalFileAsync(clientId, signalId, log);
-
-                    // Send order to the journal
-                    await SendOrderToJournalFileAsync(clientId, signalId, order, true);
                 });
             }
         }
@@ -1589,155 +1566,6 @@ namespace JCTG.Client
                     // Add log to the list
                     logs.Add(log);
                 }
-            }
-        }
-
-        private async Task SendOrderToJournalFileAsync(long clientId, long signalId, Order order, bool isTradeClosed = false)
-        {
-            // Ensure dependencies are not null
-            if (_appConfig == null || _apis == null || !_apis.Any(f => f.ClientId == clientId))
-                return;
-
-            string fileName = $"JCTG_Tradejournal.json";
-            List<TradeJournal> journals;
-
-            // Attempt to enter the semaphore (wait if necessary)
-            await _semaphore.WaitAsync();
-            try
-            {
-                // Check if the file exists and load its content
-                if (File.Exists(fileName))
-                {
-                    string fileContent = await File.ReadAllTextAsync(fileName);
-                    journals = JsonConvert.DeserializeObject<List<TradeJournal>>(fileContent) ?? [];
-
-                    // Make sure the last item is on top
-                    journals = [.. journals.OrderByDescending(f => f.DateCreated)];
-                }
-                else
-                {
-                    journals = [];
-                }
-
-                // Add the new signal to the journal
-                var journal = journals.FirstOrDefault(f => f.Signal.SignalID == signalId);
-
-                // Do null reference check
-                if (journal != null)
-                {
-                    // Get pair
-                    var pair = _appConfig.Brokers.First(f => f.ClientId == clientId);
-
-                    // Add to journal
-                    journal.Order = order;
-                    journal.IsTradeClosed = isTradeClosed;
-
-                    // Serialize and write the journal back to the file
-                    string serializedContent = JsonConvert.SerializeObject(journals);
-                    await TryWriteFileAsync(pair.MetaTraderDirPath + "JCTG\\" + fileName, serializedContent);
-                }
-
-
-            }
-            finally
-            {
-                // Release the semaphore to allow another operation to proceed
-                _semaphore.Release();
-            }
-
-        }
-
-        private async Task SendLogToJournalFileAsync(long clientId, long signalId, Log log)
-        {
-            // Ensure dependencies are not null
-            if (_appConfig == null || _apis == null || !_apis.Any(f => f.ClientId == clientId))
-                return;
-
-            string fileName = $"JCTG_Tradejournal.json";
-            List<TradeJournal> journals;
-
-            // Attempt to enter the semaphore (wait if necessary)
-            await _semaphore.WaitAsync();
-            try
-            {
-                // Check if the file exists and load its content
-                if (File.Exists(fileName))
-                {
-                    string fileContent = await File.ReadAllTextAsync(fileName);
-                    journals = JsonConvert.DeserializeObject<List<TradeJournal>>(fileContent) ?? [];
-
-                    // Make sure the last item is on top
-                    journals = [.. journals.OrderByDescending(f => f.DateCreated)];
-                }
-                else
-                {
-                    journals = [];
-                }
-
-                // Add the new signal to the journal
-                var journal = journals.FirstOrDefault(f => f.Signal.SignalID == signalId);
-                var pair = _appConfig.Brokers.FirstOrDefault(f => f.ClientId == clientId);
-
-                // Do null reference check
-                if (journal != null && pair != null)
-                {
-                    // Add the log
-                    journal.Logs.Add(log);
-
-                    // Serialize and write the journal back to the file
-                    string serializedContent = JsonConvert.SerializeObject(journals);
-                    await TryWriteFileAsync(pair.MetaTraderDirPath + "JCTG\\" + fileName, serializedContent);
-                }
-
-
-            }
-            finally
-            {
-                // Release the semaphore to allow another operation to proceed
-                _semaphore.Release();
-            }
-        }
-
-        private async Task SendSignalToJournalFileAsync(long clientId, OnSendTradingviewSignalCommand signal)
-        {
-            // Ensure dependencies are not null
-            if (_appConfig == null || _apis == null || !_apis.Any(f => f.ClientId == clientId))
-                return;
-
-            string fileName = $"JCTG_Tradejournal.json";
-            List<TradeJournal> journals;
-
-            // Attempt to enter the semaphore (wait if necessary)
-            await _semaphore.WaitAsync();
-            try
-            {
-                // Check if the file exists and load its content
-                if (File.Exists(fileName))
-                {
-                    string fileContent = await File.ReadAllTextAsync(fileName);
-                    journals = JsonConvert.DeserializeObject<List<TradeJournal>>(fileContent) ?? [];
-
-                    // Make sure the last item is on top
-                    journals = [.. journals.OrderByDescending(f => f.DateCreated)];
-                }
-                else
-                {
-                    journals = [];
-                }
-
-                // Add the new signal to the journal
-                var journal = new TradeJournal { Signal = signal };
-                journals.Add(journal);
-
-                // Serialize and write the journal back to the file
-                string serializedContent = JsonConvert.SerializeObject(journals);
-                var pair = _appConfig.Brokers.First(f => f.ClientId == clientId);
-                await TryWriteFileAsync(pair.MetaTraderDirPath + "JCTG\\" + fileName, serializedContent);
-            }
-            finally
-            {
-                // Release the semaphore to allow another operation to proceed
-                _semaphore.Release();
             }
         }
 
