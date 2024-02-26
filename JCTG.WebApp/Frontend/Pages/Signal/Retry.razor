@@ -1,0 +1,58 @@
+﻿@page "/Signals/{signalid:long}/Retry";
+@inject SignalRepository _signalRepository;
+@inject JCTG.WebApp.Backend.Websocket.AzurePubSubClient _server;
+@using JCTG.Command;
+@inject NavigationManager NavManager
+
+<h3>Retry</h3>
+
+<div class="m-2">
+    <button @onclick=OnButtonClick>Go !!!</button>
+</div>
+
+
+@code {
+
+    [Parameter]
+    public long SignalId { get; set; }
+
+
+    private Entity.Signal? _signal = null;
+
+    protected async override Task OnInitializedAsync()
+    {
+        _signal = await _signalRepository.GetById(692803787, SignalId);
+
+    }
+
+    private async Task OnButtonClick(MouseEventArgs e)
+    {
+        if(_signal != null)
+        {
+            // Create model and send to the client
+            var id = await _server.SendOnTradingviewSignalCommandAsync(_signal.AccountID, new OnSendTradingviewSignalCommand()
+                {
+                    SignalID = _signal.ID,
+                    AccountID = _signal.AccountID,
+                    Instrument = _signal.Instrument,
+                    Magic = _signal.ID,
+                    OrderType = _signal.OrderType,
+                    StrategyType = _signal.StrategyType,
+                    MarketOrder = _signal.OrderType == "BUY" || _signal.OrderType == "SELL" ? new OnReceivingTradingviewSignalEventMarketOrder()
+                    {
+                        StopLoss = Convert.ToDecimal(_signal.StopLoss),
+                        Price = Convert.ToDecimal(_signal.EntryPrice),
+                        TakeProfit = Convert.ToDecimal(_signal.TakeProfit),
+                    } : null,
+                    PassiveOrder = _signal.OrderType == "BUYSTOP" || _signal.OrderType == "SELLSTOP" ? new OnReceivingTradingviewSignalEventPassiveOrder()
+                    {
+                        EntryExpression = _signal.EntryExpression,
+                        Risk = Convert.ToDecimal(_signal.Risk),
+                        RiskRewardRatio = Convert.ToDecimal(_signal.RiskRewardRatio),
+                    } : null,
+                });
+        }
+
+        NavManager.NavigateTo("/Signals");
+    }
+}
