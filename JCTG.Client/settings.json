@@ -1034,7 +1034,7 @@
           "StrategyNr": 3,
           "Risk": 0.15,
           "SLtoBEafterR": 1.0,
-          "MaxSpread": 1.0,
+          "MaxSpread": 1.5,
           "SLMultiplier": 1.02,
           "MaxLotSize": 1000,
           "OrderExecType": "Active",

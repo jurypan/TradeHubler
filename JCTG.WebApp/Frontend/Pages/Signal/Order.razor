@@ -3,12 +3,7 @@
 @inject ClientRepository _clientRepository;
 
 <h3>Orders</h3>
-@if (_orders.Count() <= 0)
-{
-    <p>No trading journals available</p>
-}
-else
-{
+
 
     @if (_signal != null)
     {
@@ -32,7 +27,16 @@ else
     }
 
     <div class="row">
-        @foreach (var order in _orders)
+    <h3>Clients <b>with</b> orders for this signal</h3>
+    @if(_orders.Count == 0)
+    {
+        <div class="col-md-12">
+            <p>No clients available</p>
+        </div>
+    }
+    else
+    {
+        foreach (var order in _orders)
         {
             <div class="col-md-6 mb-6">
                 <div class="card">
@@ -45,11 +49,13 @@ else
                 </div>
             </div>
         }
+    }
+    
     </div>
 
     <br />
     <br />
-    <h3>Clients with orders for this signal</h3>
+    <h3>Clients <b>without</b> orders for this signal</h3>
     <div class="row">
         @foreach (var client in _clients)
         {
@@ -64,8 +70,6 @@ else
             </div>
         }
     </div>
-
-}
 
 
 
