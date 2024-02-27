@@ -1,0 +1,35 @@
+﻿@page "/Clients/{clientid:long}/Edit";
+@inject ClientRepository _clientRepository;
+@inject NavigationManager NavManager
+
+<h3>Edit</h3>
+
+
+<EditForm Model="@Client" OnValidSubmit="HandleValidSubmit">
+    <InputText @bind-Value="Client.Name" />
+    <button type="submit">Submit</button>
+</EditForm>
+
+
+
+
+@code {
+
+    [Parameter]
+    public long ClientId { get; set; }
+
+
+    private Entity.Client? Client = null;
+
+    protected async override Task OnInitializedAsync()
+    {
+        Client = await _clientRepository.GetByIdAsync(692803787, ClientId);
+
+    }
+
+    private async Task HandleValidSubmit()
+    {
+
+        NavManager.NavigateTo("/Clients");
+    }
+}

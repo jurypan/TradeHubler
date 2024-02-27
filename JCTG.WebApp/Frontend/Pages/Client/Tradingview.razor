@@ -67,7 +67,7 @@
             });
 
         // Get client
-        var client = await _clientRepository.GetById(692803787, ClientId);
+        var client = await _clientRepository.GetByIdAsync(692803787, ClientId);
 
         // Get orders
         var orders = await _orderRepository.GetAll(692803787, ClientId, Symbol);

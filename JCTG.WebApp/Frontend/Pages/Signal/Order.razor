@@ -86,7 +86,7 @@
     protected async override Task OnInitializedAsync()
     {
         _signal = await _signalRepository.GetById(692803787, SignalId);
-        var clients = await _clientRepository.GetAll(692803787);
+        var clients = await _clientRepository.GetAllAsync(692803787);
 
         if (_signal != null)
         {

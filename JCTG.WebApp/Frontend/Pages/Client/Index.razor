@@ -19,13 +19,13 @@ else
                         <p class="card-text">Balance: @Client.Balance</p>
                         <p class="card-text">Equity: @Client.Equity</p>
                         <div>
-                            <a href="@($"Clients/{Client.ID}/History")"> View trading orders</a>
+                            <a href="@($"Clients/{Client.ID}/History")" class="btn btn-primary ">History</a>
+                            <a href="@($"Clients/{Client.ID}/Pairs")" class="btn btn-secondary">Pairs</a>
+                            <a href="@($"Clients/{Client.ID}/Logs")" class="btn btn-light">Logs</a>
                         </div>
-                        <div>
-                            <a href="@($"Clients/{Client.ID}/Pairs")"> View pairs</a>
-                        </div>
-                        <div>
-                            <a href="@($"Clients/{Client.ID}/Logs")"> View logs</a>
+                        <div style="padding-top:10px;">
+                            <a href="@($"Clients/{Client.ID}/Edit")" class="btn btn-success">Edit</a>
+                            <a href="@($"Clients/{Client.ID}/Delete")" class="btn btn-danger">Delete</a>
                         </div>
                     </div>
                 </div>
@@ -39,6 +39,6 @@ else
 
     protected async override Task OnInitializedAsync()
     {
-        _clients = await _clientRepository.GetAll(692803787);
+        _clients = await _clientRepository.GetAllAsync(692803787);
     }
 }

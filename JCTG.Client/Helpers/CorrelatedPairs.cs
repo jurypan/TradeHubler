@@ -12,7 +12,7 @@ namespace JCTG.Client
                 // Check if there is any open order whose symbol and type match the corrselatedPairs list and the typeToOpen respectively
                 foreach (var order in openOrders.Select(f => f.Value))
                 {
-                    if (order.Symbol != null && order.Type != null && correlatedPairs.Contains(order.Symbol) && order.Type.Equals(typeToOpen, StringComparison.OrdinalIgnoreCase))
+                    if (order.Symbol != null && order.Type != null && correlatedPairs.Contains(order.Symbol) && order.Type.Equals(typeToOpen.ToLower().Replace("stop", string.Empty).Replace("limit", string.Empty), StringComparison.OrdinalIgnoreCase))
                     {
                         return false; // Found an open order that is in the correlated pairs list and matches the type
                     }
@@ -30,7 +30,7 @@ namespace JCTG.Client
                 // Check if there is any open order whose symbol and type match the corrselatedPairs list and the typeToOpen respectively
                 foreach (var order in openOrders.Select(f => f.Value))
                 {
-                    if (order.Symbol != null && order.Type != null && correlatedPairs.Contains(order.Symbol) && order.Type.Equals(typeToOpen, StringComparison.OrdinalIgnoreCase))
+                    if (order.Symbol != null && order.Type != null && correlatedPairs.Contains(order.Symbol) && order.Type.Equals(typeToOpen.ToLower().Replace("stop", string.Empty).Replace("limit", string.Empty), StringComparison.OrdinalIgnoreCase))
                     {
                         return order.Symbol; // Found an open order that is in the correlated pairs list and matches the type
                     }

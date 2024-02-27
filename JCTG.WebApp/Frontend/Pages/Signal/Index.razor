@@ -9,15 +9,17 @@
 }
 else
 {
-    <div class="row">
-        <select @onchange="FilterChanged">
-            <option value="0">All</option>
-            @foreach (var strategy in Enum.GetValues(typeof(StrategyType)))
-            {
-                <option value="@((int)strategy)">@strategy</option>
-            }
-        </select>
-
+    <div class="row" style="background-color:lightgray; padding:20px;">
+        <div class="col-md-4">
+            <label>Strategy</label>
+            <select @onchange="FilterChanged">
+                <option value="0">All</option>
+                @foreach (var strategy in Enum.GetValues(typeof(StrategyType)))
+                {
+                    <option value="@((int)strategy)">@strategy</option>
+                }
+            </select>
+        </div>
     </div>
 
     <br />

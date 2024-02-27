@@ -1,0 +1,35 @@
+﻿@page "/Clients/{clientid:long}/Delete";
+@inject ClientRepository _clientRepository;
+@inject NavigationManager NavManager
+
+<h3>Delete</h3>
+
+<div class="m-2">
+    <button @onclick=OnButtonClick>Delete</button>
+</div>
+
+
+@code {
+
+    [Parameter]
+    public long ClientId { get; set; }
+
+
+    private Entity.Client? _client = null;
+
+    protected async override Task OnInitializedAsync()
+    {
+        _client = await _clientRepository.GetByIdAsync(692803787, ClientId);
+
+    }
+
+    private async Task OnButtonClick(MouseEventArgs e)
+    {
+        if (_client != null)
+        {
+            await _clientRepository.DeleteAsync(692803787, ClientId);
+        }
+
+        NavManager.NavigateTo("/Clients");
+    }
+}

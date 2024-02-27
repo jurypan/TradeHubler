@@ -776,7 +776,7 @@
       "MetaTraderDirPath": "C:\\Users\\joeri.pansaerts\\AppData\\Roaming\\MetaQuotes\\Terminal\\1EC23421AF558490730707A48E5336B0\\MQL5\\Files",
       "ClientId": 147966,
       "StartBalance": 5000,
-      "IsEnable": true,
+      "IsEnable": false,
       "Risk": [
         {
           "Procent": 0,
@@ -1186,27 +1186,6 @@
           "SpreadTP": "Add",
           "RiskMinXTimesTheSpread": 4,
           "CorrelatedPairs": [ "SP500" ]
-        },
-        {
-          "TickerInTradingView": "NDX",
-          "TickerInMetatrader": "NAS100",
-          "Timeframe": "M30",
-          "StrategyNr": 3,
-          "Risk": 0.5,
-          "SLtoBEafterR": 1.0,
-          "MaxSpread": 1.5,
-          "SLMultiplier": 1.02,
-          "MaxLotSize": 1000,
-          "OrderExecType": "Active",
-          "CancelStopOrLimitOrderWhenNewSignal": true,
-          "NumberOfHistoricalBarsRequested": 100,
-          "CloseAllTradesAt": null,
-          "DoNotOpenTradeXMinutesBeforeClose": null,
-          "SpreadEntry": "Add",
-          "SpreadSL": "Subtract",
-          "SpreadTP": "Add",
-          "RiskMinXTimesTheSpread": 4,
-          "CorrelatedPairs": []
         },
         {
           "TickerInTradingView": "BTCUSD",
