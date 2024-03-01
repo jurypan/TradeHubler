@@ -1,0 +1,84 @@
+﻿@page "/Signals/{signalid:long}/Orders/{clientid:long}/Logs";
+@inject LogRepository _logRepository;
+@inject NavigationManager _navigationManager;
+
+<h3>Signals</h3>
+@if (_logs.Count() <= 0)
+{
+    <p>No trading journals available</p>
+}
+else
+{
+    <div class="row">
+        <div class="col-2 border border-primary">
+            Date created
+        </div>
+        <div class="col-2 border border-primary">
+            Type
+        </div>
+        <div class="col-2 border border-primary">
+            Error Type
+        </div>
+         <div class="col-3 border border-primary">
+            Message
+        </div>
+        <div class="col-3 border border-primary">
+           Description
+        </div>
+    </div>
+    <br />
+    @foreach (var log in _logs)
+    {
+        <div class="row">
+            <div class="col-2 border border-secondary">
+                @log.DateCreated
+            </div>
+            <div class="col-2  border border-secondary">
+                @log.Type
+            </div>
+            <div class="col-2  border border-secondary">
+                @log.ErrorType
+            </div>
+           
+            @if (log.Description == null)
+            {
+                <div class="col-6  border border-secondary">
+                    @((MarkupString)log.Message?.Replace("||", "<br />").Replace(",", "<br />"))
+                </div>
+            }
+            else
+            {
+                <div class="col-3  border border-secondary">
+                    @((MarkupString)log.Message?.Replace("||", "<br />").Replace(",", "<br />"))
+                </div>
+                <div class="col-3  border border-secondary">
+                    @((MarkupString)log.Description?.Replace("||", "<br />").Replace(",", "<br />"))
+                </div>
+            }
+        </div>
+        <br />
+    }
+
+}
+
+
+
+
+@code {
+
+    [Parameter]
+    public long SignalId { get; set; }
+
+    [Parameter]
+    public long ClientId { get; set; }
+
+
+    private List<Entity.Log> _logs = new List<Entity.Log>();
+    private readonly Serilog.ILogger _logger = Serilog.Log.ForContext<Log>();
+
+    protected async override Task OnInitializedAsync()
+    {
+        _logger.Debug($"OnInitializedAsync with signal id {SignalId}");
+        _logs = await _logRepository.GetAll(692803787, SignalId, ClientId);
+    }
+}

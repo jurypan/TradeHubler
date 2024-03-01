@@ -85,7 +85,7 @@ namespace JCTG.Entity
                 }
             }
 
-            if(signal.OrderType.Equals("buy", StringComparison.CurrentCultureIgnoreCase) || signal.OrderType.Equals("sell", StringComparison.CurrentCultureIgnoreCase)) 
+            if (signal.OrderType.Equals("buy", StringComparison.CurrentCultureIgnoreCase) || signal.OrderType.Equals("sell", StringComparison.CurrentCultureIgnoreCase))
             {
                 signal.TradingviewStateType = TradingviewStateType.Entry;
             }
@@ -106,5 +106,6 @@ namespace JCTG.Entity
         SlHit = 2,
         BeHit = 3,
         Entry = 10,
+        Cancel = 20,
     }
 }

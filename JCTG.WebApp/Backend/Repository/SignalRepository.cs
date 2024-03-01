@@ -12,6 +12,12 @@ public class SignalRepository(IDbContextFactory<JCTGDbContext> dbContextFactory)
         return await context.Signal.Where(f => f.AccountID == accountId).OrderByDescending(f => f.DateCreated).ToListAsync();
     }
 
+    public async Task<List<Signal>> GetAll(int accountId, string instrument, string ordertype, StrategyType strategyType)
+    {
+        using var context = await dbContextFactory.CreateDbContextAsync();
+        return await context.Signal.Where(f => f.AccountID == accountId && f.Instrument == instrument && f.OrderType == ordertype && f.StrategyType == strategyType).OrderByDescending(f => f.DateCreated).ToListAsync();
+    }
+
     public async Task<List<Signal>> GetAllByStrategy(int accountId, StrategyType strategyType)
     {
         using var context = await dbContextFactory.CreateDbContextAsync();

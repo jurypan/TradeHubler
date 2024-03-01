@@ -5,30 +5,30 @@
 <h3>Orders</h3>
 
 
-    @if (_signal != null)
-    {
-        <div class="row" style="background-color:lightgray;">
-            <div class="col-md-6 mb-6">
-                Date created: @_signal.DateCreated<br />
-                Magic: @_signal.Magic<br />
-                EntryPrice: @_signal.EntryPrice<br />
-                StopLoss: @_signal.StopLoss<br />
-                TakeProfit: @_signal.TakeProfit<br />
-            </div>
-            <div class="col-md-6 mb-6">
-                EntryExpression: @_signal.EntryExpression<br />
-                Risk: @_signal.Risk<br />
-                RiskRewardRatio: @_signal.RiskRewardRatio<br />
-                TradingviewStateType: @_signal.TradingviewStateType<br />
-            </div>
+@if (_signal != null)
+{
+    <div class="row" style="background-color:lightgray;">
+        <div class="col-md-6 mb-6">
+            Date created: @_signal.DateCreated<br />
+            Magic: @_signal.Magic<br />
+            EntryPrice: @_signal.EntryPrice<br />
+            StopLoss: @_signal.StopLoss<br />
+            TakeProfit: @_signal.TakeProfit<br />
         </div>
-        <br />
-        <br />
-    }
+        <div class="col-md-6 mb-6">
+            EntryExpression: @_signal.EntryExpression<br />
+            Risk: @_signal.Risk<br />
+            RiskRewardRatio: @_signal.RiskRewardRatio<br />
+            TradingviewStateType: @_signal.TradingviewStateType<br />
+        </div>
+    </div>
+    <br />
+    <br />
+}
 
-    <div class="row">
+<div class="row">
     <h3>Clients <b>with</b> orders for this signal</h3>
-    @if(_orders.Count == 0)
+    @if (_orders.Count == 0)
     {
         <div class="col-md-12">
             <p>No clients available</p>
@@ -50,28 +50,53 @@
             </div>
         }
     }
-    
-    </div>
 
-    <br />
-    <br />
-    <h3>Clients <b>without</b> orders for this signal</h3>
-    <div class="row">
-        @foreach (var client in _clients)
-        {
-            <div class="col-md-6 mb-6">
-                <div class="card">
-                    <div class="card-body">
-                        <h5 class="card-title">@client.Name</h5>
-                        <p class="card-text"></p>
-                        <div><a href="@($"Signals/{SignalId}/Orders/{client.ID}/Logs")"> View logs</a></div>
-                    </div>
+</div>
+
+<br />
+<br />
+<h3>Clients <b>without</b> orders for this signal</h3>
+<div class="row">
+    @foreach (var client in _clients)
+    {
+        <div class="col-md-6 mb-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">@client.Name</h5>
+                    <p class="card-text"></p>
+                    <div><a href="@($"Signals/{SignalId}/Orders/{client.ID}/Logs")"> View logs</a></div>
                 </div>
             </div>
+        </div>
+    }
+</div>
+
+<br />
+<br />
+<div class="row">
+    <h3>History of @_signal?.Instrument @_signal?.OrderType</h3>
+    <table cellpadding="1" cellspacing="1" width="100%" style="width:100%; border:1px solid black;" border="1">
+        <tr>
+            <th style="width:10%; border:1px solid gray; text-align:center;">ID</th>
+            <th style="width:10%; border:1px solid gray; text-align:center;">Magic</th>
+            <th style="width:20%; border:1px solid gray; text-align:center;">Date Created</th>
+            <th style="width:20%; border:1px solid gray; text-align:center;">Instrument</th>
+            <th style="width:20%; border:1px solid gray; text-align:center;">Order Type</th>
+            <th style="width:20%; border:1px solid gray; text-align:center;">State</th>
+        </tr>
+        @foreach (var signal in _signals)
+        {
+            <tr>
+                <td style="width:10%; border:1px solid gray; text-align:center;">@signal.ID</td>
+                <td style="width:10%; border:1px solid gray; text-align:center;">@signal.Magic</td>
+                <td style="width:20%; border:1px solid gray; text-align:center;">@signal.DateCreated</td>
+                <td style="width:20%; border:1px solid gray; text-align:center;">@signal.Instrument</td>
+                <td style="width:20%; border:1px solid gray; text-align:center;">@signal.OrderType</td>
+                <td style="width:20%; border:1px solid gray; text-align:center;">@signal.TradingviewStateType</td>
+            </tr>
         }
-    </div>
-
-
+    </table>
+</div>
 
 @code {
 
@@ -79,17 +104,22 @@
     public long SignalId { get; set; }
 
 
+
+
     private Entity.Signal? _signal = null;
     private List<Entity.Order> _orders = new List<Entity.Order>();
     private List<Entity.Client> _clients = new List<Entity.Client>();
+    private List<Entity.Signal> _signals = new List<Entity.Signal>();
 
     protected async override Task OnInitializedAsync()
     {
         _signal = await _signalRepository.GetById(692803787, SignalId);
+        
         var clients = await _clientRepository.GetAllAsync(692803787);
 
         if (_signal != null)
         {
+            _signals = await _signalRepository.GetAll(692803787, _signal.Instrument, _signal.OrderType, _signal.StrategyType);
             _orders = _signal.Orders;
         }
 

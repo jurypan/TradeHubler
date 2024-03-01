@@ -1,39 +1,52 @@
 ﻿@page "/Signals/{signalid:long}/History";
-@inject TradingviewAlertRepository _tradingviewAlertRepository;
+@inject SignalRepository _signalRepository;
+@inject ClientRepository _clientRepository;
 
+<div class="row">
+    <p></p>
 
-<h1>History</h1>
-
-
-<table cellpadding="1" cellspacing="1" width="100%" style="width:100%; border:1px solid black;" border="1">
-    <tr>
-        <th style="width:10%; border:1px solid gray; text-align:center;">ID</th>
-        <th style="width:20%; border:1px solid gray; text-align:center;">Date Created</th>
-        <th style="width:10%; border:1px solid gray; text-align:center;">Type</th>
-        <th style="width:60%; border:1px solid gray; text-align:center;">Raw Message</th>
-    </tr>
-    @foreach (var alert in _tradingviewAlerts)
-    {
+</div>
+<div class="row">
+    <h3>History of @_signal?.Instrument @_signal?.OrderType</h3>
+    <table cellpadding="1" cellspacing="1" width="100%" style="width:100%; border:1px solid black;" border="1">
         <tr>
-            <td style="width:10%; border:1px solid gray; text-align:center;">@alert.ID</td>
-            <td style="width:20%; border:1px solid gray; text-align:center;">@alert.DateCreated</td>
-            <td style="width:10%; border:1px solid gray; text-align:center;">@alert.Type</td>
-            <td style="width:60%; border:1px solid gray; text-align:left;"> @((MarkupString)alert.RawMessage.Replace("||", "<br />").Replace(",", "<br />"))</td>
+            <th style="width:10%; border:1px solid gray; text-align:center;">ID</th>
+            <th style="width:10%; border:1px solid gray; text-align:center;">Magic</th>
+            <th style="width:20%; border:1px solid gray; text-align:center;">Date Created</th>
+            <th style="width:20%; border:1px solid gray; text-align:center;">Instrument</th>
+            <th style="width:20%; border:1px solid gray; text-align:center;">Order Type</th>
+            <th style="width:20%; border:1px solid gray; text-align:center;">State</th>
         </tr>
-    }
-</table>
+        @foreach (var signal in _signals)
+        {
+            <tr>
+                <td style="width:10%; border:1px solid gray; text-align:center;">@signal.ID</td>
+                <td style="width:10%; border:1px solid gray; text-align:center;">@signal.Magic</td>
+                <td style="width:20%; border:1px solid gray; text-align:center;">@signal.DateCreated</td>
+                <td style="width:20%; border:1px solid gray; text-align:center;">@signal.Instrument</td>
+                <td style="width:20%; border:1px solid gray; text-align:center;">@signal.OrderType</td>
+                <td style="width:20%; border:1px solid gray; text-align:center;">@signal.TradingviewStateType</td>
+            </tr>
+        }
+    </table>
+</div>
 
 @code {
+
     [Parameter]
     public long SignalId { get; set; }
 
 
-    private List<Entity.TradingviewAlert> _tradingviewAlerts = new();
-
-
+    private Entity.Signal? _signal = null;
+    private List<Entity.Signal> _signals = new List<Entity.Signal>();
 
     protected async override Task OnInitializedAsync()
     {
-        _tradingviewAlerts = await _tradingviewAlertRepository.GetAll(SignalId);
+        _signal = await _signalRepository.GetById(692803787, SignalId);
+        
+        if (_signal != null)
+        {
+            _signals = await _signalRepository.GetAll(692803787, _signal.Instrument, _signal.OrderType, _signal.StrategyType);
+        }
     }
 }

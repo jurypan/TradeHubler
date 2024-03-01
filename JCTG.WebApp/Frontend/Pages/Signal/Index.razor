@@ -35,13 +35,10 @@ else
                         <p class="card-text">@signal.StrategyType</p>
                         <p class="card-text">@signal.TradingviewStateType</p>
                         <div>
-                            <a href="@($"Signals/{signal.ID}/Orders")"> View orders</a>
-                        </div>
-                        <div>
-                            <a href="@($"Signals/{signal.ID}/History")"> View logs</a>
-                        </div>
-                        <div>
-                            <a href="@($"Signals/{signal.ID}/Retry")"> Retry signal</a>
+                            <a href="@($"Signals/{signal.ID}/History")" class="btn btn-success">History</a>
+                            <a href="@($"Signals/{signal.ID}/Orders")" class="btn btn-primary">Orders</a>
+                            <a href="@($"Signals/{signal.ID}/Logs")" class="btn btn-secondary">Logs</a>
+                            <a href="@($"Signals/{signal.ID}/Retry")" class="btn btn-light">Retry</a>
                         </div>
                     </div>
                 </div>

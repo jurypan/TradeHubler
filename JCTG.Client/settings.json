@@ -772,83 +772,6 @@
       ]
     },
     {
-      "Name": "CRYPTO FUND TRADERS - MT5",
-      "MetaTraderDirPath": "C:\\Users\\joeri.pansaerts\\AppData\\Roaming\\MetaQuotes\\Terminal\\1EC23421AF558490730707A48E5336B0\\MQL5\\Files",
-      "ClientId": 147966,
-      "StartBalance": 5000,
-      "IsEnable": false,
-      "Risk": [
-        {
-          "Procent": 0,
-          "Multiplier": 1
-        },
-        {
-          "Procent": 2.0,
-          "Multiplier": 1.25
-        },
-        {
-          "Procent": 4.0,
-          "Multiplier": 1.50
-        },
-        {
-          "Procent": -2.0,
-          "Multiplier": 0.75
-        },
-        {
-          "Procent": -4.0,
-          "Multiplier": 0.50
-        },
-        {
-          "Procent": -6.0,
-          "Multiplier": 0.25
-        }
-      ],
-      "Pairs": [
-        {
-          "TickerInTradingView": "BTCUSD",
-          "TickerInMetatrader": "BTCUSDT",
-          "Timeframe": "M5",
-          "StrategyNr": 5,
-          "Risk": 1,
-          "SLtoBEafterR": 1.0,
-          "MaxSpread": 0.5,
-          "SLMultiplier": 1,
-          "MaxLotSize": 1000,
-          "OrderExecType": "Active",
-          "CancelStopOrLimitOrderWhenNewSignal": true,
-          "NumberOfHistoricalBarsRequested": 100,
-          "CloseAllTradesAt": null,
-          "DoNotOpenTradeXMinutesBeforeClose": null,
-          "SpreadEntry": null,
-          "SpreadSL": "Subtract",
-          "SpreadTP": "Add",
-          "RiskMinXTimesTheSpread": 4,
-          "CorrelatedPairs": []
-        },
-        {
-          "TickerInTradingView": "ETHUSD",
-          "TickerInMetatrader": "ETHUSDT",
-          "Timeframe": "M5",
-          "StrategyNr": 5,
-          "Risk": 1,
-          "SLtoBEafterR": 1.0,
-          "MaxSpread": 0.1,
-          "SLMultiplier": 1,
-          "MaxLotSize": 1000,
-          "OrderExecType": "Active",
-          "CancelStopOrLimitOrderWhenNewSignal": true,
-          "NumberOfHistoricalBarsRequested": 100,
-          "CloseAllTradesAt": null,
-          "DoNotOpenTradeXMinutesBeforeClose": null,
-          "SpreadEntry": null,
-          "SpreadSL": "Subtract",
-          "SpreadTP": "Add",
-          "RiskMinXTimesTheSpread": 4,
-          "CorrelatedPairs": []
-        }
-      ]
-    },
-    {
       "Name": "CITY TRADERES IMPERIUM - MT5",
       "MetaTraderDirPath": "C:\\Users\\joeri.pansaerts\\AppData\\Roaming\\MetaQuotes\\Terminal\\F0D7FA73F4CD7B6D5C2C93B25659B70C\\MQL5\\Files",
       "ClientId": 1002135,
@@ -1164,7 +1087,7 @@
           "SpreadSL": "Subtract",
           "SpreadTP": "Add",
           "RiskMinXTimesTheSpread": 4,
-          "CorrelatedPairs": [ "NAS100"]
+          "CorrelatedPairs": [ "NAS100" ]
         },
         {
           "TickerInTradingView": "NDX",
@@ -1397,6 +1320,103 @@
           "Risk": 0.5,
           "SLtoBEafterR": 1.0,
           "MaxSpread": 1.5,
+          "SLMultiplier": 1.02,
+          "MaxLotSize": 1000,
+          "OrderExecType": "Active",
+          "CancelStopOrLimitOrderWhenNewSignal": true,
+          "NumberOfHistoricalBarsRequested": 100,
+          "CloseAllTradesAt": null,
+          "DoNotOpenTradeXMinutesBeforeClose": null,
+          "SpreadEntry": "Add",
+          "SpreadSL": "Subtract",
+          "SpreadTP": "Add",
+          "RiskMinXTimesTheSpread": 4,
+          "CorrelatedPairs": []
+        }
+      ]
+    },
+    {
+      "Name": "FUNDING TRADERS - MT5",
+      "MetaTraderDirPath": "C:\\Users\\joeri.pansaerts\\AppData\\Roaming\\MetaQuotes\\Terminal\\D0E8209F77C8CF37AD8BF550E51FF075\\MQL5\\Files\\",
+      "ClientId": 4009915,
+      "StartBalance": 5000,
+      "IsEnable": true,
+      "Risk": [
+        {
+          "Procent": 4.0,
+          "Multiplier": 3.00
+        },
+        {
+          "Procent": 3.0,
+          "Multiplier": 2.0
+        },
+        {
+          "Procent": 2.0,
+          "Multiplier": 1.5
+        },
+        {
+          "Procent": 1.0,
+          "Multiplier": 1.25
+        },
+        {
+          "Procent": 0,
+          "Multiplier": 1
+        },
+        {
+          "Procent": -1.0,
+          "Multiplier": 0.75
+        },
+        {
+          "Procent": -2.0,
+          "Multiplier": 0.5
+        },
+        {
+          "Procent": -3.0,
+          "Multiplier": 0.6
+        },
+        {
+          "Procent": -4.0,
+          "Multiplier": 0.75
+        },
+        {
+          "Procent": -5.0,
+          "Multiplier": 0.80
+        },
+        {
+          "Procent": -6.0,
+          "Multiplier": 0.90
+        }
+      ],
+      "Pairs": [
+        {
+          "TickerInTradingView": "BTCUSD",
+          "TickerInMetatrader": "BTCUSD",
+          "Timeframe": "M5",
+          "StrategyNr": 5,
+          "Risk": 0.15,
+          "SLtoBEafterR": 1.0,
+          "MaxSpread": 10,
+          "SLMultiplier": 1.02,
+          "MaxLotSize": 1000,
+          "OrderExecType": "Active",
+          "CancelStopOrLimitOrderWhenNewSignal": true,
+          "NumberOfHistoricalBarsRequested": 100,
+          "CloseAllTradesAt": null,
+          "DoNotOpenTradeXMinutesBeforeClose": null,
+          "SpreadEntry": "Add",
+          "SpreadSL": "Subtract",
+          "SpreadTP": "Add",
+          "RiskMinXTimesTheSpread": 4,
+          "CorrelatedPairs": []
+        },
+        {
+          "TickerInTradingView": "ETHUSD",
+          "TickerInMetatrader": "ETHUSD",
+          "Timeframe": "M5",
+          "StrategyNr": 5,
+          "Risk": 0.15,
+          "SLtoBEafterR": 1.0,
+          "MaxSpread": 3.0,
           "SLMultiplier": 1.02,
           "MaxLotSize": 1000,
           "OrderExecType": "Active",

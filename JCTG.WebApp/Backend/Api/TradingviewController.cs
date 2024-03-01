@@ -111,6 +111,7 @@ namespace JCTG.WebApp.Backend.Api
                             _logger.Information($"Sent to Azure Web PubSub with response client request id: {id}", id);
                             break;
                         case "entry":
+                        case "cancelorder":
                         case "movesltobe":
                         case "tphit":
                         case "slhit":
@@ -131,6 +132,8 @@ namespace JCTG.WebApp.Backend.Api
                                     existingSignal.TradingviewStateType = TradingviewStateType.BeHit;
                                 else if (signal.OrderType.Equals("entry", StringComparison.CurrentCultureIgnoreCase))
                                     existingSignal.TradingviewStateType = TradingviewStateType.Entry;
+                                else if (signal.OrderType.Equals("cancelorder", StringComparison.CurrentCultureIgnoreCase))
+                                    existingSignal.TradingviewStateType = TradingviewStateType.Cancel;
                                 _dbContext.Signal.Update(existingSignal);
 
                                 // Add to the tradingview alert
