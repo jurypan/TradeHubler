@@ -2,6 +2,7 @@ using JCTG;
 using JCTG.WebApp.Backend.Middleware;
 using JCTG.WebApp.Backend.Repository;
 using JCTG.WebApp.Backend.Websocket;
+using JCTG.WebApp.Frontend.Components.Apex;
 using JCTG.WebApp.Frontend.Components.Tradingview;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
@@ -36,8 +37,9 @@ builder.Services.AddDbContextFactory<JCTGDbContext>(
 builder.Services.AddAzurePubSubClient(builder.Configuration.GetConnectionString("AZURE_PUBSUB_CONNECTIONSTRING"));
 builder.Services.AddAzurePubSubServer();
 
-// Add Tradingview
+// Add Components
 builder.Services.InitTradingview();
+builder.Services.InitApex();
 
 // Add services to the scope
 builder.Services.AddTransient<SignalRepository>();

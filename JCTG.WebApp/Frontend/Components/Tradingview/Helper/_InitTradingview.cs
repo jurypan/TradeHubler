@@ -1,6 +1,6 @@
 ﻿namespace JCTG.WebApp.Frontend.Components.Tradingview;
 
-public static class _InitTradingview
+public static class _InitApex
 {
     public static IServiceCollection InitTradingview(this IServiceCollection service)
     {

@@ -1406,7 +1406,7 @@
           "SpreadEntry": "Add",
           "SpreadSL": "Subtract",
           "SpreadTP": "Add",
-          "RiskMinXTimesTheSpread": 4,
+          "RiskMinXTimesTheSpread": 2,
           "CorrelatedPairs": []
         },
         {
@@ -1427,7 +1427,7 @@
           "SpreadEntry": "Add",
           "SpreadSL": "Subtract",
           "SpreadTP": "Add",
-          "RiskMinXTimesTheSpread": 4,
+          "RiskMinXTimesTheSpread": 2,
           "CorrelatedPairs": []
         }
       ]

@@ -1,34 +1,85 @@
-﻿<div class="top-row ps-3 navbar navbar-dark">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="">Trade Hubbing</a>
-        <button title="Navigation menu" class="navbar-toggler" @onclick="ToggleNavMenu">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-    </div>
+﻿<div class="brand-logo d-flex align-items-center justify-content-between">
+    <a href="/" class="text-nowrap logo-img">
+        <b class="logo-icon">
+            <img src="/images/logos/logo-icon.svg" alt="homepage" class="dark-logo" />
+            <img src="/images/logos/logo-light-icon.svg" alt="homepage" class="light-logo" />
+        </b>
+        <span class="logo-text">
+            <img src="/images/logos/logo-text.svg" alt="homepage" class="dark-logo ps-2" />
+            <img src="/images/logos/logo-light-text.svg" class="light-logo ps-2" alt="homepage" />
+        </span>
+    </a>
 </div>
+<nav class="sidebar-nav scroll-sidebar" data-simplebar>
+    <ul id="sidebarnav">
+        <li class="pt-3">
+            <div class="user-profile d-flex no-block dropdown mt-3">
+                <div class="user-pic">
+                    <img src="/images/profile/user-6.jpg" alt="users" class="rounded-circle" width="40" />
+                </div>
+                <div class="user-content hide-menu ms-2">
+                    <a href="#" class="" id="Userdd" role="button" data-bs-toggle="dropdown" aria-haspopup="true"
+                       aria-expanded="false">
+                        <h5 class="mb-0 user-name fw-medium d-flex ">
+                            Joeri Pansaerts
+                            <iconify-icon icon="solar:alt-arrow-down-outline" class="ms-2"></iconify-icon>
+                        </h5>
+                        <span class="op-5 text-muted">info@justcalltheguy.io</span>
+                    </a>
+                    <div class="dropdown-menu dropdown-menu-right" aria-labelledby="Userdd">
+                        <a class="dropdown-item d-flex" href="../dark/page-user-profile.html">
+                            <iconify-icon icon="solar:user-linear" class="text-info iconify-sm me-2 ms-1"></iconify-icon>
+                            My Profile
+                        </a>
+                        <a class="dropdown-item d-flex" href="../dark/page-user-profile.html">
+                            <iconify-icon icon="solar:card-outline" class="text-primary iconify-sm me-2 ms-1"></iconify-icon>
+                            My Balance
+                        </a>
+                        <a class="dropdown-item d-flex" href="../dark/app-email.html">
+                            <iconify-icon icon="solar:inbox-linear" class="text-success iconify-sm me-2 ms-1"></iconify-icon>
+                            Inbox
+                        </a>
+                        <a class="dropdown-item d-flex border-bottom border-top mt-1 py-3" href="../dark/page-account-settings.html">
+                            <iconify-icon icon="solar:settings-outline" class="text-warning iconify-sm me-2 ms-1"></iconify-icon>
+                            Account Setting
+                        </a>
 
-<div class="@NavMenuCssClass nav-scrollable" @onclick="ToggleNavMenu">
-    <nav class="flex-column">
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="/" Match="NavLinkMatch.All">
-                <span class="oi oi-home" aria-hidden="true"></span> Clients
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="/Signals">
-                <span class="oi oi-list-rich" aria-hidden="true"></span> Signals
-            </NavLink>
-        </div>
-    </nav>
-</div>
+                        <a class="dropdown-item d-flex py-3 pb-2" href="../dark/authentication-login.html">
+                            <iconify-icon icon="solar:login-2-outline" class="text-danger iconify-sm me-2 ms-1"></iconify-icon>
+                            Logout
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </li>
+        <li class="mt-3 pt-3">
+            <a href="../dark/authentication-register.html" class="btn btn-block bg-primary text-white no-block d-flex align-items-center py-2 px-2 border-0">
+                <iconify-icon icon="solar:add-square-linear" class="fs-5"></iconify-icon>
+                <span class="hide-menu ms-2">Create New</span>
+            </a>
+        </li>
+        <li class="nav-small-cap">
+            <iconify-icon icon="solar:menu-dots-bold" class="nav-small-cap-icon fs-4"></iconify-icon>
+            <span class="hide-menu">Menu</span>
+        </li>
+        <li class="sidebar-item">
+            <a class="sidebar-link sidebar-link" href="/" aria-expanded="false">
+                <iconify-icon icon="solar:calendar-minimalistic-outline" class="fs-5"></iconify-icon>
+                <span class="hide-menu">Clients</span>
+            </a>
+        </li>
+        <li class="sidebar-item">
+            <a class="sidebar-link sidebar-link" href="/signals" aria-expanded="false">
+                <iconify-icon icon="solar:widget-4-outline" class="fs-5"></iconify-icon>
+                <span class="hide-menu">Signals</span>
+            </a>
+        </li>
+        <li class="sidebar-item">
+            <a class="sidebar-link sidebar-link" href="/strategies" aria-expanded="false">
+                <iconify-icon icon="solar:chat-round-unread-outline" class="fs-5"></iconify-icon>
+                <span class="hide-menu">Strategies</span>
+            </a>
+        </li>
+    </ul>
+</nav>
 
-@code {
-    private bool collapseNavMenu = true;
-
-    private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;
-
-    private void ToggleNavMenu()
-    {
-        collapseNavMenu = !collapseNavMenu;
-    }
-}

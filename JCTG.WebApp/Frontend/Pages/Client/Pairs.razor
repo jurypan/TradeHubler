@@ -1,38 +1,320 @@
 ﻿@page "/Clients/{clientid:long}/Pairs";
+@implements IDisposable;
 @inject OrderRepository _orderRepository;
+@inject DealRepository _dealRepository;
+@inject ClientRepository _clientRepository;
+@inject JCTG.WebApp.Backend.Websocket.WebsocketFrontend _websocket;
+@inject JCTG.WebApp.Backend.Websocket.AzurePubSubClient _pubSubClient;
+@using JCTG.WebApp.Frontend.Components.Apex
+@using System.Text.RegularExpressions
 
-<h3>Pairs</h3>
-@if (_pairs.Count() <= 0)
-{
-    <p>No pairs available</p>
-}
-else
-{
-    <div class="row">
-        @foreach (var pair in _pairs)
-        {
-            <div class="col-md-3 mb-3">
-                <div class="card">
-                    <div class="card-body">
-                        <h5 class="card-title">@pair</h5>
-                        <div>
-                            <a href="@($"Clients/{ClientId}/Pairs/{pair}/Tradingview")"> View tradingview</a>
+<div class="container-fluid mw-100">
+
+    <div class="font-weight-medium shadow-none position-relative overflow-hidden mb-4">
+        <div class="card-body px-0">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h4 class="font-weight-medium ">@_client?.Name</h4>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item">
+                                <a class="text-primary text-decoration-none" href="/">
+                                    Home
+                                </a>
+                            </li>
+                            <li class="breadcrumb-item d-flex justify-content-center align-items-center ps-0">
+                                <iconify-icon icon="tabler:chevron-right"></iconify-icon>
+                            </li>
+                            <li class="breadcrumb-item" aria-current="page">
+                                <a class="text-primary text-decoration-none" href="/">
+                                    Clients
+                                </a>
+                            </li>
+                            <li class="breadcrumb-item d-flex justify-content-center align-items-center ps-0">
+                                <iconify-icon icon="tabler:chevron-right"></iconify-icon>
+                            </li>
+                            <li class="breadcrumb-item" aria-current="page">Pairs</li>
+                        </ol>
+                    </nav>
+                </div>
+                <div>
+                    <div class="d-flex no-block justify-content-end align-items-center">
+                        <div class="me-2">
+                            <div class="breadbar"></div>
+                        </div>
+                        <div class="">
+                            <small>LAST MONTH</small>
+                            <h4 class="text-primary mb-0 font-medium">$58,256</h4>
                         </div>
                     </div>
                 </div>
             </div>
-        }
+        </div>
     </div>
-}
+
+    <ul class="nav nav-pills p-3 mb-3 rounded align-items-center card flex-row">
+        <li class="nav-item">
+            <a @onclick="() => ClickFilterAsync(null)" class="nav-link note-link d-flex align-items-center justify-content-center active px-3 px-md-3 me-0 me-md-2 text-body-color btn" id="all-category">
+                <iconify-icon icon="tabler:list" class="fill-white me-0 me-md-1"></iconify-icon>
+                <span class="d-none d-md-block font-weight-medium">All</span>
+            </a>
+        </li>
+        @foreach (var pair in _pairs)
+        {
+            <li class="nav-item">
+                <a @onclick="() => ClickFilterAsync(pair)" class="nav-link note-link d-flex align-items-center justify-content-center px-3 px-md-3 me-0 me-md-2 text-body-color btn" id="all-category">
+                    <iconify-icon icon="tabler:list" class="fill-white me-0 me-md-1"></iconify-icon>
+                    <span class="d-none d-md-block font-weight-medium">@pair</span>
+                </a>
+            </li>
+        }
+    </ul>
+
+    <div class="row">
+        <h4 class="mb-3 mt-4 fs-5">Profit and costs</h4>
+        <div class="col-lg-3 col-md-6">
+            <div class="card border-top border-info">
+                <div class="card-body">
+                    <div class="d-flex no-block align-items-center">
+                        <div>
+                            <h2 class="fs-7">$@_totalPnl</h2>
+                            <h6 class="fw-medium text-info mb-0">Total PNL</h6>
+                        </div>
+                        <div class="ms-auto">
+                            <span class="text-info display-6"><i class="ti ti-chart-bar"></i></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="card border-top border-primary">
+                <div class="card-body">
+                    <div class="d-flex no-block align-items-center">
+                        <div>
+                            <h2 class="fs-7">$@_totalCommission</h2>
+                            <h6 class="fw-medium text-primary mb-0">Total Commission</h6>
+                        </div>
+                        <div class="ms-auto">
+                            <span class="text-primary display-6"><i class="ti ti-rss"></i></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="card border-top border-dark">
+                <div class="card-body">
+                    <div class="d-flex no-block align-items-center">
+                        <div>
+                            <h2 class="fs-7">$@_totalSwapCosts</h2>
+                            <h6 class="fw-medium text-dark mb-0">Total Swap Costs</h6>
+                        </div>
+                        <div class="ms-auto">
+                            <span class="text-dark display-6"><i class="ti ti-archive"></i></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="card border-top border-success">
+                <div class="card-body">
+                    <div class="d-flex no-block align-items-center">
+                        <div>
+                            <h2 class="fs-7">$@_totalSpreadCosts</h2>
+                            <h6 class="fw-medium text-success mb-0">Total spread costs</h6>
+                        </div>
+                        <div class="ms-auto">
+                            <span class="text-success display-6"><i class="ti ti-map"></i></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row" hidden="@(_pair == null)">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5>History of the deals</h5>
+                    <CandleChart @ref=_candleChart />
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="datatables">
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="mb-2">
+                                <h5 class="mb-0">File export</h5>
+                            </div>
+                            <p class="card-subtitle mb-3">
+                                Exporting data from a table can often be a key part of a
+                                complex application. The Buttons extension for DataTables
+                                provides three plug-ins that provide overlapping
+                                functionality for data export. You can refer full
+                                documentation from here
+                                <a href="https://datatables.net/">Datatables</a>
+                            </p>
+                            <div class="table-responsive">
+                                <table id="file_export" class="table border table-striped table-bordered display text-nowrap">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Symbol</th>
+                                            <th>Type</th>
+                                            <th>Open Time</th>
+                                            <th>Close Time</th>
+                                            <th>PNL</th>
+                                            <th>Commission</th>
+                                            <th>Swap</th>
+                                            <th>Spreadcost</th>
+                                            <th>Signal</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var order in _orders.OrderByDescending(f => f.DateCreated))
+                                        {
+                                            <tr>
+                                                <td>@order.ID</td>
+                                                <td>@order.Symbol</td>
+                                                <td>@order.Type</td>
+                                                <td>@order.OpenTime</td>
+                                                <td>@order.CloseTime</td>
+                                                <td>@Math.Round(order.Pnl, 4)</td>
+                                                <td>@Math.Round(order.Commission, 4)</td>
+                                                <td>@Math.Round(order.Swap, 4)</td>
+                                                <td>@Math.Round(order.SpreadCost, 4)</td>
+                                                <td>@order.Signal.TradingviewStateType</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                    <tfoot>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Symbol</th>
+                                            <th>Type</th>
+                                            <th>Open Time</th>
+                                            <th>Close Time</th>
+                                            <th>PNL</th>
+                                            <th>Commission</th>
+                                            <th>Swap</th>
+                                            <th>Spreadcost</th>
+                                            <th>Signal</th>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 @code {
     [Parameter]
     public long ClientId { get; set; }
 
+
     private List<string> _pairs = new();
+    private string? _pair = null;
+    private List<Entity.Order> _orders = new();
+    private List<Entity.Deal> _deals = new();
+    private Entity.Client? _client;
+    private CandleChart? _candleChart;
+    private double _totalPnl = 0.0;
+    private double _totalCommission = 0.0;
+    private double _totalSwapCosts = 0.0;
+    private double _totalSpreadCosts = 0.0;
 
     protected async override Task OnInitializedAsync()
     {
+        // Get pairs
         _pairs = await _orderRepository.GetAllPairs(692803787, ClientId);
+        _client = await _clientRepository.GetByIdAsync(692803787, ClientId);
+        _orders = await _orderRepository.GetAll(692803787, ClientId);
+        _deals = await _dealRepository.GetAll(this.ClientId);
+
+        _totalPnl = Math.Round(_deals.Select(f => f.Pnl).Sum(), 2);
+        _totalCommission = Math.Round(_deals.Select(f => f.Commission).Sum(), 2);
+        _totalSwapCosts = Math.Round(_deals.Select(f => f.Swap).Sum(), 2);
+        _totalSpreadCosts = Math.Round(_deals.Select(f => f.SpreadCost).Sum(), 2);
+    }
+
+
+    private async Task ClickFilterAsync(string? pair)
+    {
+        _pair = pair;
+
+        if(_pair == null)
+        {
+            _orders = await _orderRepository.GetAll(692803787, ClientId);
+            _deals = await _dealRepository.GetAll(this.ClientId);
+
+            _totalPnl = Math.Round(_deals.Select(f => f.Pnl).Sum(), 2);
+            _totalCommission = Math.Round(_deals.Select(f => f.Commission).Sum(), 2);
+            _totalSwapCosts = Math.Round(_deals.Select(f => f.Swap).Sum(), 2);
+            _totalSpreadCosts = Math.Round(_deals.Select(f => f.SpreadCost).Sum(), 2);
+        }
+
+        // Do null reference check
+        else if (_candleChart != null && _client != null && _pair != null)
+        {
+            // Get orders
+            _orders = await _orderRepository.GetAll(692803787, ClientId, _pair);
+            _deals = await _dealRepository.GetAll(this.ClientId, _pair);
+
+            _totalPnl = Math.Round(_deals.Select(f => f.Pnl).Sum(), 2);
+            _totalCommission = Math.Round(_deals.Select(f => f.Commission).Sum(), 2);
+            _totalSwapCosts = Math.Round(_deals.Select(f => f.Swap).Sum(), 2);
+            _totalSpreadCosts = Math.Round(_deals.Select(f => f.SpreadCost).Sum(), 2);
+
+            // Init the event handler
+            _websocket.SubscribeToOnGetHistoricalBarDataEvent(async (onGetHistoricalBarDataEvent) =>
+            {
+                // Do null reference check
+                if (onGetHistoricalBarDataEvent != null
+                    && onGetHistoricalBarDataEvent.ClientID > 0
+                    && onGetHistoricalBarDataEvent.AccountID > 0
+                    && onGetHistoricalBarDataEvent.BarData != null
+                    && onGetHistoricalBarDataEvent.AccountID == 692803787
+                    && onGetHistoricalBarDataEvent.ClientID == ClientId
+                )
+                {
+                    // Load the chart
+                    await _candleChart.InitAsync(_client.Name, onGetHistoricalBarDataEvent.BarData.Select(x => new Components.Apex.BarData()
+                        {
+                            Time = x.Time,
+                            High = x.High,
+                            Low = x.Low,
+                            Open = x.Open,
+                            Close = x.Close
+                        }).OrderBy(f => f.Time).ToList());
+                }
+            });
+
+            // Send command to Metatrader
+            await _pubSubClient.SendGetHistoricalBarDataAsync(692803787, new Command.OnSendGetHistoricalBarDataCommand()
+                {
+                    AccountID = 692803787,
+                    ClientID = ClientId,
+                    Symbol = _pair,
+                    Timeframe = "M5",
+                    StartDate = DateTime.UtcNow.AddDays(-7),
+                });
+        }
+    }
+
+    public void Dispose()
+    {
+
     }
 }

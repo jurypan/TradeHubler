@@ -1,0 +1,24 @@
+﻿@inject JSInteropt JS
+
+
+<div @ref=el></div>
+
+
+@code {
+    public ChartOptions Options { get; private set; } = new ChartOptions();
+    public bool IsInit { get; set; } = false;
+    public ElementReference el { get; set; }
+
+    public async Task InitAsync(string name, List<BarData> data, ChartOptions? options = null)
+    {
+        // Use default options when none are provided
+        if (options != null)
+            Options = options;
+
+        // Set is init
+        IsInit = true;
+
+        // Exec javascript
+        await JS.CandleChartInitAsync(el, name, data);
+    }
+}

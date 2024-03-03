@@ -48,4 +48,8 @@
     </Content>
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Frontend\Pages\Strategy\" />
+  </ItemGroup>
+
 </Project>

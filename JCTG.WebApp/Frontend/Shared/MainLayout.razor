@@ -1,19 +1,26 @@
 ﻿@inherits LayoutComponentBase
 
-<PageTitle>JCTG.WebApp</PageTitle>
+<PageTitle>The Trade Hubler</PageTitle>
 
-<div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
 
-    <main>
-        <div class="top-row px-4">
-            <a href="https://docs.microsoft.com/aspnet/" target="_blank">About</a>
+<div id="main-wrapper">
+    <aside class="left-sidebar with-vertical">
+        <div>
+            <NavMenu />
+        </div>
+    </aside>
+    <div class="page-wrapper">
+        <header class="topbar">
+            <TopBar />
+        </header>
+
+        <div class="body-wrapper">
+            @Body
+
+            <footer class="footer text-center py-3">
+                All Rights Reserved by JP.x BV. Designed and Developed by <a class="text-primary" href="https://www.justcalltheguy.io">Joeri Pansaerts</a>.
+            </footer>
         </div>
 
-        <article class="content px-4">
-            @Body
-        </article>
-    </main>
+    </div>
 </div>

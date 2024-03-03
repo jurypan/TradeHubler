@@ -14,20 +14,29 @@ namespace JCTG.Client
         static async Task Main(string[] args)
         {
             Console.WriteLine("Starting the application ... ");
+            AppDomain.CurrentDomain.UnhandledException += UnhandledExceptionTrapper;
 
             Service = ConfigureServices();
 
             // Use ServiceProvider to get services as needed
-            if(Service != null)
+            if (Service != null)
             {
                 var metatrader = Service.GetService<Metatrader>();
-                if(metatrader != null)
+                if (metatrader != null)
                 {
-                    await metatrader.ListToTheClientsAsync();
-                    await metatrader.ListenToTheServerAsync();
+                    try
+                    {
+                        await metatrader.ListToTheClientsAsync();
+                        await metatrader.ListenToTheServerAsync();
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Caught exception: {ex.Message}");
+                        Console.WriteLine($"Stack trace: {ex.StackTrace}");
+                    }
                 }
             }
-           
+
             Console.ReadLine();
         }
 
@@ -53,6 +62,14 @@ namespace JCTG.Client
             services.AddSingleton(new AzurePubSubClient(new WebsocketClient(url)));
 
             return services.BuildServiceProvider();
+        }
+
+        static void UnhandledExceptionTrapper(object sender, UnhandledExceptionEventArgs e)
+        {
+            Exception ex = (Exception)e.ExceptionObject;
+            Console.WriteLine($"Unhandled exception caught: {ex.Message}");
+            Console.WriteLine($"Stack trace: {ex.StackTrace}");
+            Environment.Exit(1);
         }
     }
 }

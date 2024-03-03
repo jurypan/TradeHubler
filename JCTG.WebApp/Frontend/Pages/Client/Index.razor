@@ -1,44 +1,162 @@
 ﻿@page "/";
 @inject ClientRepository _clientRepository;
+@inject DealRepository _dealRepository;
+@using JCTG.WebApp.Frontend.Components.Apex;
 
-<h3>Clients</h3>
-@if (_clients.Count() <= 0)
-{
-    <p>No Clients available</p>
-}
-else
-{
+<div class="container-fluid mw-100">
+    <div class="font-weight-medium shadow-none position-relative overflow-hidden mb-4">
+        <div class="card-body px-0">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h4 class="font-weight-medium ">Clients</h4>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item">
+                                <a class="text-primary text-decoration-none" href="/">
+                                    Home
+                                </a>
+                            </li>
+                            <li class="breadcrumb-item d-flex justify-content-center align-items-center ps-0">
+                                <iconify-icon icon="tabler:chevron-right"></iconify-icon>
+                            </li>
+                            <li class="breadcrumb-item" aria-current="page">Clients</li>
+                        </ol>
+                    </nav>
+                </div>
+                <div>
+                    <div class="d-flex no-block justify-content-end align-items-center">
+                        <div class="me-2">
+                            <div class="breadbar"></div>
+                        </div>
+                        <div class="">
+                            <small>LAST MONTH</small>
+                            <h4 class="text-primary mb-0 font-medium">$58,256</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="row">
-        @foreach (var Client in _clients)
+        @for (int i = 0; i < _clients.Count; i++)
         {
-            <div class="col-md-3 mb-3">
+            <div class="col-lg-4">
                 <div class="card">
                     <div class="card-body">
-                        <h5 class="card-title">@Client.Name</h5>
-                        <p class="card-text">@Client.Currency</p>
-                        <p class="card-text">Balance: @Client.Balance</p>
-                        <p class="card-text">Equity: @Client.Equity</p>
-                        <div>
-                            <a href="@($"Clients/{Client.ID}/History")" class="btn btn-primary ">History</a>
-                            <a href="@($"Clients/{Client.ID}/Pairs")" class="btn btn-secondary">Pairs</a>
-                            <a href="@($"Clients/{Client.ID}/Logs")" class="btn btn-light">Logs</a>
+                        <div class="d-flex align-items-start">
+                            <div>
+                                <h4 class="card-title">@_clients[i].Name</h4>
+                                <h6 class="card-subtitle">@_clients[i].Balance</h6>
+                            </div>
+                            <div class="ms-auto">
+                                <div class="dropdown">
+                                    <a href="#" class="link" id="new" data-bs-toggle="dropdown" aria-expanded="true">
+                                        <iconify-icon icon="solar:menu-dots-bold" class="fs-5"></iconify-icon>
+                                    </a>
+                                    <ul class="dropdown-menu" aria-labelledby="new">
+                                        <li>
+                                            <a class="dropdown-item" href="@($"Clients/{_clients[i].ID}/Edit")">Edit</a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item" href="@($"Clients/{_clients[i].ID}/Delete")">Delete</a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
                         </div>
-                        <div style="padding-top:10px;">
-                            <a href="@($"Clients/{Client.ID}/Edit")" class="btn btn-success">Edit</a>
-                            <a href="@($"Clients/{Client.ID}/Delete")" class="btn btn-danger">Delete</a>
+                    </div>
+                    <div class="earnings-month mt-1">
+                        <AreaChart @ref="@Ref" />
+                    </div>
+                    <div class="card-body">
+                        <div class="row pb-3 border-bottom">
+                            <div class="col-3">
+                                <div class="bg-primary-subtle text-primary text-center py-2 rounded-1">
+                                    <i class="ti ti-brand-dribbble fs-8"></i>
+                                </div>
+                            </div>
+                            <div class="col-9 d-flex align-items-center">
+                                <div>
+                                    <a href="@($"Clients/{_clients[i].ID}/History")">
+                                        <h5 class="card-title mb-1">History</h5>
+                                        <p class="text-muted mb-0">
+                                            History of this signal incl signal'' sl or tp
+                                        </p>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row py-3 border-bottom">
+                            <div class="col-3">
+                                <div class="bg-danger-subtle text-danger text-center py-2 rounded-1">
+                                    <i class="ti ti-brand-youtube fs-8"></i>
+                                </div>
+                            </div>
+                            <div class="col-9 d-flex align-items-center">
+                                <div>
+                                    <a href="@($"Clients/{_clients[i].ID}/Pairs")">
+                                        <h5 class="card-title mb-1">Pairs</h5>
+                                        <p class="text-muted mb-0">
+                                            View every signal on Tradingview
+                                        </p>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row pt-3">
+                            <div class="col-3">
+                                <div class="bg-info-subtle text-info text-center py-2 rounded-1">
+                                    <i class="ti ti-brand-messenger fs-8"></i>
+                                </div>
+                            </div>
+                            <div class="col-9 d-flex align-items-center">
+                                <div>
+                                    <a href="@($"Clients/{_clients[i].ID}/Log")">
+                                        <h5 class="card-title mb-1">Logs</h5>
+                                        <p class="text-muted mb-0">View log track</p>
+                                    </a>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         }
     </div>
-}
-
+</div>
 @code {
-    private IEnumerable<Entity.Client> _clients = new List<Entity.Client>();
+    public AreaChart Ref { set => _areaCharts.Add(value); }
+
+    private List<Entity.Client> _clients = new();
+    private List<AreaChart> _areaCharts = new();
+    private List<Entity.Deal> _deals = new();
+    string[] colors = { "#3699ff", "#6610f2", "#fb8c00", "#0bb7af", "#f64e60", "#4fc3f7", "#787f8e", "#e83e8c" };
 
     protected async override Task OnInitializedAsync()
     {
         _clients = await _clientRepository.GetAllAsync(692803787);
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        // Only on first render
+        if (!firstRender || _areaCharts == null || _areaCharts.Count == 0)
+            return;
+
+        // Load the chart
+        for (int i = 0; i < _clients.Count; i++)
+        {
+            _deals = await _dealRepository.GetAllLast10(_clients[i].ID);
+
+            await _areaCharts[i].InitMiniAsync("Deals", _deals
+            .Where(f => f.AccountBalance.HasValue && f.AccountBalance.Value > 0)
+            .Select(x => new Components.Apex.AreaPoint()
+                {
+                    Time = x.DateCreated,
+                    Price = x.AccountBalance.HasValue ? Convert.ToDecimal(x.AccountBalance.Value) : 0.0M
+                }).OrderBy(f => f.Time)
+                    .ToList(), colors[i % _clients.Count]);
+        }
     }
 }

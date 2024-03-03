@@ -2,63 +2,208 @@
 @inject ClientRepository _clientRepository;
 @inject DealRepository _dealRepository;
 @inject OrderRepository _orderRepository
-@using JCTG.WebApp.Frontend.Components.Tradingview
-
-<h1>History</h1>
-
-<Chart @ref=tv />
-
-<br />
-<br />
-
-<h1>Numbers</h1>
-<p>
-    Total PNL: @_client?.Currency @_totalPnl<br />
-    Total Commission: @_client?.Currency @_totalCommission<br />
-    Total Swap Costs: @_client?.Currency @_totalSwapCosts<br />
-    Total Spread costs: @_client?.Currency @_totalSpreadCosts
-</p>
-
-<br />
-<br />
+@using JCTG.WebApp.Frontend.Components.Apex;
 
 
-<h1>Orders</h1>
-<table cellpadding="1" cellspacing="1" width="100%" style="width:100%; border:1px solid black;" border="1">
-    <tr>
-        <th style="width:5%; border:1px solid gray; text-align:center;">ID</th>
-        <th style="width:5%; border:1px solid gray; text-align:center;">Symbol</th>
-        <th style="width:10%; border:1px solid gray; text-align:center;">Type</th>
-        <th style="width:20%; border:1px solid gray; text-align:center;">Open Time</th>
-        <th style="width:20%; border:1px solid gray; text-align:center;">Close Time</th>
-        <th style="width:10%; border:1px solid gray; text-align:center;">PNL</th>
-        <th style="width:10%; border:1px solid gray; text-align:center;">Commission</th>
-        <th style="width:10%; border:1px solid gray; text-align:center;">Swap</th>
-        <th style="width:10%; border:1px solid gray; text-align:center;">Spreadcost</th>
-        <th style="width:10%; border:1px solid gray; text-align:center;">Signal</th>
-    </tr>
-    @foreach (var order in _orders.OrderByDescending(f => f.DateCreated))
-    {
-        <tr>
-            <td style="width:10%; border:1px solid gray; text-align:center;">@order.ID</td>
-            <td style="width:10%; border:1px solid gray; text-align:center;">@order.Symbol</td>
-            <td style="width:10%; border:1px solid gray; text-align:center;">@order.Type</td>
-            <td style="width:10%; border:1px solid gray; text-align:center;">@order.OpenTime</td>
-            <td style="width:10%; border:1px solid gray; text-align:center;">@order.CloseTime</td>
-            <td style="width:10%; border:1px solid gray; text-align:center;">@Math.Round(order.Pnl, 4)</td>
-            <td style="width:10%; border:1px solid gray; text-align:center;">@Math.Round(order.Commission, 4)</td>
-            <td style="width:10%; border:1px solid gray; text-align:center;">@Math.Round(order.Swap, 4)</td>
-            <td style="width:10%; border:1px solid gray; text-align:center;">@Math.Round(order.SpreadCost, 4)</td>
-            <td style="width:10%; border:1px solid gray; text-align:center;">@order.Signal.TradingviewStateType</td>
-        </tr>
-    }
-</table>
+<div class="container-fluid mw-100">
+    <div class="font-weight-medium shadow-none position-relative overflow-hidden mb-4">
+        <div class="card-body px-0">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h4 class="font-weight-medium ">@_client?.Name</h4>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item">
+                                <a class="text-primary text-decoration-none" href="/">
+                                    Home
+                                </a>
+                            </li>
+                            <li class="breadcrumb-item d-flex justify-content-center align-items-center ps-0">
+                                <iconify-icon icon="tabler:chevron-right"></iconify-icon>
+                            </li>
+                            <li class="breadcrumb-item" aria-current="page">
+                                <a class="text-primary text-decoration-none" href="/">
+                                    Clients
+                                </a>
+                            </li>
+                            <li class="breadcrumb-item d-flex justify-content-center align-items-center ps-0">
+                                <iconify-icon icon="tabler:chevron-right"></iconify-icon>
+                            </li>
+                            <li class="breadcrumb-item" aria-current="page">History</li>
+                        </ol>
+                    </nav>
+                </div>
+                <div>
+                    <div class="d-flex no-block justify-content-end align-items-center">
+                        <div class="me-2">
+                            <div class="breadbar"></div>
+                        </div>
+                        <div class="">
+                            <small>LAST MONTH</small>
+                            <h4 class="text-primary mb-0 font-medium">$58,256</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <h4 class="mb-3 mt-4 fs-5">Profit and costs</h4>
+        <div class="col-lg-3 col-md-6">
+            <div class="card border-top border-info">
+                <div class="card-body">
+                    <div class="d-flex no-block align-items-center">
+                        <div>
+                            <h2 class="fs-7">$@_totalPnl</h2>
+                            <h6 class="fw-medium text-info mb-0">Total PNL</h6>
+                        </div>
+                        <div class="ms-auto">
+                            <span class="text-info display-6"><i class="ti ti-chart-bar"></i></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="card border-top border-primary">
+                <div class="card-body">
+                    <div class="d-flex no-block align-items-center">
+                        <div>
+                            <h2 class="fs-7">$@_totalCommission</h2>
+                            <h6 class="fw-medium text-primary mb-0">Total Commission</h6>
+                        </div>
+                        <div class="ms-auto">
+                            <span class="text-primary display-6"><i class="ti ti-rss"></i></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="card border-top border-dark">
+                <div class="card-body">
+                    <div class="d-flex no-block align-items-center">
+                        <div>
+                            <h2 class="fs-7">$@_totalSwapCosts</h2>
+                            <h6 class="fw-medium text-dark mb-0">Total Swap Costs</h6>
+                        </div>
+                        <div class="ms-auto">
+                            <span class="text-dark display-6"><i class="ti ti-archive"></i></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="card border-top border-success">
+                <div class="card-body">
+                    <div class="d-flex no-block align-items-center">
+                        <div>
+                            <h2 class="fs-7">$@_totalSpreadCosts</h2>
+                            <h6 class="fw-medium text-success mb-0">Total spread costs</h6>
+                        </div>
+                        <div class="ms-auto">
+                            <span class="text-success display-6"><i class="ti ti-map"></i></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5>History of the deals</h5>
+                    <AreaChart @ref=_areaChart />
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="datatables">
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="mb-2">
+                                <h5 class="mb-0">File export</h5>
+                            </div>
+                            <p class="card-subtitle mb-3">
+                                Exporting data from a table can often be a key part of a
+                                complex application. The Buttons extension for DataTables
+                                provides three plug-ins that provide overlapping
+                                functionality for data export. You can refer full
+                                documentation from here
+                                <a href="https://datatables.net/">Datatables</a>
+                            </p>
+                            <div class="table-responsive">
+                                <table id="file_export" class="table border table-striped table-bordered display text-nowrap">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Symbol</th>
+                                            <th>Type</th>
+                                            <th>Open Time</th>
+                                            <th>Close Time</th>
+                                            <th>PNL</th>
+                                            <th>Commission</th>
+                                            <th>Swap</th>
+                                            <th>Spreadcost</th>
+                                            <th>Signal</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var order in _orders.OrderByDescending(f => f.DateCreated))
+                                        {
+                                            <tr>
+                                                <td>@order.ID</td>
+                                                <td>@order.Symbol</td>
+                                                <td>@order.Type</td>
+                                                <td>@order.OpenTime</td>
+                                                <td>@order.CloseTime</td>
+                                                <td>@Math.Round(order.Pnl, 4)</td>
+                                                <td>@Math.Round(order.Commission, 4)</td>
+                                                <td>@Math.Round(order.Swap, 4)</td>
+                                                <td>@Math.Round(order.SpreadCost, 4)</td>
+                                                <td>@order.Signal.TradingviewStateType</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                    <tfoot>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Symbol</th>
+                                            <th>Type</th>
+                                            <th>Open Time</th>
+                                            <th>Close Time</th>
+                                            <th>PNL</th>
+                                            <th>Commission</th>
+                                            <th>Swap</th>
+                                            <th>Spreadcost</th>
+                                            <th>Signal</th>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 
 @code {
     [Parameter]
     public long ClientId { get; set; }
 
-    private Chart? tv;
+    private AreaChart? _areaChart;
     private List<Entity.Deal> _deals = new();
     private List<Entity.Order> _orders = new();
     private Entity.Client? _client;
@@ -83,54 +228,31 @@
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         // Only on first render
-        if (!firstRender || tv == null)
+        if (!firstRender || _areaChart == null)
             return;
 
         // Get data from database
         _deals = await _dealRepository.GetAll(this.ClientId);
 
-
-        // Init tradingview Chart
-        await tv.InitAsync(new()
-            {
-                Width = -75,
-                Height = 500,
-            });
-
-        // Do null reference check
-        if (tv.IsInit)
+        // Calculate cumulative commission for each deal
+        var cumulativeCommissions = new Dictionary<DateTime, decimal>();
+        decimal totalCommission = 0.0M;
+        foreach (var deal in _deals.Where(f => f.AccountBalance.HasValue).OrderBy(f => f.DateCreated))
         {
-            // Calculate cumulative commission for each deal
-            var cumulativeCommissions = new Dictionary<DateTime, decimal>();
-            decimal totalCommission = 0.0M;
-            foreach (var deal in _deals.Where(f => f.AccountBalance.HasValue).OrderBy(f => f.DateCreated))
-            {
-                totalCommission += Convert.ToDecimal(deal.Commission);
-                totalCommission += Convert.ToDecimal(deal.Swap);
-                totalCommission += Convert.ToDecimal(deal.SpreadCost);
-                cumulativeCommissions[deal.DateCreated] = totalCommission;
-            }
-
-            // Use the cumulative commissions in the query
-            await tv.AddLineSeriesAsync(_deals
-                .Where(f => f.AccountBalance.HasValue && f.AccountBalance.Value > 0)
-                .Select(x => new PricePoint()
-                    {
-                        Time = x.DateCreated,
-                        Price = x.AccountBalance.HasValue ? Convert.ToDecimal(x.AccountBalance.Value) - cumulativeCommissions[x.DateCreated] : 0.0M
-                    }).OrderBy(f => f.Time)
-                        .ToList());
-
-
-            // Load the chart
-            await tv.AddAreaSeriesAsync(_deals
-                .Where(f => f.AccountBalance.HasValue && f.AccountBalance.Value > 0)
-                .Select(x => new AreaPoint()
-                    {
-                        Time = x.DateCreated,
-                        Price = x.AccountBalance.HasValue ? Convert.ToDecimal(x.AccountBalance.Value) : 0.0M
-                    }).OrderBy(f => f.Time)
-                        .ToList());
+            totalCommission += Convert.ToDecimal(deal.Commission);
+            totalCommission += Convert.ToDecimal(deal.Swap);
+            totalCommission += Convert.ToDecimal(deal.SpreadCost);
+            cumulativeCommissions[deal.DateCreated] = totalCommission;
         }
+
+        // Load the chart
+        await _areaChart.InitAsync("History", _deals
+            .Where(f => f.AccountBalance.HasValue && f.AccountBalance.Value > 0)
+            .Select(x => new Components.Apex.AreaPoint()
+                {
+                    Time = x.DateCreated,
+                    Price = x.AccountBalance.HasValue ? Convert.ToDecimal(x.AccountBalance.Value) : 0.0M
+                }).OrderBy(f => f.Time)
+                    .ToList());
     }
 }
