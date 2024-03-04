@@ -8,6 +8,7 @@ namespace JCTG.Entity
         public Signal()
         {
             DateCreated = DateTime.UtcNow;
+            DateLastUpdated = DateTime.UtcNow;
             Logs = new List<Log>();
             StrategyType = StrategyType.None;
             TradingviewStateType = TradingviewStateType.Init;
@@ -16,6 +17,7 @@ namespace JCTG.Entity
         [Key]
         public long ID { get; set; }
         public DateTime DateCreated { get; set; }
+        public DateTime DateLastUpdated { get; set; }
         public StrategyType StrategyType { get; set; }
         public Account Account { get; set; }
         public int AccountID { get; set; }

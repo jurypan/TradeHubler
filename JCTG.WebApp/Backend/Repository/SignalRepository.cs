@@ -9,19 +9,19 @@ public class SignalRepository(IDbContextFactory<JCTGDbContext> dbContextFactory)
     public async Task<List<Signal>> GetAll(int accountId)
     {
         using var context = await dbContextFactory.CreateDbContextAsync();
-        return await context.Signal.Where(f => f.AccountID == accountId).OrderByDescending(f => f.DateCreated).Take(100).ToListAsync();
+        return await context.Signal.Where(f => f.AccountID == accountId).OrderByDescending(f => f.DateLastUpdated).Take(100).ToListAsync();
     }
 
     public async Task<List<Signal>> GetAll(int accountId, string instrument, string ordertype, StrategyType strategyType)
     {
         using var context = await dbContextFactory.CreateDbContextAsync();
-        return await context.Signal.Where(f => f.AccountID == accountId && f.Instrument == instrument && f.OrderType == ordertype && f.StrategyType == strategyType).OrderByDescending(f => f.DateCreated).ToListAsync();
+        return await context.Signal.Where(f => f.AccountID == accountId && f.Instrument == instrument && f.OrderType == ordertype && f.StrategyType == strategyType).OrderByDescending(f => f.DateLastUpdated).ToListAsync();
     }
 
     public async Task<List<Signal>> GetAllByStrategy(int accountId, StrategyType strategyType)
     {
         using var context = await dbContextFactory.CreateDbContextAsync();
-        return await context.Signal.Where(f => f.AccountID == accountId && f.StrategyType == strategyType).OrderByDescending(f => f.DateCreated).ToListAsync();
+        return await context.Signal.Where(f => f.AccountID == accountId && f.StrategyType == strategyType).OrderByDescending(f => f.DateLastUpdated).ToListAsync();
     }
 
     public async Task<Signal?> GetById(int accountId,  long signalId)

@@ -134,6 +134,11 @@ namespace JCTG.WebApp.Backend.Api
                                     existingSignal.TradingviewStateType = TradingviewStateType.Entry;
                                 else if (signal.OrderType.Equals("cancelorder", StringComparison.CurrentCultureIgnoreCase) && existingSignal.TradingviewStateType == TradingviewStateType.Init)
                                     existingSignal.TradingviewStateType = TradingviewStateType.Cancel;
+
+                                // Update date
+                                existingSignal.DateLastUpdated = DateTime.UtcNow;
+
+                                // Update state
                                 _dbContext.Signal.Update(existingSignal);
 
                                 // Add to the tradingview alert

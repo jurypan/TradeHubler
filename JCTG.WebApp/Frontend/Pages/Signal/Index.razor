@@ -21,13 +21,9 @@
                             </li>
                             <li class="breadcrumb-item" aria-current="page">
                                 <a class="text-primary text-decoration-none" href="/">
-                                    Clients
+                                    Signals
                                 </a>
                             </li>
-                            <li class="breadcrumb-item d-flex justify-content-center align-items-center ps-0">
-                                <iconify-icon icon="tabler:chevron-right"></iconify-icon>
-                            </li>
-                            <li class="breadcrumb-item" aria-current="page">Pairs</li>
                         </ol>
                     </nav>
                 </div>
@@ -48,19 +44,22 @@
 
     <ul class="nav nav-pills p-3 mb-3 rounded align-items-center card flex-row">
         <li class="nav-item">
-            <a @onclick="() => ClickFilterAsync(null)" class="nav-link note-link d-flex align-items-center justify-content-center active px-3 px-md-3 me-0 me-md-2 text-body-color btn" id="all-category">
+            <a @onclick="() => ClickFilterAsync(null)" class="nav-link note-link d-flex align-items-center justify-content-center px-3 px-md-3 me-0 me-md-2 text-body-color btn @(_strategyType == null ? "active" : "")" id="all-category">
                 <iconify-icon icon="tabler:list" class="fill-white me-0 me-md-1"></iconify-icon>
                 <span class="d-none d-md-block font-weight-medium">All</span>
             </a>
         </li>
         @foreach (StrategyType strategy in Enum.GetValues(typeof(StrategyType)))
         {
-            <li class="nav-item">
-                <a @onclick="() => ClickFilterAsync(strategy)" class="nav-link note-link d-flex align-items-center justify-content-center px-3 px-md-3 me-0 me-md-2 text-body-color btn" id="all-category">
-                    <iconify-icon icon="tabler:list" class="fill-white me-0 me-md-1"></iconify-icon>
-                    <span class="d-none d-md-block font-weight-medium">@strategy</span>
-                </a>
-            </li>
+            if(strategy != StrategyType.None)
+            {
+                <li class="nav-item">
+                    <a @onclick="() => ClickFilterAsync(strategy)" class="nav-link note-link d-flex align-items-center justify-content-center px-3 px-md-3 me-0 me-md-2 text-body-color btn  @(_strategyType != null && _strategyType == strategy ? "active" : "")" id="all-category">
+                        <iconify-icon icon="tabler:list" class="fill-white me-0 me-md-1"></iconify-icon>
+                        <span class="d-none d-md-block font-weight-medium">@strategy</span>
+                    </a>
+                </li>
+            }
         }
     </ul>
 
@@ -86,7 +85,7 @@
                                 <h6 class="fs-4 fw-semibold mb-0">Strategy</h6>
                             </th>
                             <th>
-                                <h6 class="fs-4 fw-semibold mb-0">MT Status</h6>
+                                <h6 class="fs-4 fw-semibold mb-0">Strategy</h6>
                             </th>
                             <th></th>
                         </tr>
@@ -175,17 +174,17 @@
                                         </a>
                                         <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
                                             <li>
-                                                <a class="dropdown-item d-flex align-items-center gap-3" href="#">
+                                                <a class="dropdown-item d-flex align-items-center gap-3" href="/Signals/@signal.ID/Orders">
                                                     <i class="fs-4 ti ti-plus"></i>Orders
                                                 </a>
                                             </li>
                                             <li>
-                                                <a class="dropdown-item d-flex align-items-center gap-3" href="#">
+                                                <a class="dropdown-item d-flex align-items-center gap-3" href="/Signals/@signal.ID/Log">
                                                     <i class="fs-4 ti ti-edit"></i>Log
                                                 </a>
                                             </li>
                                             <li>
-                                                <a class="dropdown-item d-flex align-items-center gap-3" href="#">
+                                                <a class="dropdown-item d-flex align-items-center gap-3" href="/Signals/@signal.ID/Retry">
                                                     <i class="fs-4 ti ti-trash"></i>Retry
                                                 </a>
                                             </li>
@@ -204,6 +203,7 @@
 
 @code {
     private List<Entity.Signal> _signals = new ();
+    private StrategyType? _strategyType = null;
 
     protected override async Task OnInitializedAsync()
     {
@@ -211,15 +211,17 @@
     }
 
 
-    private async Task ClickFilterAsync(StrategyType? pair)
+    private async Task ClickFilterAsync(StrategyType? strategyType)
     {
-        if (!pair.HasValue)
+        _strategyType = strategyType;
+
+        if (!strategyType.HasValue)
         {
             _signals = await _signalRepository.GetAll(692803787);
         }
         else
         {
-            var strategy = (StrategyType)pair;
+            var strategy = (StrategyType)strategyType;
             if (strategy == StrategyType.None)
             {
                 _signals = await _signalRepository.GetAll(692803787);

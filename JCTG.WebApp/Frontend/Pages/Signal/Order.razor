@@ -2,100 +2,102 @@
 @inject SignalRepository _signalRepository;
 @inject ClientRepository _clientRepository;
 
-<h3>Orders</h3>
+<div class="container-fluid mw-100">
+    <h3>Orders</h3>
 
-
-@if (_signal != null)
-{
-    <div class="row" style="background-color:lightgray;">
-        <div class="col-md-6 mb-6">
-            Date created: @_signal.DateCreated<br />
-            Magic: @_signal.Magic<br />
-            EntryPrice: @_signal.EntryPrice<br />
-            StopLoss: @_signal.StopLoss<br />
-            TakeProfit: @_signal.TakeProfit<br />
-        </div>
-        <div class="col-md-6 mb-6">
-            EntryExpression: @_signal.EntryExpression<br />
-            Risk: @_signal.Risk<br />
-            RiskRewardRatio: @_signal.RiskRewardRatio<br />
-            TradingviewStateType: @_signal.TradingviewStateType<br />
-        </div>
-    </div>
-    <br />
-    <br />
-}
-
-<div class="row">
-    <h3>Clients <b>with</b> orders for this signal</h3>
-    @if (_orders.Count == 0)
+    @if (_signal != null)
     {
-        <div class="col-md-12">
-            <p>No clients available</p>
+        <div class="row" style="background-color:lightgray;">
+            <div class="col-md-6 mb-6">
+                Date created: @_signal.DateCreated<br />
+                Magic: @_signal.Magic<br />
+                EntryPrice: @_signal.EntryPrice<br />
+                StopLoss: @_signal.StopLoss<br />
+                TakeProfit: @_signal.TakeProfit<br />
+            </div>
+            <div class="col-md-6 mb-6">
+                EntryExpression: @_signal.EntryExpression<br />
+                Risk: @_signal.Risk<br />
+                RiskRewardRatio: @_signal.RiskRewardRatio<br />
+                TradingviewStateType: @_signal.TradingviewStateType<br />
+            </div>
         </div>
+        <br />
+        <br />
     }
-    else
-    {
-        foreach (var order in _orders)
+
+    <div class="row">
+        <h3>Clients <b>with</b> orders for this signal</h3>
+        @if (_orders.Count == 0)
+        {
+            <div class="col-md-12">
+                <p>No clients available</p>
+            </div>
+        }
+        else
+        {
+            foreach (var order in _orders)
+            {
+                <div class="col-md-6 mb-6">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">@order.Client?.Name</h5>
+                            <p class="card-text">@order.Symbol @order.Type</p>
+                            <p class="card-text">@order.Signal.StrategyType</p>
+                            <div><a href="@($"Signals/{SignalId}/Orders/{order.ClientID}/Logs")"> View logs</a></div>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+
+    </div>
+
+    <br />
+    <br />
+    <h3>Clients <b>without</b> orders for this signal</h3>
+    <div class="row">
+        @foreach (var client in _clients)
         {
             <div class="col-md-6 mb-6">
                 <div class="card">
                     <div class="card-body">
-                        <h5 class="card-title">@order.Client?.Name</h5>
-                        <p class="card-text">@order.Symbol @order.Type</p>
-                        <p class="card-text">@order.Signal.StrategyType</p>
-                        <div><a href="@($"Signals/{SignalId}/Orders/{order.ClientID}/Logs")"> View logs</a></div>
+                        <h5 class="card-title">@client.Name</h5>
+                        <p class="card-text"></p>
+                        <div><a href="@($"Signals/{SignalId}/Orders/{client.ID}/Logs")"> View logs</a></div>
                     </div>
                 </div>
             </div>
         }
-    }
+    </div>
 
-</div>
-
-<br />
-<br />
-<h3>Clients <b>without</b> orders for this signal</h3>
-<div class="row">
-    @foreach (var client in _clients)
-    {
-        <div class="col-md-6 mb-6">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">@client.Name</h5>
-                    <p class="card-text"></p>
-                    <div><a href="@($"Signals/{SignalId}/Orders/{client.ID}/Logs")"> View logs</a></div>
-                </div>
-            </div>
-        </div>
-    }
-</div>
-
-<br />
-<br />
-<div class="row">
-    <h3>History of @_signal?.Instrument @_signal?.OrderType</h3>
-    <table cellpadding="1" cellspacing="1" width="100%" style="width:100%; border:1px solid black;" border="1">
-        <tr>
-            <th style="width:10%; border:1px solid gray; text-align:center;">ID</th>
-            <th style="width:10%; border:1px solid gray; text-align:center;">Magic</th>
-            <th style="width:20%; border:1px solid gray; text-align:center;">Date Created</th>
-            <th style="width:20%; border:1px solid gray; text-align:center;">Instrument</th>
-            <th style="width:20%; border:1px solid gray; text-align:center;">Order Type</th>
-            <th style="width:20%; border:1px solid gray; text-align:center;">State</th>
-        </tr>
-        @foreach (var signal in _signals)
-        {
+    <br />
+    <br />
+    <div class="row">
+        <h3>History of @_signal?.Instrument @_signal?.OrderType</h3>
+        <table cellpadding="1" cellspacing="1" width="100%" style="width:100%; border:1px solid black;" border="1">
             <tr>
-                <td style="width:10%; border:1px solid gray; text-align:center;">@signal.ID</td>
-                <td style="width:10%; border:1px solid gray; text-align:center;">@signal.Magic</td>
-                <td style="width:20%; border:1px solid gray; text-align:center;">@signal.DateCreated</td>
-                <td style="width:20%; border:1px solid gray; text-align:center;">@signal.Instrument</td>
-                <td style="width:20%; border:1px solid gray; text-align:center;">@signal.OrderType</td>
-                <td style="width:20%; border:1px solid gray; text-align:center;">@signal.TradingviewStateType</td>
+                <th style="width:10%; border:1px solid gray; text-align:center;">ID</th>
+                <th style="width:10%; border:1px solid gray; text-align:center;">Magic</th>
+                <th style="width:20%; border:1px solid gray; text-align:center;">Date Created</th>
+                <th style="width:20%; border:1px solid gray; text-align:center;">Instrument</th>
+                <th style="width:20%; border:1px solid gray; text-align:center;">Order Type</th>
+                <th style="width:20%; border:1px solid gray; text-align:center;">State</th>
             </tr>
-        }
-    </table>
+            @foreach (var signal in _signals)
+            {
+                <tr>
+                    <td style="width:10%; border:1px solid gray; text-align:center;">@signal.ID</td>
+                    <td style="width:10%; border:1px solid gray; text-align:center;">@signal.Magic</td>
+                    <td style="width:20%; border:1px solid gray; text-align:center;">@signal.DateCreated</td>
+                    <td style="width:20%; border:1px solid gray; text-align:center;">@signal.Instrument</td>
+                    <td style="width:20%; border:1px solid gray; text-align:center;">@signal.OrderType</td>
+                    <td style="width:20%; border:1px solid gray; text-align:center;">@signal.TradingviewStateType</td>
+                </tr>
+            }
+        </table>
+    </div>
+
 </div>
 
 @code {

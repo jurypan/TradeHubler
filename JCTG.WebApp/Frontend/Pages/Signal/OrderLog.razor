@@ -2,65 +2,67 @@
 @inject LogRepository _logRepository;
 @inject NavigationManager _navigationManager;
 
-<h3>Signals</h3>
-@if (_logs.Count() <= 0)
-{
-    <p>No trading journals available</p>
-}
-else
-{
-    <div class="row">
-        <div class="col-2 border border-primary">
-            Date created
-        </div>
-        <div class="col-2 border border-primary">
-            Type
-        </div>
-        <div class="col-2 border border-primary">
-            Error Type
-        </div>
-         <div class="col-3 border border-primary">
-            Message
-        </div>
-        <div class="col-3 border border-primary">
-           Description
-        </div>
-    </div>
-    <br />
-    @foreach (var log in _logs)
+<div class="container-fluid mw-100">
+    <h3>Signals</h3>
+    @if (_logs.Count() <= 0)
+    {
+        <p>No trading journals available</p>
+    }
+    else
     {
         <div class="row">
-            <div class="col-2 border border-secondary">
-                @log.DateCreated
+            <div class="col-2 border border-primary">
+                Date created
             </div>
-            <div class="col-2  border border-secondary">
-                @log.Type
+            <div class="col-2 border border-primary">
+                Type
             </div>
-            <div class="col-2  border border-secondary">
-                @log.ErrorType
+            <div class="col-2 border border-primary">
+                Error Type
             </div>
-           
-            @if (log.Description == null)
-            {
-                <div class="col-6  border border-secondary">
-                    @((MarkupString)log.Message?.Replace("||", "<br />").Replace(",", "<br />"))
-                </div>
-            }
-            else
-            {
-                <div class="col-3  border border-secondary">
-                    @((MarkupString)log.Message?.Replace("||", "<br />").Replace(",", "<br />"))
-                </div>
-                <div class="col-3  border border-secondary">
-                    @((MarkupString)log.Description?.Replace("||", "<br />").Replace(",", "<br />"))
-                </div>
-            }
+             <div class="col-3 border border-primary">
+                Message
+            </div>
+            <div class="col-3 border border-primary">
+               Description
+            </div>
         </div>
         <br />
+        @foreach (var log in _logs)
+        {
+            <div class="row">
+                <div class="col-2 border border-secondary">
+                    @log.DateCreated
+                </div>
+                <div class="col-2  border border-secondary">
+                    @log.Type
+                </div>
+                <div class="col-2  border border-secondary">
+                    @log.ErrorType
+                </div>
+           
+                @if (log.Description == null)
+                {
+                    <div class="col-6  border border-secondary">
+                        @((MarkupString)log.Message?.Replace("||", "<br />").Replace(",", "<br />"))
+                    </div>
+                }
+                else
+                {
+                    <div class="col-3  border border-secondary">
+                        @((MarkupString)log.Message?.Replace("||", "<br />").Replace(",", "<br />"))
+                    </div>
+                    <div class="col-3  border border-secondary">
+                        @((MarkupString)log.Description?.Replace("||", "<br />").Replace(",", "<br />"))
+                    </div>
+                }
+            </div>
+            <br />
+        }
+
     }
 
-}
-
+</div>
 
 
 
