@@ -864,7 +864,7 @@
           "SpreadSL": "Subtract",
           "SpreadTP": "Add",
           "RiskMinXTimesTheSpread": 4,
-          "CorrelatedPairs": [ "UK100" ]
+          "CorrelatedPairs": [ ]
         },
         {
           "TickerInTradingView": "UKX",
@@ -885,7 +885,7 @@
           "SpreadSL": "Subtract",
           "SpreadTP": "Add",
           "RiskMinXTimesTheSpread": 4,
-          "CorrelatedPairs": [ "STOXX50" ]
+          "CorrelatedPairs": [  ]
         },
         {
           "TickerInTradingView": "SPX",
@@ -906,7 +906,7 @@
           "SpreadSL": "Subtract",
           "SpreadTP": "Add",
           "RiskMinXTimesTheSpread": 4,
-          "CorrelatedPairs": [ "USTEC" ]
+          "CorrelatedPairs": [  ]
         },
         {
           "TickerInTradingView": "NDX",
@@ -927,7 +927,7 @@
           "SpreadSL": "Subtract",
           "SpreadTP": "Add",
           "RiskMinXTimesTheSpread": 4,
-          "CorrelatedPairs": [ "US500" ]
+          "CorrelatedPairs": [  ]
         },
         {
           "TickerInTradingView": "BTCUSD",
@@ -948,7 +948,7 @@
           "SpreadSL": "Subtract",
           "SpreadTP": "Add",
           "RiskMinXTimesTheSpread": 4,
-          "CorrelatedPairs": [ "ETHUSD" ]
+          "CorrelatedPairs": [  ]
         },
         {
           "TickerInTradingView": "ETHUSD",
@@ -969,7 +969,7 @@
           "SpreadSL": "Subtract",
           "SpreadTP": "Add",
           "RiskMinXTimesTheSpread": 4,
-          "CorrelatedPairs": [ "BTCUSD" ]
+          "CorrelatedPairs": [ ]
         },
         {
           "TickerInTradingView": "USDJPY",
@@ -1087,7 +1087,7 @@
           "SpreadSL": "Subtract",
           "SpreadTP": "Add",
           "RiskMinXTimesTheSpread": 4,
-          "CorrelatedPairs": [ "NAS100" ]
+          "CorrelatedPairs": [  ]
         },
         {
           "TickerInTradingView": "NDX",
@@ -1108,7 +1108,7 @@
           "SpreadSL": "Subtract",
           "SpreadTP": "Add",
           "RiskMinXTimesTheSpread": 4,
-          "CorrelatedPairs": [ "SP500" ]
+          "CorrelatedPairs": [  ]
         },
         {
           "TickerInTradingView": "BTCUSD",
@@ -1129,7 +1129,7 @@
           "SpreadSL": "Subtract",
           "SpreadTP": "Add",
           "RiskMinXTimesTheSpread": 4,
-          "CorrelatedPairs": [ "ETHUSD" ]
+          "CorrelatedPairs": [  ]
         },
         {
           "TickerInTradingView": "ETHUSD",
@@ -1150,7 +1150,7 @@
           "SpreadSL": "Subtract",
           "SpreadTP": "Add",
           "RiskMinXTimesTheSpread": 4,
-          "CorrelatedPairs": [ "BTCUSD" ]
+          "CorrelatedPairs": [ ]
         },
         {
           "TickerInTradingView": "USDJPY",

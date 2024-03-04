@@ -130,9 +130,9 @@ namespace JCTG.WebApp.Backend.Api
                                     existingSignal.TradingviewStateType = TradingviewStateType.SlHit;
                                 else if (signal.OrderType.Equals("behit", StringComparison.CurrentCultureIgnoreCase))
                                     existingSignal.TradingviewStateType = TradingviewStateType.BeHit;
-                                else if (signal.OrderType.Equals("entry", StringComparison.CurrentCultureIgnoreCase))
+                                else if (signal.OrderType.Equals("entry", StringComparison.CurrentCultureIgnoreCase) && existingSignal.TradingviewStateType == TradingviewStateType.Init)
                                     existingSignal.TradingviewStateType = TradingviewStateType.Entry;
-                                else if (signal.OrderType.Equals("cancelorder", StringComparison.CurrentCultureIgnoreCase))
+                                else if (signal.OrderType.Equals("cancelorder", StringComparison.CurrentCultureIgnoreCase) && existingSignal.TradingviewStateType == TradingviewStateType.Init)
                                     existingSignal.TradingviewStateType = TradingviewStateType.Cancel;
                                 _dbContext.Signal.Update(existingSignal);
 

@@ -2,50 +2,205 @@
 @inject SignalRepository _signalRepository;
 @using JCTG.Models;
 
-<h3>Signals</h3>
-@if (_signals.Count() <= 0)
-{
-    <p>No signals available</p>
-}
-else
-{
-    <div class="row" style="background-color:lightgray; padding:20px;">
-        <div class="col-md-4">
-            <label>Strategy</label>
-            <select @onchange="FilterChanged">
-                <option value="0">All</option>
-                @foreach (var strategy in Enum.GetValues(typeof(StrategyType)))
-                {
-                    <option value="@((int)strategy)">@strategy</option>
-                }
-            </select>
-        </div>
-    </div>
+<div class="container-fluid mw-100">
 
-    <br />
-
-    <div class="row">
-        @foreach (var signal in _signals)
-        {
-            <div class="col-md-3 mb-3">
-                <div class="card">
-                    <div class="card-body">
-                        <h5 class="card-title">@signal.Instrument @signal.OrderType</h5>
-                        <p class="card-text">@signal.DateCreated</p>
-                        <p class="card-text">@signal.StrategyType</p>
-                        <p class="card-text">@signal.TradingviewStateType</p>
-                        <div>
-                            <a href="@($"Signals/{signal.ID}/History")" class="btn btn-success">History</a>
-                            <a href="@($"Signals/{signal.ID}/Orders")" class="btn btn-primary">Orders</a>
-                            <a href="@($"Signals/{signal.ID}/Logs")" class="btn btn-secondary">Logs</a>
-                            <a href="@($"Signals/{signal.ID}/Retry")" class="btn btn-light">Retry</a>
+    <div class="font-weight-medium shadow-none position-relative overflow-hidden mb-4">
+        <div class="card-body px-0">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h4 class="font-weight-medium ">Joeri</h4>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item">
+                                <a class="text-primary text-decoration-none" href="/">
+                                    Home
+                                </a>
+                            </li>
+                            <li class="breadcrumb-item d-flex justify-content-center align-items-center ps-0">
+                                <iconify-icon icon="tabler:chevron-right"></iconify-icon>
+                            </li>
+                            <li class="breadcrumb-item" aria-current="page">
+                                <a class="text-primary text-decoration-none" href="/">
+                                    Clients
+                                </a>
+                            </li>
+                            <li class="breadcrumb-item d-flex justify-content-center align-items-center ps-0">
+                                <iconify-icon icon="tabler:chevron-right"></iconify-icon>
+                            </li>
+                            <li class="breadcrumb-item" aria-current="page">Pairs</li>
+                        </ol>
+                    </nav>
+                </div>
+                <div>
+                    <div class="d-flex no-block justify-content-end align-items-center">
+                        <div class="me-2">
+                            <div class="breadbar"></div>
+                        </div>
+                        <div class="">
+                            <small>LAST MONTH</small>
+                            <h4 class="text-primary mb-0 font-medium">$58,256</h4>
                         </div>
                     </div>
                 </div>
             </div>
-        }
+        </div>
     </div>
-}
+
+    <ul class="nav nav-pills p-3 mb-3 rounded align-items-center card flex-row">
+        <li class="nav-item">
+            <a @onclick="() => ClickFilterAsync(null)" class="nav-link note-link d-flex align-items-center justify-content-center active px-3 px-md-3 me-0 me-md-2 text-body-color btn" id="all-category">
+                <iconify-icon icon="tabler:list" class="fill-white me-0 me-md-1"></iconify-icon>
+                <span class="d-none d-md-block font-weight-medium">All</span>
+            </a>
+        </li>
+        @foreach (StrategyType strategy in Enum.GetValues(typeof(StrategyType)))
+        {
+            <li class="nav-item">
+                <a @onclick="() => ClickFilterAsync(strategy)" class="nav-link note-link d-flex align-items-center justify-content-center px-3 px-md-3 me-0 me-md-2 text-body-color btn" id="all-category">
+                    <iconify-icon icon="tabler:list" class="fill-white me-0 me-md-1"></iconify-icon>
+                    <span class="d-none d-md-block font-weight-medium">@strategy</span>
+                </a>
+            </li>
+        }
+    </ul>
+
+    <div class="card w-100 position-relative overflow-hidden">
+        <div class="px-4 py-3 border-bottom">
+            <h5 class="card-title fw-semibold mb-0 lh-sm">Signals</h5>
+        </div>
+        <div class="card-body p-4">
+            <div class="table-responsive rounded-2 mb-4">
+                <table class="table border text-nowrap customize-table mb-0 align-middle">
+                    <thead class="text-dark fs-4">
+                        <tr>
+                            <th>
+                                <h6 class="fs-4 fw-semibold mb-0">Signal</h6>
+                            </th>
+                            <th>
+                                <h6 class="fs-4 fw-semibold mb-0">Date</h6>
+                            </th>
+                            <th>
+                                <h6 class="fs-4 fw-semibold mb-0">TV Status</h6>
+                            </th>
+                            <th>
+                                <h6 class="fs-4 fw-semibold mb-0">Strategy</h6>
+                            </th>
+                            <th>
+                                <h6 class="fs-4 fw-semibold mb-0">MT Status</h6>
+                            </th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var signal in _signals)
+                        {
+                            <tr>
+                                <td>
+                                    <h6 class="fs-4 fw-semibold mb-0">@signal.Instrument</h6>
+                                    <p class="mb-0 fw-normal">@signal.OrderType</p>
+                                </td>
+                                <td>
+                                    <p class="mb-0 fw-normal">@signal.DateCreated</p>
+                                </td>
+                                <td>
+                                    @if (signal.TradingviewStateType == TradingviewStateType.Init)
+                                    {
+                                        <p class="btn px-4 fs-4 bg-info-subtle text-success">Init Trade</p>
+                                    }
+                                    else if (signal.TradingviewStateType == TradingviewStateType.Entry)
+                                    {
+                                        <p class="btn px-4 fs-4 bg-warning-subtle text-warning">Trade Entry</p>
+                                    }
+                                    else if (signal.TradingviewStateType == TradingviewStateType.SlHit)
+                                    {
+                                        <p class="btn px-4 fs-4 bg-danger-subtle text-danger">SL Hit</p>
+                                    }
+                                    else if (signal.TradingviewStateType == TradingviewStateType.TpHit)
+                                    {
+                                        <p class="btn px-4 fs-4 bg-success-subtle text-success">TP Hit</p>
+                                    }
+                                    else if (signal.TradingviewStateType == TradingviewStateType.Cancel)
+                                    {
+                                        <p class="btn px-4 fs-4 text-bg-muted text-dark">Order Cancelled</p>
+                                    }
+                                </td>
+                                <td>
+                                    @if (signal.TradingviewStateType == TradingviewStateType.Init)
+                                    {
+                                        <span class="badge bg-success-subtle text-success fw-semibold fs-2 gap-1 d-inline-flex align-items-center">
+                                            <i class="ti ti-circle fs-3"></i>active
+                                        </span>
+                                    }
+                                    else if (signal.TradingviewStateType == TradingviewStateType.Entry)
+                                    {
+                                        <span class="badge bg-success-subtle text-success fw-semibold fs-2 gap-1 d-inline-flex align-items-center">
+                                            <i class="ti ti-circle fs-3"></i>active
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge text-bg-light text-dark fw-semibold fs-2 gap-1 d-inline-flex align-items-center">
+                                            <i class="ti ti-clock-hour-4 fs-3"></i>done
+                                        </span>
+                                    }
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        @if(signal.StrategyType == StrategyType.Strategy1)
+                                        {
+                                            <span class="badge text-bg-primary rounded-3 fw-semibold fs-2">Strategy 1</span>
+                                        }
+                                        else if(signal.StrategyType == StrategyType.Strategy2)
+                                        {
+                                            <span class="badge text-bg-success rounded-3 fw-semibold fs-2">Strategy 2</span>
+                                        }
+                                        else if (signal.StrategyType == StrategyType.Strategy3)
+                                        {
+                                            <span class="badge text-bg-secondary rounded-3 fw-semibold fs-2">Strategy 3</span>
+                                        }
+                                        else if (signal.StrategyType == StrategyType.Strategy4)
+                                        {
+                                            <span class="badge text-bg-danger rounded-3 fw-semibold fs-2">Strategy 4</span>
+                                        }
+                                        else if (signal.StrategyType == StrategyType.Strategy5)
+                                        {
+                                            <span class="badge text-bg-indigo rounded-3 fw-semibold fs-2">Strategy 5</span>
+                                        }
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="dropdown dropstart">
+                                        <a href="#" class="text-muted" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+                                            <i class="ti ti-dots-vertical fs-6"></i>
+                                        </a>
+                                        <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                                            <li>
+                                                <a class="dropdown-item d-flex align-items-center gap-3" href="#">
+                                                    <i class="fs-4 ti ti-plus"></i>Orders
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a class="dropdown-item d-flex align-items-center gap-3" href="#">
+                                                    <i class="fs-4 ti ti-edit"></i>Log
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a class="dropdown-item d-flex align-items-center gap-3" href="#">
+                                                    <i class="fs-4 ti ti-trash"></i>Retry
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
 
 @code {
     private List<Entity.Signal> _signals = new ();
@@ -55,15 +210,16 @@ else
         _signals = await _signalRepository.GetAll(692803787);
     }
 
-    private async Task FilterChanged(ChangeEventArgs e)
+
+    private async Task ClickFilterAsync(StrategyType? pair)
     {
-        if (!int.TryParse(e.Value?.ToString(), out int strategyValue))
+        if (!pair.HasValue)
         {
             _signals = await _signalRepository.GetAll(692803787);
         }
         else
         {
-            var strategy = (StrategyType)strategyValue;
+            var strategy = (StrategyType)pair;
             if (strategy == StrategyType.None)
             {
                 _signals = await _signalRepository.GetAll(692803787);
@@ -73,7 +229,5 @@ else
                 _signals = await _signalRepository.GetAllByStrategy(692803787, strategy);
             }
         }
-
-        StateHasChanged();
     }
 }
