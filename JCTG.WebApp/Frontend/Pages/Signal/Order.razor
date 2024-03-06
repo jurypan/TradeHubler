@@ -3,110 +3,169 @@
 @inject ClientRepository _clientRepository;
 
 <div class="container-fluid mw-100">
-    <h3>Orders</h3>
 
-    @if (_signal != null)
-    {
-        <div class="row" style="background-color:lightgray;">
-            <div class="col-md-6 mb-6">
-                Date created: @_signal.DateCreated<br />
-                Magic: @_signal.Magic<br />
-                EntryPrice: @_signal.EntryPrice<br />
-                StopLoss: @_signal.StopLoss<br />
-                TakeProfit: @_signal.TakeProfit<br />
-            </div>
-            <div class="col-md-6 mb-6">
-                EntryExpression: @_signal.EntryExpression<br />
-                Risk: @_signal.Risk<br />
-                RiskRewardRatio: @_signal.RiskRewardRatio<br />
-                TradingviewStateType: @_signal.TradingviewStateType<br />
-            </div>
-        </div>
-        <br />
-        <br />
-    }
-
-    <div class="row">
-        <h3>Clients <b>with</b> orders for this signal</h3>
-        @if (_orders.Count == 0)
-        {
-            <div class="col-md-12">
-                <p>No clients available</p>
-            </div>
-        }
-        else
-        {
-            foreach (var order in _orders)
-            {
-                <div class="col-md-6 mb-6">
-                    <div class="card">
-                        <div class="card-body">
-                            <h5 class="card-title">@order.Client?.Name</h5>
-                            <p class="card-text">@order.Symbol @order.Type</p>
-                            <p class="card-text">@order.Signal.StrategyType</p>
-                            <div><a href="@($"Signals/{SignalId}/Orders/{order.ClientID}/Logs")"> View logs</a></div>
+    <div class="font-weight-medium shadow-none position-relative overflow-hidden mb-4">
+        <div class="card-body px-0">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h4 class="font-weight-medium ">Joeri</h4>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item">
+                                <a class="text-primary text-decoration-none" href="/">
+                                    Home
+                                </a>
+                            </li>
+                            <li class="breadcrumb-item d-flex justify-content-center align-items-center ps-0">
+                                <iconify-icon icon="tabler:chevron-right"></iconify-icon>
+                            </li>
+                            <li class="breadcrumb-item" aria-current="page">
+                                <a class="text-primary text-decoration-none" href="/Signals">
+                                    Signals
+                                </a>
+                            </li>
+                            <li class="breadcrumb-item" aria-current="page">
+                                Orders
+                            </li>
+                        </ol>
+                    </nav>
+                </div>
+                <div>
+                    <div class="d-flex no-block justify-content-end align-items-center">
+                        <div class="me-2">
+                            <div class="breadbar"></div>
+                        </div>
+                        <div class="">
+                            <small>LAST MONTH</small>
+                            <h4 class="text-primary mb-0 font-medium">$58,256</h4>
                         </div>
                     </div>
                 </div>
-            }
-        }
-
+            </div>
+        </div>
     </div>
 
-    <br />
-    <br />
-    <h3>Clients <b>without</b> orders for this signal</h3>
+
+    <div class="d-flex border-bottom title-part-padding px-0 mb-3 align-items-center">
+        <div>
+            <h4 class="mb-0 fs-5">Clients <b>with</b> orders for this signal</h4>
+        </div>
+    </div>
     <div class="row">
-        @foreach (var client in _clients)
+        @foreach (var order in _orders)
         {
-            <div class="col-md-6 mb-6">
-                <div class="card">
+            <div class="col-md-6 col-lg-4">
+                <div class="card rounded-3 card-hover">
+                    <a href="@($"Signals/{SignalId}/Orders/{order.Client?.ID}/Logs")" class="stretched-link"></a>
                     <div class="card-body">
-                        <h5 class="card-title">@client.Name</h5>
-                        <p class="card-text"></p>
-                        <div><a href="@($"Signals/{SignalId}/Orders/{client.ID}/Logs")"> View logs</a></div>
+                        <div class="d-flex align-items-center">
+                            <span class="flex-shrink-0"><i class="ti ti-folder-down text-danger display-6"></i></span>
+                            <div class="ms-4">
+                                <h4 class="card-title text-dark">@order.Client?.Name</h4>
+                                <h6 class="card-subtitle mb-0 fs-2 fw-normal mb-1">@order.Client?.Currency @order.Client?.Balance</h6>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         }
     </div>
 
-    <br />
-    <br />
+
+    <div class="d-flex border-bottom title-part-padding px-0 mb-3 align-items-center">
+        <div>
+            <h4 class="mb-0 fs-5">Clients <b>without</b> orders for this signal</h4>
+        </div>
+    </div>
     <div class="row">
-        <h3>History of @_signal?.Instrument @_signal?.OrderType</h3>
-        <table cellpadding="1" cellspacing="1" width="100%" style="width:100%; border:1px solid black;" border="1">
-            <tr>
-                <th style="width:10%; border:1px solid gray; text-align:center;">ID</th>
-                <th style="width:10%; border:1px solid gray; text-align:center;">Magic</th>
-                <th style="width:20%; border:1px solid gray; text-align:center;">Date Created</th>
-                <th style="width:20%; border:1px solid gray; text-align:center;">Instrument</th>
-                <th style="width:20%; border:1px solid gray; text-align:center;">Order Type</th>
-                <th style="width:20%; border:1px solid gray; text-align:center;">State</th>
-            </tr>
-            @foreach (var signal in _signals)
-            {
-                <tr>
-                    <td style="width:10%; border:1px solid gray; text-align:center;">@signal.ID</td>
-                    <td style="width:10%; border:1px solid gray; text-align:center;">@signal.Magic</td>
-                    <td style="width:20%; border:1px solid gray; text-align:center;">@signal.DateCreated</td>
-                    <td style="width:20%; border:1px solid gray; text-align:center;">@signal.Instrument</td>
-                    <td style="width:20%; border:1px solid gray; text-align:center;">@signal.OrderType</td>
-                    <td style="width:20%; border:1px solid gray; text-align:center;">@signal.TradingviewStateType</td>
-                </tr>
-            }
-        </table>
+        @foreach (var client in _clients)
+        {
+            <div class="col-md-6 col-lg-4">
+                <div class="card rounded-3 card-hover">
+                    <a href="@($"Signals/{SignalId}/Orders/{client.ID}/Logs")" class="stretched-link"></a>
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <span class="flex-shrink-0"><i class="ti ti-folder-down text-danger display-6"></i></span>
+                            <div class="ms-4">
+                                <h4 class="card-title text-dark">@client.Name</h4>
+                                <h6 class="card-subtitle mb-0 fs-2 fw-normal mb-1">@client.Currency @client.Balance</h6>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
     </div>
 
+    <div class="row">
+        <div class="datatables">
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="mb-2">
+                                <h5 class="mb-0">File export</h5>
+                            </div>
+                            <p class="card-subtitle mb-3">
+                                Exporting data from a table can often be a key part of a
+                                complex application. The Buttons extension for DataTables
+                                provides three plug-ins that provide overlapping
+                                functionality for data export. You can refer full
+                                documentation from here
+                                <a href="https://datatables.net/">Datatables</a>
+                            </p>
+                            <div class="table-responsive">
+                                <table id="file_export" class="table border table-striped table-bordered display text-nowrap">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Magic</th>
+                                            <th>Date Created</th>
+                                            <th>Date Last Updated</th>
+                                            <th>Instrument</th>
+                                            <th>Order Type</th>
+                                            <th>State</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var signal in _signals)
+                                        {
+                                            <tr>
+                                                <td>@signal.ID</td>
+                                                <td>@signal.Magic</td>
+                                                <td>@signal.DateCreated</td>
+                                                <td>@signal.DateLastUpdated</td>
+                                                <td>@signal.Instrument</td>
+                                                <td>@signal.OrderType</td>
+                                                <td>@signal.TradingviewStateType</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                    <tfoot>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Magic</th>
+                                            <th>Date Created</th>
+                                            <th>Date Last Updated</th>
+                                            <th>Instrument</th>
+                                            <th>Order Type</th>
+                                            <th>State</th>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 @code {
 
     [Parameter]
     public long SignalId { get; set; }
-
-
-
 
     private Entity.Signal? _signal = null;
     private List<Entity.Order> _orders = new List<Entity.Order>();
@@ -116,7 +175,7 @@
     protected async override Task OnInitializedAsync()
     {
         _signal = await _signalRepository.GetById(692803787, SignalId);
-        
+
         var clients = await _clientRepository.GetAllAsync(692803787);
 
         if (_signal != null)

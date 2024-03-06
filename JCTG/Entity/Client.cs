@@ -1,5 +1,4 @@
-﻿using Newtonsoft.Json;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace JCTG.Entity
 {
@@ -8,6 +7,10 @@ namespace JCTG.Entity
         public Client()
         {
             DateCreated = DateTime.UtcNow;
+            Orders = [];
+            Logs = [];
+            Risks = [];
+            Pairs = [];
         }
 
         [Key]
@@ -22,6 +25,11 @@ namespace JCTG.Entity
         public double? Equity { get; set; }
         public double StartBalance { get; set; }
 
+        public bool IsEnable { get; set; }
+        public string MetaTraderDirPath { get; set; }
+
+        public List<ClientRisk> Risks { get; set; }
+        public List<ClientPair> Pairs { get; set; }
 
         public List<Order> Orders { get; set; }
         public List<Log> Logs { get; set; }

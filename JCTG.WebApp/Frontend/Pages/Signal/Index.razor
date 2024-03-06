@@ -73,6 +73,9 @@
                     <thead class="text-dark fs-4">
                         <tr>
                             <th>
+                                <h6 class="fs-4 fw-semibold mb-0">Strategy</h6>
+                            </th>
+                            <th>
                                 <h6 class="fs-4 fw-semibold mb-0">Signal</h6>
                             </th>
                             <th>
@@ -84,9 +87,7 @@
                             <th>
                                 <h6 class="fs-4 fw-semibold mb-0">Strategy</h6>
                             </th>
-                            <th>
-                                <h6 class="fs-4 fw-semibold mb-0">Strategy</h6>
-                            </th>
+
                             <th></th>
                         </tr>
                     </thead>
@@ -94,6 +95,30 @@
                         @foreach (var signal in _signals)
                         {
                             <tr>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        @if (signal.StrategyType == StrategyType.Strategy1)
+                                        {
+                                            <span class="badge text-bg-primary rounded-3 fw-semibold fs-2">Strategy 1</span>
+                                        }
+                                        else if (signal.StrategyType == StrategyType.Strategy2)
+                                        {
+                                            <span class="badge text-bg-success rounded-3 fw-semibold fs-2">Strategy 2</span>
+                                        }
+                                        else if (signal.StrategyType == StrategyType.Strategy3)
+                                        {
+                                            <span class="badge text-bg-secondary rounded-3 fw-semibold fs-2">Strategy 3</span>
+                                        }
+                                        else if (signal.StrategyType == StrategyType.Strategy4)
+                                        {
+                                            <span class="badge text-bg-danger rounded-3 fw-semibold fs-2">Strategy 4</span>
+                                        }
+                                        else if (signal.StrategyType == StrategyType.Strategy5)
+                                        {
+                                            <span class="badge text-bg-indigo rounded-3 fw-semibold fs-2">Strategy 5</span>
+                                        }
+                                    </div>
+                                </td>
                                 <td>
                                     <h6 class="fs-4 fw-semibold mb-0">@signal.Instrument</h6>
                                     <p class="mb-0 fw-normal">@signal.OrderType</p>
@@ -109,6 +134,10 @@
                                     else if (signal.TradingviewStateType == TradingviewStateType.Entry)
                                     {
                                         <p class="btn px-4 fs-4 bg-warning-subtle text-warning">Trade Entry</p>
+                                    }
+                                    else if (signal.TradingviewStateType == TradingviewStateType.BeHit)
+                                    {
+                                        <p class="btn px-4 fs-4 bg-warning-subtle text-warning">Be Hit</p>
                                     }
                                     else if (signal.TradingviewStateType == TradingviewStateType.SlHit)
                                     {
@@ -142,30 +171,6 @@
                                             <i class="ti ti-clock-hour-4 fs-3"></i>done
                                         </span>
                                     }
-                                </td>
-                                <td>
-                                    <div class="d-flex align-items-center gap-2">
-                                        @if(signal.StrategyType == StrategyType.Strategy1)
-                                        {
-                                            <span class="badge text-bg-primary rounded-3 fw-semibold fs-2">Strategy 1</span>
-                                        }
-                                        else if(signal.StrategyType == StrategyType.Strategy2)
-                                        {
-                                            <span class="badge text-bg-success rounded-3 fw-semibold fs-2">Strategy 2</span>
-                                        }
-                                        else if (signal.StrategyType == StrategyType.Strategy3)
-                                        {
-                                            <span class="badge text-bg-secondary rounded-3 fw-semibold fs-2">Strategy 3</span>
-                                        }
-                                        else if (signal.StrategyType == StrategyType.Strategy4)
-                                        {
-                                            <span class="badge text-bg-danger rounded-3 fw-semibold fs-2">Strategy 4</span>
-                                        }
-                                        else if (signal.StrategyType == StrategyType.Strategy5)
-                                        {
-                                            <span class="badge text-bg-indigo rounded-3 fw-semibold fs-2">Strategy 5</span>
-                                        }
-                                    </div>
                                 </td>
                                 <td>
                                     <div class="dropdown dropstart">

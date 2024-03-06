@@ -9,6 +9,10 @@ namespace JCTG
 
         public DbSet<Client> Client { get; set; }
 
+        public DbSet<ClientPair> Pair { get; set; }
+
+        public DbSet<ClientRisk> Risk { get; set; }
+
         public DbSet<Signal> Signal { get; set; }
 
         public DbSet<TradingviewAlert> TradingviewAlert { get; set; }
@@ -64,7 +68,15 @@ namespace JCTG
               .HasForeignKey(t => t.SignalID)
               .IsRequired(false);
 
+            modelBuilder.Entity<ClientPair>()
+              .HasOne(tj => tj.Client)
+              .WithMany(t => t.Pairs)
+              .HasForeignKey(t => t.ClientID);
 
+            modelBuilder.Entity<ClientRisk>()
+             .HasOne(tj => tj.Client)
+             .WithMany(t => t.Risks)
+             .HasForeignKey(t => t.ClientID);
         }
     }
 }

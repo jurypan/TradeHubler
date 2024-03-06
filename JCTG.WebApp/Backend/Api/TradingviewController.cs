@@ -115,6 +115,7 @@ namespace JCTG.WebApp.Backend.Api
                         case "movesltobe":
                         case "tphit":
                         case "slhit":
+                        case "closeall":
                         case "behit":
                             // Implement the logic to update the database based on instrument, client, and magic number.
                             // This is a placeholder for your actual update logic.
@@ -134,6 +135,8 @@ namespace JCTG.WebApp.Backend.Api
                                     existingSignal.TradingviewStateType = TradingviewStateType.Entry;
                                 else if (signal.OrderType.Equals("cancelorder", StringComparison.CurrentCultureIgnoreCase) && existingSignal.TradingviewStateType == TradingviewStateType.Init)
                                     existingSignal.TradingviewStateType = TradingviewStateType.Cancel;
+                                else if (signal.OrderType.Equals("closeall", StringComparison.CurrentCultureIgnoreCase))
+                                    existingSignal.TradingviewStateType = TradingviewStateType.CloseAll;
 
                                 // Update date
                                 existingSignal.DateLastUpdated = DateTime.UtcNow;

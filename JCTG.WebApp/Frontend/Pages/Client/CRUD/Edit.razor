@@ -1,0 +1,360 @@
+﻿@page "/Clients/{clientid:long}/Edit";
+@inject ClientRepository _clientRepository;
+@inject NavigationManager NavManager
+@using JCTG.Models;
+
+
+<div class="container-fluid mw-100">
+
+    <div class="font-weight-medium shadow-none position-relative overflow-hidden mb-4">
+        <div class="card-body px-0">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h4 class="font-weight-medium ">@_client?.Name</h4>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item">
+                                <a class="text-primary text-decoration-none" href="/">
+                                    Home
+                                </a>
+                            </li>
+                            <li class="breadcrumb-item d-flex justify-content-center align-items-center ps-0">
+                                <iconify-icon icon="tabler:chevron-right"></iconify-icon>
+                            </li>
+                            <li class="breadcrumb-item" aria-current="page">
+                                <a class="text-primary text-decoration-none" href="/">
+                                    Clients
+                                </a>
+                            </li>
+                            <li class="breadcrumb-item d-flex justify-content-center align-items-center ps-0">
+                                <iconify-icon icon="tabler:chevron-right"></iconify-icon>
+                            </li>
+                            <li class="breadcrumb-item" aria-current="page">Edit</li>
+                        </ol>
+                    </nav>
+                </div>
+                <div>
+                    <div class="d-flex no-block justify-content-end align-items-center">
+                        <div class="me-2">
+                            <div class="breadbar"></div>
+                        </div>
+                        <div class="">
+                            <small>LAST MONTH</small>
+                            <h4 class="text-primary mb-0 font-medium">$58,256</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5>Edit client</h5>
+                    <p class="card-subtitle mb-0">
+                        To use add <mark><code>.r-separator</code></mark> class in the form with form styling.
+                    </p>
+                </div>
+                <form class="form-horizontal r-separator">
+                    <div class="card-body">
+                        <h5>Detail Info</h5>
+                        <div class="form-group row align-items-center mb-0">
+                            <label for="inputEmail3" class="col-3 text-end control-label col-form-label">ID</label>
+                            <div class="col-9 border-start pb-2 pt-2">
+                                <input type="text" class="form-control" placeholder="ID" value="" />
+                            </div>
+                        </div>
+                        <div class="form-group row align-items-center mb-0">
+                            <label for="inputEmail3" class="col-3 text-end control-label col-form-label">Name</label>
+                            <div class="col-9 border-start pb-2 pt-2">
+                                <input type="text" class="form-control" placeholder="Name" value="" />
+                            </div>
+                        </div>
+                        <div class="form-group row align-items-center mb-0">
+                            <label for="inputEmail3" class="col-3 text-end control-label col-form-label">Start Balance</label>
+                            <div class="col-9 border-start pb-2 pt-2">
+                                <input type="text" class="form-control" placeholder="Start Balance" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body text-bg-light">
+                        <h4 class="card-title mt-2 pb-3">Options</h4>
+                        <div class="form-group row align-items-center mb-0">
+                            <label for="inputEmail3" class="col-3 text-end control-label col-form-label">Currency</label>
+                            <div class="col-9 border-start pb-2 pt-2">
+                                <input type="text" class="form-control" placeholder="Currency" disabled="disabled" value="@_client?.Currency" />
+                            </div>
+                        </div>
+                        <div class="form-group row align-items-center mb-0">
+                            <label for="inputEmail3" class="col-3 text-end control-label col-form-label">Balance</label>
+                            <div class="col-9 border-start pb-2 pt-2">
+                                <input type="text" class="form-control" placeholder="Balance" disabled="disabled" value="@_client?.Balance" />
+                            </div>
+                        </div>
+                        <div class="form-group row align-items-center mb-0">
+                            <label for="inputEmail3" class="col-3 text-end control-label col-form-label">Equity</label>
+                            <div class="col-9 border-start pb-2 pt-2">
+                                <input type="text" class="form-control" placeholder="Equity" disabled="disabled" value="@_client?.Equity" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-group mb-0 text-end">
+                            <button type="submit" class="btn btn-primary rounded-pill px-4">
+                                Save
+                            </button>
+                            <button type="submit" class="btn bg-danger-subtle text-danger rounded-pill px-4 ms-6">
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="widget-content searchable-container list">
+        <div class="card card-body">
+            <div class="row">
+                <div class="col-md-4 col-xl-3">
+                    <form class="position-relative">
+                        <input type="text" class="form-control product-search ps-5" id="input-search" placeholder="Search pairs...">
+                        <i class="ti ti-search position-absolute top-50 start-0 translate-middle-y fs-6 text-dark ms-3"></i>
+                    </form>
+                </div>
+                <div class="col-md-8 col-xl-9 text-end d-flex justify-content-md-end justify-content-center mt-3 mt-md-0">
+                    <a href="javascript:void(0)" class="btn btn-primary d-flex align-items-center">Add a pair</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card w-100 position-relative overflow-hidden">
+        <div class="px-4 py-3 border-bottom">
+            <h5 class="card-title fw-semibold mb-0 lh-sm">Pairs</h5>
+
+        </div>
+        @if (_client != null)
+        {
+            if (_client.Pairs != null && _client.Pairs.Count > 0)
+            {
+                <div class="card-body p-4">
+                    <div class="table-responsive rounded-2 mb-4">
+                        <table class="table border text-nowrap customize-table mb-0 align-middle">
+                            <thead class="text-dark fs-4">
+                                <tr>
+                                    <th>
+                                        <h6 class="fs-4 fw-semibold mb-0">Ticker in Tradingview</h6>
+                                    </th>
+                                    <th>
+                                        <h6 class="fs-4 fw-semibold mb-0">Ticker in Metatrader</h6>
+                                    </th>
+                                    <th>
+                                        <h6 class="fs-4 fw-semibold mb-0">Strategy</h6>
+                                    </th>
+                                    <th>
+                                        <h6 class="fs-4 fw-semibold mb-0">Timeframe</h6>
+                                    </th>
+                                    <th>
+                                        <h6 class="fs-4 fw-semibold mb-0">Risk</h6>
+                                    </th>
+
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var pair in _client?.Pairs)
+                                {
+                                    <tr>
+                                        <td>
+                                            <h6 class="fs-4 fw-semibold mb-0">@pair.TickerInTradingView</h6>
+                                        </td>
+                                        <td>
+                                            <p class="mb-0 fw-normal">@pair.TickerInMetatrader</p>
+                                        </td>
+                                        <td>
+                                            <div class="d-flex align-items-center gap-2">
+                                                @if (pair.StrategyType == StrategyType.Strategy1)
+                                                {
+                                                    <span class="badge text-bg-primary rounded-3 fw-semibold fs-2">Strategy 1</span>
+                                                }
+                                                else if (pair.StrategyType == StrategyType.Strategy2)
+                                                {
+                                                    <span class="badge text-bg-success rounded-3 fw-semibold fs-2">Strategy 2</span>
+                                                }
+                                                else if (pair.StrategyType == StrategyType.Strategy3)
+                                                {
+                                                    <span class="badge text-bg-secondary rounded-3 fw-semibold fs-2">Strategy 3</span>
+                                                }
+                                                else if (pair.StrategyType == StrategyType.Strategy4)
+                                                {
+                                                    <span class="badge text-bg-danger rounded-3 fw-semibold fs-2">Strategy 4</span>
+                                                }
+                                                else if (pair.StrategyType == StrategyType.Strategy5)
+                                                {
+                                                    <span class="badge text-bg-indigo rounded-3 fw-semibold fs-2">Strategy 5</span>
+                                                }
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <p class="mb-0 fw-normal">@pair.Timeframe</p>
+                                        </td>
+                                        <td>
+                                            <p class="mb-0 fw-normal">@pair.Risk</p>
+                                        </td>
+                                        <td>
+                                            <div class="dropdown dropstart">
+                                                <a href="#" class="text-muted" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+                                                    <i class="ti ti-dots-vertical fs-6"></i>
+                                                </a>
+                                                <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                                                    <li>
+                                                        <a class="dropdown-item d-flex align-items-center gap-3" href="/Clients/@ClientId/EditPair/@pair.ID">
+                                                            <i class="fs-4 ti ti-plus"></i>Edit
+                                                        </a>
+                                                    </li>
+                                                    <li>
+                                                        <a class="dropdown-item d-flex align-items-center gap-3" href="/Clients/@ClientId/DeletePair/@pair.ID">
+                                                            <i class="fs-4 ti ti-edit"></i>Delete
+                                                        </a>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="card-body text-center">
+                    <h3 class="fw-semibold">No pairs available for this client</h3>
+                    <p class="fw-normal mb-4 fs-4">Without pairs it's impossible to take trades</p>
+                    <a href="" class="btn btn-primary mb-8">Add a pair</a>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        }
+
+    </div>
+
+    <div class="widget-content searchable-container list">
+        <div class="card card-body">
+            <div class="row">
+                <div class="col-md-4 col-xl-3">
+                    <form class="position-relative">
+                        <input type="text" class="form-control product-search ps-5" id="input-search" placeholder="Search risk definitions...">
+                        <i class="ti ti-search position-absolute top-50 start-0 translate-middle-y fs-6 text-dark ms-3"></i>
+                    </form>
+                </div>
+                <div class="col-md-8 col-xl-9 text-end d-flex justify-content-md-end justify-content-center mt-3 mt-md-0">
+                    <a href="javascript:void(0)" class="btn btn-primary d-flex align-items-center">Add a risk definition</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card w-100 position-relative overflow-hidden">
+        <div class="px-4 py-3 border-bottom">
+            <h5 class="card-title fw-semibold mb-0 lh-sm">Risks</h5>
+        </div>
+        @if (_client != null)
+        {
+            if (_client.Risks != null && _client.Risks.Count > 0)
+            {
+                <div class="card-body p-4">
+                    <div class="table-responsive rounded-2 mb-4">
+                        <table class="table border text-nowrap customize-table mb-0 align-middle">
+                            <thead class="text-dark fs-4">
+                                <tr>
+                                    <th>
+                                        <h6 class="fs-4 fw-semibold mb-0">Procent</h6>
+                                    </th>
+                                    <th>
+                                        <h6 class="fs-4 fw-semibold mb-0">Multiplier</h6>
+                                    </th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var risk in _client?.Risks)
+                                {
+                                    <tr>
+                                        <td>
+                                            <h6 class="fs-4 fw-semibold mb-0">@risk.Procent</h6>
+                                        </td>
+                                        <td>
+                                            <p class="mb-0 fw-normal">@risk.Multiplier</p>
+                                        </td>
+                                        <td>
+                                            <div class="dropdown dropstart">
+                                                <a href="#" class="text-muted" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+                                                    <i class="ti ti-dots-vertical fs-6"></i>
+                                                </a>
+                                                <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                                                    <li>
+                                                        <a class="dropdown-item d-flex align-items-center gap-3" href="/Clients/@ClientId/EditRisk/@risk.ID">
+                                                            <i class="fs-4 ti ti-plus"></i>Edit
+                                                        </a>
+                                                    </li>
+                                                    <li>
+                                                        <a class="dropdown-item d-flex align-items-center gap-3" href="/Clients/@ClientId/DeleteRisk/@risk.ID">
+                                                            <i class="fs-4 ti ti-edit"></i>Delete
+                                                        </a>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="card-body text-center">
+                    <h3 class="fw-semibold">No risk is defined for this client</h3>
+                    <p class="fw-normal mb-4 fs-4">Without at least 1 risk definition, it's impossible to take trades</p>
+                    <a href="" class="btn btn-primary mb-8">Add a risk definition</a>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        }
+    </div>
+</div>
+
+
+
+@code {
+
+    [Parameter]
+    public long ClientId { get; set; }
+
+
+    private Entity.Client? _client = null;
+
+    protected async override Task OnInitializedAsync()
+    {
+        _client = await _clientRepository.GetByIdAsync(692803787, ClientId);
+
+    }
+
+
+}

@@ -465,7 +465,7 @@
           "SpreadSL": null,
           "SpreadTP": null,
           "RiskMinXTimesTheSpread": 4,
-          "CorrelatedPairs": [ "ETHUSD" ]
+          "CorrelatedPairs": [ ]
         },
         {
           "TickerInTradingView": "ETHUSD",
@@ -474,7 +474,7 @@
           "StrategyNr": 3,
           "Risk": 0.15,
           "SLtoBEafterR": 1.0,
-          "MaxSpread": 1.75,
+          "MaxSpread": 3.0,
           "SLMultiplier": 1.02,
           "MaxLotSize": 1000,
           "OrderExecType": "Active",
@@ -486,7 +486,7 @@
           "SpreadSL": null,
           "SpreadTP": null,
           "RiskMinXTimesTheSpread": 4,
-          "CorrelatedPairs": [ "BTCUSD" ]
+          "CorrelatedPairs": [  ]
         }
       ]
     },
@@ -1395,7 +1395,7 @@
           "StrategyNr": 5,
           "Risk": 0.15,
           "SLtoBEafterR": 1.0,
-          "MaxSpread": 10,
+          "MaxSpread": 15,
           "SLMultiplier": 1.02,
           "MaxLotSize": 1000,
           "OrderExecType": "Active",
