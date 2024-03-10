@@ -1115,7 +1115,7 @@
           "TickerInMetatrader": "BTCUSD",
           "Timeframe": "M15",
           "StrategyNr": 3,
-          "Risk": 0.05,
+          "Risk": 0.25,
           "SLtoBEafterR": 1.0,
           "MaxSpread": 15.0,
           "SLMultiplier": 1.02,
@@ -1129,14 +1129,14 @@
           "SpreadSL": "Subtract",
           "SpreadTP": "Add",
           "RiskMinXTimesTheSpread": 4,
-          "CorrelatedPairs": [  ]
+          "CorrelatedPairs": []
         },
         {
           "TickerInTradingView": "ETHUSD",
           "TickerInMetatrader": "ETHUSD",
           "Timeframe": "M15",
           "StrategyNr": 3,
-          "Risk": 0.05,
+          "Risk": 0.25,
           "SLtoBEafterR": 1.0,
           "MaxSpread": 1.5,
           "SLMultiplier": 1.02,
@@ -1150,14 +1150,14 @@
           "SpreadSL": "Subtract",
           "SpreadTP": "Add",
           "RiskMinXTimesTheSpread": 4,
-          "CorrelatedPairs": [ ]
+          "CorrelatedPairs": []
         },
         {
           "TickerInTradingView": "USDJPY",
           "TickerInMetatrader": "USDJPY",
           "Timeframe": "M30",
           "StrategyNr": 3,
-          "Risk": 0.5,
+          "Risk": 0.25,
           "SLtoBEafterR": 1.0,
           "MaxSpread": 1.5,
           "SLMultiplier": 1.02,
@@ -1233,7 +1233,7 @@
           "TickerInMetatrader": "EU50",
           "Timeframe": "M30",
           "StrategyNr": 3,
-          "Risk": 0.5,
+          "Risk": 0.25,
           "SLtoBEafterR": 1.0,
           "MaxSpread": 1.5,
           "SLMultiplier": 1.02,
@@ -1247,14 +1247,14 @@
           "SpreadSL": "Subtract",
           "SpreadTP": "Add",
           "RiskMinXTimesTheSpread": 4,
-          "CorrelatedPairs": [ "UK100" ]
+          "CorrelatedPairs": [ ]
         },
         {
           "TickerInTradingView": "UKX",
           "TickerInMetatrader": "UK100",
           "Timeframe": "M30",
           "StrategyNr": 3,
-          "Risk": 0.5,
+          "Risk": 0.25,
           "SLtoBEafterR": 1.0,
           "MaxSpread": 1.5,
           "SLMultiplier": 1.02,
@@ -1268,14 +1268,14 @@
           "SpreadSL": "Subtract",
           "SpreadTP": "Add",
           "RiskMinXTimesTheSpread": 4,
-          "CorrelatedPairs": [ "EU50" ]
+          "CorrelatedPairs": [ ]
         },
         {
           "TickerInTradingView": "SPX",
           "TickerInMetatrader": "US500",
           "Timeframe": "M30",
           "StrategyNr": 3,
-          "Risk": 0.5,
+          "Risk": 0.25,
           "SLtoBEafterR": 1.0,
           "MaxSpread": 1.5,
           "SLMultiplier": 1.02,
@@ -1296,7 +1296,7 @@
           "TickerInMetatrader": "US100",
           "Timeframe": "M30",
           "StrategyNr": 3,
-          "Risk": 0.5,
+          "Risk": 0.25,
           "SLtoBEafterR": 1.0,
           "MaxSpread": 1.5,
           "SLMultiplier": 1.02,
@@ -1317,7 +1317,7 @@
           "TickerInMetatrader": "USDJPY",
           "Timeframe": "M30",
           "StrategyNr": 3,
-          "Risk": 0.5,
+          "Risk": 0.25,
           "SLtoBEafterR": 1.0,
           "MaxSpread": 1.5,
           "SLMultiplier": 1.02,

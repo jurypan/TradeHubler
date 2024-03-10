@@ -10,7 +10,7 @@
         <div class="card-body px-0">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
-                    <h4 class="font-weight-medium ">@_client?.Name</h4>
+                    <h4 class="font-weight-medium ">@client?.Name</h4>
                     <nav aria-label="breadcrumb">
                         <ol class="breadcrumb">
                             <li class="breadcrumb-item">
@@ -57,25 +57,40 @@
                         To use add <mark><code>.r-separator</code></mark> class in the form with form styling.
                     </p>
                 </div>
-                <form class="form-horizontal r-separator">
+                <EditForm Model="@client" OnValidSubmit="@SubmitFormClientAsync" class="form-horizontal r-separator">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary />
+                    <AntiforgeryToken />
                     <div class="card-body">
                         <h5>Detail Info</h5>
                         <div class="form-group row align-items-center mb-0">
+                            <label for="inputEmail3" class="col-3 text-end control-label col-form-label">Is enable</label>
+                            <div class="col-9 border-start pb-2 pt-2">
+                                <InputCheckbox class="form-check-input" @bind-Value="client.IsEnable" />
+                            </div>
+                        </div>
+                        <div class="form-group row align-items-center mb-0">
                             <label for="inputEmail3" class="col-3 text-end control-label col-form-label">ID</label>
                             <div class="col-9 border-start pb-2 pt-2">
-                                <input type="text" class="form-control" placeholder="ID" value="" />
+                                <InputText class="form-control" @bind-Value="client.IDAsString" />
                             </div>
                         </div>
                         <div class="form-group row align-items-center mb-0">
                             <label for="inputEmail3" class="col-3 text-end control-label col-form-label">Name</label>
                             <div class="col-9 border-start pb-2 pt-2">
-                                <input type="text" class="form-control" placeholder="Name" value="" />
+                                <InputText class="form-control" @bind-Value="client.Name" />
                             </div>
                         </div>
                         <div class="form-group row align-items-center mb-0">
                             <label for="inputEmail3" class="col-3 text-end control-label col-form-label">Start Balance</label>
                             <div class="col-9 border-start pb-2 pt-2">
-                                <input type="text" class="form-control" placeholder="Start Balance" />
+                                <InputText class="form-control" @bind-Value="client.StartBalanceAsString" />
+                            </div>
+                        </div>
+                        <div class="form-group row align-items-center mb-0">
+                            <label for="inputEmail3" class="col-3 text-end control-label col-form-label">MetaTrader Directory Path</label>
+                            <div class="col-9 border-start pb-2 pt-2">
+                                <InputText class="form-control" @bind-Value="client.MetaTraderDirPath" />
                             </div>
                         </div>
                     </div>
@@ -84,61 +99,263 @@
                         <div class="form-group row align-items-center mb-0">
                             <label for="inputEmail3" class="col-3 text-end control-label col-form-label">Currency</label>
                             <div class="col-9 border-start pb-2 pt-2">
-                                <input type="text" class="form-control" placeholder="Currency" disabled="disabled" value="@_client?.Currency" />
+                                <input type="text" class="form-control" disabled="disabled" value="@client.Currency" />
                             </div>
                         </div>
                         <div class="form-group row align-items-center mb-0">
                             <label for="inputEmail3" class="col-3 text-end control-label col-form-label">Balance</label>
                             <div class="col-9 border-start pb-2 pt-2">
-                                <input type="text" class="form-control" placeholder="Balance" disabled="disabled" value="@_client?.Balance" />
+                                <input type="text" class="form-control" disabled="disabled" value="@client.Balance" />
                             </div>
                         </div>
                         <div class="form-group row align-items-center mb-0">
                             <label for="inputEmail3" class="col-3 text-end control-label col-form-label">Equity</label>
                             <div class="col-9 border-start pb-2 pt-2">
-                                <input type="text" class="form-control" placeholder="Equity" disabled="disabled" value="@_client?.Equity" />
+                                <input type="text" class="form-control" disabled="disabled" value="@client.Equity" />
+                            </div>
+                        </div>
+                        <div class="form-group row align-items-center mb-0">
+                            <label for="inputEmail3" class="col-3 text-end control-label col-form-label">Leverage</label>
+                            <div class="col-9 border-start pb-2 pt-2">
+                                <input type="text" class="form-control" disabled="disabled" value="@client.Leverage" />
                             </div>
                         </div>
                     </div>
                     <div class="card-body">
                         <div class="form-group mb-0 text-end">
-                            <button type="submit" class="btn btn-primary rounded-pill px-4">
-                                Save
-                            </button>
-                            <button type="submit" class="btn bg-danger-subtle text-danger rounded-pill px-4 ms-6">
-                                Cancel
-                            </button>
+                            <button type="submit" class="btn btn-primary rounded-pill px-4"> Save </button>
+                            <a href="/" class="btn bg-danger-subtle text-danger rounded-pill px-4 ms-6"> Cancel </a>
                         </div>
                     </div>
-                </form>
+                    </EditForm>
             </div>
         </div>
     </div>
 
-    <div class="widget-content searchable-container list">
-        <div class="card card-body">
-            <div class="row">
-                <div class="col-md-4 col-xl-3">
-                    <form class="position-relative">
-                        <input type="text" class="form-control product-search ps-5" id="input-search" placeholder="Search pairs...">
-                        <i class="ti ti-search position-absolute top-50 start-0 translate-middle-y fs-6 text-dark ms-3"></i>
-                    </form>
+    <div class="modal fade @(!_hideModifyModalPair && pair != null ? "show" : "hide")" tabindex="-1" style="display:@(!_hideModifyModalPair && pair != null ? "block" : "hidden");">
+        <div class=" modal-dialog modal-dialog-scrollable modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header modal-colored-header bg-primary text-white">
+                    <h4 class="modal-title text-white" id="primary-header-modalLabel"> Pair </h4>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" @onclick="() => ToggleModifyModalPair()"></button>
                 </div>
-                <div class="col-md-8 col-xl-9 text-end d-flex justify-content-md-end justify-content-center mt-3 mt-md-0">
-                    <a href="javascript:void(0)" class="btn btn-primary d-flex align-items-center">Add a pair</a>
+                <EditForm Model="@pair" OnValidSubmit="@SubmitModalPairAsync">
+                    <div class="modal-body">
+                        <DataAnnotationsValidator />
+                        <ValidationSummary />
+                        <AntiforgeryToken />
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label" for="ticker-in-tradingview">Ticker in tradingview</label>
+                                    <InputText class="form-control" @bind-Value="pair.TickerInTradingView" />
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label" for="ticker-in-metatrader">Ticker in metatrader</label>
+                                    <InputText class="form-control" @bind-Value="pair.TickerInMetatrader" />
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label" for="timeframe">Timeframe</label>
+                                    <InputSelect class="form-select col-12" @bind-Value="pair.Timeframe">
+                                        <option>Choose...</option>
+                                        <option value="M5">M5</option>
+                                        <option value="M10">M10</option>
+                                        <option value="M15">M15</option>
+                                        <option value="M30">M30</option>
+                                        <option value="M45">M45</option>
+                                        <option value="H1">H1</option>
+                                        <option value="H4">H4</option>
+                                        <option value="D">D</option>
+                                    </InputSelect>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label" for="strategy">Strategy</label>
+                                    <InputSelect class="form-select col-12" @bind-Value="pair.StrategyType">
+                                        <option>Choose...</option>
+                                        @foreach (var item in Enum.GetValues(typeof(StrategyType)))
+                                        {
+                                            <option value="@item">@item</option>
+                                        }
+                                    </InputSelect>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label" for="risk">Risk</label>
+                                    <InputText class="form-control" @bind-Value="pair.RiskAsString" />
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label" for="risk">SL to BE after R</label>
+                                    <InputText class="form-control" @bind-Value="pair.SLtoBEafterRAsString" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label" for="max-spread">Max Spread</label>
+                                    <InputText class="form-control" @bind-Value="pair.MaxSpreadAsString" />
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label" for="sl-multiplier">SLMultiplier</label>
+                                    <InputText class="form-control" @bind-Value="pair.SLMultiplierAsString" />
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label" for="max-lot-size">Max Lotsize</label>
+                                    <InputText class="form-control" @bind-Value="pair.MaxLotSizeAsString" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label" for="order-exec-type">Order Exec Type</label>
+                                    <InputSelect class="form-select col-12" @bind-Value="pair.OrderExecType">
+                                        <option>Choose...</option>
+                                        @foreach (var Item in Enum.GetValues(typeof(OrderExecType)))
+                                        {
+                                            <option value="@Item">@Item</option>
+                                        }
+                                    </InputSelect>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <div class="form-check py-2 form-switch">
+                                        <InputCheckbox class="form-check-input" @bind-Value="pair.CancelStopOrLimitOrderWhenNewSignal" />
+                                        <label class="form-check-label" for="flexSwitchCheckDefault">
+                                            Cancel STOP or LIMIT order when new signal
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label" for="sl-multiplier">NumberOfHistoricalBarsRequested</label>
+                                    <InputText class="form-control" @bind-Value="pair.NumberOfHistoricalBarsRequestedAsString" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label" for="max-spread">CloseAllTradesAt</label>
+                                    <InputText class="form-control" @bind-Value="pair.CloseAllTradesAt" />
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label" for="sl-multiplier">DoNotOpenTradeXMinutesBeforeClose</label>
+                                    <InputText class="form-control" @bind-Value="pair.DoNotOpenTradeXMinutesBeforeCloseAsString" />
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label" for="max-spread">Spread Entry</label>
+                                    <InputSelect class="form-select col-12" @bind-Value="pair.SpreadEntry">
+                                        <option>Choose...</option>
+                                        @foreach (var Item in Enum.GetValues(typeof(SpreadExecType)))
+                                        {
+                                            <option value="@Item">@Item</option>
+                                        }
+                                    </InputSelect>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label" for="sl-multiplier">Spread SL</label>
+                                    <InputSelect class="form-select col-12" @bind-Value="pair.SpreadSL">
+                                        <option>Choose...</option>
+                                        @foreach (var Item in Enum.GetValues(typeof(SpreadExecType)))
+                                        {
+                                            <option value="@Item">@Item</option>
+                                        }
+                                    </InputSelect>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label" for="max-spread">Spread TP</label>
+                                    <InputSelect class="form-select col-12" @bind-Value="pair.SpreadTP">
+                                        <option>Choose...</option>
+                                        @foreach (var Item in Enum.GetValues(typeof(SpreadExecType)))
+                                        {
+                                            <option value="@Item">@Item</option>
+                                        }
+                                    </InputSelect>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label" for="sl-multiplier">Risk Min X Times The Spread</label>
+                                    <InputText class="form-control" @bind-Value="pair.RiskMinXTimesTheSpreadAsString" />
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                    <div class="modal-footer">
+                        <div class="d-flex gap-6 m-0">
+                            <button type="submit" class="btn btn-primary  rounded-pill px-4"> Save </button>
+                            <button class="btn bg-danger-subtle text-danger rounded-pill" @onclick="() => ToggleModifyModalPair()"> Discard </button>
+                        </div>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade  @(!_hideDeleteModalPair ? "show" : "hide")" tabindex="-1" style="display:@(!_hideDeleteModalPair ? "block" : "hidden");">
+        <div class="modal-dialog modal-dialog-scrollable modal-lg">
+            <div class="modal-content">
+                <div class="modal-header modal-colored-header bg-danger text-white">
+                    <h4 class="modal-title text-white" id="danger-header-modalLabel">Delete Pair</h4>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" @onclick="() => ToggleDeleteModalPair()"></button>
+                </div>
+                <div class="modal-body">
+                    <h5 class="mt-0">Delete a pair?</h5>
+                    <p>Are you sure you want to delete this pair?</p>
+                </div>
+                <div class="modal-footer">
+                    <div class="d-flex gap-6 m-0">
+                        <button type="submit" class="btn btn-danger  rounded-pill px-4" @onclick="async () => await SubmitModalPairAsync()"> Delete </button>
+                        <button class="btn bg-danger-subtle text-danger rounded-pill" @onclick="() => ToggleDeleteModalPair()"> Discard </button>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
     <div class="card w-100 position-relative overflow-hidden">
-        <div class="px-4 py-3 border-bottom">
-            <h5 class="card-title fw-semibold mb-0 lh-sm">Pairs</h5>
-
+        <div class="card card-body">
+            <div class="row">
+                <div class="col-md-4 col-xl-3">
+                    <h5 class="card-title fw-semibold mb-0 lh-sm">Pairs</h5>
+                </div>
+                <div class="col-md-8 col-xl-9 text-end d-flex justify-content-md-end justify-content-center mt-3 mt-md-0">
+                    <a class="btn btn-primary d-flex align-items-center" @onclick="() => AddAPairClick()">Add a pair</a>
+                </div>
+            </div>
         </div>
-        @if (_client != null)
+        @if (client != null)
         {
-            if (_client.Pairs != null && _client.Pairs.Count > 0)
+            if (client.Pairs != null && client.Pairs.Count > 0)
             {
                 <div class="card-body p-4">
                     <div class="table-responsive rounded-2 mb-4">
@@ -165,7 +382,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach (var pair in _client?.Pairs)
+                                @foreach (var pair in client?.Pairs)
                                 {
                                     <tr>
                                         <td>
@@ -211,14 +428,10 @@
                                                 </a>
                                                 <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
                                                     <li>
-                                                        <a class="dropdown-item d-flex align-items-center gap-3" href="/Clients/@ClientId/EditPair/@pair.ID">
-                                                            <i class="fs-4 ti ti-plus"></i>Edit
-                                                        </a>
+                                                        <a class="dropdown-item d-flex align-items-center gap-3" @onclick="() => EditAPairClick(pair.ID)">Edit</a>
                                                     </li>
                                                     <li>
-                                                        <a class="dropdown-item d-flex align-items-center gap-3" href="/Clients/@ClientId/DeletePair/@pair.ID">
-                                                            <i class="fs-4 ti ti-edit"></i>Delete
-                                                        </a>
+                                                        <a class="dropdown-item d-flex align-items-center gap-3" @onclick="() => DeleteAPairClick(pair.ID)">Delete</a>
                                                     </li>
                                                 </ul>
                                             </div>
@@ -235,7 +448,7 @@
                 <div class="card-body text-center">
                     <h3 class="fw-semibold">No pairs available for this client</h3>
                     <p class="fw-normal mb-4 fs-4">Without pairs it's impossible to take trades</p>
-                    <a href="" class="btn btn-primary mb-8">Add a pair</a>
+                    <a class="btn btn-primary mb-8" @onclick="() => AddAPairClick()">Add a pair</a>
                 </div>
             }
         }
@@ -248,29 +461,79 @@
 
     </div>
 
-    <div class="widget-content searchable-container list">
-        <div class="card card-body">
-            <div class="row">
-                <div class="col-md-4 col-xl-3">
-                    <form class="position-relative">
-                        <input type="text" class="form-control product-search ps-5" id="input-search" placeholder="Search risk definitions...">
-                        <i class="ti ti-search position-absolute top-50 start-0 translate-middle-y fs-6 text-dark ms-3"></i>
-                    </form>
+    <div class="modal fade @(!_hideModifyModalRisk && risk != null ? "show" : "hide")" tabindex="-1" style="display:@(!_hideModifyModalRisk && risk != null ? "block" : "hidden");">
+        <div class=" modal-dialog modal-dialog-scrollable modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header modal-colored-header bg-primary text-white">
+                    <h4 class="modal-title text-white" id="primary-header-modalLabel"> Risk Definition </h4>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" @onclick="() => ToggleModifyModalRisk()"></button>
                 </div>
-                <div class="col-md-8 col-xl-9 text-end d-flex justify-content-md-end justify-content-center mt-3 mt-md-0">
-                    <a href="javascript:void(0)" class="btn btn-primary d-flex align-items-center">Add a risk definition</a>
+                <EditForm Model="@risk" OnValidSubmit="@SubmitModalRiskAsync">
+                    <div class="modal-body">
+                        <DataAnnotationsValidator />
+                        <ValidationSummary />
+                        <AntiforgeryToken />
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label" for="ticker-in-tradingview">Procent</label>
+                                    <InputText class="form-control" @bind-Value="risk.ProcentAsString" />
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label" for="ticker-in-metatrader">Multiplier</label>
+                                    <InputText class="form-control" @bind-Value="risk.MultiplierAsString" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <div class="d-flex gap-6 m-0">
+                            <button type="submit" class="btn btn-primary  rounded-pill px-4"> Save </button>
+                            <button class="btn bg-danger-subtle text-danger rounded-pill" @onclick="() => ToggleModifyModalRisk()"> Discard </button>
+                        </div>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade  @(!_hideDeleteModalRisk ? "show" : "hide")" tabindex="-1" style="display:@(!_hideDeleteModalRisk ? "block" : "hidden");">
+        <div class="modal-dialog modal-dialog-scrollable modal-lg">
+            <div class="modal-content">
+                <div class="modal-header modal-colored-header bg-danger text-white">
+                    <h4 class="modal-title text-white" id="danger-header-modalLabel">Delete a risk definition</h4>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" @onclick="() => ToggleDeleteModalRisk()"></button>
+                </div>
+                <div class="modal-body">
+                    <h5 class="mt-0">Delete a risk defintion?</h5>
+                    <p>Are you sure you want to delete this risk defintion?</p>
+                </div>
+                <div class="modal-footer">
+                    <div class="d-flex gap-6 m-0">
+                        <button type="submit" class="btn btn-danger  rounded-pill px-4" @onclick="async () => await SubmitModalRiskAsync()"> Delete </button>
+                        <button class="btn bg-danger-subtle text-danger rounded-pill" @onclick="() => ToggleDeleteModalRisk()"> Discard </button>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
     <div class="card w-100 position-relative overflow-hidden">
-        <div class="px-4 py-3 border-bottom">
-            <h5 class="card-title fw-semibold mb-0 lh-sm">Risks</h5>
+        <div class="card card-body">
+            <div class="row">
+                <div class="col-md-4 col-xl-3">
+                    <h5 class="card-title fw-semibold mb-0 lh-sm">Risks</h5>
+                </div>
+                <div class="col-md-8 col-xl-9 text-end d-flex justify-content-md-end justify-content-center mt-3 mt-md-0">
+                    <a class="btn btn-primary d-flex align-items-center" @onclick="() => AddARiskClick()">Add a risk definition</a>
+                </div>
+            </div>
         </div>
-        @if (_client != null)
+        @if (client != null)
         {
-            if (_client.Risks != null && _client.Risks.Count > 0)
+            if (client.Risks != null && client.Risks.Count > 0)
             {
                 <div class="card-body p-4">
                     <div class="table-responsive rounded-2 mb-4">
@@ -287,7 +550,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach (var risk in _client?.Risks)
+                                @foreach (var risk in client?.Risks)
                                 {
                                     <tr>
                                         <td>
@@ -303,14 +566,10 @@
                                                 </a>
                                                 <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
                                                     <li>
-                                                        <a class="dropdown-item d-flex align-items-center gap-3" href="/Clients/@ClientId/EditRisk/@risk.ID">
-                                                            <i class="fs-4 ti ti-plus"></i>Edit
-                                                        </a>
+                                                        <a class="dropdown-item d-flex align-items-center gap-3" @onclick="() => EditARiskClick(risk.ID)">Edit</a>
                                                     </li>
                                                     <li>
-                                                        <a class="dropdown-item d-flex align-items-center gap-3" href="/Clients/@ClientId/DeleteRisk/@risk.ID">
-                                                            <i class="fs-4 ti ti-edit"></i>Delete
-                                                        </a>
+                                                        <a class="dropdown-item d-flex align-items-center gap-3" @onclick="() => DeleteARiskClick(risk.ID)">Delete</a>
                                                     </li>
                                                 </ul>
                                             </div>
@@ -327,7 +586,7 @@
                 <div class="card-body text-center">
                     <h3 class="fw-semibold">No risk is defined for this client</h3>
                     <p class="fw-normal mb-4 fs-4">Without at least 1 risk definition, it's impossible to take trades</p>
-                    <a href="" class="btn btn-primary mb-8">Add a risk definition</a>
+                    <a class="btn btn-primary mb-8" @onclick="() => AddARiskClick()">Add a risk definition</a>
                 </div>
             }
         }
@@ -347,14 +606,172 @@
     [Parameter]
     public long ClientId { get; set; }
 
+    [SupplyParameterFromForm]
+    private ClientPair pair { get; set; } = new();
 
-    private Entity.Client? _client = null;
+    [SupplyParameterFromForm]
+    private ClientRisk risk { get; set; } = new();
+
+    [SupplyParameterFromForm]
+    private Entity.Client client { get; set; } = new Client() { Name = string.Empty };
+
+    private bool _hideModifyModalPair { get; set; } = true;
+    private bool _hideDeleteModalPair { get; set; } = true;
+    private bool _hideModifyModalRisk { get; set; } = true;
+    private bool _hideDeleteModalRisk { get; set; } = true;
+
+    private CrudState crudPairState { get; set; } = CrudState.None;
+    private CrudState crudRiskState { get; set; } = CrudState.None;
+
+
+
 
     protected async override Task OnInitializedAsync()
     {
-        _client = await _clientRepository.GetByIdAsync(692803787, ClientId);
+        client = await _clientRepository.GetByIdAsync(692803787, ClientId);
+    }
 
+    private void AddAPairClick()
+    {
+        crudPairState = CrudState.Add;
+        ToggleModifyModalPair();
+        pair = new();
+    }
+
+    private void EditAPairClick(long id)
+    {
+        crudPairState = CrudState.Edit;
+        ToggleModifyModalPair();
+        if (client != null)
+        {
+            pair = client.Pairs.First(f => f.ID == id);
+        }
+    }
+
+    private void DeleteAPairClick(long id)
+    {
+        crudPairState = CrudState.Delete;
+        ToggleDeleteModalPair();
+        if (client != null)
+        {
+            pair = client.Pairs.First(f => f.ID == id);
+        }
+    }
+
+    private void ToggleModifyModalPair()
+    {
+        _hideModifyModalPair = !_hideModifyModalPair;
+    }
+
+    private void ToggleDeleteModalPair()
+    {
+        _hideDeleteModalPair = !_hideDeleteModalPair;
+    }
+
+    private async Task SubmitModalPairAsync()
+    {
+        if (pair != null)
+        {
+            if (crudPairState == CrudState.Add)
+            {
+                pair.ClientID = ClientId;
+                await _clientRepository.AddPairAsync(pair);
+            }
+            else if (crudPairState == CrudState.Edit)
+            {
+                pair.ClientID = ClientId;
+                await _clientRepository.EditPairAsync(pair);
+            }
+            else if (crudPairState == CrudState.Delete)
+            {
+                pair.ClientID = ClientId;
+                await _clientRepository.DeletePairAsync(pair);
+            }
+
+            crudPairState = CrudState.None;
+            pair = new();
+            _hideModifyModalPair = true;
+            _hideDeleteModalPair = true;
+            client = await _clientRepository.GetByIdAsync(692803787, ClientId);
+        }
     }
 
 
+    private void AddARiskClick()
+    {
+        crudRiskState = CrudState.Add;
+        ToggleModifyModalRisk();
+        risk = new();
+    }
+
+    private void EditARiskClick(long id)
+    {
+        crudRiskState = CrudState.Edit;
+        ToggleModifyModalRisk();
+        if (client != null)
+        {
+            risk = client.Risks.First(f => f.ID == id);
+        }
+    }
+
+    private void DeleteARiskClick(long id)
+    {
+        crudRiskState = CrudState.Delete;
+        ToggleDeleteModalRisk();
+        if (client != null)
+        {
+            risk = client.Risks.First(f => f.ID == id);
+        }
+    }
+
+    private void ToggleModifyModalRisk()
+    {
+        _hideModifyModalRisk = !_hideModifyModalRisk;
+    }
+
+    private void ToggleDeleteModalRisk()
+    {
+        _hideDeleteModalRisk = !_hideDeleteModalRisk;
+    }
+
+    private async Task SubmitModalRiskAsync()
+    {
+        if (risk != null)
+        {
+            if (crudRiskState == CrudState.Add)
+            {
+                risk.ClientID = ClientId;
+                await _clientRepository.AddRiskAsync(risk);
+            }
+            else if (crudRiskState == CrudState.Edit)
+            {
+                risk.ClientID = ClientId;
+                await _clientRepository.EditRiskAsync(risk);
+            }
+            else if (crudRiskState == CrudState.Delete)
+            {
+                risk.ClientID = ClientId;
+                await _clientRepository.DeleteRiskAsync(risk);
+            }
+
+            crudRiskState = CrudState.None;
+            risk = new();
+            _hideModifyModalRisk = true;
+            _hideDeleteModalRisk = true;
+            client = await _clientRepository.GetByIdAsync(692803787, ClientId);
+        }
+    }
+
+
+    private async Task SubmitFormClientAsync()
+    {
+        if (client != null)
+        {
+            await _clientRepository.EditAsync(692803787, client);
+            var clientNew = await _clientRepository.GetByIdAsync(692803787, ClientId);
+            if (clientNew != null)
+                client = clientNew;
+            NavManager.NavigateTo("/");
+        }
+    }
 }

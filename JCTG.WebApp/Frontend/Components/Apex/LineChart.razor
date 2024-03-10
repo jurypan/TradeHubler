@@ -1,0 +1,39 @@
+﻿@inject JSInteropt JS
+
+
+<div @ref=el></div>
+
+
+@code {
+    public ChartOptions Options { get; private set; } = new ChartOptions();
+    public bool IsInit { get; set; } = false;
+    public ElementReference el { get; set; }
+
+
+    public async Task InitAsync(string name1, List<LinePoint> data1, string name2, List<LinePoint> data2, ChartOptions? options = null)
+    {
+        // Use default options when none are provided
+        if (options != null)
+            Options = options;
+
+        // Exec javascript
+        await JS.LineChartInitAsync(el, name1, data1, name2, data2);
+
+        // Set is init
+        IsInit = true;
+    }
+
+    public async Task UpdateAsync(string name1, List<LinePoint> data1, string name2, List<LinePoint> data2)
+    {
+        if(IsInit)
+        {
+            // Exec javascript
+            await JS.LineChartUpdateAsync(el, name1, data1, name2, data2);
+        }
+        else
+        {
+            await JS.LineChartInitAsync(el, name1, data1, name2, data2);
+            
+        }
+    }
+}

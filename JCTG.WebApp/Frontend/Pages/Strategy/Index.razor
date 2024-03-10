@@ -1,0 +1,259 @@
+﻿@page "/Strategy/{id:int}";
+@inject SignalRepository _signalRepository;
+@inject ClientRepository _clientRepository;
+@inject OrderRepository _orderRepository;
+@inject NavigationManager NavManager
+@using JCTG.Models;
+@using JCTG.WebApp.Frontend.Components.Apex;
+@implements IDisposable
+
+<div class="container-fluid mw-100">
+
+    <div class="font-weight-medium shadow-none position-relative overflow-hidden mb-4">
+        <div class="card-body px-0">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h4 class="font-weight-medium ">Strategy</h4>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item">
+                                <a class="text-primary text-decoration-none" href="/">
+                                    Home
+                                </a>
+                            </li>
+                            <li class="breadcrumb-item d-flex justify-content-center align-items-center ps-0">
+                                <iconify-icon icon="tabler:chevron-right"></iconify-icon>
+                            </li>
+                            <li class="breadcrumb-item" aria-current="page">
+                                <a class="text-primary text-decoration-none" href="/Strategy/@Id">
+                                    Strategy @Id
+                                </a>
+                            </li>
+                        </ol>
+                    </nav>
+                </div>
+                <div>
+                    <div class="d-flex no-block justify-content-end align-items-center">
+                        <div class="me-2">
+                            <div class="breadbar"></div>
+                        </div>
+                        <div class="">
+                            <small>LAST MONTH</small>
+                            <h4 class="text-primary mb-0 font-medium">$58,256</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div>
+                            <h4 class="card-title">Risk to reward</h4>
+                            <h5 class="card-subtitle">Overview of Latest Tradingview alerts</h5>
+                        </div>
+                        <div class="ms-auto d-flex align-items-center">
+                            <ul class="list-inline fs-2 dl me-2">
+                                <li class="list-inline-item">
+                                    <select class="form-select" @onchange="SubmitFilterClient">
+                                        @foreach (var client in _clients)
+                                        {
+                                            <option value="@client.ID">@client.Name</option>
+                                        }
+                                    </select>
+                                </li>
+                                <li class="list-inline-item">
+                                    <select class="form-select" @onchange="SubmitFilterDateAsync">
+                                        <option value="0">Last Month</option>
+                                        <option value="1">Last Week</option>
+                                        <option value="2">Last 3 Days</option>
+                                        <option value="3" selected="selected">Last 1 Day</option>
+                                    </select>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    @if (_orders.Count == 0)
+                    {
+                        <div class="mt-4">
+                            <div class="alert bg-primary-subtle text-primary alert-dismissible fade show" role="alert">
+                                <div class="d-flex align-items-center text-primary ">
+                                    <i class="ti ti-info-circle me-2 fs-4"></i>
+                                    This filter doesn't have any orders
+                                </div>
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        </div>
+                    }
+
+                    <div class="mt-4">
+                        <LineChart @ref="@_lineChart" />
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private bool _init { get; set; } = false;
+    private LineChart? _lineChart { get; set; } = null;
+    private List<Entity.Signal> _signals { get; set; } = new();
+    private List<Entity.Order> _orders { get; set; } = new();
+    private List<Entity.Client> _clients { get; set; } = new();
+    private Entity.Client? _filterClient { get; set; } = null;
+    private int _filterDate { get; set; } = 3;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _clients = await _clientRepository.GetAllAsync(692803787);
+
+        NavManager.LocationChanged += HandleLocationChanged;
+    }
+
+    public void Dispose()
+    {
+        NavManager.LocationChanged -= HandleLocationChanged;
+    }
+
+    private void HandleLocationChanged(object? sender, LocationChangedEventArgs e) => Task.Run(async () => await ReloadChartAsync());
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        // Only on first render
+        if (!firstRender || _lineChart == null)
+            return;
+
+
+        // Inline method
+        _clients = await _clientRepository.GetAllAsync(692803787);
+        if (_clients.Count > 0 && _lineChart != null)
+        {
+            // Get First client
+            _filterClient = _clients.First();
+            await ReloadChartAsync();
+        }
+
+        // Init
+        _init = true;
+    }
+
+    private async Task SubmitFilterClient(ChangeEventArgs? e)
+    {
+        // Get filter
+        long filter = e == null || e.Value == null ? 0 : long.Parse(e.Value.ToString());
+
+        // Get Clients
+        _filterClient = _clients.Where(f => f.ID == filter).FirstOrDefault();
+
+        // Do null reference check
+        if (_filterClient != null)
+        {
+            await ReloadChartAsync();
+        }
+    }
+
+    private async Task SubmitFilterDateAsync(ChangeEventArgs? e)
+    {
+        // Get data from database
+        var filter = e == null || e.Value == null ? _filterDate : int.Parse(e.Value.ToString());
+        _filterDate = filter;
+
+        // Reload chart
+        await ReloadChartAsync();
+    }
+
+    private async Task ReloadChartAsync()
+    {
+        if (_filterClient != null && _lineChart != null)
+        {
+            // Get data from database
+            _signals = await _signalRepository.GetAllByStrategyType(692803787, (StrategyType)Id);
+            _orders = await _orderRepository.GetAllByStrategType(692803787, _filterClient.ID, (StrategyType)Id);
+
+
+            // Init filter
+            if (_filterDate == 0)
+            {
+                _signals = _signals.Where(f => f.DateCreated >= DateTime.UtcNow.AddMonths(-1)).OrderBy(f => f.DateCreated).ToList();
+                _orders = _orders.Where(f => f.DateCreated >= DateTime.UtcNow.AddMonths(-1)).OrderBy(f => f.DateCreated).ToList();
+            }
+            else if (_filterDate == 1)
+            {
+                _signals = _signals.Where(f => f.DateCreated >= DateTime.UtcNow.AddDays(-8)).OrderBy(f => f.DateCreated).ToList();
+                _orders = _orders.Where(f => f.DateCreated >= DateTime.UtcNow.AddDays(-8)).OrderBy(f => f.DateCreated).ToList();
+            }
+            else if (_filterDate == 2)
+            {
+                _signals = _signals.Where(f => f.DateCreated >= DateTime.UtcNow.AddDays(-3)).OrderBy(f => f.DateCreated).ToList();
+                _orders = _orders.Where(f => f.DateCreated >= DateTime.UtcNow.AddDays(-3)).OrderBy(f => f.DateCreated).ToList();
+            }
+            else if (_filterDate == 3)
+            {
+                _signals = _signals.Where(f => f.DateCreated >= DateTime.UtcNow.AddDays(-1)).OrderBy(f => f.DateCreated).ToList();
+                _orders = _orders.Where(f => f.DateCreated >= DateTime.UtcNow.AddDays(-1)).OrderBy(f => f.DateCreated).ToList();
+            }
+
+
+            // Inner method
+            Func<TradingviewStateType, double?, decimal> getPrice = (tvStateType, rr) =>
+            {
+                if (rr.HasValue)
+                {
+                    if (tvStateType == TradingviewStateType.SlHit)
+                        return -1M;
+                    else if (tvStateType == TradingviewStateType.TpHit)
+                        return Convert.ToDecimal(rr);
+                }
+                return 0.0M;
+            };
+
+            Func<TradingviewStateType, double?, double, decimal> getPrice2 = (tvStateType, rr, pnl) =>
+           {
+               if (rr.HasValue)
+               {
+                   if (tvStateType == TradingviewStateType.SlHit)
+                       return -1M;
+                   else if (tvStateType == TradingviewStateType.TpHit && pnl > 0)
+                       return Convert.ToDecimal(rr);
+               }
+               return 0.0M;
+           };
+
+            var signalPoints = new List<LinePoint>();
+            foreach (var signal in _signals.Where(f => f.TradingviewStateType == TradingviewStateType.TpHit || f.TradingviewStateType == TradingviewStateType.SlHit || f.TradingviewStateType == TradingviewStateType.BeHit).OrderBy(f => f.DateCreated).ToList())
+            {
+                signalPoints.Add(new LinePoint()
+                    {
+                        Price = (signalPoints.Count > 0 ? signalPoints.ElementAt(signalPoints.Count - 1).Price : 0.0M) + getPrice(signal.TradingviewStateType, signal.RiskRewardRatio),
+                        Time = signal.DateCreated
+                    });
+            }
+
+            var orderPoints = new List<LinePoint>();
+            foreach (var order in _orders.Where(f => f.Signal.TradingviewStateType == TradingviewStateType.TpHit || f.Signal.TradingviewStateType == TradingviewStateType.SlHit || f.Signal.TradingviewStateType == TradingviewStateType.BeHit).OrderBy(f => f.DateCreated).ToList())
+            {
+                orderPoints.Add(new LinePoint()
+                    {
+                        Price = (orderPoints.Count > 0 ? orderPoints.ElementAt(orderPoints.Count - 1).Price : 0.0M) + getPrice2(order.Signal.TradingviewStateType, order.Signal.RiskRewardRatio, order.Pnl),
+                        Time = order.DateCreated
+                    });
+            }
+
+            // Load the chart
+            if (!_init)
+                await _lineChart.InitAsync("RR", signalPoints, "RR", orderPoints);
+            else
+                await _lineChart.UpdateAsync("RR", signalPoints, "RR", orderPoints);
+        }
+    }
+}

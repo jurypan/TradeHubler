@@ -2946,7 +2946,7 @@ textarea.form-control-lg {
 }
 
 .form-select {
-  --bs-form-select-bg-img: url(../../assets/images/custom-select.png);
+  --bs-form-select-bg-img: url(/images/custom-select.png);
   display: block;
   width: 100%;
   padding: 8px 38px 8px 16px;
@@ -16461,7 +16461,7 @@ html[data-boxed-layout=boxed] .container-fluid, html[data-boxed-layout=boxed] .c
 .topbar .mailbox .drop-title:after {
   content: "";
   position: absolute;
-  background: url(../../assets/images/background/img5.png) no-repeat;
+  background: url(/images/background/img5.png) no-repeat;
   opacity: 0.2;
   top: 0px;
   left: 0px;
@@ -17252,7 +17252,7 @@ html[data-card=border] .card {
 }
 
 .has-success .form-control-success {
-  background-image: url(../.././assets/images/svgs/success.svg);
+  background-image: url(/images/svgs/success.svg);
 }
 
 .has-success .form-control {
@@ -17268,7 +17268,7 @@ html[data-card=border] .card {
 }
 
 .has-warning .form-control-warning {
-  background-image: url(../.././assets/images/svgs/warning.svg);
+  background-image: url(/images/svgs/warning.svg);
 }
 
 .has-warning .form-control {
@@ -17284,7 +17284,7 @@ html[data-card=border] .card {
 }
 
 .has-danger .form-control-danger {
-  background-image: url(../.././assets/images/svgs/danger.svg);
+  background-image: url(/images/svgs/danger.svg);
 }
 
 .has-danger .form-control {
@@ -18247,7 +18247,7 @@ body .landingpage .font-weight-medium {
   font-weight: 600;
 }
 body .landingpage .c2a-box {
-  background-image: url(../../assets/images/landingpage/line-bg.svg);
+  background-image: url(/images/landingpage/line-bg.svg);
   background-repeat: no-repeat;
   background-position: center center;
   box-shadow: rgba(145, 158, 171, 0.2) 0px 0px 2px 0px, rgba(145, 158, 171, 0.12) 0px 12px 24px -4px;

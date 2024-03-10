@@ -93,6 +93,113 @@ export function apexAreaChartInit(element, refId, name, data, options) {
     window.apexcharts[refId].render();
 }
 
+export function apexLineChartInit(element, refId, name1, data1, name2, data2, options) {
+    if (element == null) {
+        console.error("element was null. Please define a reference for your Apex element.");
+        return;
+    }
+
+
+    // Prepare chart element
+    window.apexcharts[refId] = new ApexCharts(
+        element,
+        {
+            series: [
+                {
+                    name: name1,
+                    data: data1,
+                },
+                {
+                    name: name2,
+                    data: data2,
+                },
+            ],
+            chart: {
+                height: 400,
+                type: "line",
+                fontFamily: "inherit",
+                zoom: {
+                    enabled: false,
+                },
+                toolbar: {
+                    show: false,
+                },
+            },
+            colors: ["#2962ff", "#dadada"],
+            dataLabels: {
+                enabled: false,
+            },
+            stroke: {
+                curve: "straight",
+                colors: ["#2962ff", "#dadada"],
+                width: 1,
+            },
+            markers: {
+                size: 4,
+                colors: ["#2962ff", "#dadada"],
+                strokeColors: "transparent",
+            },
+            grid: {
+                show: false,
+            },
+            xaxis: {
+                type: "datetime",
+                labels: {
+                    style: {
+                        colors: [
+                            "#a1aab2"
+                        ],
+                    },
+                },
+            },
+            yaxis: {
+                labels: {
+                    style: {
+                        colors: [
+                            "#a1aab2"
+                        ],
+                    },
+                },
+            },
+            tooltip: {
+                x: {
+                    format: "dd/MM/yy HH:mm:ss",
+                    formatter: function (value) {
+                        let date = new Date(value); // Convert epoch to Date object
+                        let formattedDate = date.getFullYear() + '-' + ('0' + (date.getMonth() + 1)).slice(-2) + '-' + ('0' + date.getDate()).slice(-2) + ' ' + ('0' + date.getHours()).slice(-2) + ':' + ('0' + date.getMinutes()).slice(-2);
+                        return formattedDate;
+                    }, 
+                },
+                theme: "dark",
+            },
+            legend: {
+                show: false,
+            }
+        }
+    );
+    window.apexcharts[refId].render();
+}
+
+export function apexLineChartUpdate(element, refId, name1, data1, name2, data2) {
+    if (element == null) {
+        console.error("element was null. Please define a reference for your Apex element.");
+        return;
+    }
+
+    // Prepare chart element
+    window.apexcharts[refId].updateSeries([
+            {
+                name: name1,
+                data: data1,
+            },
+            {
+                name: name2,
+                data: data2,
+            },
+        ]
+    );
+}
+
 export function apexAreaChartMiniInit(element, refId, name, data, color) {
     if (element == null) {
         console.error("element was null. Please define a reference for your Apex element.");

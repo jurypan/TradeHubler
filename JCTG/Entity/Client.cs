@@ -1,4 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.Diagnostics;
 
 namespace JCTG.Entity
 {
@@ -15,6 +17,18 @@ namespace JCTG.Entity
 
         [Key]
         public long ID { get; set; }
+        [NotMapped]
+        public string IDAsString
+        {
+            get => ID.ToString();
+            set
+            {
+                if (long.TryParse(value, out long newValue))
+                {
+                    ID = newValue;
+                }
+            }
+        }
         public DateTime DateCreated { get; set; }
         public Account? Account { get; set; }
         public int AccountID { get; set; }
@@ -24,7 +38,18 @@ namespace JCTG.Entity
         public double? Balance { get; set; }
         public double? Equity { get; set; }
         public double StartBalance { get; set; }
-
+        [NotMapped]
+        public string StartBalanceAsString
+        {
+            get => StartBalance.ToString();
+            set
+            {
+                if (double.TryParse(value, out double newValue))
+                {
+                    StartBalance = newValue;
+                }
+            }
+        }
         public bool IsEnable { get; set; }
         public string MetaTraderDirPath { get; set; }
 

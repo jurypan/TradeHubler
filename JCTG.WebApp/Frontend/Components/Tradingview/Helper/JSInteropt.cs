@@ -6,7 +6,7 @@ namespace JCTG.WebApp.Frontend.Components.Tradingview;
 
 public class JSInteropt(IJSRuntime jsRuntime) : IAsyncDisposable
 {
-    private readonly Lazy<Task<IJSObjectReference>> moduleTask = new(() => jsRuntime.InvokeAsync<IJSObjectReference>("import", $"./js/JSTradingviewInteropt.js?v=2").AsTask());
+    private readonly Lazy<Task<IJSObjectReference>> moduleTask = new(() => jsRuntime.InvokeAsync<IJSObjectReference>("import", $"./js/JSTradingviewInteropt.js?v=3").AsTask());
 
     public async Task InitAsync(ElementReference eleRef, ChartOptions options)
     {

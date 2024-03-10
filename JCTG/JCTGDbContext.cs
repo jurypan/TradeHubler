@@ -9,9 +9,9 @@ namespace JCTG
 
         public DbSet<Client> Client { get; set; }
 
-        public DbSet<ClientPair> Pair { get; set; }
+        public DbSet<ClientPair> ClientPair { get; set; }
 
-        public DbSet<ClientRisk> Risk { get; set; }
+        public DbSet<ClientRisk> ClientRisk { get; set; }
 
         public DbSet<Signal> Signal { get; set; }
 

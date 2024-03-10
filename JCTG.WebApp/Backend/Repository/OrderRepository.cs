@@ -45,4 +45,18 @@ public class OrderRepository(IDbContextFactory<JCTGDbContext> dbContextFactory)
                         .ToListAsync()
                         ;
     }
+
+    public async Task<List<Order>> GetAllByStrategType(long accountId, long clientId, Models.StrategyType strategyType)
+    {
+        using var context = await dbContextFactory.CreateDbContextAsync();
+        return await context.Order
+            .Include(f => f.Signal)
+            .Where(f => f.Client != null
+                        && f.Client.AccountID == accountId
+                        && f.ClientID == clientId
+                        && f.Signal.StrategyType == strategyType
+                        )
+                        .OrderBy(f => f.DateCreated)
+                        .ToListAsync();
+    }
 }

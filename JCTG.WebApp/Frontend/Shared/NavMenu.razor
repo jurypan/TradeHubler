@@ -1,4 +1,6 @@
-﻿<div class="brand-logo d-flex align-items-center justify-content-between">
+﻿@using JCTG.Models;
+
+<div class="brand-logo d-flex align-items-center justify-content-between">
     <a href="/" class="text-nowrap logo-img">
         <b class="logo-icon">
             <img src="/images/logos/logo-icon.svg" alt="homepage" class="dark-logo" />
@@ -76,11 +78,38 @@
             </a>
         </li>
         <li class="sidebar-item">
-            <a class="sidebar-link sidebar-link" href="/strategies" aria-expanded="false">
-                <iconify-icon icon="solar:chat-round-unread-outline" class="fs-5"></iconify-icon>
-                <span class="hide-menu">Strategies</span>
+            <a class="sidebar-link has-arrow @(isStrategyCollapsed ? "" : "active")" href="javascript:void(0)" @onclick="() => ToggleStrategy()">
+                <span class="d-flex">
+                    <iconify-icon icon="solar:pie-chart-3-line-duotone" class="fs-6"></iconify-icon>
+                </span>
+                <span class="hide-menu">Strategy</span>
             </a>
+            <ul class="collapse first-level @(isStrategyCollapsed ? "" : "in")">
+                @foreach (StrategyType item in Enum.GetValues(typeof(StrategyType)))
+                {
+                    if(item != StrategyType.None)
+                    {
+                        <li class="sidebar-item">
+                            <a href="/Strategy/@((int)item)" class="sidebar-link sublink">
+                                <div class="round-16 d-flex align-items-center justify-content-center">
+                                    <i class="sidebar-icon"></i>
+                                </div>
+                                <span class="hide-menu"> Strategy @((int)item) </span>
+                            </a>
+                        </li>
+                    }
+                }
+            </ul>
         </li>
     </ul>
 </nav>
 
+
+@code {
+    private bool isStrategyCollapsed { get; set; } = true;
+
+    private void ToggleStrategy()
+    {
+        isStrategyCollapsed = !isStrategyCollapsed;
+    }
+}
