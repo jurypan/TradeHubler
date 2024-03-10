@@ -1,5 +1,7 @@
 ﻿@page "/Signals";
 @inject SignalRepository _signalRepository;
+@inject JCTG.WebApp.Backend.Websocket.AzurePubSubClient _server;
+@using JCTG.Command;
 @using JCTG.Models;
 
 <div class="container-fluid mw-100">
@@ -79,7 +81,10 @@
                                 <h6 class="fs-4 fw-semibold mb-0">Signal</h6>
                             </th>
                             <th>
-                                <h6 class="fs-4 fw-semibold mb-0">Date</h6>
+                                <h6 class="fs-4 fw-semibold mb-0">Date Created</h6>
+                            </th>
+                            <th>
+                                <h6 class="fs-4 fw-semibold mb-0">Last Updated</h6>
                             </th>
                             <th>
                                 <h6 class="fs-4 fw-semibold mb-0">TV Status</h6>
@@ -124,7 +129,10 @@
                                     <p class="mb-0 fw-normal">@signal.OrderType</p>
                                 </td>
                                 <td>
-                                    <p class="mb-0 fw-normal">@signal.DateCreated</p>
+                                    <p class="mb-0 fw-normal">@signal.DateCreated.ToString("dd/MM/yy HH:mm:ss")</p>
+                                </td>
+                                <td>
+                                    <p class="mb-0 fw-normal">@signal.DateLastUpdated.ToString("dd/MM/yy HH:mm:ss")</p>
                                 </td>
                                 <td>
                                     @if (signal.TradingviewStateType == TradingviewStateType.Init)
@@ -180,17 +188,27 @@
                                         <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
                                             <li>
                                                 <a class="dropdown-item d-flex align-items-center gap-3" href="/Signals/@signal.ID/Orders">
-                                                    <i class="fs-4 ti ti-plus"></i>Orders
+                                                    MT Orders
                                                 </a>
                                             </li>
                                             <li>
                                                 <a class="dropdown-item d-flex align-items-center gap-3" href="/Signals/@signal.ID/Log">
-                                                    <i class="fs-4 ti ti-edit"></i>Log
+                                                   Raw Log
                                                 </a>
                                             </li>
                                             <li>
-                                                <a class="dropdown-item d-flex align-items-center gap-3" href="/Signals/@signal.ID/Retry">
-                                                    <i class="fs-4 ti ti-trash"></i>Retry
+                                                <a class="dropdown-item d-flex align-items-center gap-3" @onclick="() => EditASignalClick(signal.ID)">
+                                                    Edit
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a class="dropdown-item d-flex align-items-center gap-3" @onclick="() => DeleteASignalClick(signal.ID)">
+                                                    Delete
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a class="dropdown-item d-flex align-items-center gap-3" @onclick="() => RetryASignalClick(signal.ID)">
+                                                    Retry
                                                 </a>
                                             </li>
                                         </ul>
@@ -203,6 +221,180 @@
             </div>
         </div>
     </div>
+
+    <div class="modal fade @(!_hideModifyModalSignal && signal != null ? "show" : "hide")" tabindex="-1" style="display:@(!_hideModifyModalSignal && signal != null ? "block" : "hidden");">
+        <div class=" modal-dialog modal-dialog-scrollable modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header modal-colored-header bg-primary text-white">
+                    <h4 class="modal-title text-white" id="primary-header-modalLabel"> Risk Definition </h4>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" @onclick="() => ToggleModifyModalSignal()"></button>
+                </div>
+                <EditForm Model="@signal" OnValidSubmit="@SubmitModalSignalAsync">
+                    <div class="modal-body">
+                        <DataAnnotationsValidator />
+                        <ValidationSummary />
+                        <AntiforgeryToken />
+                        <div class="row">
+                            <h5 class="card-title mb-0">General</h5>
+                        </div>
+                        <hr class="mb-3">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Procent</label>
+                                    <InputText class="form-control" @bind-Value="signal.Instrument" />
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Order Type</label>
+                                    <InputText class="form-control" @bind-Value="signal.OrderType" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label" for="strategy">Strategy</label>
+                                    <InputSelect class="form-select col-12" @bind-Value="signal.StrategyType">
+                                        <option>Choose...</option>
+                                        @foreach (var item in Enum.GetValues(typeof(StrategyType)))
+                                        {
+                                            <option value="@item">@item</option>
+                                        }
+                                    </InputSelect>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Magic</label>
+                                    <InputText class="form-control" @bind-Value="signal.MagicAsString" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Current Price</label>
+                                    <InputText class="form-control" @bind-Value="signal.CurrentPriceAsString" />
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">State</label>
+                                    <InputSelect class="form-select col-12" @bind-Value="signal.TradingviewStateType">
+                                        <option>Choose...</option>
+                                        @foreach (var item in Enum.GetValues(typeof(TradingviewStateType)))
+                                        {
+                                            <option value="@item">@item</option>
+                                        }
+                                    </InputSelect>
+                                </div>
+                            </div>
+                        </div>
+                        <hr class="m-0">
+                        <div class="row">
+                            <h5 class="card-title mb-0">Active</h5>
+                        </div>
+                        <hr class="mb-3">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Entry Price</label>
+                                    <InputText class="form-control" @bind-Value="signal.EntryPriceAsString" />
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">SL Price</label>
+                                    <InputText class="form-control" @bind-Value="signal.StopLossAsString" />
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">TP Price</label>
+                                    <InputText class="form-control" @bind-Value="signal.TakeProfitAsString" />
+                                </div>
+                            </div>
+                        </div>
+                        <hr class="m-0">
+                        <div class="row">
+                            <h5 class="card-title mb-0">Passive</h5>
+                        </div>
+                        <hr class="mb-3">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Entry Expression</label>
+                                    <InputText class="form-control" @bind-Value="signal.EntryExpression" />
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Risk</label>
+                                    <InputText class="form-control" @bind-Value="signal.RiskAsString" />
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Risk Reward Ratio</label>
+                                    <InputText class="form-control" @bind-Value="signal.RiskRewardRatioAsString" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <div class="d-flex gap-6 m-0">
+                            <button type="submit" class="btn btn-primary  rounded-pill px-4"> Save </button>
+                            <button class="btn bg-danger-subtle text-danger rounded-pill" @onclick="() => ToggleModifyModalSignal()"> Discard </button>
+                        </div>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade  @(!_hideDeleteModalSignal ? "show" : "hide")" tabindex="-1" style="display:@(!_hideDeleteModalSignal ? "block" : "hidden");">
+        <div class="modal-dialog modal-dialog-scrollable modal-lg">
+            <div class="modal-content">
+                <div class="modal-header modal-colored-header bg-danger text-white">
+                    <h4 class="modal-title text-white" id="danger-header-modalLabel">Delete a signal</h4>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" @onclick="() => ToggleDeleteModalSignal()"></button>
+                </div>
+                <div class="modal-body">
+                    <h5 class="mt-0">Delete a signal?</h5>
+                    <p>Are you sure you want to delete this signal?</p>
+                </div>
+                <div class="modal-footer">
+                    <div class="d-flex gap-6 m-0">
+                        <button type="submit" class="btn btn-danger  rounded-pill px-4" @onclick="async () => await SubmitModalSignalAsync()"> Delete </button>
+                        <button class="btn bg-danger-subtle text-danger rounded-pill" @onclick="() => ToggleDeleteModalSignal()"> Discard </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade  @(!_hideRetryModalSignal ? "show" : "hide")" tabindex="-1" style="display:@(!_hideRetryModalSignal ? "block" : "hidden");">
+        <div class="modal-dialog modal-dialog-scrollable modal-lg">
+            <div class="modal-content">
+                <div class="modal-header modal-colored-header bg-warning text-white">
+                    <h4 class="modal-title text-white" id="danger-header-modalLabel">Retry a signal</h4>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" @onclick="() => ToggleRetryModalSignal()"></button>
+                </div>
+                <div class="modal-body">
+                    <h5 class="mt-0">Retry a signal?</h5>
+                    <p>Are you sure you want to retry this signal?</p>
+                </div>
+                <div class="modal-footer">
+                    <div class="d-flex gap-6 m-0">
+                        <button type="submit" class="btn btn-warning rounded-pill px-4" @onclick="async () => await SubmitModalSignalAsync()"> Retry </button>
+                        <button class="btn bg-danger-subtle text-danger rounded-pill" @onclick="() => ToggleRetryModalSignal()"> Discard </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 
@@ -210,11 +402,17 @@
     private List<Entity.Signal> _signals = new ();
     private StrategyType? _strategyType = null;
 
+    [SupplyParameterFromForm]
+    private Signal signal { get; set; } = new();
+    private CrudState crudSignalState { get; set; } = CrudState.None;
+    private bool _hideModifyModalSignal { get; set; } = true;
+    private bool _hideDeleteModalSignal { get; set; } = true;
+    private bool _hideRetryModalSignal { get; set; } = true;
+
     protected override async Task OnInitializedAsync()
     {
         _signals = await _signalRepository.GetAll(692803787);
     }
-
 
     private async Task ClickFilterAsync(StrategyType? strategyType)
     {
@@ -235,6 +433,104 @@
             {
                 _signals = await _signalRepository.GetAllByStrategy(692803787, strategy);
             }
+        }
+    }
+
+    private void AddASignalClick()
+    {
+        crudSignalState = CrudState.Add;
+        ToggleModifyModalSignal();
+        signal = new();
+    }
+
+    private async Task EditASignalClick(long id)
+    {
+        crudSignalState = CrudState.Edit;
+        ToggleModifyModalSignal();
+        var signalNew = await _signalRepository.GetById(692803787, id);
+        if (signalNew != null)
+            signal = signalNew;
+    }
+
+    private async Task DeleteASignalClick(long id)
+    {
+        crudSignalState = CrudState.Delete;
+        ToggleDeleteModalSignal();
+        var signalNew = await _signalRepository.GetById(692803787, id);
+        if (signalNew != null)
+            signal = signalNew;
+    }
+
+    private async Task RetryASignalClick(long id)
+    {
+        crudSignalState = CrudState.Custom1;
+        ToggleRetryModalSignal();
+        var signalNew = await _signalRepository.GetById(692803787, id);
+        if (signalNew != null)
+            signal = signalNew;
+    }
+
+    private void ToggleModifyModalSignal()
+    {
+        _hideModifyModalSignal = !_hideModifyModalSignal;
+    }
+
+    private void ToggleDeleteModalSignal()
+    {
+        _hideDeleteModalSignal = !_hideDeleteModalSignal;
+    }
+
+    private void ToggleRetryModalSignal()
+    {
+        _hideRetryModalSignal = !_hideRetryModalSignal;
+    }
+
+    private async Task SubmitModalSignalAsync()
+    {
+        if (signal != null)
+        {
+            if (crudSignalState == CrudState.Add)
+            {
+                await _signalRepository.AddAsync(signal);
+            }
+            else if (crudSignalState == CrudState.Edit)
+            {
+                await _signalRepository.EditAsync(signal);
+            }
+            else if (crudSignalState == CrudState.Delete)
+            {
+                await _signalRepository.DeleteAsync(signal);
+            }
+            else if (crudSignalState == CrudState.Custom1)
+            {
+                // Create model and send to the client
+                var id = await _server.SendOnTradingviewSignalCommandAsync(signal.AccountID, new OnSendTradingviewSignalCommand()
+                    {
+                        SignalID = signal.ID,
+                        AccountID = signal.AccountID,
+                        Instrument = signal.Instrument,
+                        Magic = signal.ID,
+                        OrderType = signal.OrderType,
+                        StrategyType = signal.StrategyType,
+                        MarketOrder = signal.OrderType == "BUY" || signal.OrderType == "SELL" ? new OnReceivingTradingviewSignalEventMarketOrder()
+                        {
+                            StopLoss = Convert.ToDecimal(signal.StopLoss),
+                            Price = Convert.ToDecimal(signal.EntryPrice),
+                            TakeProfit = Convert.ToDecimal(signal.TakeProfit),
+                        } : null,
+                        PassiveOrder = signal.OrderType == "BUYSTOP" || signal.OrderType == "SELLSTOP" ? new OnReceivingTradingviewSignalEventPassiveOrder()
+                        {
+                            EntryExpression = signal.EntryExpression,
+                            Risk = Convert.ToDecimal(signal.Risk),
+                            RiskRewardRatio = Convert.ToDecimal(signal.RiskRewardRatio),
+                        } : null,
+                    });
+            }
+
+            crudSignalState = CrudState.None;
+            signal = new();
+            _hideModifyModalSignal = true;
+            _hideDeleteModalSignal = true;
         }
     }
 }

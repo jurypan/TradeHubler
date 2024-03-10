@@ -38,4 +38,33 @@ public class SignalRepository(IDbContextFactory<JCTGDbContext> dbContextFactory)
             .Include(f => f.Logs)
             .FirstOrDefaultAsync(f => f.AccountID == accountId && f.ID == signalId);
     }
+
+    public async Task AddAsync(Signal signal)
+    {
+        using var context = await dbContextFactory.CreateDbContextAsync();
+        await context.Signal.AddAsync(signal);
+        await context.SaveChangesAsync();
+    }
+
+    public async Task EditAsync(Signal signal)
+    {
+        using var context = await dbContextFactory.CreateDbContextAsync();
+        var entity = await context.Signal.FirstOrDefaultAsync(f => f.AccountID == signal.AccountID && f.ID == signal.ID);
+        if (entity != null)
+        {
+            context.Entry(entity).CurrentValues.SetValues(signal);
+            await context.SaveChangesAsync();
+        }
+    }
+
+    public async Task DeleteAsync(Signal signal)
+    {
+        using var context = await dbContextFactory.CreateDbContextAsync();
+        var entity = await context.Signal.FirstOrDefaultAsync(f => f.AccountID == signal.AccountID && f.ID == signal.ID);
+        if (entity != null)
+        {
+            context.Signal.Remove(entity);
+            await context.SaveChangesAsync();
+        }
+    }
 }

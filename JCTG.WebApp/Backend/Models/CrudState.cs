@@ -5,6 +5,9 @@
         None,
         Add,
         Edit,
-        Delete
+        Delete,
+
+
+        Custom1
     }
 }

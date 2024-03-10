@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using JCTG.Models;
 
 namespace JCTG.Entity
@@ -18,25 +19,115 @@ namespace JCTG.Entity
         public long ID { get; set; }
         public DateTime DateCreated { get; set; }
         public DateTime DateLastUpdated { get; set; }
+        [Required]
         public StrategyType StrategyType { get; set; }
         public Account Account { get; set; }
         public int AccountID { get; set; }
+        [Required]
         public long Magic { get; set; }
+        [NotMapped]
+        public string MagicAsString
+        {
+            get => Magic.ToString();
+            set
+            {
+                if (long.TryParse(value, out long newValue))
+                {
+                    Magic = newValue;
+                }
+            }
+        }
+        [Required]
+        [StringLength(16, ErrorMessage = "Name is too long.")]
         public string OrderType { get; set; }
+        [Required]
+        [StringLength(32, ErrorMessage = "Name is too long.")]
         public string Instrument { get; set; }
 
 
         // Optional BUY or SELL
         public double? CurrentPrice { get; set; }
+        [NotMapped]
+        public string? CurrentPriceAsString
+        {
+            get => CurrentPrice.HasValue ? CurrentPrice.ToString() : null;
+            set
+            {
+                if (double.TryParse(value, out double newValue))
+                {
+                    CurrentPrice = newValue;
+                }
+            }
+        }
         public double? EntryPrice { get; set; }
+        [NotMapped]
+        public string? EntryPriceAsString
+        {
+            get => EntryPrice.HasValue ? EntryPrice.ToString() : null;
+            set
+            {
+                if (double.TryParse(value, out double newValue))
+                {
+                    EntryPrice = newValue;
+                }
+            }
+        }
         public double? StopLoss { get; set; }
+        [NotMapped]
+        public string? StopLossAsString
+        {
+            get => StopLoss.HasValue ? StopLoss.ToString() : null;
+            set
+            {
+                if (double.TryParse(value, out double newValue))
+                {
+                    StopLoss = newValue;
+                }
+            }
+        }
         public double? TakeProfit { get; set; }
+        [NotMapped]
+        public string? TakeProfitAsString
+        {
+            get => TakeProfit.HasValue ? TakeProfit.ToString() : null;
+            set
+            {
+                if (double.TryParse(value, out double newValue))
+                {
+                    TakeProfit = newValue;
+                }
+            }
+        }
 
 
         // Optional BUYSTOP or SELLSTOP
         public string? EntryExpression { get; set; }
         public double? Risk { get; set; }
+        [NotMapped]
+        public string? RiskAsString
+        {
+            get => Risk.HasValue ? Risk.ToString() : null;
+            set
+            {
+                if (double.TryParse(value, out double newValue))
+                {
+                    Risk = newValue;
+                }
+            }
+        }
         public double? RiskRewardRatio { get; set; }
+        [NotMapped]
+        public string? RiskRewardRatioAsString
+        {
+            get => RiskRewardRatio.HasValue ? RiskRewardRatio.ToString() : null;
+            set
+            {
+                if (double.TryParse(value, out double newValue))
+                {
+                    RiskRewardRatio = newValue;
+                }
+            }
+        }
 
 
         // Tradingview State

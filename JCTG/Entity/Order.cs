@@ -7,12 +7,14 @@ namespace JCTG.Entity
         public Order()
         {
             DateCreated = DateTime.UtcNow;
+            DateLastUpdated = DateTime.UtcNow;
         }
 
         [Key]
         public long ID { get; set; }
         public DateTime DateCreated { get; set; }
-       
+        public DateTime DateLastUpdated { get; set; }
+
         public bool IsTradeClosed { get; set; } // Managed by DEAL
 
 

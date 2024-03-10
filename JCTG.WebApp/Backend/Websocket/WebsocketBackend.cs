@@ -371,6 +371,7 @@ public class WebsocketBackend(AzurePubSubServer server, IServiceScopeFactory sco
                             order.Commission += onDealCreatedEvent.Deal.Commission;
                             order.Pnl += onDealCreatedEvent.Deal.Pnl;
                             order.SpreadCost += onDealCreatedEvent.SpreadCost;
+                            order.DateLastUpdated = DateTime.UtcNow;
 
                             // Log
                             _logger.Debug($"Order swap {onDealCreatedEvent.Deal.Swap}, commission {onDealCreatedEvent.Deal.Commission} and pnl {onDealCreatedEvent.Deal.Pnl} updated in the database ", onDealCreatedEvent);

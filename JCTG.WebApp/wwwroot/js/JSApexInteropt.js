@@ -163,12 +163,7 @@ export function apexLineChartInit(element, refId, name1, data1, name2, data2, op
             },
             tooltip: {
                 x: {
-                    format: "dd/MM/yy HH:mm:ss",
-                    formatter: function (value) {
-                        let date = new Date(value); // Convert epoch to Date object
-                        let formattedDate = date.getFullYear() + '-' + ('0' + (date.getMonth() + 1)).slice(-2) + '-' + ('0' + date.getDate()).slice(-2) + ' ' + ('0' + date.getHours()).slice(-2) + ':' + ('0' + date.getMinutes()).slice(-2);
-                        return formattedDate;
-                    }, 
+                    format: "dd/MM/yy HH:mm:ss"
                 },
                 theme: "dark",
             },
