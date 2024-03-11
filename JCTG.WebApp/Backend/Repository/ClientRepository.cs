@@ -12,11 +12,24 @@ public class ClientRepository(IDbContextFactory<JCTGDbContext> dbContextFactory)
         return await context.Client.Where(f => f.AccountID == accountId).ToListAsync();
     }
 
-    public async Task AddPairAsync(ClientPair clientPair)
+    public async Task<ClientPair> AddPairAsync(ClientPair clientPair)
     {
         using var context = await dbContextFactory.CreateDbContextAsync();
         await context.ClientPair.AddAsync(clientPair);
         await context.SaveChangesAsync();
+        return clientPair;
+    }
+
+    public async Task<ClientPair> CopyPairAsync(ClientPair clientPair)
+    {
+        using var context = await dbContextFactory.CreateDbContextAsync();
+        context.Entry(clientPair).State = EntityState.Detached;
+        clientPair.GetType().GetProperty("ID")?.SetValue(clientPair, 0);
+        clientPair.GetType().GetProperty("Client")?.SetValue(clientPair, null);
+        clientPair.TickerInMetatrader += " (copy)";
+        clientPair.TickerInTradingView += " (copy)";
+        clientPair.DateCreated = DateTime.UtcNow;
+        return await AddPairAsync(clientPair);
     }
 
     public async Task EditPairAsync(ClientPair clientPair)
