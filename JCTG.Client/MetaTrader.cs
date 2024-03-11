@@ -38,7 +38,7 @@ namespace JCTG.Client
         }
 
 
-        public async Task ListToTheClientsAsync()
+        public async Task ListenToTheClientsAsync()
         {
             // Check if app config is not null
             if (_appConfig != null)

@@ -1,7 +1,6 @@
 ﻿using Azure.Messaging.WebPubSub;
 using JCTG.Models;
 using Microsoft.Extensions.DependencyInjection;
-using Newtonsoft.Json;
 using Websocket.Client;
 
 namespace JCTG.Client
@@ -16,7 +15,7 @@ namespace JCTG.Client
             Console.WriteLine("Starting the application ... ");
             AppDomain.CurrentDomain.UnhandledException += UnhandledExceptionTrapper;
 
-            Service = ConfigureServices();
+            Service = await ConfigureServicesAsync();
 
             // Use ServiceProvider to get services as needed
             if (Service != null)
@@ -26,7 +25,7 @@ namespace JCTG.Client
                 {
                     try
                     {
-                        await metatrader.ListToTheClientsAsync();
+                        await metatrader.ListenToTheClientsAsync();
                         await metatrader.ListenToTheServerAsync();
                     }
                     catch (Exception ex)
@@ -40,11 +39,10 @@ namespace JCTG.Client
             Console.ReadLine();
         }
 
-        private static IServiceProvider ConfigureServices()
+        private static async Task<IServiceProvider> ConfigureServicesAsync()
         {
             // Load TerminalConfig 
-            string json = File.ReadAllText("settings.json");
-            TerminalConfig? config = JsonConvert.DeserializeObject<TerminalConfig>(json);
+            TerminalConfig? config = await HttpCall.GetTerminalConfigAsync();
             if (config == null)
                 throw new Exception("Can not load config file");
 
