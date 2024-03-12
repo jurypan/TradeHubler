@@ -1,6 +1,7 @@
 ﻿using Azure.Messaging.WebPubSub;
 using JCTG.Models;
 using Microsoft.Extensions.DependencyInjection;
+using System.Net.WebSockets;
 using Websocket.Client;
 
 namespace JCTG.Client
@@ -57,7 +58,16 @@ namespace JCTG.Client
 
             var serviceClient = new WebPubSubServiceClient(_pubsubConnectionString, "account" + config.AccountId.ToString());
             var url = serviceClient.GetClientAccessUri();
-            services.AddSingleton(new AzurePubSubClient(new WebsocketClient(url)));
+            var factory = new Func<ClientWebSocket>(() => new ClientWebSocket
+            {
+                Options =
+                {
+                    KeepAliveInterval = TimeSpan.FromSeconds(5),
+                }
+            });
+
+            var client = new WebsocketClient(url, factory);
+            services.AddSingleton(new AzurePubSubClient(client));
 
             return services.BuildServiceProvider();
         }

@@ -1,4 +1,5 @@
 ﻿using JCTG.Entity;
+using JCTG.Models;
 using Microsoft.EntityFrameworkCore;
 using System;
 
@@ -90,6 +91,15 @@ public class ClientRepository(IDbContextFactory<JCTGDbContext> dbContextFactory)
             .Include(f => f.Pairs)
             .Include(f => f.Risks)
             .FirstOrDefaultAsync(f => f.AccountID == accountId && f.ID == id);
+    }
+
+    public async Task<List<ClientPair>> GetAllPairsByIdAsync(int accountId, long id, StrategyType strategyType)
+    {
+        using var context = await dbContextFactory.CreateDbContextAsync();
+        return await context.Client
+            .Include(f => f.Pairs)
+            .Where(f => f.AccountID == accountId && f.ID == id)
+            .SelectMany(f => f.Pairs.Where(g => g.StrategyType == strategyType)).ToListAsync();
     }
 
     public async Task EditAsync(int accountId, Client client)

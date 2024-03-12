@@ -1,4 +1,5 @@
 ﻿using Azure.Messaging.WebPubSub;
+using System.Net.WebSockets;
 using Websocket.Client;
 
 namespace JCTG.WebApp.Backend.Websocket;
@@ -15,7 +16,15 @@ public static class _InitWebsocket
         var serviceClient = new WebPubSubServiceClient(connectionString, "server");
 
         // Add as singleton
-        service.AddSingleton(new AzurePubSubServer(new WebsocketClient(serviceClient.GetClientAccessUri())));
+        var factory = new Func<ClientWebSocket>(() => new ClientWebSocket
+        {
+            Options =
+            {
+                KeepAliveInterval = TimeSpan.FromSeconds(5),
+            }
+        });
+        var client = new WebsocketClient(serviceClient.GetClientAccessUri(), factory) ;
+        service.AddSingleton(new AzurePubSubServer(client));
 
         // Add as transitent
         service.AddSingleton<WebsocketBackend>();

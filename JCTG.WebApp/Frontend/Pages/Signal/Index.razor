@@ -527,6 +527,8 @@
                     });
             }
 
+
+            _signals = await _signalRepository.GetAll(692803787);
             crudSignalState = CrudState.None;
             signal = new();
             _hideModifyModalSignal = true;

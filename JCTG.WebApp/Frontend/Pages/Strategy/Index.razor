@@ -99,6 +99,79 @@
         </div>
     </div>
 
+    <div class="row">
+        <div class="datatables">
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="mb-2">
+                                <h5 class="mb-0">File export</h5>
+                            </div>
+                            <p class="card-subtitle mb-3">
+                                Exporting data from a table can often be a key part of a
+                                complex application. The Buttons extension for DataTables
+                                provides three plug-ins that provide overlapping
+                                functionality for data export. You can refer full
+                                documentation from here
+                                <a href="https://datatables.net/">Datatables</a>
+                            </p>
+                            <div class="table-responsive">
+                                <table id="file_export" class="table border table-striped table-bordered display text-nowrap">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Symbol</th>
+                                            <th>Type</th>
+                                            <th>Open Time</th>
+                                            <th>Close Time</th>
+                                            <th>PNL</th>
+                                            <th>Commission</th>
+                                            <th>Swap</th>
+                                            <th>Spreadcost</th>
+                                            <th>Signal</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var order in _orders.Where(f => f.Signal.TradingviewStateType == TradingviewStateType.TpHit || f.Signal.TradingviewStateType == TradingviewStateType.SlHit || f.Signal.TradingviewStateType == TradingviewStateType.BeHit).OrderByDescending(f => f.DateCreated))
+                                        {
+                                            <tr>
+                                                <td>@order.ID</td>
+                                                <td>@order.Symbol</td>
+                                                <td>@order.Type</td>
+                                                <td>@order.OpenTime</td>
+                                                <td>@order.CloseTime</td>
+                                                <td>@Math.Round(order.Pnl, 4)</td>
+                                                <td>@Math.Round(order.Commission, 4)</td>
+                                                <td>@Math.Round(order.Swap, 4)</td>
+                                                <td>@Math.Round(order.SpreadCost, 4)</td>
+                                                <td>@order.Signal.TradingviewStateType</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                    <tfoot>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Symbol</th>
+                                            <th>Type</th>
+                                            <th>Open Time</th>
+                                            <th>Close Time</th>
+                                            <th>PNL</th>
+                                            <th>Commission</th>
+                                            <th>Swap</th>
+                                            <th>Spreadcost</th>
+                                            <th>Signal</th>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </div>
 
 @code {
@@ -179,6 +252,8 @@
             // Get data from database
             _signals = await _signalRepository.GetAllByStrategyType(692803787, (StrategyType)Id);
             _orders = await _orderRepository.GetAllByStrategType(692803787, _filterClient.ID, (StrategyType)Id);
+            var pairs = await _clientRepository.GetAllPairsByIdAsync(692803787, _filterClient.ID, (StrategyType)Id);
+            _signals = _signals.Where(f => pairs.Select(f => f.TickerInTradingView).ToList().Contains(f.Instrument)).ToList();
 
 
             // Init filter
