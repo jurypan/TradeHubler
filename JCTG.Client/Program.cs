@@ -57,16 +57,7 @@ namespace JCTG.Client
             services.AddSingleton(config);
 
             var serviceClient = new WebPubSubServiceClient(_pubsubConnectionString, "account" + config.AccountId.ToString());
-            var url = serviceClient.GetClientAccessUri();
-            var factory = new Func<ClientWebSocket>(() => new ClientWebSocket
-            {
-                Options =
-                {
-                    KeepAliveInterval = TimeSpan.FromSeconds(5),
-                }
-            });
-
-            var client = new WebsocketClient(url, factory);
+            var client = new WebsocketClient(serviceClient.GetClientAccessUri());
             services.AddSingleton(new AzurePubSubClient(client));
 
             return services.BuildServiceProvider();

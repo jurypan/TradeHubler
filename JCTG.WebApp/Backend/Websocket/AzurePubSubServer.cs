@@ -30,7 +30,8 @@ public class AzurePubSubServer(WebsocketClient client)
         if (client != null)
         {
             // Disable the auto disconnect and reconnect because the sample would like the client to stay online even no data comes in
-            client.ReconnectTimeout = TimeSpan.FromSeconds(10);
+            client.ReconnectTimeout = TimeSpan.FromHours(1);
+            client.ErrorReconnectTimeout = TimeSpan.FromSeconds(10);
             client.ReconnectionHappened.Subscribe(OnReconnection);
             client.DisconnectionHappened.Subscribe(OnDisconnect);
 
@@ -125,12 +126,12 @@ public class AzurePubSubServer(WebsocketClient client)
 
     private void OnReconnection(ReconnectionInfo info)
     {
-        _logger.Information("Reconnected");
+        _logger.Warning($"Reconnected, type: '{info.Type}'");
     }
 
     private void OnDisconnect(DisconnectionInfo info)
     {
-        _logger.Warning($"Reconnecting weboscket, CloseStatusDescription: {info.CloseStatusDescription}", info);
+        _logger.Warning($"Disconnected, type: '{info.Type}', reason: '{info.CloseStatus}'");
     }
 
     public async Task StopListeningToServerAsync() 

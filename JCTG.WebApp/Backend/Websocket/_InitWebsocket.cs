@@ -16,14 +16,7 @@ public static class _InitWebsocket
         var serviceClient = new WebPubSubServiceClient(connectionString, "server");
 
         // Add as singleton
-        var factory = new Func<ClientWebSocket>(() => new ClientWebSocket
-        {
-            Options =
-            {
-                KeepAliveInterval = TimeSpan.FromSeconds(5),
-            }
-        });
-        var client = new WebsocketClient(serviceClient.GetClientAccessUri(), factory) ;
+        var client = new WebsocketClient(serviceClient.GetClientAccessUri());
         service.AddSingleton(new AzurePubSubServer(client));
 
         // Add as transitent
