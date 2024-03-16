@@ -16,3 +16,6 @@
 {"@t":"2024-03-12T20:15:48.8549594Z","@mt":"Starting the app","SourceContext":"JCTG.WebApp","ApplicationName":"Trade Hubbing","Environment":"Production"}
 {"@t":"2024-03-12T20:15:48.8918224Z","@mt":"Init frontend event handlers","@l":"Debug","SourceContext":"JCTG.WebApp.Backend.Websocket.WebsocketFrontend","ApplicationName":"Trade Hubbing","Environment":"Production"}
 {"@t":"2024-03-12T20:15:49.0636566Z","@mt":"Websocket frontend started","SourceContext":"JCTG.WebApp.Backend.Websocket.WebsocketFrontend","ApplicationName":"Trade Hubbing","Environment":"Production"}
+{"@t":"2024-03-12T20:25:50.8785886Z","@mt":"Starting the app","SourceContext":"JCTG.WebApp","ApplicationName":"Trade Hubbing","Environment":"Production"}
+{"@t":"2024-03-12T20:25:50.9149786Z","@mt":"Init frontend event handlers","@l":"Debug","SourceContext":"JCTG.WebApp.Backend.Websocket.WebsocketFrontend","ApplicationName":"Trade Hubbing","Environment":"Production"}
+{"@t":"2024-03-12T20:25:51.1397258Z","@mt":"Websocket frontend started","SourceContext":"JCTG.WebApp.Backend.Websocket.WebsocketFrontend","ApplicationName":"Trade Hubbing","Environment":"Production"}

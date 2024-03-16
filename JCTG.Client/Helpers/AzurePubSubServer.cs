@@ -1,4 +1,5 @@
 using Azure.Messaging.WebPubSub;
+using JCTG.Entity;
 using JCTG.Events;
 using Newtonsoft.Json;
 
@@ -56,6 +57,11 @@ public class AzurePubSubServer
     public Task<string?> SendOnLogEventAsync(OnLogEvent @event)
     {
         return SendMessageAsync(@event, Constants.WebsocketMessageType_OnLogEvent, nameof(OnLogEvent));
+    }
+
+    public Task<string?> SendOnMarketAbstentionEventAsync(OnMarketAbstentionEvent @event)
+    {
+        return SendMessageAsync(@event, Constants.WebsocketMessageType_OnMarketAbstentionEvent, nameof(OnMarketAbstentionEvent));
     }
 
     public Task<string?> SendOnOrderAutoMoveSlToBeEventAsync(OnOrderAutoMoveSlToBeEvent @event)

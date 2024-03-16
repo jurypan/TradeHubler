@@ -15,8 +15,9 @@
         public static string WebsocketMessageType_OnItsTimeToCloseTheOrderEvent = "OnItsTimeToCloseTheOrderEvent";
         public static string WebsocketMessageType_OnAccountInfoChangedEvent = "OnAccountInfoChangedEvent";
         public static string WebsocketMessageType_OnGetHistoricalBarDataEvent = "OnGetHistoricalBarDataEvent";
+        public static string WebsocketMessageType_OnMarketAbstentionEvent = "OnMarketAbstentionEvent";
 
-        
+
         // From Server To Metatrader
         public static string WebsocketMessageFrom_Server = "Server";
         public static string WebsocketMessageType_OnSendTradingviewSignalCommand = "OnSendTradingviewSignalCommand";

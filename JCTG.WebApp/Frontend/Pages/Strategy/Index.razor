@@ -132,10 +132,11 @@
                                             <th>Swap</th>
                                             <th>Spreadcost</th>
                                             <th>Signal</th>
+                                            <th>Exit RR</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        @foreach (var order in _orders.Where(f => f.Signal.TradingviewStateType == TradingviewStateType.TpHit || f.Signal.TradingviewStateType == TradingviewStateType.SlHit || f.Signal.TradingviewStateType == TradingviewStateType.BeHit).OrderByDescending(f => f.DateCreated))
+                                        @foreach (var order in _orders.Where(f => f.Signal.ExitRiskRewardRatio.HasValue).OrderByDescending(f => f.DateCreated))
                                         {
                                             <tr>
                                                 <td>@order.ID</td>
@@ -148,6 +149,7 @@
                                                 <td>@Math.Round(order.Swap, 4)</td>
                                                 <td>@Math.Round(order.SpreadCost, 4)</td>
                                                 <td>@order.Signal.TradingviewStateType</td>
+                                                <td>@order.Signal.ExitRiskRewardRatio</td>
                                             </tr>
                                         }
                                     </tbody>
@@ -163,6 +165,7 @@
                                             <th>Swap</th>
                                             <th>Spreadcost</th>
                                             <th>Signal</th>
+                                            <th>Exit RR</th>
                                         </tr>
                                     </tfoot>
                                 </table>
@@ -282,48 +285,54 @@
 
 
             // Inner method
-            Func<TradingviewStateType, double?, decimal> getPrice = (tvStateType, rr) =>
+            Func<double, double, double, decimal> getRrForLong = (openSlPrice, openEntryPrice, closeExitPrice) =>
             {
-                if (rr.HasValue)
-                {
-                    if (tvStateType == TradingviewStateType.SlHit)
-                        return -1M;
-                    else if (tvStateType == TradingviewStateType.TpHit)
-                        return Convert.ToDecimal(rr);
-                }
-                return 0.0M;
+                var rr = Convert.ToDecimal(Math.Round(((closeExitPrice - openEntryPrice) / (openEntryPrice - openSlPrice)), 2));
+                if (rr < -1M)
+                    rr = -1M;
+                return rr;
             };
-
-            Func<TradingviewStateType, double?, double, decimal> getPrice2 = (tvStateType, rr, pnl) =>
+            Func<double, double, double, decimal> getRrForShort = (openSlPrice, openEntryPrice, closeExitPrice) =>
            {
-               if (rr.HasValue)
-               {
-                   if (tvStateType == TradingviewStateType.SlHit)
-                       return -1M;
-                   else if (tvStateType == TradingviewStateType.TpHit && pnl > 0)
-                       return Convert.ToDecimal(rr);
-               }
-               return 0.0M;
+               var rr = Convert.ToDecimal(Math.Round(((openEntryPrice - closeExitPrice) / (openSlPrice - openEntryPrice)), 2));
+               if (rr < -1M)
+                   rr = -1M;
+               return rr;
            };
 
             var signalPoints = new List<LinePoint>();
-            foreach (var signal in _signals.Where(f => f.TradingviewStateType == TradingviewStateType.TpHit || f.TradingviewStateType == TradingviewStateType.SlHit || f.TradingviewStateType == TradingviewStateType.BeHit).OrderBy(f => f.DateCreated).ToList())
+            foreach (var signal in _signals.Where(f => f.ExitRiskRewardRatio.HasValue).OrderBy(f => f.DateCreated).ToList())
             {
-                signalPoints.Add(new LinePoint()
-                    {
-                        Price = (signalPoints.Count > 0 ? signalPoints.ElementAt(signalPoints.Count - 1).Price : 0.0M) + getPrice(signal.TradingviewStateType, signal.RiskRewardRatio),
-                        Time = signal.DateCreated
-                    });
+                if(signal.ExitRiskRewardRatio.HasValue)
+                {
+                    signalPoints.Add(new LinePoint()
+                        {
+                            Price = (signalPoints.Count > 0 ? signalPoints.ElementAt(signalPoints.Count - 1).Price : 0.0M) + Convert.ToDecimal(signal.ExitRiskRewardRatio.Value),
+                            Time = signal.DateCreated
+                        });
+                }
             }
 
             var orderPoints = new List<LinePoint>();
-            foreach (var order in _orders.Where(f => f.Signal.TradingviewStateType == TradingviewStateType.TpHit || f.Signal.TradingviewStateType == TradingviewStateType.SlHit || f.Signal.TradingviewStateType == TradingviewStateType.BeHit).OrderBy(f => f.DateCreated).ToList())
+            foreach (var order in _orders.Where(f => f.Signal.ExitRiskRewardRatio.HasValue).OrderBy(f => f.DateCreated).ToList())
             {
-                orderPoints.Add(new LinePoint()
+                if(order.OpenStopLoss.HasValue && order.ClosePrice.HasValue && order.Signal.RiskRewardRatio.HasValue)
+                {
+                    var prevRR = 0.0M;
+                    if (orderPoints.Count > 0)
+                        prevRR = orderPoints.ElementAt(orderPoints.Count - 1).Price;
+                    var newRR = getRrForLong(order.OpenStopLoss.Value, order.OpenPrice, order.ClosePrice.Value);
+                    if (order.Type.Contains("sell"))
+                        newRR = getRrForShort(order.OpenStopLoss.Value, order.OpenPrice, order.ClosePrice.Value);
+                    if (newRR > Convert.ToDecimal(order.Signal.RiskRewardRatio.Value))
+                        newRR = Convert.ToDecimal(order.Signal.RiskRewardRatio.Value);
+
+                    orderPoints.Add(new LinePoint()
                     {
-                        Price = (orderPoints.Count > 0 ? orderPoints.ElementAt(orderPoints.Count - 1).Price : 0.0M) + getPrice2(order.Signal.TradingviewStateType, order.Signal.RiskRewardRatio, order.Pnl),
+                        Price = prevRR + newRR,
                         Time = order.DateCreated
                     });
+                }
             }
 
             // Load the chart

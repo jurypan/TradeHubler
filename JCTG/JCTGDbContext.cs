@@ -19,6 +19,8 @@ namespace JCTG
 
         public DbSet<Order> Order { get; set; }
 
+        public DbSet<MarketAbstention> MarketAbstention { get; set; }
+
         public DbSet<Deal> Deal { get; set; }
 
         public DbSet<Log> Log { get; set; }
@@ -56,6 +58,16 @@ namespace JCTG
                 .HasOne(tj => tj.Signal)
                 .WithMany(t => t.Orders)
                .HasForeignKey(t => t.SignalID);
+
+            modelBuilder.Entity<MarketAbstention>()
+               .HasOne(tj => tj.Signal)
+               .WithMany(t => t.MarketAbstentions)
+              .HasForeignKey(t => t.SignalID);
+
+            modelBuilder.Entity<MarketAbstention>()
+               .HasOne(tj => tj.Client)
+               .WithMany(t => t.MarketAbstentions)
+              .HasForeignKey(t => t.ClientID);
 
             modelBuilder.Entity<Log>()
                .HasOne(tj => tj.Client)

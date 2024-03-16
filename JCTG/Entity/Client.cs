@@ -1,6 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Diagnostics;
 
 namespace JCTG.Entity
 {
@@ -13,6 +12,7 @@ namespace JCTG.Entity
             Logs = [];
             Risks = [];
             Pairs = [];
+            MarketAbstentions = [];
         }
 
         [Key]
@@ -57,6 +57,7 @@ namespace JCTG.Entity
         public List<ClientPair> Pairs { get; set; }
 
         public List<Order> Orders { get; set; }
+        public List<MarketAbstention> MarketAbstentions { get; set; }
         public List<Log> Logs { get; set; }
     }
 }

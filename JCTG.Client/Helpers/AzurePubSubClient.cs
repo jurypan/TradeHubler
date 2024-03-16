@@ -17,7 +17,7 @@ namespace JCTG.Client
             if (_client != null)
             {
                 // Disable the auto disconnect and reconnect because the sample would like the _client to stay online even no data comes in
-                _client.ReconnectTimeout = TimeSpan.FromHours(1);
+                _client.ReconnectTimeout = null;
                 _client.ErrorReconnectTimeout = TimeSpan.FromSeconds(10);
                 _client.ReconnectionHappened.Subscribe(OnReconnection);
                 _client.DisconnectionHappened.Subscribe(OnDisconnect);

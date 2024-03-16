@@ -213,7 +213,7 @@ public class WebsocketBackend(AzurePubSubServer server, IServiceScopeFactory sco
                     order.CloseStopLoss = decimal.ToDouble(onAutoMoveSlToBe.StopLossPrice);
                 }
                 else
-                { 
+                {
                     // Log
                     _logger.Error($"Order not found with signal id {onAutoMoveSlToBe.SignalID}");
                 }
@@ -352,7 +352,7 @@ public class WebsocketBackend(AzurePubSubServer server, IServiceScopeFactory sco
                                 MtDealId = onDealCreatedEvent.MtDealID,
                                 Commission = onDealCreatedEvent.Deal.Commission,
                                 Entry = onDealCreatedEvent.Deal.Entry,
-                                Lots =  onDealCreatedEvent.Deal.Lots,
+                                Lots = onDealCreatedEvent.Deal.Lots,
                                 Magic = onDealCreatedEvent.Deal.Magic,
                                 Pnl = onDealCreatedEvent.Deal.Pnl,
                                 Price = onDealCreatedEvent.Deal.Price,
@@ -408,7 +408,7 @@ public class WebsocketBackend(AzurePubSubServer server, IServiceScopeFactory sco
                                 var deals = await dbContext.Deal.Where(f => f.OrderID == order.ID && (f.Entry == "entry_in" || f.Entry == "entry_out" || f.Entry == "entry_out_by")).ToListAsync();
 
                                 // do null reference check
-                                if(deals.Count > 0)
+                                if (deals.Count > 0)
                                 {
                                     // Count the total amount of lots that are used for entry in
                                     var sumLotsIn = deals.Where(f => f.Entry == "entry_in").Sum(f => f.Lots);
@@ -478,8 +478,8 @@ public class WebsocketBackend(AzurePubSubServer server, IServiceScopeFactory sco
                 var client = await dbContext.Client.FirstOrDefaultAsync(f => f.ID == onAccountInfoChangedEvent.ClientID);
 
                 // Do null reference check
-                if(client != null) 
-                { 
+                if (client != null)
+                {
                     // Set properties
                     client.Balance = onAccountInfoChangedEvent.AccountInfo.Balance;
                     client.Equity = onAccountInfoChangedEvent.AccountInfo.Equity;
@@ -500,11 +500,59 @@ public class WebsocketBackend(AzurePubSubServer server, IServiceScopeFactory sco
             }
         };
 
+        server.OnMarketAbstentionEvent += async (onMarketAbstentionEvent) =>
+        {
+            // Log
+            _logger.Debug("On market abstention event triggered", onMarketAbstentionEvent);
 
-       // Listen to the server
-       if(!server.IsStarted)
+            using var scope = scopeFactory.CreateScope();
+            var dbContext = scope.ServiceProvider.GetRequiredService<JCTGDbContext>();
+
+            // Do null reference check
+            if (onMarketAbstentionEvent != null &&
+                    onMarketAbstentionEvent.ClientID > 0 &&
+                    onMarketAbstentionEvent.SignalID > 0 &&
+                    onMarketAbstentionEvent.Magic > 0 &&
+                    onMarketAbstentionEvent.Log != null &&
+                    onMarketAbstentionEvent.Log.ErrorType != null
+                    )
+            {
+                await dbContext.MarketAbstention.AddAsync(new MarketAbstention()
+                {
+                    LogMessage = onMarketAbstentionEvent.Log.ErrorType,
+                    Symbol = onMarketAbstentionEvent.Symbol,
+                    Type = onMarketAbstentionEvent.OrderType,
+                    ClientID = onMarketAbstentionEvent.ClientID,
+                    Magic = Convert.ToInt32(onMarketAbstentionEvent.Magic),
+                    MarketAbstentionType = onMarketAbstentionEvent.Type,
+                    SignalID = onMarketAbstentionEvent.SignalID,
+                });
+
+
+                await dbContext.Log.AddAsync(new Log()
+                {
+                    ClientID = onMarketAbstentionEvent.ClientID,
+                    SignalID = onMarketAbstentionEvent.SignalID,
+                    Description = onMarketAbstentionEvent.Log.Description,
+                    ErrorType = onMarketAbstentionEvent.Log.ErrorType,
+                    Message = onMarketAbstentionEvent.Log.Message,
+                    Time = onMarketAbstentionEvent.Log.Time,
+                    Type = onMarketAbstentionEvent.Log.Type,
+                });
+
+                // Save
+                await dbContext.SaveChangesAsync();
+
+                // Log
+                _logger.Debug($"Saved database");
+            }
+        };
+
+
+        // Listen to the server
+        if (!server.IsStarted)
             await server.ListeningToServerAsync();
-        
+
         // Log
         _logger.Information($"Websocket backend started");
     }

@@ -273,13 +273,7 @@
                             </div>
                         </div>
                         <div class="row">
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label class="form-label">Current Price</label>
-                                    <InputText class="form-control" @bind-Value="signal.CurrentPriceAsString" />
-                                </div>
-                            </div>
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <div class="mb-3">
                                     <label class="form-label">State</label>
                                     <InputSelect class="form-select col-12" @bind-Value="signal.TradingviewStateType">
@@ -289,6 +283,12 @@
                                             <option value="@item">@item</option>
                                         }
                                     </InputSelect>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Exit Risk To Reward</label>
+                                    <InputText class="form-control" @bind-Value="signal.ExitRiskRewardRatioAsString" />
                                 </div>
                             </div>
                         </div>
@@ -342,6 +342,7 @@
                                 </div>
                             </div>
                         </div>
+
                     </div>
                     <div class="modal-footer">
                         <div class="d-flex gap-6 m-0">
@@ -533,6 +534,7 @@
             signal = new();
             _hideModifyModalSignal = true;
             _hideDeleteModalSignal = true;
+            _hideRetryModalSignal = true;
         }
     }
 }

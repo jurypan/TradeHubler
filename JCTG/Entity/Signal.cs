@@ -11,6 +11,8 @@ namespace JCTG.Entity
             DateCreated = DateTime.UtcNow;
             DateLastUpdated = DateTime.UtcNow;
             Logs = new List<Log>();
+            Orders = new List<Order>();
+            TradingviewAlerts = new List<TradingviewAlert>();
             StrategyType = StrategyType.None;
             TradingviewStateType = TradingviewStateType.Init;
         }
@@ -46,19 +48,6 @@ namespace JCTG.Entity
 
 
         // Optional BUY or SELL
-        public double? CurrentPrice { get; set; }
-        [NotMapped]
-        public string? CurrentPriceAsString
-        {
-            get => CurrentPrice.HasValue ? CurrentPrice.ToString() : null;
-            set
-            {
-                if (double.TryParse(value, out double newValue))
-                {
-                    CurrentPrice = newValue;
-                }
-            }
-        }
         public double? EntryPrice { get; set; }
         [NotMapped]
         public string? EntryPriceAsString
@@ -132,12 +121,26 @@ namespace JCTG.Entity
 
         // Tradingview State
         public TradingviewStateType TradingviewStateType { get; set; }
+        public double? ExitRiskRewardRatio { get; set; }
+        [NotMapped]
+        public string? ExitRiskRewardRatioAsString
+        {
+            get => ExitRiskRewardRatio.HasValue ? ExitRiskRewardRatio.ToString() : null;
+            set
+            {
+                if (double.TryParse(value, out double newValue))
+                {
+                    ExitRiskRewardRatio = newValue;
+                }
+            }
+        }
 
 
         // Links
         public List<Order> Orders { get; set; }
         public List<Log> Logs { get; set; }
         public List<TradingviewAlert> TradingviewAlerts { get; set; }
+        public List<MarketAbstention> MarketAbstentions { get; set; }
 
 
 
@@ -158,15 +161,15 @@ namespace JCTG.Entity
 
             var optionalParams = new Dictionary<string, Action<string>>
             {
-                { "entryprice", value => signal.EntryPrice = double.Parse(value) },
-                { "currentprice", value => signal.CurrentPrice = double.Parse(value) },
-                { "sl", value => signal.StopLoss = double.Parse(value) },
-                { "tp", value => signal.TakeProfit = double.Parse(value) },
-                { "magic", value => signal.Magic = long.Parse(value) },
+                { "entryprice", value => signal.EntryPriceAsString = value },
+                { "sl", value => signal.StopLossAsString = value },
+                { "tp", value => signal.TakeProfitAsString = value },
+                { "magic", value => signal.MagicAsString = value },
                 { "strategytype", value => signal.StrategyType = Enum.Parse<StrategyType>(value) },
                 { "entryexpr", value => signal.EntryExpression = value },
-                { "risk", value => signal.Risk = double.Parse(value) },
-                { "rr", value => signal.RiskRewardRatio = double.Parse(value)  },
+                { "risk", value => signal.RiskAsString = value },
+                { "rr", value => signal.RiskRewardRatioAsString = value  },
+                { "exitrr", value => signal.ExitRiskRewardRatioAsString = value  },
             };
 
             foreach (var part in parts[3..])

@@ -18,6 +18,7 @@ public class AzurePubSubServer(WebsocketClient client)
     public event Action<OnDealCreatedEvent>? OnDealCreatedEvent;
     public event Action<OnAccountInfoChangedEvent>? OnAccountInfoChangedEvent;
     public event Action<OnGetHistoricalBarDataEvent>? OnGetHistoricalBarDataEvent;
+    public event Action<OnMarketAbstentionEvent>? OnMarketAbstentionEvent;
 
     public bool IsStarted { get { return client.IsStarted; }  }
 
@@ -30,7 +31,7 @@ public class AzurePubSubServer(WebsocketClient client)
         if (client != null)
         {
             // Disable the auto disconnect and reconnect because the sample would like the client to stay online even no data comes in
-            client.ReconnectTimeout = TimeSpan.FromHours(1);
+            client.ReconnectTimeout = null;
             client.ErrorReconnectTimeout = TimeSpan.FromSeconds(10);
             client.ReconnectionHappened.Subscribe(OnReconnection);
             client.DisconnectionHappened.Subscribe(OnDisconnect);
@@ -40,78 +41,82 @@ public class AzurePubSubServer(WebsocketClient client)
             {
                 if (msg != null && msg.Text != null)
                 {
-                    using (var document = JsonDocument.Parse(msg.Text))
+                    using var document = JsonDocument.Parse(msg.Text);
+                    // Somewhere in your method or constructor
+                    var jsonSerializerOptions = new JsonSerializerOptions
                     {
-                        // Somewhere in your method or constructor
-                        var jsonSerializerOptions = new JsonSerializerOptions
-                        {
-                            PropertyNamingPolicy = null
-                        };
+                        PropertyNamingPolicy = null
+                    };
 
-                        // INit
-                        var type = document.RootElement.GetProperty("Type").GetString();
-                        var from = document.RootElement.GetProperty("From").GetString();
+                    // INit
+                    var type = document.RootElement.GetProperty("Type").GetString();
+                    var from = document.RootElement.GetProperty("From").GetString();
 
-                        // If comes from metatrader
-                        if (from == Constants.WebsocketMessageFrom_Metatrader)
+                    // If comes from metatrader
+                    if (from == Constants.WebsocketMessageFrom_Metatrader)
+                    {
+                        var data = document.RootElement.GetProperty("Data");
+                        if (data.ValueKind == JsonValueKind.Object && document.RootElement.TryGetProperty("TypeName", out var typeNameProperty))
                         {
-                            var data = document.RootElement.GetProperty("Data");
-                            if (data.ValueKind == JsonValueKind.Object && document.RootElement.TryGetProperty("TypeName", out var typeNameProperty))
+                            if (type == Constants.WebsocketMessageType_OnOrderCreatedEvent)
                             {
-                                if (type == Constants.WebsocketMessageType_OnOrderCreatedEvent)
-                                {
-                                    var @event = JsonSerializer.Deserialize<OnOrderCreatedEvent>(data.GetRawText(), jsonSerializerOptions);
-                                    if (@event != null)
-                                        OnOrderCreatedEvent?.Invoke(@event);
-                                }
-                                else if (type == Constants.WebsocketMessageType_OnOrderUpdatedEvent)
-                                {
-                                    var @event = JsonSerializer.Deserialize<OnOrderUpdatedEvent>(data.GetRawText(), jsonSerializerOptions);
-                                    if (@event != null)
-                                        OnOrderUpdateEvent?.Invoke(@event);
-                                }
-                                else if (type == Constants.WebsocketMessageType_OnOrderClosedEvent)
-                                {
-                                    var @event = JsonSerializer.Deserialize<OnOrderClosedEvent>(data.GetRawText(), jsonSerializerOptions);
-                                    if (@event != null)
-                                        OnOrderCloseEvent?.Invoke(@event);
-                                }
-                                else if (type == Constants.WebsocketMessageType_OnLogEvent)
-                                {
-                                    var @event = JsonSerializer.Deserialize<OnLogEvent>(data.GetRawText(), jsonSerializerOptions);
-                                    if (@event != null)
-                                        OnLogEvent?.Invoke(@event);
-                                }
-                                else if (type == Constants.WebsocketMessageType_OnOrderAutoMoveSlToBeEvent)
-                                {
-                                    var @event = JsonSerializer.Deserialize<OnOrderAutoMoveSlToBeEvent>(data.GetRawText(), jsonSerializerOptions);
-                                    if (@event != null)
-                                        OnAutoMoveSlToBeEvent?.Invoke(@event);
-                                }
-                                else if (type == Constants.WebsocketMessageType_OnItsTimeToCloseTheOrderEvent)
-                                {
-                                    var @event = JsonSerializer.Deserialize<OnItsTimeToCloseTheOrderEvent>(data.GetRawText(), jsonSerializerOptions);
-                                    if (@event != null)
-                                        OnItsTimeToCloseTheOrderEvent?.Invoke(@event);
-                                }
-                                else if (type == Constants.WebsocketMessageType_OnDealCreatedEvent)
-                                {
-                                    var @event = JsonSerializer.Deserialize<OnDealCreatedEvent>(data.GetRawText(), jsonSerializerOptions);
-                                    if (@event != null)
-                                        OnDealCreatedEvent?.Invoke(@event);
-                                }
-                                else if (type == Constants.WebsocketMessageType_OnAccountInfoChangedEvent)
-                                {
-                                    var @event = JsonSerializer.Deserialize<OnAccountInfoChangedEvent>(data.GetRawText(), jsonSerializerOptions);
-                                    if (@event != null)
-                                        OnAccountInfoChangedEvent?.Invoke(@event);
-                                }
-                                else if (type == Constants.WebsocketMessageType_OnGetHistoricalBarDataEvent)
-                                {
-                                    var @event = JsonSerializer.Deserialize<OnGetHistoricalBarDataEvent>(data.GetRawText(), jsonSerializerOptions);
-                                    if (@event != null)
-                                        OnGetHistoricalBarDataEvent?.Invoke(@event);
-                                }
+                                var @event = JsonSerializer.Deserialize<OnOrderCreatedEvent>(data.GetRawText(), jsonSerializerOptions);
+                                if (@event != null)
+                                    OnOrderCreatedEvent?.Invoke(@event);
+                            }
+                            else if (type == Constants.WebsocketMessageType_OnOrderUpdatedEvent)
+                            {
+                                var @event = JsonSerializer.Deserialize<OnOrderUpdatedEvent>(data.GetRawText(), jsonSerializerOptions);
+                                if (@event != null)
+                                    OnOrderUpdateEvent?.Invoke(@event);
+                            }
+                            else if (type == Constants.WebsocketMessageType_OnOrderClosedEvent)
+                            {
+                                var @event = JsonSerializer.Deserialize<OnOrderClosedEvent>(data.GetRawText(), jsonSerializerOptions);
+                                if (@event != null)
+                                    OnOrderCloseEvent?.Invoke(@event);
+                            }
+                            else if (type == Constants.WebsocketMessageType_OnLogEvent)
+                            {
+                                var @event = JsonSerializer.Deserialize<OnLogEvent>(data.GetRawText(), jsonSerializerOptions);
+                                if (@event != null)
+                                    OnLogEvent?.Invoke(@event);
+                            }
+                            else if (type == Constants.WebsocketMessageType_OnOrderAutoMoveSlToBeEvent)
+                            {
+                                var @event = JsonSerializer.Deserialize<OnOrderAutoMoveSlToBeEvent>(data.GetRawText(), jsonSerializerOptions);
+                                if (@event != null)
+                                    OnAutoMoveSlToBeEvent?.Invoke(@event);
+                            }
+                            else if (type == Constants.WebsocketMessageType_OnItsTimeToCloseTheOrderEvent)
+                            {
+                                var @event = JsonSerializer.Deserialize<OnItsTimeToCloseTheOrderEvent>(data.GetRawText(), jsonSerializerOptions);
+                                if (@event != null)
+                                    OnItsTimeToCloseTheOrderEvent?.Invoke(@event);
+                            }
+                            else if (type == Constants.WebsocketMessageType_OnDealCreatedEvent)
+                            {
+                                var @event = JsonSerializer.Deserialize<OnDealCreatedEvent>(data.GetRawText(), jsonSerializerOptions);
+                                if (@event != null)
+                                    OnDealCreatedEvent?.Invoke(@event);
+                            }
+                            else if (type == Constants.WebsocketMessageType_OnAccountInfoChangedEvent)
+                            {
+                                var @event = JsonSerializer.Deserialize<OnAccountInfoChangedEvent>(data.GetRawText(), jsonSerializerOptions);
+                                if (@event != null)
+                                    OnAccountInfoChangedEvent?.Invoke(@event);
+                            }
+                            else if (type == Constants.WebsocketMessageType_OnGetHistoricalBarDataEvent)
+                            {
+                                var @event = JsonSerializer.Deserialize<OnGetHistoricalBarDataEvent>(data.GetRawText(), jsonSerializerOptions);
+                                if (@event != null)
+                                    OnGetHistoricalBarDataEvent?.Invoke(@event);
+                            }
+                            else if (type == Constants.WebsocketMessageType_OnMarketAbstentionEvent)
+                            {
+                                var @event = JsonSerializer.Deserialize<OnMarketAbstentionEvent>(data.GetRawText(), jsonSerializerOptions);
+                                if (@event != null)
+                                    OnMarketAbstentionEvent?.Invoke(@event);
                             }
                         }
                     }

@@ -3,6 +3,7 @@ using JCTG.Entity;
 using JCTG.Events;
 using JCTG.WebApp.Backend.Websocket;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Newtonsoft.Json;
 
 
@@ -138,8 +139,9 @@ namespace JCTG.WebApp.Backend.Api
                                 else if (signal.OrderType.Equals("closeall", StringComparison.CurrentCultureIgnoreCase))
                                     existingSignal.TradingviewStateType = TradingviewStateType.CloseAll;
 
-                                // Update date
+                                // Update
                                 existingSignal.DateLastUpdated = DateTime.UtcNow;
+                                existingSignal.ExitRiskRewardRatio = signal.ExitRiskRewardRatio;
 
                                 // Update state
                                 _dbContext.Signal.Update(existingSignal);

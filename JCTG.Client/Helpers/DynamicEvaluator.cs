@@ -7,7 +7,7 @@ namespace JCTG.Client
 {
     public class DynamicEvaluator
     {
-        public static async Task<decimal> EvaluateExpressionAsync(string expression, List<BarData> bars)
+        public static async Task<decimal?> EvaluateExpressionAsync(string expression, List<BarData> bars)
         {
             // Convert the timestamps in bars to UTC (or any common timezone)
             var barsDictionary = bars.OrderByDescending(f => f.Time)
@@ -32,17 +32,13 @@ namespace JCTG.Client
                 var result = await script.RunAsync(new ScriptContext { Bar = barsDictionary });
                 return result.ReturnValue;
             }
-            catch (CompilationErrorException ex)
+            catch (CompilationErrorException)
             {
-                // Handle compilation errors
-                Console.WriteLine("Compilation error: " + ex.Message);
-                return 0M;
+                return null;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                // Log or handle other exceptions
-                Console.WriteLine("Runtime error: " + ex.Message);
-                return 0M;
+                return null;
             }
         }
 

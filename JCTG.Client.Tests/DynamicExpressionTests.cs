@@ -22,7 +22,7 @@ namespace JCTG.Client.Tests
             string expression = "Bar[1].High + (Bar[1].High - Bar[0].Low)";
 
             decimal expected = 20m + (20m - 5m);
-            decimal result = await DynamicEvaluator.EvaluateExpressionAsync(expression, bars);
+            decimal? result = await DynamicEvaluator.EvaluateExpressionAsync(expression, bars);
             Assert.That(result, Is.EqualTo(expected));
         }
 
@@ -31,7 +31,7 @@ namespace JCTG.Client.Tests
         {
             string expression = "Bar[1].High";
             decimal expected = 15m;
-            decimal result = await DynamicEvaluator.EvaluateExpressionAsync(expression, bars);
+            decimal? result = await DynamicEvaluator.EvaluateExpressionAsync(expression, bars);
             Assert.That(result, Is.EqualTo(expected));
         }
 
