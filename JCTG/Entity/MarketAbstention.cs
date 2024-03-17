@@ -1,5 +1,6 @@
 ﻿using JCTG.Models;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace JCTG.Entity
 {
@@ -22,11 +23,22 @@ namespace JCTG.Entity
         public long SignalID { get; set; }
         public Signal Signal { get; set; }
 
-        public required string Symbol { get; set; }
-        public required string Type { get; set; }
+        public string Symbol { get; set; }
+        public string Type { get; set; }
 
         public int Magic { get; set; }
-
+        [NotMapped]
+        public string MagicAsString
+        {
+            get => Magic.ToString();
+            set
+            {
+                if (int.TryParse(value, out int newValue))
+                {
+                    Magic = newValue;
+                }
+            }
+        }
         public string LogMessage { get; set; }
 
         public MarketAbstentionType MarketAbstentionType { get; set; }

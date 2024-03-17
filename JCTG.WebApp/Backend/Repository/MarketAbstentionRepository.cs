@@ -16,4 +16,40 @@ public class MarketAbstentionRepository(IDbContextFactory<JCTGDbContext> dbConte
                                                     && f.Signal.StrategyType == strategyType
                                                     ).OrderBy(f => f.DateLastUpdated).ToListAsync();
     }
+
+    public async Task<MarketAbstention?> GetById(int accountId, long id)
+    {
+        using var context = await dbContextFactory.CreateDbContextAsync();
+        return await context.MarketAbstention
+            .FirstOrDefaultAsync(f => f.Client != null && f.Client.AccountID == accountId && f.ID == id);
+    }
+
+    public async Task AddAsync(MarketAbstention model)
+    {
+        using var context = await dbContextFactory.CreateDbContextAsync();
+        await context.MarketAbstention.AddAsync(model);
+        await context.SaveChangesAsync();
+    }
+
+    public async Task EditAsync(MarketAbstention model)
+    {
+        using var context = await dbContextFactory.CreateDbContextAsync();
+        var entity = await context.MarketAbstention.FirstOrDefaultAsync(f => f.ClientID == model.ClientID && f.ID == model.ID);
+        if (entity != null)
+        {
+            context.Entry(entity).CurrentValues.SetValues(model);
+            await context.SaveChangesAsync();
+        }
+    }
+
+    public async Task DeleteAsync(MarketAbstention model)
+    {
+        using var context = await dbContextFactory.CreateDbContextAsync();
+        var entity = await context.MarketAbstention.FirstOrDefaultAsync(f => f.ClientID == model.ClientID && f.ID == model.ID);
+        if (entity != null)
+        {
+            context.MarketAbstention.Remove(entity);
+            await context.SaveChangesAsync();
+        }
+    }
 }

@@ -63,6 +63,9 @@ public class SignalRepository(IDbContextFactory<JCTGDbContext> dbContextFactory)
         var entity = await context.Signal.FirstOrDefaultAsync(f => f.AccountID == signal.AccountID && f.ID == signal.ID);
         if (entity != null)
         {
+            context.Log.RemoveRange(await context.Log.Where(f => f.SignalID == signal.ID).ToListAsync());
+            context.MarketAbstention.RemoveRange(await context.MarketAbstention.Where(f => f.SignalID == signal.ID).ToListAsync());
+            context.Order.RemoveRange(await context.Order.Where(f => f.SignalID == signal.ID).ToListAsync());
             context.Signal.Remove(entity);
             await context.SaveChangesAsync();
         }

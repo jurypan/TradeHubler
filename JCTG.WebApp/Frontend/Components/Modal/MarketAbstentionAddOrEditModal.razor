@@ -1,0 +1,132 @@
+﻿@inject MarketAbstentionRepository _marketAbstentionRepository;
+@using JCTG.Models;
+
+
+<div class="modal fade @_cssClass" tabindex="-1" style="display:@_display">
+    <div class=" modal-dialog modal-dialog-scrollable modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header modal-colored-header bg-primary text-white">
+                <h4 class="modal-title text-white" id="primary-header-modalLabel"> Market Abstention </h4>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" @onclick="() => Close()"></button>
+            </div>
+
+            <div class="modal-body">
+                <EditForm Model="@model" OnValidSubmit="@SubmitAsync">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary />
+                    <AntiforgeryToken />
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Ticker</label>
+                                <InputText class="form-control" @bind-Value="model.Symbol" />
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Order Type</label>
+                                <InputText class="form-control" @bind-Value="model.Type" />
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label" for="strategy">Type</label>
+                                <InputSelect class="form-select col-12" @bind-Value="model.MarketAbstentionType">
+                                    <option>Choose...</option>
+                                    @foreach (var item in Enum.GetValues(typeof(MarketAbstentionType)))
+                                    {
+                                        <option value="@item">@item</option>
+                                    }
+                                </InputSelect>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Magic</label>
+                                <InputText class="form-control" @bind-Value="model.MagicAsString" />
+                            </div>
+                        </div>
+                        <div class="col-md-8">
+                            <div class="mb-3">
+                                <label class="form-label">Log message</label>
+                                <InputText class="form-control" @bind-Value="model.LogMessage" />
+                            </div>
+                        </div>
+                    </div>
+                </EditForm>
+            </div>
+            <div class="modal-footer">
+                <div class="d-flex gap-6 m-0">
+                    <button type="submit" class="btn btn-primary  rounded-pill px-4"> Save </button>
+                    <button class="btn bg-danger-subtle text-danger rounded-pill" @onclick="() => Close()"> Discard </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+@code {
+    [SupplyParameterFromForm]
+    private MarketAbstention model { get; set; } = new();
+    private CrudState _crudState { get; set; } = CrudState.None;
+
+    private string _display = "none;";
+    private string _cssClass = "hide";
+
+    public void Open()
+    {
+        _display = "block;";
+        _cssClass = "show";
+        StateHasChanged();
+    }
+
+    public void Close()
+    {
+        _display = "none;";
+        _cssClass = "hide";
+        StateHasChanged();
+    }
+
+    public async Task InitAsync(int accountId, long? id = null)
+    {
+        if (id.HasValue)
+        {
+            var signalNew = await _marketAbstentionRepository.GetById(accountId, id.Value);
+            if (signalNew != null)
+            {
+                model = signalNew;
+                Open();
+                _crudState = CrudState.Edit;
+            }
+        }
+        else
+        {
+            model = new();
+            Open();
+            _crudState = CrudState.Add;
+        }
+    }
+
+    public async Task SubmitAsync()
+    {
+        if (model != null)
+        {
+            if (_crudState == CrudState.Add)
+            {
+                await _marketAbstentionRepository.AddAsync(model);
+            }
+            else if (_crudState == CrudState.Edit)
+            {
+                await _marketAbstentionRepository.EditAsync(model);
+            }
+
+            _crudState = CrudState.None;
+            model = new();
+            Close();
+        }
+    }
+}

@@ -1,0 +1,191 @@
+﻿@inject SignalRepository _signalRepository;
+@using JCTG.Models;
+
+
+<div class="modal fade @_cssClass" tabindex="-1" style="display:@_display">
+    <div class=" modal-dialog modal-dialog-scrollable modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header modal-colored-header bg-primary text-white">
+                <h4 class="modal-title text-white" id="primary-header-modalLabel"> Signal </h4>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" @onclick="() => Close()"></button>
+            </div>
+
+            <div class="modal-body">
+                <EditForm Model="@model" OnValidSubmit="@SubmitAsync">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary />
+                    <AntiforgeryToken />
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Ticker</label>
+                                <InputText class="form-control" @bind-Value="model.Instrument" />
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Order Type</label>
+                                <InputText class="form-control" @bind-Value="model.OrderType" />
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label" for="strategy">Strategy</label>
+                                <InputSelect class="form-select col-12" @bind-Value="model.StrategyType">
+                                    <option>Choose...</option>
+                                    @foreach (var item in Enum.GetValues(typeof(StrategyType)))
+                                    {
+                                        <option value="@item">@item</option>
+                                    }
+                                </InputSelect>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Magic</label>
+                                <InputText class="form-control" @bind-Value="model.MagicAsString" />
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">State</label>
+                                <InputSelect class="form-select col-12" @bind-Value="model.TradingviewStateType">
+                                    <option>Choose...</option>
+                                    @foreach (var item in Enum.GetValues(typeof(TradingviewStateType)))
+                                    {
+                                        <option value="@item">@item</option>
+                                    }
+                                </InputSelect>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Exit Risk To Reward</label>
+                                <InputText class="form-control" @bind-Value="model.ExitRiskRewardRatioAsString" />
+                            </div>
+                        </div>
+                    </div>
+                    <hr class="m-3">
+                    <div class="row">
+                        <h5 class="card-title mb-3">Active</h5>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Entry Price</label>
+                                <InputText class="form-control" @bind-Value="model.EntryPriceAsString" />
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">SL Price</label>
+                                <InputText class="form-control" @bind-Value="model.StopLossAsString" />
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">TP Price</label>
+                                <InputText class="form-control" @bind-Value="model.TakeProfitAsString" />
+                            </div>
+                        </div>
+                    </div>
+                    <hr class="m-3">
+                    <div class="row">
+                        <h5 class="card-title mb-3">Passive</h5>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Entry Expression</label>
+                                <InputText class="form-control" @bind-Value="model.EntryExpression" />
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Risk</label>
+                                <InputText class="form-control" @bind-Value="model.RiskAsString" />
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Risk Reward Ratio</label>
+                                <InputText class="form-control" @bind-Value="model.RiskRewardRatioAsString" />
+                            </div>
+                        </div>
+                    </div>
+                </EditForm>
+            </div>
+            <div class="modal-footer">
+                <div class="d-flex gap-6 m-0">
+                    <button type="submit" class="btn btn-primary  rounded-pill px-4"> Save </button>
+                    <button class="btn bg-danger-subtle text-danger rounded-pill" @onclick="() => Close()"> Discard </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@code {
+    [SupplyParameterFromForm]
+    private Signal model { get; set; } = new();
+    private CrudState _crudState { get; set; } = CrudState.None;
+
+    private string _display = "none;";
+    private string _cssClass = "hide";
+
+    public void Open()
+    {
+        _display = "block;";
+        _cssClass = "show";
+        StateHasChanged();
+    }
+
+    public void Close()
+    {
+        _display = "none;";
+        _cssClass = "hide";
+        StateHasChanged();
+    }
+
+    public async Task InitAsync(int accountId, long? signalId = null)
+    {
+        if (signalId.HasValue)
+        {
+            var signalNew = await _signalRepository.GetById(accountId, signalId.Value);
+            if (signalNew != null)
+            {
+                model = signalNew;
+                Open();
+                _crudState = CrudState.Edit;
+            }
+        }
+        else
+        {
+            model = new();
+            Open();
+            _crudState = CrudState.Add;
+        }
+    }
+
+    public async Task SubmitAsync()
+    {
+        if (model != null)
+        {
+            if (_crudState == CrudState.Add)
+            {
+                await _signalRepository.AddAsync(model);
+            }
+            else if (_crudState == CrudState.Edit)
+            {
+                await _signalRepository.EditAsync(model);
+            }
+
+            _crudState = CrudState.None;
+            model = new();
+            Close();
+        }
+    }
+}

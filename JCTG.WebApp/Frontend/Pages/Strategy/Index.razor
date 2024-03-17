@@ -6,6 +6,7 @@
 @inject NavigationManager NavManager
 @using JCTG.Models;
 @using JCTG.WebApp.Frontend.Components.Apex;
+@using JCTG.WebApp.Frontend.Components.Modal;
 @implements IDisposable
 
 <div class="container-fluid mw-100">
@@ -112,7 +113,7 @@
                                     <h5 class="mb-0">Signals</h5>
                                 </div>
                                 <div class="table-responsive">
-                                    <table id="file_export" class="table border table-striped table-bordered display text-nowrap">
+                                    <table class="table border table-striped table-bordered display text-nowrap">
                                         <thead>
                                             <tr>
                                                 <th>ID</th>
@@ -126,7 +127,7 @@
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            @foreach (var signal in _signals)
+                                            @foreach (var signal in _signals.OrderByDescending(f => f.DateCreated))
                                             {
                                                 <tr>
                                                     <td>@signal.ID</td>
@@ -154,7 +155,37 @@
                                                             <td>Error : No MT Data</td>
                                                         }
                                                     }
-                                                    <td></td>
+                                                    <td>
+                                                        <div class="dropdown dropstart">
+                                                            <a href="#" class="text-muted" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+                                                                <i class="ti ti-dots-vertical fs-6"></i>
+                                                            </a>
+                                                            <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                                                                <li>
+                                                                    <a class="dropdown-item d-flex align-items-center gap-3" @onclick="() => EditASignalClick(signal.ID)">
+                                                                        Edit signal
+                                                                    </a>
+                                                                </li>
+                                                                @if(order != null)
+                                                                {
+                                                                    <li>
+                                                                        <a class="dropdown-item d-flex align-items-center gap-3" @onclick="() => EditAnOrderClick(order.ID)">
+                                                                            Edit order
+                                                                        </a>
+                                                                    </li>
+                                                                }
+                                                                else if(marketAbstention != null)
+                                                                {
+                                                                    <li>
+                                                                        <a class="dropdown-item d-flex align-items-center gap-3" @onclick="() => EditAMarketAbstentionClick(marketAbstention.ID)">
+                                                                            Edit market abstention
+                                                                        </a>
+                                                                    </li>
+                                                                }
+                                                                
+                                                            </ul>
+                                                        </div>
+                                                    </td>
                                                 </tr>
                                             }
                                         </tbody>
@@ -179,6 +210,12 @@
             </div>
         </div>
     }
+
+    <SignalAddOrEditModal @ref="@_signalAddOrEditModal"></SignalAddOrEditModal>
+
+    <MarketAbstentionAddOrEditModal @ref="@_marketAbstentionAddOrEditModal"></MarketAbstentionAddOrEditModal>
+
+    <OrderAddOrEditModal @ref="@_orderAddOrEditModal"></OrderAddOrEditModal>
 </div>
 
 @code {
@@ -187,6 +224,9 @@
 
     private bool _init { get; set; } = false;
     private LineChart? _lineChart { get; set; } = null;
+    private SignalAddOrEditModal? _signalAddOrEditModal { get; set; } = null;
+    private MarketAbstentionAddOrEditModal? _marketAbstentionAddOrEditModal { get; set; } = null;
+    private OrderAddOrEditModal? _orderAddOrEditModal { get; set; } = null;
     private List<Entity.Signal> _signals { get; set; } = new();
     private List<Entity.Order> _orders { get; set; } = new();
     private List<Entity.MarketAbstention> _marketAbstentions { get; set; } = new();
@@ -194,7 +234,9 @@
     private Entity.Client? _filterClient { get; set; } = null;
     private int _filterDate { get; set; } = 3;
 
-    protected override async Task OnInitializedAsync()
+
+
+    protected async override Task OnInitializedAsync()
     {
         _clients = await _clientRepository.GetAllAsync(692803787);
 
@@ -388,6 +430,33 @@
             await _lineChart.ClearAnnotationsAsync();
             await _lineChart.AddAnnotationsAsync(annotationPoints);
             await _lineChart.AddAnnotationsAsync(annotationXAxis);
+        }
+    }
+
+
+
+
+    private async Task EditASignalClick(long id)
+    {
+        if (_signalAddOrEditModal != null)
+        {
+            await _signalAddOrEditModal.InitAsync(692803787, id);
+        }
+    }
+
+    private async Task EditAnOrderClick(long id)
+    {
+        if (_orderAddOrEditModal != null)
+        {
+            await _orderAddOrEditModal.InitAsync(692803787, id);
+        }
+    }
+
+    private async Task EditAMarketAbstentionClick(long id)
+    {
+        if (_marketAbstentionAddOrEditModal != null)
+        {
+            await _marketAbstentionAddOrEditModal.InitAsync(692803787, id);
         }
     }
 }

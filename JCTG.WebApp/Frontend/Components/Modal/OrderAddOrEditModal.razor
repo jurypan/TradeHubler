@@ -1,0 +1,223 @@
+﻿@inject OrderRepository _orderRepository;
+@using JCTG.Models;
+
+
+<div class="modal fade @_cssClass" tabindex="-1" style="display:@_display">
+    <div class=" modal-dialog modal-dialog-scrollable modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header modal-colored-header bg-primary text-white">
+                <h4 class="modal-title text-white" id="primary-header-modalLabel"> Order </h4>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" @onclick="() => Close()"></button>
+            </div>
+            <div class="modal-body">
+                <EditForm Model="@model" OnValidSubmit="@SubmitAsync">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary />
+                    <AntiforgeryToken />
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Symbol</label>
+                                <InputText class="form-control" @bind-Value="model.Symbol" />
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Order Type</label>
+                                <InputText class="form-control" @bind-Value="model.Type" />
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Magic</label>
+                                <InputText class="form-control" @bind-Value="model.MagicAsString" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Commission</label>
+                                <InputText class="form-control" @bind-Value="model.CommissionAsString" />
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">PNL</label>
+                                <InputText class="form-control" @bind-Value="model.PnlAsString" />
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Swap</label>
+                                <InputText class="form-control" @bind-Value="model.SwapAsString" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Spread cost</label>
+                                <InputText class="form-control" @bind-Value="model.SpreadCostAsString" />
+                            </div>
+                        </div>
+                        <div class="col-md-8">
+                            <div class="mb-3">
+                                <label class="form-label">Comment</label>
+                                <InputText class="form-control" @bind-Value="model.Comment" />
+                            </div>
+                        </div>
+                    </div>
+                    <hr class="m-3">
+                    <div class="row">
+                        <h5 class="card-title mb-3">Open order</h5>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Time</label>
+                                <InputText class="form-control" @bind-Value="model.OpenTimeAsString" />
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Lots</label>
+                                <InputText class="form-control" @bind-Value="model.OpenLotsAsString" />
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Price</label>
+                                <InputText class="form-control" @bind-Value="model.OpenPriceAsString" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Stop Loss</label>
+                                <InputText class="form-control" @bind-Value="model.OpenStopLossAsString" />
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Take Profit</label>
+                                <InputText class="form-control" @bind-Value="model.OpenTakeProfitAsString" />
+                            </div>
+                        </div>
+                        <div class="col-md-4"></div>
+                    </div>
+                    <hr class="m-3">
+                    <div class="row">
+                        <h5 class="card-title mb-3">Close order</h5>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group row align-items-center mb-2">
+                                <label class="form-label">Is trade closed?</label>
+                                <div class="col-9 border-start pb-2 pt-2">
+                                    <InputCheckbox class="form-check-input" @bind-Value="model.IsTradeClosed" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Time</label>
+                                <InputText class="form-control" @bind-Value="model.CloseTimeAsString" />
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Price</label>
+                                <InputText class="form-control" @bind-Value="model.ClosePriceAsString" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Stop Loss</label>
+                                <InputText class="form-control" @bind-Value="model.OpenStopLossAsString" />
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Take Profit</label>
+                                <InputText class="form-control" @bind-Value="model.OpenTakeProfitAsString" />
+                            </div>
+                        </div>
+                        <div class="col-md-4"></div>
+                    </div>
+                </EditForm>
+            </div>
+            <div class="modal-footer">
+                <div class="d-flex gap-6 m-0">
+                    <button type="submit" class="btn btn-primary  rounded-pill px-4"> Save </button>
+                    <button class="btn bg-danger-subtle text-danger rounded-pill" @onclick="() => Close()"> Discard </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [SupplyParameterFromForm]
+    private Entity.Order model { get; set; } = new() { Symbol = "", Type = "" };
+    private CrudState _crudState { get; set; } = CrudState.None;
+
+    private string _display = "none;";
+    private string _cssClass = "hide";
+
+    public void Open()
+    {
+        _display = "block;";
+        _cssClass = "show";
+        StateHasChanged();
+    }
+
+    public void Close()
+    {
+        _display = "none;";
+        _cssClass = "hide";
+        StateHasChanged();
+    }
+
+    public async Task InitAsync(int accountId, long? id = null)
+    {
+        if (id.HasValue)
+        {
+            var modelNew = await _orderRepository.GetById(accountId, id.Value);
+            if (modelNew != null)
+            {
+                model = modelNew;
+                Open();
+                _crudState = CrudState.Edit;
+            }
+        }
+        else
+        {
+            model = new() { Symbol = "", Type = "" };
+            Open();
+            _crudState = CrudState.Add;
+        }
+    }
+
+    public async Task SubmitAsync()
+    {
+        if (model != null)
+        {
+            if (_crudState == CrudState.Add)
+            {
+                await _orderRepository.AddAsync(model);
+            }
+            else if (_crudState == CrudState.Edit)
+            {
+                await _orderRepository.EditAsync(model);
+            }
+
+            _crudState = CrudState.None;
+            model = new() { Symbol = "", Type = "" };
+            Close();
+        }
+    }
+}

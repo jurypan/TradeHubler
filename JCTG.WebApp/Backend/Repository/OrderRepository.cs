@@ -59,4 +59,39 @@ public class OrderRepository(IDbContextFactory<JCTGDbContext> dbContextFactory)
                         .OrderBy(f => f.DateCreated)
                         .ToListAsync();
     }
+
+    public async Task<Order?> GetById(long accountId, long id)
+    {
+        using var context = await dbContextFactory.CreateDbContextAsync();
+        return await context.Order.FirstOrDefaultAsync(f => f.Client != null && f.Client.AccountID == accountId && f.ID == id);
+    }
+
+    public async Task AddAsync(Order model)
+    {
+        using var context = await dbContextFactory.CreateDbContextAsync();
+        await context.Order.AddAsync(model);
+        await context.SaveChangesAsync();
+    }
+
+    public async Task EditAsync(Order model)
+    {
+        using var context = await dbContextFactory.CreateDbContextAsync();
+        var entity = await context.Order.FirstOrDefaultAsync(f => f.ClientID == model.ClientID && f.ID == model.ID);
+        if (entity != null)
+        {
+            context.Entry(entity).CurrentValues.SetValues(model);
+            await context.SaveChangesAsync();
+        }
+    }
+
+    public async Task DeleteAsync(Order model)
+    {
+        using var context = await dbContextFactory.CreateDbContextAsync();
+        var entity = await context.Order.FirstOrDefaultAsync(f => f.ClientID == model.ClientID && f.ID == model.ID);
+        if (entity != null)
+        {
+            context.Order.Remove(entity);
+            await context.SaveChangesAsync();
+        }
+    }
 }
