@@ -1,6 +1,7 @@
 ﻿@page "/Signals/{signalid:long}/Orders";
 @inject SignalRepository _signalRepository;
 @inject ClientRepository _clientRepository;
+@using JCTG.WebApp.Frontend.Components.Modal;
 
 <div class="container-fluid mw-100">
 
@@ -104,16 +105,8 @@
                     <div class="card">
                         <div class="card-body">
                             <div class="mb-2">
-                                <h5 class="mb-0">File export</h5>
+                                <h5 class="mb-0">Signals</h5>
                             </div>
-                            <p class="card-subtitle mb-3">
-                                Exporting data from a table can often be a key part of a
-                                complex application. The Buttons extension for DataTables
-                                provides three plug-ins that provide overlapping
-                                functionality for data export. You can refer full
-                                documentation from here
-                                <a href="https://datatables.net/">Datatables</a>
-                            </p>
                             <div class="table-responsive">
                                 <table id="file_export" class="table border table-striped table-bordered display text-nowrap">
                                     <thead>
@@ -125,6 +118,7 @@
                                             <th>Instrument</th>
                                             <th>Order Type</th>
                                             <th>State</th>
+                                            <th></th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -138,6 +132,21 @@
                                                 <td>@signal.Instrument</td>
                                                 <td>@signal.OrderType</td>
                                                 <td>@signal.TradingviewStateType</td>
+                                                <td>
+                                                    <div class="dropdown dropstart">
+                                                        <a href="#" class="text-muted" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+                                                            <i class="ti ti-dots-vertical fs-6"></i>
+                                                        </a>
+                                                        <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                                                            <li>
+                                                                <a class="dropdown-item d-flex align-items-center gap-3" @onclick="() => EditASignalClick(signal.ID)">Edit</a>
+                                                            </li>
+                                                            <li>
+                                                                <a class="dropdown-item d-flex align-items-center gap-3" @onclick="() => DeleteASignalClick(signal.ID)">Delete</a>
+                                                            </li>
+                                                        </ul>
+                                                    </div>
+                                                </td>
                                             </tr>
                                         }
                                     </tbody>
@@ -150,6 +159,7 @@
                                             <th>Instrument</th>
                                             <th>Order Type</th>
                                             <th>State</th>
+                                            <th></th>
                                         </tr>
                                     </tfoot>
                                 </table>
@@ -160,12 +170,18 @@
             </div>
         </div>
     </div>
+
+    <SignalAddOrEditModal @ref="@_signalAddOrEditModal"></SignalAddOrEditModal>
+
+    <SignalDeleteModal @ref="@_signalDeleteModal"></SignalDeleteModal>
 </div>
 
 @code {
 
     [Parameter]
     public long SignalId { get; set; }
+    private SignalAddOrEditModal? _signalAddOrEditModal { get; set; } = null;
+    private SignalDeleteModal? _signalDeleteModal { get; set; } = null;
 
     private Entity.Signal? _signal = null;
     private List<Entity.Order> _orders = new List<Entity.Order>();
@@ -190,6 +206,22 @@
             {
                 _clients.Add(client);
             }
+        }
+    }
+
+    private async Task EditASignalClick(long id)
+    {
+        if (_signalAddOrEditModal != null)
+        {
+            await _signalAddOrEditModal.InitAsync(692803787, id);
+        }
+    }
+
+    private async Task DeleteASignalClick(long id)
+    {
+        if (_signalDeleteModal != null)
+        {
+            await _signalDeleteModal.InitAsync(692803787, id);
         }
     }
 }
