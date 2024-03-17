@@ -1,7 +1,8 @@
 ﻿namespace JCTG.WebApp.Frontend.Components.Apex;
-public class LinePoint
+
+public class AnnotationPoint
 {
     public DateTime Time { get; set; }
     public decimal Price { get; set; }
-    public long Id { get; set; }
+    public required string Text { get; set; }
 }

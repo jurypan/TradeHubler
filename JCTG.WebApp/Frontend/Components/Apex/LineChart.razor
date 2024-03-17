@@ -10,12 +10,8 @@
     public ElementReference el { get; set; }
 
 
-    public async Task InitAsync(string name1, List<LinePoint> data1, string name2, List<LinePoint> data2, ChartOptions? options = null)
+    public async Task InitAsync(string name1, List<LinePoint> data1, string name2, List<LinePoint> data2)
     {
-        // Use default options when none are provided
-        if (options != null)
-            Options = options;
-
         // Exec javascript
         await JS.LineChartInitAsync(el, name1, data1, name2, data2);
 
@@ -34,6 +30,42 @@
         {
             await JS.LineChartInitAsync(el, name1, data1, name2, data2);
             
+        }
+    }
+
+    public async Task ClearAnnotationsAsync()
+    {
+        if (IsInit)
+        {
+            // Exec javascript
+            await JS.ClearAnnotationsAsync(el);
+        }
+    }
+
+    public async Task AddAnnotationsAsync(List<AnnotationPoint> annotations)
+    {
+        if (IsInit)
+        {
+            // Exec javascript
+            await JS.AddPointAnnotationsAsync(el, annotations);
+        }
+    }
+
+    public async Task AddAnnotationsAsync(List<AnnotationYAxis> annotations)
+    {
+        if (IsInit)
+        {
+            // Exec javascript
+            await JS.AddYAxisAnnotationsAsync(el, annotations);
+        }
+    }
+
+    public async Task AddAnnotationsAsync(List<AnnotationXAxis> annotations)
+    {
+        if (IsInit)
+        {
+            // Exec javascript
+            await JS.AddXAxisAnnotationsAsync(el, annotations);
         }
     }
 }

@@ -2,6 +2,7 @@
 @inject SignalRepository _signalRepository;
 @inject ClientRepository _clientRepository;
 @inject OrderRepository _orderRepository;
+@inject MarketAbstentionRepository _marketAbstentionRepository;
 @inject NavigationManager NavManager
 @using JCTG.Models;
 @using JCTG.WebApp.Frontend.Components.Apex;
@@ -99,83 +100,84 @@
         </div>
     </div>
 
-    @if (_orders.Count > 0)
+    @if (_signals.Count > 0)
     {
         <div class="row">
-        <div class="datatables">
-            <div class="row">
-                <div class="col-12">
-                    <div class="card">
-                        <div class="card-body">
-                            <div class="mb-2">
-                                <h5 class="mb-0">File export</h5>
-                            </div>
-                            <p class="card-subtitle mb-3">
-                                Exporting data from a table can often be a key part of a
-                                complex application. The Buttons extension for DataTables
-                                provides three plug-ins that provide overlapping
-                                functionality for data export. You can refer full
-                                documentation from here
-                                <a href="https://datatables.net/">Datatables</a>
-                            </p>
-                            <div class="table-responsive">
-                                <table id="file_export" class="table border table-striped table-bordered display text-nowrap">
-                                    <thead>
-                                        <tr>
-                                            <th>ID</th>
-                                            <th>Symbol</th>
-                                            <th>Type</th>
-                                            <th>Open Time</th>
-                                            <th>Close Time</th>
-                                            <th>PNL</th>
-                                            <th>Commission</th>
-                                            <th>Swap</th>
-                                            <th>Spreadcost</th>
-                                            <th>Signal</th>
-                                            <th>Exit RR</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach (var order in _orders.Where(f => f.Signal.ExitRiskRewardRatio.HasValue).OrderByDescending(f => f.DateCreated))
-                                        {
+            <div class="datatables">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="mb-2">
+                                    <h5 class="mb-0">Signals</h5>
+                                </div>
+                                <div class="table-responsive">
+                                    <table id="file_export" class="table border table-striped table-bordered display text-nowrap">
+                                        <thead>
                                             <tr>
-                                                <td>@order.ID</td>
-                                                <td>@order.Symbol</td>
-                                                <td>@order.Type</td>
-                                                <td>@order.OpenTime</td>
-                                                <td>@order.CloseTime</td>
-                                                <td>@Math.Round(order.Pnl, 4)</td>
-                                                <td>@Math.Round(order.Commission, 4)</td>
-                                                <td>@Math.Round(order.Swap, 4)</td>
-                                                <td>@Math.Round(order.SpreadCost, 4)</td>
-                                                <td>@order.Signal.TradingviewStateType</td>
-                                                <td>@order.Signal.ExitRiskRewardRatio</td>
+                                                <th>ID</th>
+                                                <th>Symbol</th>
+                                                <th>Type</th>
+                                                <th>Date Created</th>
+                                                <th>RR</th>
+                                                <th>PNL</th>
+                                                <th>Warning</th>
+                                                <th></th>
                                             </tr>
-                                        }
-                                    </tbody>
-                                    <tfoot>
-                                        <tr>
-                                            <th>ID</th>
-                                            <th>Symbol</th>
-                                            <th>Type</th>
-                                            <th>Open Time</th>
-                                            <th>Close Time</th>
-                                            <th>PNL</th>
-                                            <th>Commission</th>
-                                            <th>Swap</th>
-                                            <th>Spreadcost</th>
-                                            <th>Signal</th>
-                                            <th>Exit RR</th>
-                                        </tr>
-                                    </tfoot>
-                                </table>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var signal in _signals)
+                                            {
+                                                <tr>
+                                                    <td>@signal.ID</td>
+                                                    <td>@signal.Instrument</td>
+                                                    <td>@signal.OrderType</td>
+                                                    <td>@signal.DateCreated</td>
+                                                    <td>@signal.ExitRiskRewardRatioAsString</td>
+
+                                                    @{
+                                                        var order = _orders.FirstOrDefault(f => f.SignalID == signal.ID);
+                                                        var marketAbstention = _marketAbstentions.FirstOrDefault(f => f.SignalID == signal.ID);
+                                                        if(order != null)
+                                                        {
+                                                            <td>@order.Pnl</td>
+                                                            <td></td>
+                                                        }
+                                                        else if (marketAbstention != null)
+                                                        {
+                                                            <td></td>
+                                                            <td>@marketAbstention.MarketAbstentionType.GetDescription()</td>
+                                                        }
+                                                        else
+                                                        {
+                                                            <td></td>
+                                                            <td>Error : No MT Data</td>
+                                                        }
+                                                    }
+                                                    <td></td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                        <tfoot>
+                                            <tr>
+                                                <th>ID</th>
+                                                <th>Symbol</th>
+                                                <th>Type</th>
+                                                <th>Date Created</th>
+                                                <th>RR</th>
+                                                <th>PNL</th>
+                                                <th>Warning</th>
+                                                <th></th>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
     }
 </div>
 
@@ -187,6 +189,7 @@
     private LineChart? _lineChart { get; set; } = null;
     private List<Entity.Signal> _signals { get; set; } = new();
     private List<Entity.Order> _orders { get; set; } = new();
+    private List<Entity.MarketAbstention> _marketAbstentions { get; set; } = new();
     private List<Entity.Client> _clients { get; set; } = new();
     private Entity.Client? _filterClient { get; set; } = null;
     private int _filterDate { get; set; } = 3;
@@ -255,32 +258,28 @@
         if (_filterClient != null && _lineChart != null)
         {
             // Get data from database
-            _signals = await _signalRepository.GetAllByStrategyType(692803787, (StrategyType)Id);
+            _signals = await _signalRepository.GetAllTradesByStrategyType(692803787, (StrategyType)Id);
             _orders = await _orderRepository.GetAllByStrategType(692803787, _filterClient.ID, (StrategyType)Id);
             var pairs = await _clientRepository.GetAllPairsByIdAsync(692803787, _filterClient.ID, (StrategyType)Id);
             _signals = _signals.Where(f => pairs.Select(f => f.TickerInTradingView).ToList().Contains(f.Instrument)).ToList();
-
+            _marketAbstentions = await _marketAbstentionRepository.GetAllByStrategyType(692803787, _filterClient.ID, (StrategyType)Id);
 
             // Init filter
             if (_filterDate == 0)
             {
                 _signals = _signals.Where(f => f.DateCreated >= DateTime.UtcNow.AddMonths(-1)).OrderBy(f => f.DateCreated).ToList();
-                _orders = _orders.Where(f => f.DateCreated >= DateTime.UtcNow.AddMonths(-1)).OrderBy(f => f.DateCreated).ToList();
             }
             else if (_filterDate == 1)
             {
                 _signals = _signals.Where(f => f.DateCreated >= DateTime.UtcNow.AddDays(-8)).OrderBy(f => f.DateCreated).ToList();
-                _orders = _orders.Where(f => f.DateCreated >= DateTime.UtcNow.AddDays(-8)).OrderBy(f => f.DateCreated).ToList();
             }
             else if (_filterDate == 2)
             {
                 _signals = _signals.Where(f => f.DateCreated >= DateTime.UtcNow.AddDays(-3)).OrderBy(f => f.DateCreated).ToList();
-                _orders = _orders.Where(f => f.DateCreated >= DateTime.UtcNow.AddDays(-3)).OrderBy(f => f.DateCreated).ToList();
             }
             else if (_filterDate == 3)
             {
                 _signals = _signals.Where(f => f.DateCreated >= DateTime.UtcNow.AddDays(-1)).OrderBy(f => f.DateCreated).ToList();
-                _orders = _orders.Where(f => f.DateCreated >= DateTime.UtcNow.AddDays(-1)).OrderBy(f => f.DateCreated).ToList();
             }
 
 
@@ -300,24 +299,31 @@
                return rr;
            };
 
+            // Make the signals readys
             var signalPoints = new List<LinePoint>();
             foreach (var signal in _signals.Where(f => f.ExitRiskRewardRatio.HasValue).OrderBy(f => f.DateCreated).ToList())
             {
-                if(signal.ExitRiskRewardRatio.HasValue)
+                if (signal.ExitRiskRewardRatio.HasValue)
                 {
                     signalPoints.Add(new LinePoint()
                         {
                             Price = (signalPoints.Count > 0 ? signalPoints.ElementAt(signalPoints.Count - 1).Price : 0.0M) + Convert.ToDecimal(signal.ExitRiskRewardRatio.Value),
-                            Time = signal.DateCreated
+                            Time = signal.DateCreated,
+                            Id = signal.ID,
                         });
                 }
             }
 
+            // Make the order points ready
             var orderPoints = new List<LinePoint>();
-            foreach (var order in _orders.Where(f => f.Signal.ExitRiskRewardRatio.HasValue).OrderBy(f => f.DateCreated).ToList())
+            var annotationPoints = new List<AnnotationPoint>();
+            var annotationXAxis = new List<AnnotationXAxis>();
+            foreach (var signal in signalPoints)
             {
-                if(order.OpenStopLoss.HasValue && order.ClosePrice.HasValue && order.Signal.RiskRewardRatio.HasValue)
+                // Check if the order exist
+                if (_orders.Count(f => f.SignalID == signal.Id && f.OpenStopLoss.HasValue && f.ClosePrice.HasValue) > 0)
                 {
+                    var order = _orders.First(f => f.SignalID == signal.Id);
                     var prevRR = 0.0M;
                     if (orderPoints.Count > 0)
                         prevRR = orderPoints.ElementAt(orderPoints.Count - 1).Price;
@@ -326,12 +332,50 @@
                         newRR = getRrForShort(order.OpenStopLoss.Value, order.OpenPrice, order.ClosePrice.Value);
                     if (newRR > Convert.ToDecimal(order.Signal.RiskRewardRatio.Value))
                         newRR = Convert.ToDecimal(order.Signal.RiskRewardRatio.Value);
-
                     orderPoints.Add(new LinePoint()
-                    {
-                        Price = prevRR + newRR,
-                        Time = order.DateCreated
-                    });
+                        {
+                            Price = prevRR + newRR,
+                            Time = order.DateCreated,
+                            Id = signal.Id,
+                        });
+                }
+                else if (_marketAbstentions.Count(f => f.SignalID == signal.Id) > 0)
+                {
+                    var marketAbstention = _marketAbstentions.First(f => f.SignalID == signal.Id);
+                    var prevRR = 0.0M;
+                    if (orderPoints.Count > 0)
+                        prevRR = orderPoints.ElementAt(orderPoints.Count - 1).Price;
+                    orderPoints.Add(new LinePoint()
+                        {
+                            Price = prevRR + 0,
+                            Time = signal.Time,
+                            Id = signal.Id,
+                        });
+
+                    annotationPoints.Add(new AnnotationPoint()
+                        {
+                            Time = signal.Time,
+                            Price = prevRR + 0,
+                            Text = marketAbstention.MarketAbstentionType.GetDescription(),
+                        });
+                }
+                else
+                {
+                    var prevRR = 0.0M;
+                    if (orderPoints.Count > 0)
+                        prevRR = orderPoints.ElementAt(orderPoints.Count - 1).Price;
+                    orderPoints.Add(new LinePoint()
+                        {
+                            Price = prevRR + 0,
+                            Time = signal.Time,
+                            Id = signal.Id,
+                        });
+
+                    annotationXAxis.Add(new AnnotationXAxis()
+                        {
+                            Time = signal.Time,
+                            Text = "Error"
+                        });
                 }
             }
 
@@ -340,6 +384,10 @@
                 await _lineChart.InitAsync("RR", signalPoints, "RR", orderPoints);
             else
                 await _lineChart.UpdateAsync("RR", signalPoints, "RR", orderPoints);
+
+            await _lineChart.ClearAnnotationsAsync();
+            await _lineChart.AddAnnotationsAsync(annotationPoints);
+            await _lineChart.AddAnnotationsAsync(annotationXAxis);
         }
     }
 }

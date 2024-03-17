@@ -48,6 +48,7 @@ builder.Services.AddTransient<LogRepository>();
 builder.Services.AddTransient<ClientRepository>();
 builder.Services.AddTransient<DealRepository>();
 builder.Services.AddTransient<TradingviewAlertRepository>();
+builder.Services.AddTransient<MarketAbstentionRepository>();
 
 // Init the frontend pages
 builder.Services.Configure<RazorPagesOptions>(options =>

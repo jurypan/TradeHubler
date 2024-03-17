@@ -93,7 +93,7 @@ export function apexAreaChartInit(element, refId, name, data, options) {
     window.apexcharts[refId].render();
 }
 
-export function apexLineChartInit(element, refId, name1, data1, name2, data2, options) {
+export function apexLineChartInit(element, refId, name1, data1, name2, data2) {
     if (element == null) {
         console.error("element was null. Please define a reference for your Apex element.");
         return;
@@ -166,6 +166,14 @@ export function apexLineChartInit(element, refId, name1, data1, name2, data2, op
                     format: "dd/MM/yy HH:mm:ss"
                 },
                 theme: "dark",
+                //custom: function ({ series, seriesIndex, dataPointIndex, w }) {
+                //    var data = series[seriesIndex][dataPointIndex];
+
+                //    return '<ul>' +
+                //        '<li><b>RR</b>: ' + data.Price + '</li>' +
+                //        '<li><b>Magic</b>: ' + data.Magic + '</li>' +
+                //        '</ul>';
+                //}
             },
             legend: {
                 show: false,
@@ -193,6 +201,95 @@ export function apexLineChartUpdate(element, refId, name1, data1, name2, data2) 
             },
         ]
     );
+}
+
+export function apexClearAnnotations(element, refId) {
+    if (element == null) {
+        console.error("element was null. Please define a reference for your Apex element.");
+        return;
+    }
+
+    // Prepare chart element
+    window.apexcharts[refId].clearAnnotations();
+}
+
+export function apexAddPointAnnotations(element, refId, annotations) {
+    if (element == null) {
+        console.error("element was null. Please define a reference for your Apex element.");
+        return;
+    }
+
+    // Prepare chart element
+    for (var i = 0; i < annotations.length; i++) {
+        window.apexcharts[refId].addPointAnnotation({
+            x: annotations[i].x,
+            y: annotations[i].y,
+            marker: {
+                size: 6,
+                fillColor: "#fff",
+                strokeColor: "#2698FF",
+                radius: 2
+            },
+            label: {
+                borderColor: "#FF4560",
+                offsetY: 0,
+                style: {
+                    color: "#fff",
+                    background: "#FF4560"
+                },
+                text: annotations[i].text
+            }
+        });
+    }
+}
+
+export function apexAddYAxisAnnotations(element, refId, annotations) {
+    if (element == null) {
+        console.error("element was null. Please define a reference for your Apex element.");
+        return;
+    }
+
+    // Prepare chart element
+    for (var i = 0; i < annotations.length; i++) {
+        window.apexcharts[refId].addYaxisAnnotation({
+            y: annotations[i].y,
+            borderColor: "#00E396",
+            opacity: 0.3,
+            label: {
+                borderColor: "#00E396",
+                style: {
+                    color: "#fff",
+                    background: "#00E396"
+                },
+                text: annotations[i].text
+            }
+        });
+    }
+}
+
+export function apexAddXAxisAnnotations(element, refId, annotations) {
+    if (element == null) {
+        console.error("element was null. Please define a reference for your Apex element.");
+        return;
+    }
+
+    // Prepare chart element
+    for (var i = 0; i < annotations.length; i++) {
+        window.apexcharts[refId].addXaxisAnnotation({
+            x: annotations[i].x,
+            strokeDashArray: 0,
+            borderColor: "#775DD0",
+            opacity: 0.3,
+            label: {
+                borderColor: "#775DD0",
+                style: {
+                    color: "#fff",
+                    background: "#775DD0"
+                },
+                text: annotations[i].text
+            }
+        });
+    }
 }
 
 export function apexAreaChartMiniInit(element, refId, name, data, color) {
