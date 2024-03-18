@@ -202,7 +202,7 @@
                                                 </a>
                                             </li>
                                             <li>
-                                                <a class="dropdown-item d-flex align-items-center gap-3" href="/Signals/@signal.ID/Log">
+                                                <a class="dropdown-item d-flex align-items-center gap-3" @onclick="() => LogSignalClick(signal.ID)">
                                                    Raw Log
                                                 </a>
                                             </li>
@@ -237,6 +237,8 @@
     <SignalDeleteModal @ref="@_signalDeleteModal"></SignalDeleteModal>
 
     <SignalRetryModal @ref="@_signalRetryModal"></SignalRetryModal>
+
+    <SignalLogModal @ref="@_signalLogModal"></SignalLogModal>
 </div>
 
 
@@ -250,6 +252,7 @@
     private SignalAddOrEditModal? _signalAddOrEditModal { get; set; } = null;
     private SignalDeleteModal? _signalDeleteModal { get; set; } = null;
     private SignalRetryModal? _signalRetryModal { get; set; } = null;
+    private SignalLogModal? _signalLogModal { get; set; } = null;
 
 
 
@@ -285,6 +288,14 @@
         if (_signalAddOrEditModal != null)
         {
             await _signalAddOrEditModal.InitAsync(692803787);
+        }
+    }
+
+    private async Task LogSignalClick(long id)
+    {
+        if (_signalLogModal != null)
+        {
+            await _signalLogModal.InitAsync(692803787, id);
         }
     }
 

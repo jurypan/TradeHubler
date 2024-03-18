@@ -165,7 +165,7 @@
                                                                     <a class="dropdown-item d-flex align-items-center gap-3" @onclick="() => EditASignalClick(signal.ID)">Edit signal</a>
                                                                 </li>
                                                                 <li>
-                                                                    <a href="/Signals/@signal.ID/Log" class="dropdown-item d-flex align-items-center gap-3">Raw Signal Log</a>
+                                                                    <a class="dropdown-item d-flex align-items-center gap-3" @onclick="() => LogSignalClick(signal.ID)">Raw Signal Log</a>
                                                                 </li>
                                                                 @if(order != null)
                                                                 {
@@ -173,7 +173,7 @@
                                                                         <a class="dropdown-item d-flex align-items-center gap-3" @onclick="() => EditAnOrderClick(order.ID)">Edit order</a>
                                                                     </li>
                                                                     <li>
-                                                                        <a href="/Signals/@signal.ID/Orders/@order.ClientID/Logs" class="dropdown-item d-flex align-items-center gap-3">Raw Order Log</a>
+                                                                        <a class="dropdown-item d-flex align-items-center gap-3" @onclick="() => LogOrderClick(signal.ID)">Raw Order Log</a>
                                                                     </li>
                                                                 }
                                                                 else if(marketAbstention != null)
@@ -217,6 +217,10 @@
     <MarketAbstentionAddOrEditModal @ref="@_marketAbstentionAddOrEditModal"></MarketAbstentionAddOrEditModal>
 
     <OrderAddOrEditModal @ref="@_orderAddOrEditModal"></OrderAddOrEditModal>
+
+    <SignalLogModal @ref="@_signalLogModal"></SignalLogModal>
+
+    <OrderLogModal @ref="@_orderLogModal"></OrderLogModal>
 </div>
 
 @code {
@@ -226,8 +230,10 @@
     private bool _init { get; set; } = false;
     private LineChart? _lineChart { get; set; } = null;
     private SignalAddOrEditModal? _signalAddOrEditModal { get; set; } = null;
+    private SignalLogModal? _signalLogModal { get; set; } = null;
     private MarketAbstentionAddOrEditModal? _marketAbstentionAddOrEditModal { get; set; } = null;
     private OrderAddOrEditModal? _orderAddOrEditModal { get; set; } = null;
+    private OrderLogModal? _orderLogModal { get; set; } = null;
     private List<Entity.Signal> _signals { get; set; } = new();
     private List<Entity.Order> _orders { get; set; } = new();
     private List<Entity.MarketAbstention> _marketAbstentions { get; set; } = new();
@@ -447,9 +453,9 @@
 
     private async Task LogSignalClick(long id)
     {
-        if (_signalAddOrEditModal != null)
+        if (_signalLogModal != null)
         {
-            await _signalAddOrEditModal.InitAsync(692803787, id);
+            await _signalLogModal.InitAsync(692803787, id);
         }
     }
 
@@ -458,6 +464,14 @@
         if (_orderAddOrEditModal != null)
         {
             await _orderAddOrEditModal.InitAsync(692803787, id);
+        }
+    }
+
+    private async Task LogOrderClick(long id)
+    {
+        if (_orderLogModal != null && _filterClient != null)
+        {
+            await _orderLogModal.InitAsync(692803787, _filterClient.ID, id);
         }
     }
 

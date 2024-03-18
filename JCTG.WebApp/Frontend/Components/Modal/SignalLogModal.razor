@@ -1,0 +1,78 @@
+﻿@inject TradingviewAlertRepository _tradingviewAlertRepository;
+
+<div class="modal fade @_cssClass" tabindex="-1" style="display:@_display">
+    <div class=" modal-dialog modal-dialog-scrollable modal-xl">
+        <div class="modal-content">
+            <div class="modal-header modal-colored-header bg-primary text-white">
+                <h4 class="modal-title text-white" id="primary-header-modalLabel"> Signal Log </h4>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" @onclick="() => Close()"></button>
+            </div>
+            <div class="modal-body">
+                <div class="table-responsive">
+                    <table class="table border table-striped table-bordered display text-nowrap">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Date Created</th>
+                                <th>Error Type</th>
+                                <th>Raw Message</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var alert in _tradingviewAlerts)
+                            {
+                                <tr>
+                                    <td>@alert.ID</td>
+                                    <td>@alert.DateCreated</td>
+                                    <td>@alert.Type</td>
+                                    <td>@((MarkupString)alert.RawMessage.Replace("||", "<br />").Replace(",", "<br />"))</td>
+                                </tr>
+                            }
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <th>ID</th>
+                                <th>Date Created</th>
+                                <th>Error Type</th>
+                                <th>Raw Message</th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <div class="d-flex gap-6 m-0">
+                    <button class="btn bg-danger-subtle text-danger rounded-pill" @onclick="() => Close()"> Close </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@code {
+    private List<Entity.TradingviewAlert> _tradingviewAlerts = new();
+
+    private string _display = "none;";
+    private string _cssClass = "hide";
+
+    public void Open()
+    {
+        _display = "block;";
+        _cssClass = "show";
+        StateHasChanged();
+    }
+
+    public void Close()
+    {
+        _display = "none;";
+        _cssClass = "hide";
+        StateHasChanged();
+    }
+
+    public async Task InitAsync(int accountId, long signalId)
+    {
+        _tradingviewAlerts = await _tradingviewAlertRepository.GetAll(signalId);
+        Open();
+    }
+}

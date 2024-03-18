@@ -28,7 +28,7 @@ public class SignalRepository(IDbContextFactory<JCTGDbContext> dbContextFactory)
         return await context.Signal
             .Include(f => f.Orders)
             .Where(f => f.AccountID == accountId && f.StrategyType == strategyType && f.ExitRiskRewardRatio.HasValue)
-            .OrderBy(f => f.DateLastUpdated)
+            .OrderByDescending(f => f.DateLastUpdated)
             .Take(200)
             .ToListAsync();
     }

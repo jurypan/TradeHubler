@@ -407,7 +407,7 @@ namespace JCTG.Client
                                                                                         orderType = OrderType.BuyLimit;
                                                                                     else if (pair.OrderExecType == OrderExecType.Active && metadataTick.Ask > price)
                                                                                         orderType = OrderType.Buy;
-                                                                                    api.ExecuteOrder(pair.TickerInMetatrader, orderType, lotSize, price.Value, sl, tp, (int)cmd.Magic, comment);
+                                                                                    api.ExecuteOrder(pair.TickerInMetatrader, orderType, lotSize, orderType == OrderType.Buy ? 0 : price.Value, sl, tp, (int)cmd.Magic, comment);
 
                                                                                     // Send to logs
                                                                                     if (_appConfig.Debug)
@@ -743,13 +743,13 @@ namespace JCTG.Client
                                                                                     // Setup the order
                                                                                     var comment = string.Format($"{cmd.SignalID}/{price}/{sl}/{(int)pair.StrategyNr}/{spread}");
                                                                                     var orderType = OrderType.SellStop;
-                                                                                    if (pair.OrderExecType == OrderExecType.Passive && metadataTick.Ask < price)
+                                                                                    if (pair.OrderExecType == OrderExecType.Passive && metadataTick.Ask < price.Value)
                                                                                         orderType = OrderType.SellLimit;
-                                                                                    else if (pair.OrderExecType == OrderExecType.Active && metadataTick.Ask < price)
+                                                                                    else if (pair.OrderExecType == OrderExecType.Active && metadataTick.Ask < price.Value)
                                                                                         orderType = OrderType.Sell;
 
                                                                                     // Execute order
-                                                                                    api.ExecuteOrder(pair.TickerInMetatrader, orderType, lotSize, price.Value, sl, tp, (int)cmd.Magic, comment);
+                                                                                    api.ExecuteOrder(pair.TickerInMetatrader, orderType, lotSize, orderType == OrderType.Sell ? 0 : price.Value, sl, tp, (int)cmd.Magic, comment);
 
                                                                                     // Send to logs
                                                                                     if (_appConfig.Debug)
