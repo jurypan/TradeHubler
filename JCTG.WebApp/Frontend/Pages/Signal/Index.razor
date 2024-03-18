@@ -50,28 +50,35 @@
             <h5 class="card-title fw-semibold mb-0 lh-sm">Filters</h5>
         </div>
         <ul class="nav nav-pills card-body p-4">
-            <li class="nav-item">
-                <a @onclick="() => ClickFilterAsync(null)" class="nav-link note-link d-flex align-items-center justify-content-center px-3 px-md-3 me-0 me-md-2 text-body-color btn @(_filterStrategyType == null ? "active" : "")" id="all-category">
-                    <iconify-icon icon="tabler:list" class="fill-white me-0 me-md-1"></iconify-icon>
-                    <span class="d-none d-md-block font-weight-medium">All</span>
-                </a>
-            </li>
             @foreach (StrategyType strategy in Enum.GetValues(typeof(StrategyType)))
             {
-                if (strategy != StrategyType.None)
-                {
-                    <li class="nav-item">
-                        <a @onclick="() => ClickFilterAsync(strategy)" class="nav-link note-link d-flex align-items-center justify-content-center px-3 px-md-3 me-0 me-md-2 text-body-color btn  @(_filterStrategyType != null && _filterStrategyType == strategy ? "active" : "")" id="all-category">
-                            <iconify-icon icon="tabler:list" class="fill-white me-0 me-md-1"></iconify-icon>
-                            <span class="d-none d-md-block font-weight-medium">@strategy</span>
-                        </a>
-                    </li>
-                }
+                <li class="nav-item">
+                    <a @onclick="async () => await ClickStrategyTypeFilterAsync(strategy)" class="nav-link note-link d-flex align-items-center justify-content-center px-3 px-md-3 me-0 me-md-2 text-body-color btn  @(_filterStrategyType != null && _filterStrategyType == strategy ? "active" : "")">
+                        <iconify-icon icon="tabler:list" class="fill-white me-0 me-md-1"></iconify-icon>
+                        <span class="d-none d-md-block font-weight-medium">@strategy</span>
+                    </a>
+                </li>
+            }
+        </ul>
+        <ul class="nav nav-pills card-body p-4">
+            <li class="nav-item">
+                <a @onclick="async () => await ClickInstrumentFilterAsync(null)" class="nav-link note-link d-flex align-items-center justify-content-center px-3 px-md-3 me-0 me-md-2 text-body-color btn  @(_filterInstrument == null ? "active" : "")">
+                    <iconify-icon icon="tabler:list" class="fill-white me-0 me-md-1"></iconify-icon>
+                    <span class="d-none d-md-block font-weight-medium">None</span>
+                </a>
+            </li>
+            @foreach (string instrument in _instruments.OrderBy(f => f))
+            {
+                <li class="nav-item">
+                    <a @onclick="async () => await ClickInstrumentFilterAsync(instrument)" class="nav-link note-link d-flex align-items-center justify-content-center px-3 px-md-3 me-0 me-md-2 text-body-color btn  @(_filterInstrument != null && _filterInstrument == instrument ? "active" : "")">
+                        <iconify-icon icon="tabler:list" class="fill-white me-0 me-md-1"></iconify-icon>
+                        <span class="d-none d-md-block font-weight-medium">@instrument</span>
+                    </a>
+                </li>
             }
         </ul>
     </div>
     
-
     <div class="row card w-100 position-relative overflow-hidden">
         <div class="px-4 py-3 border-bottom">
             <h5 class="card-title fw-semibold mb-0 lh-sm">Signals</h5>
@@ -146,28 +153,33 @@
                                 <td>
                                     @if (signal.TradingviewStateType == TradingviewStateType.Init)
                                     {
-                                        <p class="btn px-4 fs-4 bg-info-subtle text-success">Init Trade</p>
+                                        <span class="mb-1 badge rounded-pill  bg-primary-subtle text-primary">Init</span>
                                     }
                                     else if (signal.TradingviewStateType == TradingviewStateType.Entry)
                                     {
-                                        <p class="btn px-4 fs-4 bg-warning-subtle text-warning">Trade Entry</p>
+                                        <span class="mb-1 badge rounded-pill  bg-secondary-subtle text-secondary">Entry</span>
                                     }
                                     else if (signal.TradingviewStateType == TradingviewStateType.BeHit)
                                     {
-                                        <p class="btn px-4 fs-4 bg-warning-subtle text-warning">Be Hit</p>
+                                        <span class="mb-1 badge rounded-pill  bg-warning-subtle text-warning">BE</span>
                                     }
                                     else if (signal.TradingviewStateType == TradingviewStateType.SlHit)
                                     {
-                                        <p class="btn px-4 fs-4 bg-danger-subtle text-danger">SL Hit</p>
+                                        <span class="mb-1 badge rounded-pill  bg-danger-subtle text-danger">SL</span>
                                     }
                                     else if (signal.TradingviewStateType == TradingviewStateType.TpHit)
                                     {
-                                        <p class="btn px-4 fs-4 bg-success-subtle text-success">TP Hit</p>
+                                        <span class="mb-1 badge rounded-pill  bg-success-subtle text-success">TP</span>
                                     }
                                     else if (signal.TradingviewStateType == TradingviewStateType.Cancel)
                                     {
-                                        <p class="btn px-4 fs-4 text-bg-muted text-dark">Order Cancelled</p>
+                                        <span class="mb-1 badge rounded-pill  bg-info-subtle text-info">Cancelled</span>
                                     }
+                                    else if (signal.TradingviewStateType == TradingviewStateType.CloseAll)
+                                    {
+                                        <span class="mb-1 badge rounded-pill  bg-info-subtle text-info">Close</span>
+                                    }
+                                    
                                 </td>
                                 <td>
                                     @if (signal.TradingviewStateType == TradingviewStateType.Init)
@@ -244,10 +256,10 @@
 
 @code {
     private List<Entity.Signal> _signals { get; set; } = new();
+    private List<string> _instruments { get; set; } = new();
 
-    private StrategyType? _filterStrategyType { get; set; } = null;
+    private StrategyType _filterStrategyType { get; set; } = StrategyType.None;
     private string? _filterInstrument { get; set; } = null;
-    private string? _filterOrderType { get; set; } = null;
 
     private SignalAddOrEditModal? _signalAddOrEditModal { get; set; } = null;
     private SignalDeleteModal? _signalDeleteModal { get; set; } = null;
@@ -259,26 +271,45 @@
     protected override async Task OnInitializedAsync()
     {
         _signals = await _signalRepository.GetAllLast200(692803787);
+        _instruments = (await _signalRepository.GetAllLast200(692803787)).Select(f => f.Instrument).Distinct().ToList();
     }
 
-    private async Task ClickFilterAsync(StrategyType? strategyType)
+    private async Task ClickStrategyTypeFilterAsync(StrategyType strategyType)
     {
         _filterStrategyType = strategyType;
+        _filterInstrument = null;
+        _instruments = (await _signalRepository.GetAllLast200ByStrategyType(692803787, _filterStrategyType)).Select(f => f.Instrument).Distinct().ToList();
+        await FilterAsync();
+    }
 
-        if (!strategyType.HasValue)
+    private async Task ClickInstrumentFilterAsync(string? instrument)
+    {
+        _filterInstrument = instrument;
+        await FilterAsync();
+    }
+
+    private async Task FilterAsync()
+    {
+        if (_filterStrategyType == StrategyType.None)
         {
-            _signals = await _signalRepository.GetAll(692803787);
-        }
-        else
-        {
-            var strategy = (StrategyType)strategyType;
-            if (strategy == StrategyType.None)
+            if (_filterInstrument == null)
             {
-                _signals = await _signalRepository.GetAll(692803787);
+                _signals = await _signalRepository.GetAllLast200(692803787);
             }
             else
             {
-                _signals = await _signalRepository.GetAllByStrategy(692803787, strategy);
+                _signals = await _signalRepository.GetAllLast200ByInstrument(692803787, _filterInstrument);
+            }
+        }
+        else
+        {
+            if (_filterInstrument == null)
+            {
+                _signals = await _signalRepository.GetAllLast200ByStrategyType(692803787, _filterStrategyType); 
+            }
+            else
+            {
+                _signals = await _signalRepository.GetAllLast200ByStrategyType(692803787, _filterStrategyType, _filterInstrument);
             }
         }
     }

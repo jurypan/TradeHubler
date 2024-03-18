@@ -18,6 +18,20 @@ public class OrderRepository(IDbContextFactory<JCTGDbContext> dbContextFactory)
                         .ToListAsync();
     }
 
+    public async Task<List<Order>> GetAllBySignalId(long accountId, long signalId)
+    {
+        using var context = await dbContextFactory.CreateDbContextAsync();
+        return await context.Order
+            .Include(f => f.Client)
+            .Include(f => f.Signal)
+            .Where(f => f.Client != null
+                        && f.Client.AccountID == accountId
+                        && f.SignalID == signalId
+                        )
+                        .OrderByDescending(f => f.DateCreated)
+                        .ToListAsync();
+    }
+
     public async Task<List<Order>> GetAll(long accountId, long clientId, string symbol)
     {
         using var context = await dbContextFactory.CreateDbContextAsync();

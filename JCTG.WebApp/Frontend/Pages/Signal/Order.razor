@@ -1,6 +1,7 @@
 ﻿@page "/Signals/{signalid:long}/Orders";
 @inject SignalRepository _signalRepository;
-@inject ClientRepository _clientRepository;
+@inject OrderRepository _orderRepository;
+@inject MarketAbstentionRepository _marketAbstentionRepository;
 @using JCTG.WebApp.Frontend.Components.Modal;
 
 <div class="container-fluid mw-100">
@@ -25,6 +26,9 @@
                                     Signals
                                 </a>
                             </li>
+                            <li class="breadcrumb-item d-flex justify-content-center align-items-center ps-0">
+                                <iconify-icon icon="tabler:chevron-right"></iconify-icon>
+                            </li>
                             <li class="breadcrumb-item" aria-current="page">
                                 Orders
                             </li>
@@ -47,133 +51,136 @@
     </div>
 
     <div class="row">
-        <div class="d-flex border-bottom title-part-padding px-0 mb-3 align-items-center">
-            <div>
-                <h4 class="mb-0 fs-5">Clients <b>with</b> orders for this signal</h4>
-            </div>
-        </div>
-        @foreach (var order in _orders)
-        {
-            <div class="col-md-6 col-lg-4">
-                <div class="card rounded-3 card-hover">
-                    <a @onclick="() => LogOrderClick(order.Client?.ID, SignalId)" class="stretched-link"></a>
-                    <div class="card-body">
-                        <div class="d-flex align-items-center">
-                            <span class="flex-shrink-0"><i class="ti ti-folder-down text-danger display-6"></i></span>
-                            <div class="ms-4">
-                                <h4 class="card-title text-dark">@order.Client?.Name</h4>
-                                <h6 class="card-subtitle mb-0 fs-2 fw-normal mb-1">@order.Client?.Currency @order.Client?.Balance</h6>
-                            </div>
-                        </div>
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="mb-2">
+                        <h5 class="mb-4">Orders</h5>
                     </div>
-                </div>
-            </div>
-        }
-    </div>
-
-
-   
-    <div class="row">
-        <div class="d-flex border-bottom title-part-padding px-0 mb-3 align-items-center">
-            <div>
-                <h4 class="mb-0 fs-5">Clients <b>without</b> orders for this signal</h4>
-            </div>
-        </div>
-        @foreach (var client in _clients)
-        {
-            <div class="col-md-6 col-lg-4">
-                <div class="card rounded-3 card-hover">
-                    <a @onclick="() => LogOrderClick(client.ID, SignalId)" class="stretched-link"></a>
-                    <div class="card-body">
-                        <div class="d-flex align-items-center">
-                            <span class="flex-shrink-0"><i class="ti ti-folder-down text-danger display-6"></i></span>
-                            <div class="ms-4">
-                                <h4 class="card-title text-dark">@client.Name</h4>
-                                <h6 class="card-subtitle mb-0 fs-2 fw-normal mb-1">@client.Currency @client.Balance</h6>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        }
-    </div>
-
-    <div class="row">
-        <div class="datatables">
-            <div class="row">
-                <div class="col-12">
-                    <div class="card">
-                        <div class="card-body">
-                            <div class="mb-2">
-                                <h5 class="mb-0">Signals</h5>
-                            </div>
-                            <div class="table-responsive">
-                                <table id="file_export" class="table border table-striped table-bordered display text-nowrap">
-                                    <thead>
+                    <div class="table-responsive">
+                        @if(_orders.Count() > 0)
+                        {
+                            <table class="table border table-striped table-bordered display text-nowrap">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Client</th>
+                                        <th>Symbol</th>
+                                        <th>Type</th>
+                                        <th>Magic</th>
+                                        <th>Pnl</th>
+                                        <th>TV State Type</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var order in _orders)
+                                    {
                                         <tr>
-                                            <th>ID</th>
-                                            <th>Magic</th>
-                                            <th>Date Created</th>
-                                            <th>Date Last Updated</th>
-                                            <th>Instrument</th>
-                                            <th>Order Type</th>
-                                            <th>State</th>
-                                            <th></th>
+                                            <td>@order.ID</td>
+                                            <td>@order.Client?.Name</td>
+                                            <td>@order.Symbol</td>
+                                            <td>@order.Type</td>
+                                            <td>@order.Magic</td>
+                                            <td>@order.Pnl</td>
+                                            <td>@order.Signal.TradingviewStateType</td>
+                                            <td>
+                                                <div class="dropdown dropstart">
+                                                    <a href="#" class="text-muted" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+                                                        <i class="ti ti-dots-vertical fs-6"></i>
+                                                    </a>
+                                                    <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                                                        <li>
+                                                            <a class="dropdown-item d-flex align-items-center gap-3" @onclick="async () => await OrderEditClick(order.ID)">Edit</a>
+                                                        </li>
+                                                        <li>
+                                                            <a class="dropdown-item d-flex align-items-center gap-3" @onclick="async () => await OrderLogClick(order.ClientID, order.SignalID)">Log</a>
+                                                        </li>
+                                                    </ul>
+                                                </div>
+                                            </td>
                                         </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach (var signal in _signals)
-                                        {
-                                            <tr>
-                                                <td>@signal.ID</td>
-                                                <td>@signal.Magic</td>
-                                                <td>@signal.DateCreated</td>
-                                                <td>@signal.DateLastUpdated</td>
-                                                <td>@signal.Instrument</td>
-                                                <td>@signal.OrderType</td>
-                                                <td>@signal.TradingviewStateType</td>
-                                                <td>
-                                                    <div class="dropdown dropstart">
-                                                        <a href="#" class="text-muted" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
-                                                            <i class="ti ti-dots-vertical fs-6"></i>
-                                                        </a>
-                                                        <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                                                            <li>
-                                                                <a class="dropdown-item d-flex align-items-center gap-3" @onclick="() => EditASignalClick(signal.ID)">Edit</a>
-                                                            </li>
-                                                            <li>
-                                                                <a class="dropdown-item d-flex align-items-center gap-3" @onclick="() => DeleteASignalClick(signal.ID)">Delete</a>
-                                                            </li>
-                                                        </ul>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        }
-                                    </tbody>
-                                    <tfoot>
-                                        <tr>
-                                            <th>ID</th>
-                                            <th>Magic</th>
-                                            <th>Date Created</th>
-                                            <th>Date Last Updated</th>
-                                            <th>Instrument</th>
-                                            <th>Order Type</th>
-                                            <th>State</th>
-                                            <th></th>
-                                        </tr>
-                                    </tfoot>
-                                </table>
+                                    }
+                                </tbody>
+                            </table>
+                        }
+                        else
+                        {
+                            <div class="mt-4">
+                                <div class="alert bg-primary-subtle text-primary alert-dismissible fade show" role="alert">
+                                    <div class="d-flex align-items-center text-danger ">
+                                        <i class="ti ti-info-circle me-2 fs-4"></i>
+                                        This signal doesn't have any orders
+                                    </div>
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
                             </div>
-                        </div>
+                        }
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <SignalAddOrEditModal @ref="@_signalAddOrEditModal"></SignalAddOrEditModal>
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="mb-2">
+                        <h5 class="mb-4">Market Abstention</h5>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table border table-striped table-bordered display text-nowrap">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Client</th>
+                                    <th>Symbol</th>
+                                    <th>Type</th>
+                                    <th>Magic</th>
+                                    <th>Message</th>
+                                    <th>TV State Type</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var marketAbstention in _marketAbstentions)
+                                {
+                                    <tr>
+                                        <td>@marketAbstention.ID</td>
+                                        <td>@marketAbstention.Client?.Name</td>
+                                        <td>@marketAbstention.Symbol</td>
+                                        <td>@marketAbstention.Type</td>
+                                        <td>@marketAbstention.Magic</td>
+                                        <td>@marketAbstention.LogMessage</td>
+                                        <td>@marketAbstention.Signal.TradingviewStateType</td>
+                                        <td>
+                                            <div class="dropdown dropstart">
+                                                <a href="#" class="text-muted" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+                                                    <i class="ti ti-dots-vertical fs-6"></i>
+                                                </a>
+                                                <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                                                    <li>
+                                                        <a class="dropdown-item d-flex align-items-center gap-3" @onclick="async () => await MarketAbstentionEditClick(marketAbstention.ID)">Edit</a>
+                                                    </li>
+                                                    <li>
+                                                        <a class="dropdown-item d-flex align-items-center gap-3" @onclick="async () => await OrderLogClick(marketAbstention.ClientID, marketAbstention.SignalID)">Log</a>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-    <SignalDeleteModal @ref="@_signalDeleteModal"></SignalDeleteModal>
+    <OrderAddOrEditModal @ref="@_orderAddOrEditModal"></OrderAddOrEditModal>
+
+    <MarketAbstentionAddOrEditModal @ref="@_marketAbstentionAddOrEditModal"></MarketAbstentionAddOrEditModal>
 
     <OrderLogModal @ref="@_orderLogModal"></OrderLogModal>
 </div>
@@ -182,45 +189,23 @@
 
     [Parameter]
     public long SignalId { get; set; }
-    private SignalAddOrEditModal? _signalAddOrEditModal { get; set; } = null;
-    private SignalDeleteModal? _signalDeleteModal { get; set; } = null;
+
+    private OrderAddOrEditModal? _orderAddOrEditModal { get; set; } = null;
+    private MarketAbstentionAddOrEditModal? _marketAbstentionAddOrEditModal { get; set; } = null;
     private OrderLogModal? _orderLogModal { get; set; } = null;
 
-    private Entity.Signal? _signal = null;
+
     private List<Entity.Order> _orders = new List<Entity.Order>();
-    private List<Entity.Client> _clients = new List<Entity.Client>();
-    private List<Entity.Signal> _signals = new List<Entity.Signal>();
+    private List<Entity.MarketAbstention> _marketAbstentions = new List<Entity.MarketAbstention>();
 
     protected async override Task OnInitializedAsync()
     {
-        _signal = await _signalRepository.GetById(692803787, SignalId);
-
-        var clients = await _clientRepository.GetAllAsync(692803787);
-
-        if (_signal != null)
-        {
-            _signals = await _signalRepository.GetAll(692803787, _signal.Instrument, _signal.OrderType, _signal.StrategyType);
-            _orders = _signal.Orders;
-        }
-
-        foreach (var client in clients)
-        {
-            if (!_orders.Any(f => f.ClientID == client.ID))
-            {
-                _clients.Add(client);
-            }
-        }
+        _orders = await _orderRepository.GetAllBySignalId(692803787, SignalId);
+        _marketAbstentions = await _marketAbstentionRepository.GetAllBySignalId(692803787, SignalId);
     }
 
-    private async Task EditASignalClick(long id)
-    {
-        if (_signalAddOrEditModal != null)
-        {
-            await _signalAddOrEditModal.InitAsync(692803787, id);
-        }
-    }
 
-    private async Task LogOrderClick(long? clientId, long signalId)
+    private async Task OrderLogClick(long? clientId, long signalId)
     {
         if (_orderLogModal != null && clientId.HasValue)
         {
@@ -228,11 +213,19 @@
         }
     }
 
-    private async Task DeleteASignalClick(long id)
+    private async Task OrderEditClick(long orderId)
     {
-        if (_signalDeleteModal != null)
+        if (_orderAddOrEditModal != null)
         {
-            await _signalDeleteModal.InitAsync(692803787, id);
+            await _orderAddOrEditModal.InitAsync(692803787, orderId);
+        }
+    }
+
+    private async Task MarketAbstentionEditClick(long marketAbstentionId)
+    {
+        if (_marketAbstentionAddOrEditModal != null)
+        {
+            await _marketAbstentionAddOrEditModal.InitAsync(692803787, marketAbstentionId);
         }
     }
 }
