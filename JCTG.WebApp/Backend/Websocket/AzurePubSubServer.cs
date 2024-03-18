@@ -34,7 +34,7 @@ public class AzurePubSubServer(WebsocketClient client)
             client.ReconnectTimeout = null;
             client.ErrorReconnectTimeout = TimeSpan.FromSeconds(10);
             client.ReconnectionHappened.Subscribe(OnReconnection);
-            client.DisconnectionHappened.Subscribe(OnDisconnect);
+            client.DisconnectionHappened.Subscribe(OnDisconnectAsync);
 
             // Enable the event receive
             client.MessageReceived.Subscribe(msg =>
@@ -134,9 +134,13 @@ public class AzurePubSubServer(WebsocketClient client)
         _logger.Warning($"Reconnected, type: '{info.Type}'");
     }
 
-    private void OnDisconnect(DisconnectionInfo info)
+    private void OnDisconnectAsync(DisconnectionInfo info)
     {
+        // Log
         _logger.Warning($"Disconnected, type: '{info.Type}', reason: '{info.CloseStatus}'");
+
+        // Reconnect
+        Task.Run(async () => await client.Reconnect());
     }
 
     public async Task StopListeningToServerAsync() 

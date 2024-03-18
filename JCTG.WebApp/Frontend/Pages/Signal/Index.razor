@@ -45,28 +45,34 @@
         </div>
     </div>
 
-    <ul class="nav nav-pills p-3 mb-3 rounded align-items-center card flex-row">
-        <li class="nav-item">
-            <a @onclick="() => ClickFilterAsync(null)" class="nav-link note-link d-flex align-items-center justify-content-center px-3 px-md-3 me-0 me-md-2 text-body-color btn @(_strategyType == null ? "active" : "")" id="all-category">
-                <iconify-icon icon="tabler:list" class="fill-white me-0 me-md-1"></iconify-icon>
-                <span class="d-none d-md-block font-weight-medium">All</span>
-            </a>
-        </li>
-        @foreach (StrategyType strategy in Enum.GetValues(typeof(StrategyType)))
-        {
-            if(strategy != StrategyType.None)
+    <div class="row card w-100 position-relative overflow-hidden">
+        <div class="px-4 py-3 border-bottom">
+            <h5 class="card-title fw-semibold mb-0 lh-sm">Filters</h5>
+        </div>
+        <ul class="nav nav-pills card-body p-4">
+            <li class="nav-item">
+                <a @onclick="() => ClickFilterAsync(null)" class="nav-link note-link d-flex align-items-center justify-content-center px-3 px-md-3 me-0 me-md-2 text-body-color btn @(_filterStrategyType == null ? "active" : "")" id="all-category">
+                    <iconify-icon icon="tabler:list" class="fill-white me-0 me-md-1"></iconify-icon>
+                    <span class="d-none d-md-block font-weight-medium">All</span>
+                </a>
+            </li>
+            @foreach (StrategyType strategy in Enum.GetValues(typeof(StrategyType)))
             {
-                <li class="nav-item">
-                    <a @onclick="() => ClickFilterAsync(strategy)" class="nav-link note-link d-flex align-items-center justify-content-center px-3 px-md-3 me-0 me-md-2 text-body-color btn  @(_strategyType != null && _strategyType == strategy ? "active" : "")" id="all-category">
-                        <iconify-icon icon="tabler:list" class="fill-white me-0 me-md-1"></iconify-icon>
-                        <span class="d-none d-md-block font-weight-medium">@strategy</span>
-                    </a>
-                </li>
+                if (strategy != StrategyType.None)
+                {
+                    <li class="nav-item">
+                        <a @onclick="() => ClickFilterAsync(strategy)" class="nav-link note-link d-flex align-items-center justify-content-center px-3 px-md-3 me-0 me-md-2 text-body-color btn  @(_filterStrategyType != null && _filterStrategyType == strategy ? "active" : "")" id="all-category">
+                            <iconify-icon icon="tabler:list" class="fill-white me-0 me-md-1"></iconify-icon>
+                            <span class="d-none d-md-block font-weight-medium">@strategy</span>
+                        </a>
+                    </li>
+                }
             }
-        }
-    </ul>
+        </ul>
+    </div>
+    
 
-    <div class="card w-100 position-relative overflow-hidden">
+    <div class="row card w-100 position-relative overflow-hidden">
         <div class="px-4 py-3 border-bottom">
             <h5 class="card-title fw-semibold mb-0 lh-sm">Signals</h5>
         </div>
@@ -93,7 +99,9 @@
                             <th>
                                 <h6 class="fs-4 fw-semibold mb-0">Strategy</h6>
                             </th>
-
+                            <th>
+                                <h6 class="fs-4 fw-semibold mb-0">Orders</h6>
+                            </th>
                             <th></th>
                         </tr>
                     </thead>
@@ -181,6 +189,7 @@
                                         </span>
                                     }
                                 </td>
+                                <td>@signal.Orders.Count()</td>
                                 <td>
                                     <div class="dropdown dropstart">
                                         <a href="#" class="text-muted" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
@@ -232,8 +241,12 @@
 
 
 @code {
-    private List<Entity.Signal> _signals = new ();
-    private StrategyType? _strategyType = null;
+    private List<Entity.Signal> _signals { get; set; } = new();
+
+    private StrategyType? _filterStrategyType { get; set; } = null;
+    private string? _filterInstrument { get; set; } = null;
+    private string? _filterOrderType { get; set; } = null;
+
     private SignalAddOrEditModal? _signalAddOrEditModal { get; set; } = null;
     private SignalDeleteModal? _signalDeleteModal { get; set; } = null;
     private SignalRetryModal? _signalRetryModal { get; set; } = null;
@@ -242,12 +255,12 @@
 
     protected override async Task OnInitializedAsync()
     {
-        _signals = await _signalRepository.GetAll(692803787);
+        _signals = await _signalRepository.GetAllLast200(692803787);
     }
 
     private async Task ClickFilterAsync(StrategyType? strategyType)
     {
-        _strategyType = strategyType;
+        _filterStrategyType = strategyType;
 
         if (!strategyType.HasValue)
         {

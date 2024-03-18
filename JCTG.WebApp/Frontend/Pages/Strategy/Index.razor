@@ -147,7 +147,7 @@
                                                         else if (marketAbstention != null)
                                                         {
                                                             <td></td>
-                                                            <td>@marketAbstention.MarketAbstentionType.GetDescription()</td>
+                                                            <td>Error : @marketAbstention.LogMessage</td>
                                                         }
                                                         else
                                                         {
@@ -162,26 +162,27 @@
                                                             </a>
                                                             <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
                                                                 <li>
-                                                                    <a class="dropdown-item d-flex align-items-center gap-3" @onclick="() => EditASignalClick(signal.ID)">
-                                                                        Edit signal
-                                                                    </a>
+                                                                    <a class="dropdown-item d-flex align-items-center gap-3" @onclick="() => EditASignalClick(signal.ID)">Edit signal</a>
+                                                                </li>
+                                                                <li>
+                                                                    <a href="/Signals/@signal.ID/Log" class="dropdown-item d-flex align-items-center gap-3">Raw Signal Log</a>
                                                                 </li>
                                                                 @if(order != null)
                                                                 {
                                                                     <li>
-                                                                        <a class="dropdown-item d-flex align-items-center gap-3" @onclick="() => EditAnOrderClick(order.ID)">
-                                                                            Edit order
-                                                                        </a>
+                                                                        <a class="dropdown-item d-flex align-items-center gap-3" @onclick="() => EditAnOrderClick(order.ID)">Edit order</a>
+                                                                    </li>
+                                                                    <li>
+                                                                        <a href="/Signals/@signal.ID/Orders/@order.ClientID/Logs" class="dropdown-item d-flex align-items-center gap-3">Raw Order Log</a>
                                                                     </li>
                                                                 }
                                                                 else if(marketAbstention != null)
                                                                 {
                                                                     <li>
-                                                                        <a class="dropdown-item d-flex align-items-center gap-3" @onclick="() => EditAMarketAbstentionClick(marketAbstention.ID)">
-                                                                            Edit market abstention
-                                                                        </a>
+                                                                        <a class="dropdown-item d-flex align-items-center gap-3" @onclick="() => EditAMarketAbstentionClick(marketAbstention.ID)">Edit market abstention</a>
                                                                     </li>
                                                                 }
+                                                                
                                                                 
                                                             </ul>
                                                         </div>
@@ -300,7 +301,7 @@
         if (_filterClient != null && _lineChart != null)
         {
             // Get data from database
-            _signals = await _signalRepository.GetAllTradesByStrategyType(692803787, (StrategyType)Id);
+            _signals = await _signalRepository.GetAllLast200ByStrategyType(692803787, (StrategyType)Id);
             _orders = await _orderRepository.GetAllByStrategType(692803787, _filterClient.ID, (StrategyType)Id);
             var pairs = await _clientRepository.GetAllPairsByIdAsync(692803787, _filterClient.ID, (StrategyType)Id);
             _signals = _signals.Where(f => pairs.Select(f => f.TickerInTradingView).ToList().Contains(f.Instrument)).ToList();
@@ -437,6 +438,14 @@
 
 
     private async Task EditASignalClick(long id)
+    {
+        if (_signalAddOrEditModal != null)
+        {
+            await _signalAddOrEditModal.InitAsync(692803787, id);
+        }
+    }
+
+    private async Task LogSignalClick(long id)
     {
         if (_signalAddOrEditModal != null)
         {

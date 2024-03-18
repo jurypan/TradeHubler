@@ -75,7 +75,11 @@ namespace JCTG.Client
 
         private void OnDisconnect(DisconnectionInfo info)
         {
+            // Log
             Console.WriteLine($"INFO : {DateTime.UtcNow} / Disconnection happened, type: {info.Type}, reason: {info.CloseStatus}");
+
+            // Reconnect
+            Task.Run(async () => await client.Reconnect());
         }
 
         public async Task<bool> StopListeningToServerAsync() 

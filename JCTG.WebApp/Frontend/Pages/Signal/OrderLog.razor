@@ -70,6 +70,7 @@
                                             <th>Type</th>
                                             <th>Error Type</th>
                                             <th>Message</th>
+                                            <th>Description</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -79,17 +80,8 @@
                                                 <td>@log.DateCreated</td>
                                                 <td>@log.Type</td>
                                                 <td>@log.ErrorType</td>
-                                                <td>
-                                                    @if (log.Description == null)
-                                                    {
-                                                        @((MarkupString)log.Message?.Replace("||", "<br />").Replace(",", "<br />"))
-                                                    }
-                                                    else
-                                                    {
-                                                        @((MarkupString)log.Message?.Replace("||", "<br />").Replace(",", "<br />"))
-                                                        @((MarkupString)log.Description?.Replace("||", "<br />").Replace(",", "<br />"))
-                                                    }
-                                                </td>
+                                                <td>@((MarkupString)log.Message?.Replace("||", "<br />").Replace(",", "<br />"))</td>
+                                                <td>@((MarkupString)log.Description?.Replace("||", "<br />").Replace(",", "<br />"))</td>
                                             </tr>
                                         }
                                     </tbody>
@@ -99,6 +91,7 @@
                                             <th>Type</th>
                                             <th>Error Type</th>
                                             <th>Message</th>
+                                            <th>Description</th>
                                         </tr>
                                     </tfoot>
                                 </table>
