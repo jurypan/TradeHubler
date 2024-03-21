@@ -1,7 +1,6 @@
 ﻿@page "/Signals";
 @inject SignalRepository _signalRepository;
 @inject ClientRepository _clientRepository;
-@inject JCTG.WebApp.Backend.Websocket.AzurePubSubClient _server;
 @using JCTG.WebApp.Frontend.Components.Modal;
 @using JCTG.WebApp.Frontend.Components.Widget;
 @using JCTG.Command;
@@ -266,16 +265,16 @@
                                 </td>
                                 <td>
                                     @{
-                                        var signalCount = signal.Orders.Count();
+                                        var orderCount = signal.Orders.Count();
                                         var clientCount = _clients.SelectMany(f => f.Pairs).Count(f => f.TickerInTradingView == signal.Instrument && f.StrategyType == signal.StrategyType);
                                        
-                                        <span>@signalCount / @clientCount</span>
+                                        <span>@orderCount / @clientCount</span>
                                         
                                     }
                                 </td>
                                 <td>
                                     @{
-                                        if (signalCount < clientCount)
+                                        if (orderCount < clientCount)
                                         {
                                             <iconify-icon icon="pajamas:warning-solid"></iconify-icon>
                                         }
