@@ -1,7 +1,9 @@
 ﻿@page "/Signals";
 @inject SignalRepository _signalRepository;
+@inject ClientRepository _clientRepository;
 @inject JCTG.WebApp.Backend.Websocket.AzurePubSubClient _server;
 @using JCTG.WebApp.Frontend.Components.Modal;
+@using JCTG.WebApp.Frontend.Components.Widget;
 @using JCTG.Command;
 @using JCTG.Models;
 
@@ -31,29 +33,102 @@
                     </nav>
                 </div>
                 <div>
-                    <div class="d-flex no-block justify-content-end align-items-center">
-                        <div class="me-2">
-                            <div class="breadbar"></div>
-                        </div>
-                        <div class="">
-                            <small>LAST MONTH</small>
-                            <h4 class="text-primary mb-0 font-medium">$58,256</h4>
-                        </div>
-                    </div>
+                   <LastMonthWidget></LastMonthWidget>
                 </div>
             </div>
         </div>
     </div>
 
+    <div class="row">
+        <h4 class="mb-3 mt-4 fs-5">Profit and costs</h4>
+        <div class="col-lg-3 col-md-6">
+            <div class="card border-top border-info">
+                <div class="card-body">
+                    <div class="d-flex no-block align-items-center">
+                        <div>
+                            <h2 class="fs-7">$@_totalPnl</h2>
+                            <h6 class="fw-medium text-info mb-0">Total PNL</h6>
+                        </div>
+                        <div class="ms-auto">
+                            <span class="text-info display-6"><i class="ti ti-chart-bar"></i></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="card border-top border-primary">
+                <div class="card-body">
+                    <div class="d-flex no-block align-items-center">
+                        <div>
+                            <h2 class="fs-7">$@_totalCommission</h2>
+                            <h6 class="fw-medium text-primary mb-0">Total Commission</h6>
+                        </div>
+                        <div class="ms-auto">
+                            <span class="text-primary display-6"><i class="ti ti-rss"></i></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="card border-top border-dark">
+                <div class="card-body">
+                    <div class="d-flex no-block align-items-center">
+                        <div>
+                            <h2 class="fs-7">$@_totalSwapCosts</h2>
+                            <h6 class="fw-medium text-dark mb-0">Total Swap Costs</h6>
+                        </div>
+                        <div class="ms-auto">
+                            <span class="text-dark display-6"><i class="ti ti-archive"></i></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="card border-top border-success">
+                <div class="card-body">
+                    <div class="d-flex no-block align-items-center">
+                        <div>
+                            <h2 class="fs-7">$@_totalSpreadCosts</h2>
+                            <h6 class="fw-medium text-success mb-0">Total spread costs</h6>
+                        </div>
+                        <div class="ms-auto">
+                            <span class="text-success display-6"><i class="ti ti-map"></i></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
     <div class="row card w-100 position-relative overflow-hidden">
         <div class="px-4 py-3 border-bottom">
-            <h5 class="card-title fw-semibold mb-0 lh-sm">Filters</h5>
+            <div class="d-flex align-items-center">
+                <div>
+                    <h5 class="card-title fw-semibold mb-0 lh-sm">Filters</h5>
+                </div>
+                <div class="ms-auto d-flex align-items-center">
+                    <ul class="list-inline fs-2 dl me-2">
+                        <li class="list-inline-item">
+                            <select class="form-select" @onchange="SubmitFilterDateAsync">
+                                <option value="0">Last Month</option>
+                                <option value="1">Last Week</option>
+                                <option value="2">Last 3 Days</option>
+                                <option value="3" selected="selected">Last 1 Day</option>
+                            </select>
+                        </li>
+                    </ul>
+                </div>
+            </div>
         </div>
         <ul class="nav nav-pills card-body p-4">
             @foreach (StrategyType strategy in Enum.GetValues(typeof(StrategyType)))
             {
                 <li class="nav-item">
-                    <a @onclick="async () => await ClickStrategyTypeFilterAsync(strategy)" class="nav-link note-link d-flex align-items-center justify-content-center px-3 px-md-3 me-0 me-md-2 text-body-color btn  @(_filterStrategyType != null && _filterStrategyType == strategy ? "active" : "")">
+                    <a @onclick="async () => await SubmitStrategyTypeFilterAsync(strategy)" class="nav-link note-link d-flex align-items-center justify-content-center px-3 px-md-3 me-0 me-md-2 text-body-color btn  @(_filterStrategyType != null && _filterStrategyType == strategy ? "active" : "")">
                         <iconify-icon icon="tabler:list" class="fill-white me-0 me-md-1"></iconify-icon>
                         <span class="d-none d-md-block font-weight-medium">@strategy</span>
                     </a>
@@ -62,7 +137,7 @@
         </ul>
         <ul class="nav nav-pills card-body p-4">
             <li class="nav-item">
-                <a @onclick="async () => await ClickInstrumentFilterAsync(null)" class="nav-link note-link d-flex align-items-center justify-content-center px-3 px-md-3 me-0 me-md-2 text-body-color btn  @(_filterInstrument == null ? "active" : "")">
+                <a @onclick="async () => await SubmitFilterInstrumentAsync(null)" class="nav-link note-link d-flex align-items-center justify-content-center px-3 px-md-3 me-0 me-md-2 text-body-color btn  @(_filterInstrument == null ? "active" : "")">
                     <iconify-icon icon="tabler:list" class="fill-white me-0 me-md-1"></iconify-icon>
                     <span class="d-none d-md-block font-weight-medium">None</span>
                 </a>
@@ -70,7 +145,7 @@
             @foreach (string instrument in _instruments.OrderBy(f => f))
             {
                 <li class="nav-item">
-                    <a @onclick="async () => await ClickInstrumentFilterAsync(instrument)" class="nav-link note-link d-flex align-items-center justify-content-center px-3 px-md-3 me-0 me-md-2 text-body-color btn  @(_filterInstrument != null && _filterInstrument == instrument ? "active" : "")">
+                    <a @onclick="async () => await SubmitFilterInstrumentAsync(instrument)" class="nav-link note-link d-flex align-items-center justify-content-center px-3 px-md-3 me-0 me-md-2 text-body-color btn  @(_filterInstrument != null && _filterInstrument == instrument ? "active" : "")">
                         <iconify-icon icon="tabler:list" class="fill-white me-0 me-md-1"></iconify-icon>
                         <span class="d-none d-md-block font-weight-medium">@instrument</span>
                     </a>
@@ -78,7 +153,7 @@
             }
         </ul>
     </div>
-    
+
     <div class="row card w-100 position-relative overflow-hidden">
         <div class="px-4 py-3 border-bottom">
             <h5 class="card-title fw-semibold mb-0 lh-sm">Signals</h5>
@@ -104,11 +179,15 @@
                                 <h6 class="fs-4 fw-semibold mb-0">TV Status</h6>
                             </th>
                             <th>
+                                <h6 class="fs-4 fw-semibold mb-0">PNL</h6>
+                            </th>
+                            <th>
                                 <h6 class="fs-4 fw-semibold mb-0">Strategy</h6>
                             </th>
                             <th>
                                 <h6 class="fs-4 fw-semibold mb-0">Orders</h6>
                             </th>
+                            <th></th>
                             <th></th>
                         </tr>
                     </thead>
@@ -179,8 +258,9 @@
                                     {
                                         <span class="mb-1 badge rounded-pill  bg-info-subtle text-info">Close</span>
                                     }
-                                    
+
                                 </td>
+                                <td>@Math.Round(signal.Orders.Sum(f => f.Pnl), 2)</td>
                                 <td>
                                     @if (signal.TradingviewStateType == TradingviewStateType.Init)
                                     {
@@ -201,7 +281,23 @@
                                         </span>
                                     }
                                 </td>
-                                <td>@signal.Orders.Count()</td>
+                                <td>
+                                    @{
+                                        var signalCount = signal.Orders.Count();
+                                        var clientCount = _clients.SelectMany(f => f.Pairs).Count(f => f.TickerInMetatrader == signal.Instrument && f.StrategyType == signal.StrategyType);
+                                       
+                                        <span>@signalCount / @clientCount</span>
+                                        
+                                    }
+                                </td>
+                                <td>
+                                    @{
+                                        if (signalCount < clientCount)
+                                        {
+                                            <iconify-icon icon="pajamas:warning-solid"></iconify-icon>
+                                        }
+                                    }
+                                </td>
                                 <td>
                                     <div class="dropdown dropstart">
                                         <a href="#" class="text-muted" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
@@ -215,7 +311,7 @@
                                             </li>
                                             <li>
                                                 <a class="dropdown-item d-flex align-items-center gap-3" @onclick="() => LogSignalClick(signal.ID)">
-                                                   Raw Log
+                                                    Raw Log
                                                 </a>
                                             </li>
                                             <li>
@@ -257,61 +353,101 @@
 @code {
     private List<Entity.Signal> _signals { get; set; } = new();
     private List<string> _instruments { get; set; } = new();
+    private List<Entity.Client> _clients { get; set; } = new();
 
     private StrategyType _filterStrategyType { get; set; } = StrategyType.None;
     private string? _filterInstrument { get; set; } = null;
+    private DateTime _filterDate { get; set; } = DateTime.UtcNow.Date.AddDays(-1);
 
     private SignalAddOrEditModal? _signalAddOrEditModal { get; set; } = null;
     private SignalDeleteModal? _signalDeleteModal { get; set; } = null;
     private SignalRetryModal? _signalRetryModal { get; set; } = null;
     private SignalLogModal? _signalLogModal { get; set; } = null;
 
+    private double _totalPnl = 0.0;
+    private double _totalCommission = 0.0;
+    private double _totalSwapCosts = 0.0;
+    private double _totalSpreadCosts = 0.0;
+
 
 
     protected override async Task OnInitializedAsync()
     {
-        _signals = await _signalRepository.GetAllLast200(692803787);
-        _instruments = (await _signalRepository.GetAllLast200(692803787)).Select(f => f.Instrument).Distinct().ToList();
+        _clients = await _clientRepository.GetAllAsync(692803787);
+        await ReloadAsync();
     }
 
-    private async Task ClickStrategyTypeFilterAsync(StrategyType strategyType)
+    private async Task SubmitStrategyTypeFilterAsync(StrategyType strategyType)
     {
         _filterStrategyType = strategyType;
         _filterInstrument = null;
-        _instruments = (await _signalRepository.GetAllLast200ByStrategyType(692803787, _filterStrategyType)).Select(f => f.Instrument).Distinct().ToList();
-        await FilterAsync();
+        _instruments = (await _signalRepository.GetAllLast200ByStrategyType(692803787, _filterStrategyType, _filterDate)).Select(f => f.Instrument).Distinct().ToList();
+        await ReloadAsync();
     }
 
-    private async Task ClickInstrumentFilterAsync(string? instrument)
+    private async Task SubmitFilterInstrumentAsync(string? instrument)
     {
         _filterInstrument = instrument;
-        await FilterAsync();
+        await ReloadAsync();
     }
 
-    private async Task FilterAsync()
+    private async Task SubmitFilterDateAsync(ChangeEventArgs? e)
+    {
+        // Get data from database
+        var filter = e == null || e.Value == null ? 3 : int.Parse(e.Value.ToString());
+
+        // Init filter
+        if (filter == 0)
+        {
+            _filterDate = DateTime.UtcNow.Date.AddMonths(-1);
+        }
+        else if (filter == 1)
+        {
+            _filterDate = DateTime.UtcNow.Date.AddDays(-8);
+        }
+        else if (filter == 2)
+        {
+            _filterDate = DateTime.UtcNow.Date.AddDays(-3);
+        }
+        else if (filter == 3)
+        {
+            _filterDate = DateTime.UtcNow.Date.AddDays(-1);
+        }
+
+        // Reload chart
+        await ReloadAsync();
+    }
+
+    private async Task ReloadAsync()
     {
         if (_filterStrategyType == StrategyType.None)
         {
             if (_filterInstrument == null)
             {
-                _signals = await _signalRepository.GetAllLast200(692803787);
+                _signals = await _signalRepository.GetAllLast200(692803787, _filterDate);
             }
             else
             {
-                _signals = await _signalRepository.GetAllLast200ByInstrument(692803787, _filterInstrument);
+                _signals = await _signalRepository.GetAllLast200ByInstrument(692803787, _filterInstrument, _filterDate);
             }
         }
         else
         {
             if (_filterInstrument == null)
             {
-                _signals = await _signalRepository.GetAllLast200ByStrategyType(692803787, _filterStrategyType); 
+                _signals = await _signalRepository.GetAllLast200ByStrategyType(692803787, _filterStrategyType, _filterDate);
             }
             else
             {
-                _signals = await _signalRepository.GetAllLast200ByStrategyType(692803787, _filterStrategyType, _filterInstrument);
+                _signals = await _signalRepository.GetAllLast200ByStrategyType(692803787, _filterStrategyType, _filterInstrument, _filterDate);
             }
         }
+        _instruments = _signals.Select(f => f.Instrument).Distinct().ToList();
+        _totalPnl = Math.Round( _signals.SelectMany(f => f.Orders).Sum(f => f.Pnl), 2);
+        _totalCommission = Math.Round(_signals.SelectMany(f => f.Orders).Sum(f => f.Commission), 2);
+        _totalSwapCosts = Math.Round(_signals.SelectMany(f => f.Orders).Sum(f => f.Swap), 2);
+        _totalSpreadCosts = Math.Round(_signals.SelectMany(f => f.Orders).Sum(f => f.SpreadCost), 2);
+
     }
 
     private async Task AddASignalClick()

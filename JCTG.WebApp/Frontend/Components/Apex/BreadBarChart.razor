@@ -1,0 +1,21 @@
+﻿@inject JSInteropt JS
+
+
+<div @ref=el></div>
+
+
+@code {
+
+    public bool IsInit { get; set; } = false;
+    public ElementReference el { get; set; }
+
+
+    public async Task InitAsync(List<BarData> data)
+    {
+        // Set is init
+        IsInit = true;
+
+        // Exec javascript
+        await JS.BreadBarInitAsync(el, data);
+    }
+}

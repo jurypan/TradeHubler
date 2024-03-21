@@ -108,11 +108,7 @@ public class JSInteropt(IJSRuntime jsRuntime) : IAsyncDisposable
         }));
     }
 
-
-
-
-
-    public async Task CandleChartInitAsync(ElementReference eleRef, string name, List<BarData> data)
+    public async Task CandleChartInitAsync(ElementReference eleRef, string name, List<CandleData> data)
     {
         // Call loadChart JS function
         var module = await moduleTask.Value;
@@ -121,6 +117,13 @@ public class JSInteropt(IJSRuntime jsRuntime) : IAsyncDisposable
             x = new DateTimeOffset(x.Time, TimeSpan.Zero).ToUnixTimeMilliseconds(),
             y = new object[] { x.Open, x.High, x.Low, x.Close }
         }).ToList());
+    }
+
+    public async Task BreadBarInitAsync(ElementReference eleRef, List<BarData> data)
+    {
+        // Call loadChart JS function
+        var module = await moduleTask.Value;
+        await module.InvokeVoidAsync("apexBreadBarInit", eleRef, eleRef.Id, data.Select(b => b.Value).ToArray());
     }
 
     public async ValueTask DisposeAsync()

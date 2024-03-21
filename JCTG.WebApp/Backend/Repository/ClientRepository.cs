@@ -1,7 +1,6 @@
 ﻿using JCTG.Entity;
 using JCTG.Models;
 using Microsoft.EntityFrameworkCore;
-using System;
 
 namespace JCTG.WebApp.Backend.Repository;
 
@@ -10,7 +9,9 @@ public class ClientRepository(IDbContextFactory<JCTGDbContext> dbContextFactory)
     public async Task<List<Client>> GetAllAsync(int accountId)
     {
         using var context = await dbContextFactory.CreateDbContextAsync();
-        return await context.Client.Where(f => f.AccountID == accountId).ToListAsync();
+        return await context.Client
+            .Include(f => f.Pairs)
+            .Where(f => f.AccountID == accountId).ToListAsync();
     }
 
     public async Task<ClientPair> AddPairAsync(ClientPair clientPair)

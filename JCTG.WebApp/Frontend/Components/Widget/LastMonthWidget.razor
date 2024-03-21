@@ -1,0 +1,65 @@
+﻿@inject SignalRepository _signalRepository;
+@using JCTG.WebApp.Frontend.Components.Apex;
+
+<div class="d-flex no-block justify-content-end align-items-center">
+    <div class="me-2">
+        <BreadBarChart @ref="@_breadBarChart"></BreadBarChart>
+    </div>
+    <div class="">
+        <small>LAST MONTH</small>
+        <h4 class="text-primary mb-0 font-medium">$@_totalPnl</h4>
+    </div>
+</div>
+
+@code {
+    private BreadBarChart? _breadBarChart { get; set; }
+    private double _totalPnl = 0.0;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        // Only on first render
+        if (!firstRender || _breadBarChart == null)
+            return;
+
+
+        // Get signals
+        var signals = await _signalRepository.GetAllLast200(692803787, DateTime.UtcNow.AddMonths(-1));
+
+        // PNL
+        _totalPnl = Math.Round(signals.SelectMany(f => f.Orders).Sum(f => f.Pnl), 2);
+
+        // Aggregate data
+        var data = AggregateData(signals);
+
+        // Init chart
+        await _breadBarChart.InitAsync(data);
+
+        StateHasChanged();
+    }
+
+    private List<JCTG.WebApp.Frontend.Components.Apex.BarData> AggregateData(List<Signal> signals)
+    {
+        // Veronderstelt dat Orders een Datum eigenschap hebben om te bepalen tot welke bar ze behoren
+        var endDate = DateTime.Today;
+        var startDate = endDate.AddMonths(-1);
+
+        var ordersLastMonth = signals.SelectMany(s => s.Orders).ToList();
+
+        // Verdeel de periode in 8 gelijke delen
+        int bars = 4;
+        var period = (endDate - startDate).TotalDays;
+        var daysPerBar = period / bars;
+
+        var aggregatedData = Enumerable.Range(0, bars).Select(bar =>
+        {
+            var periodStart = startDate.AddDays(bar * daysPerBar);
+            var periodEnd = startDate.AddDays((bar + 1) * daysPerBar);
+
+            var barValue = Math.Round(ordersLastMonth.Where(o => o.DateCreated >= periodStart && o.DateCreated < periodEnd).Sum(o => o.Pnl), 2);
+
+            return new JCTG.WebApp.Frontend.Components.Apex.BarData { Value = barValue };
+        }).ToList();
+
+        return aggregatedData;
+    }
+}

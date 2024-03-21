@@ -191,15 +191,15 @@ export function apexLineChartUpdate(element, refId, name1, data1, name2, data2) 
 
     // Prepare chart element
     window.apexcharts[refId].updateSeries([
-            {
-                name: name1,
-                data: data1,
-            },
-            {
-                name: name2,
-                data: data2,
-            },
-        ]
+        {
+            name: name1,
+            data: data1,
+        },
+        {
+            name: name2,
+            data: data2,
+        },
+    ]
     );
 }
 
@@ -436,6 +436,92 @@ export function apexCandleChartInit(element, refId, name, data, options) {
                     opacityFrom: 0.7,
                     opacityTo: 0.9,
                     stops: [0, 100],
+                },
+            },
+        }
+    );
+    window.apexcharts[refId].render();
+}
+
+export function apexBreadBarInit(element, refId, data) {
+    if (element == null) {
+        console.error("element was null. Please define a reference for your Apex element.");
+        return;
+    }
+
+    // Prepare chart element
+    window.apexcharts[refId] = new ApexCharts(
+        element,
+        {
+            series: [
+                {
+                    name: "",
+                    data: data,
+                },
+            ],
+            chart: {
+                type: "bar",
+                width: 60,
+                height: 40,
+                toolbar: {
+                    show: false,
+                },
+                sparkline: {
+                    enabled: true,
+                },
+            },
+            colors: ["var(--bs-primary)"],
+            grid: {
+                show: false,
+            },
+            plotOptions: {
+                bar: {
+                    horizontal: false,
+                    borderRadius: 2,
+                    columnWidth: "50%",
+                    barHeight: "100%",
+                },
+            },
+            dataLabels: {
+                enabled: false,
+            },
+            stroke: {
+                show: true,
+                width: 0,
+                colors: ["transparent"],
+            },
+            xaxis: {
+                axisBorder: {
+                    show: false,
+                },
+                axisTicks: {
+                    show: false,
+                },
+                labels: {
+                    show: false,
+                },
+            },
+            yaxis: {
+                labels: {
+                    show: false,
+                },
+            },
+            axisBorder: {
+                show: false,
+            },
+            fill: {
+                opacity: 1,
+            },
+            tooltip: {
+                theme: "dark",
+                style: {
+                    fontFamily: "inherit",
+                },
+                x: {
+                    show: false,
+                },
+                y: {
+                    formatter: undefined,
                 },
             },
         }

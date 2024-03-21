@@ -9,7 +9,7 @@
     public bool IsInit { get; set; } = false;
     public ElementReference el { get; set; }
 
-    public async Task InitAsync(string name, List<BarData> data, ChartOptions? options = null)
+    public async Task InitAsync(string name, List<CandleData> data, ChartOptions? options = null)
     {
         // Use default options when none are provided
         if (options != null)

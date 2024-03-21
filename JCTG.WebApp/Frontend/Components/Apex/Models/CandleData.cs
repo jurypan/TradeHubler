@@ -1,5 +1,5 @@
 ﻿namespace JCTG.WebApp.Frontend.Components.Apex;
-public class BarData
+public class CandleData
 {
     public DateTime Time { get; set; }
     public decimal Open { get; set; }
