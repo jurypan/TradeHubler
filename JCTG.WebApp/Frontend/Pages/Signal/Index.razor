@@ -267,7 +267,7 @@
                                 <td>
                                     @{
                                         var signalCount = signal.Orders.Count();
-                                        var clientCount = _clients.SelectMany(f => f.Pairs).Count(f => f.TickerInMetatrader == signal.Instrument && f.StrategyType == signal.StrategyType);
+                                        var clientCount = _clients.SelectMany(f => f.Pairs).Count(f => f.TickerInTradingView == signal.Instrument && f.StrategyType == signal.StrategyType);
                                        
                                         <span>@signalCount / @clientCount</span>
                                         
