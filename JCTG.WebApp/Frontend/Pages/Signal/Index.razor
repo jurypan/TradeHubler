@@ -108,10 +108,27 @@
         <div class="px-4 py-3 border-bottom">
             <div class="d-flex align-items-center">
                 <div>
-                    <h5 class="card-title fw-semibold mb-0 lh-sm">Filters</h5>
+                    <h5 class="card-title fw-semibold mb-0 lh-sm">Signals</h5>
                 </div>
                 <div class="ms-auto d-flex align-items-center">
                     <ul class="list-inline fs-2 dl me-2">
+                        <li class="list-inline-item">
+                            <select class="form-select" @onchange="SubmitStrategyTypeFilterAsync">
+                                @foreach (StrategyType strategy in Enum.GetValues(typeof(StrategyType)))
+                                {
+                                    <option value="@strategy">@strategy</option>
+                                }
+                            </select>
+                        </li>
+                        <li class="list-inline-item">
+                            <select class="form-select" @onchange="SubmitFilterInstrumentAsync">
+                                <option value="">None</option>
+                                @foreach (string instrument in _instruments.OrderBy(f => f))
+                                {
+                                    <option value="@instrument">@instrument</option>
+                                }
+                            </select>
+                        </li>
                         <li class="list-inline-item">
                             <select class="form-select" @onchange="SubmitFilterDateAsync">
                                 <option value="0">Last Month</option>
@@ -123,40 +140,6 @@
                     </ul>
                 </div>
             </div>
-        </div>
-        <ul class="nav nav-pills card-body p-4">
-            @foreach (StrategyType strategy in Enum.GetValues(typeof(StrategyType)))
-            {
-                <li class="nav-item">
-                    <a @onclick="async () => await SubmitStrategyTypeFilterAsync(strategy)" class="nav-link note-link d-flex align-items-center justify-content-center px-3 px-md-3 me-0 me-md-2 text-body-color btn  @(_filterStrategyType != null && _filterStrategyType == strategy ? "active" : "")">
-                        <iconify-icon icon="tabler:list" class="fill-white me-0 me-md-1"></iconify-icon>
-                        <span class="d-none d-md-block font-weight-medium">@strategy</span>
-                    </a>
-                </li>
-            }
-        </ul>
-        <ul class="nav nav-pills card-body p-4">
-            <li class="nav-item">
-                <a @onclick="async () => await SubmitFilterInstrumentAsync(null)" class="nav-link note-link d-flex align-items-center justify-content-center px-3 px-md-3 me-0 me-md-2 text-body-color btn  @(_filterInstrument == null ? "active" : "")">
-                    <iconify-icon icon="tabler:list" class="fill-white me-0 me-md-1"></iconify-icon>
-                    <span class="d-none d-md-block font-weight-medium">None</span>
-                </a>
-            </li>
-            @foreach (string instrument in _instruments.OrderBy(f => f))
-            {
-                <li class="nav-item">
-                    <a @onclick="async () => await SubmitFilterInstrumentAsync(instrument)" class="nav-link note-link d-flex align-items-center justify-content-center px-3 px-md-3 me-0 me-md-2 text-body-color btn  @(_filterInstrument != null && _filterInstrument == instrument ? "active" : "")">
-                        <iconify-icon icon="tabler:list" class="fill-white me-0 me-md-1"></iconify-icon>
-                        <span class="d-none d-md-block font-weight-medium">@instrument</span>
-                    </a>
-                </li>
-            }
-        </ul>
-    </div>
-
-    <div class="row card w-100 position-relative overflow-hidden">
-        <div class="px-4 py-3 border-bottom">
-            <h5 class="card-title fw-semibold mb-0 lh-sm">Signals</h5>
         </div>
         <div class="card-body p-4">
             <div class="table-responsive rounded-2 mb-4">
@@ -377,17 +360,23 @@
         await ReloadAsync();
     }
 
-    private async Task SubmitStrategyTypeFilterAsync(StrategyType strategyType)
+    private async Task SubmitStrategyTypeFilterAsync(ChangeEventArgs? e)
     {
-        _filterStrategyType = strategyType;
+         // Get data from database
+        var filter = e == null || e.Value == null ? StrategyType.None : Enum.Parse<StrategyType>(e.Value.ToString());
+
+        _filterStrategyType = filter;
         _filterInstrument = null;
         _instruments = (await _signalRepository.GetAllLast200ByStrategyType(692803787, _filterStrategyType, _filterDate)).Select(f => f.Instrument).Distinct().ToList();
         await ReloadAsync();
     }
 
-    private async Task SubmitFilterInstrumentAsync(string? instrument)
+    private async Task SubmitFilterInstrumentAsync(ChangeEventArgs? e)
     {
-        _filterInstrument = instrument;
+         // Get data from database
+        var filter = e == null || e.Value == null || e.Value == string.Empty ? null : e.Value.ToString();
+
+        _filterInstrument = filter;
         await ReloadAsync();
     }
 
