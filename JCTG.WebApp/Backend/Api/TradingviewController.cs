@@ -116,7 +116,6 @@ namespace JCTG.WebApp.Backend.Api
                         case "movesltobe":
                         case "tphit":
                         case "slhit":
-                        case "closeall":
                         case "behit":
                             // Implement the logic to update the database based on instrument, client, and magic number.
                             // This is a placeholder for your actual update logic.
@@ -136,7 +135,37 @@ namespace JCTG.WebApp.Backend.Api
                                     existingSignal.TradingviewStateType = TradingviewStateType.Entry;
                                 else if (signal.OrderType.Equals("cancelorder", StringComparison.CurrentCultureIgnoreCase) && existingSignal.TradingviewStateType == TradingviewStateType.Init)
                                     existingSignal.TradingviewStateType = TradingviewStateType.Cancel;
-                                else if (signal.OrderType.Equals("closeall", StringComparison.CurrentCultureIgnoreCase))
+
+                                // Update
+                                existingSignal.DateLastUpdated = DateTime.UtcNow;
+                                existingSignal.ExitRiskRewardRatio = signal.ExitRiskRewardRatio;
+
+                                // Update state
+                                _dbContext.Signal.Update(existingSignal);
+
+                                // Add to the tradingview alert
+                                await _dbContext.TradingviewAlert.AddAsync(new TradingviewAlert()
+                                {
+                                    DateCreated = DateTime.UtcNow,
+                                    RawMessage = requestBody,
+                                    SignalID = existingSignal.ID,
+                                    Type = TradingviewAlert.ParseTradingviewAlertTypeOrDefault(signal.OrderType.ToLower()),
+                                });
+                            }
+
+                            // Save to the database
+                            await _dbContext.SaveChangesAsync();
+
+                            break;
+                        case "closeall":
+                            // Implement the logic to update the database based on instrument, client, and magic number.
+                            // This is a placeholder for your actual update logic.
+                            var existingSignals2 = _dbContext.Signal.Where(s => s.Instrument == signal.Instrument && s.AccountID == signal.AccountID && s.StrategyType == signal.StrategyType);
+
+                            foreach (var existingSignal in existingSignals2)
+                            {
+                                // Update properties based on your logic
+                                if (signal.OrderType.Equals("closeall", StringComparison.CurrentCultureIgnoreCase) && existingSignal.TradingviewStateType == TradingviewStateType.Init)
                                     existingSignal.TradingviewStateType = TradingviewStateType.CloseAll;
 
                                 // Update

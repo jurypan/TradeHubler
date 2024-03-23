@@ -1,5 +1,4 @@
-﻿using JCTG.WebApp.Frontend.Components.Tradingview;
-using Microsoft.AspNetCore.Components;
+﻿using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 
 namespace JCTG.WebApp.Frontend.Components.Apex;

@@ -5,7 +5,7 @@
         <div class="modal-content">
             <div class="modal-header modal-colored-header bg-primary text-white">
                 <h4 class="modal-title text-white" id="primary-header-modalLabel"> Signal Log </h4>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" @onclick="() => Close()"></button>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" @onclick="async () => await CloseAsync()"></button>
             </div>
             <div class="modal-body">
                 <div class="table-responsive">
@@ -42,7 +42,7 @@
             </div>
             <div class="modal-footer">
                 <div class="d-flex gap-6 m-0">
-                    <button class="btn bg-danger-subtle text-danger rounded-pill" @onclick="() => Close()"> Close </button>
+                    <button class="btn bg-danger-subtle text-danger rounded-pill" @onclick="async () => await CloseAsync()"> Close </button>
                 </div>
             </div>
         </div>
@@ -51,28 +51,36 @@
 
 
 @code {
+    [Parameter]
+    public EventCallback OnClose { get; set; }
+
+    [Parameter]
+    public EventCallback OnOpen { get; set; }
+
     private List<Entity.TradingviewAlert> _tradingviewAlerts = new();
 
     private string _display = "none;";
     private string _cssClass = "hide";
 
-    public void Open()
+    public async Task OpenAsync()
     {
         _display = "block;";
         _cssClass = "show";
+        await OnOpen.InvokeAsync();
         StateHasChanged();
     }
 
-    public void Close()
+    public async Task CloseAsync()
     {
         _display = "none;";
         _cssClass = "hide";
+        await OnClose.InvokeAsync();
         StateHasChanged();
     }
 
     public async Task InitAsync(int accountId, long signalId)
     {
         _tradingviewAlerts = await _tradingviewAlertRepository.GetAll(signalId);
-        Open();
+        await OpenAsync();
     }
 }

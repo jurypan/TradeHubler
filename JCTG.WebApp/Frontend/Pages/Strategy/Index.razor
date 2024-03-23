@@ -205,11 +205,11 @@
         </div>
     }
 
-    <SignalAddOrEditModal @ref="@_signalAddOrEditModal"></SignalAddOrEditModal>
+    <SignalAddOrEditModal @ref="@_signalAddOrEditModal" OnClose="async () => await ReloadAsync()"></SignalAddOrEditModal>
 
-    <MarketAbstentionAddOrEditModal @ref="@_marketAbstentionAddOrEditModal"></MarketAbstentionAddOrEditModal>
+    <MarketAbstentionAddOrEditModal @ref="@_marketAbstentionAddOrEditModal" OnClose="async () => await ReloadAsync()"></MarketAbstentionAddOrEditModal>
 
-    <OrderAddOrEditModal @ref="@_orderAddOrEditModal"></OrderAddOrEditModal>
+    <OrderAddOrEditModal @ref="@_orderAddOrEditModal" OnClose="async () => await ReloadAsync()"></OrderAddOrEditModal>
 
     <SignalLogModal @ref="@_signalLogModal"></SignalLogModal>
 
@@ -248,7 +248,7 @@
         NavManager.LocationChanged -= HandleLocationChanged;
     }
 
-    private void HandleLocationChanged(object? sender, LocationChangedEventArgs e) => Task.Run(async () => await ReloadChartAsync());
+    private void HandleLocationChanged(object? sender, LocationChangedEventArgs e) => Task.Run(async () => await ReloadAsync());
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -263,7 +263,7 @@
         {
             // Get First client
             _filterClient = _clients.First();
-            await ReloadChartAsync();
+            await ReloadAsync();
         }
 
         // Init
@@ -281,7 +281,7 @@
         // Do null reference check
         if (_filterClient != null)
         {
-            await ReloadChartAsync();
+            await ReloadAsync();
         }
     }
 
@@ -292,10 +292,10 @@
         _filterDate = filter;
 
         // Reload chart
-        await ReloadChartAsync();
+        await ReloadAsync();
     }
 
-    private async Task ReloadChartAsync()
+    private async Task ReloadAsync()
     {
         if (_filterClient != null && _lineChart != null)
         {

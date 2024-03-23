@@ -187,9 +187,9 @@
         </div>
     </div>
 
-    <OrderAddOrEditModal @ref="@_orderAddOrEditModal"></OrderAddOrEditModal>
+    <OrderAddOrEditModal @ref="@_orderAddOrEditModal" OnClose="async () => await ReloadAsync()"></OrderAddOrEditModal>
 
-    <MarketAbstentionAddOrEditModal @ref="@_marketAbstentionAddOrEditModal"></MarketAbstentionAddOrEditModal>
+    <MarketAbstentionAddOrEditModal @ref="@_marketAbstentionAddOrEditModal" OnClose="async () => await ReloadAsync()"></MarketAbstentionAddOrEditModal>
 
     <OrderLogModal @ref="@_orderLogModal"></OrderLogModal>
 </div>
@@ -208,6 +208,11 @@
     private List<Entity.MarketAbstention> _marketAbstentions = new List<Entity.MarketAbstention>();
 
     protected async override Task OnInitializedAsync()
+    {
+        await ReloadAsync();
+    }
+
+    private async Task ReloadAsync()
     {
         _orders = await _orderRepository.GetAllBySignalId(692803787, SignalId);
         _marketAbstentions = await _marketAbstentionRepository.GetAllBySignalId(692803787, SignalId);

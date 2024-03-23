@@ -5,13 +5,12 @@
 <div class="modal fade @_cssClass" tabindex="-1" style="display:@_display">
     <div class=" modal-dialog modal-dialog-scrollable modal-lg" role="document">
         <div class="modal-content">
-            <div class="modal-header modal-colored-header bg-primary text-white">
-                <h4 class="modal-title text-white" id="primary-header-modalLabel"> Signal </h4>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" @onclick="() => Close()"></button>
-            </div>
-
-            <div class="modal-body">
-                <EditForm Model="@model" OnValidSubmit="@SubmitAsync">
+            <EditForm Model="@model" OnValidSubmit="@SubmitAsync">
+                <div class="modal-header modal-colored-header bg-primary text-white">
+                    <h4 class="modal-title text-white" id="primary-header-modalLabel"> Signal </h4>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" @onclick="async () => await CloseAsync()"></button>
+                </div>
+                <div class="modal-body">
                     <DataAnnotationsValidator />
                     <ValidationSummary />
                     <AntiforgeryToken />
@@ -115,20 +114,28 @@
                             </div>
                         </div>
                     </div>
-                </EditForm>
-            </div>
-            <div class="modal-footer">
-                <div class="d-flex gap-6 m-0">
-                    <button type="submit" class="btn btn-primary  rounded-pill px-4"> Save </button>
-                    <button class="btn bg-danger-subtle text-danger rounded-pill" @onclick="() => Close()"> Discard </button>
+
                 </div>
-            </div>
+                <div class="modal-footer">
+                    <div class="d-flex gap-6 m-0">
+                        <button type="submit" class="btn btn-primary  rounded-pill px-4"> Save </button>
+                        <button class="btn bg-danger-subtle text-danger rounded-pill" @onclick="async () => await CloseAsync()"> Discard </button>
+                    </div>
+                </div>
+            </EditForm>
         </div>
     </div>
 </div>
 
 
 @code {
+    [Parameter]
+    public EventCallback OnClose { get; set; }
+
+    [Parameter]
+    public EventCallback OnOpen { get; set; }
+
+
     [SupplyParameterFromForm]
     private Signal model { get; set; } = new();
     private CrudState _crudState { get; set; } = CrudState.None;
@@ -136,17 +143,19 @@
     private string _display = "none;";
     private string _cssClass = "hide";
 
-    public void Open()
+    public async Task OpenAsync()
     {
         _display = "block;";
         _cssClass = "show";
+        await OnOpen.InvokeAsync();
         StateHasChanged();
     }
 
-    public void Close()
+    public async Task CloseAsync()
     {
         _display = "none;";
         _cssClass = "hide";
+        await OnClose.InvokeAsync();
         StateHasChanged();
     }
 
@@ -158,14 +167,14 @@
             if (signalNew != null)
             {
                 model = signalNew;
-                Open();
+                await OpenAsync();
                 _crudState = CrudState.Edit;
             }
         }
         else
         {
             model = new();
-            Open();
+            await OpenAsync();
             _crudState = CrudState.Add;
         }
     }
@@ -185,7 +194,7 @@
 
             _crudState = CrudState.None;
             model = new();
-            Close();
+            await CloseAsync();
         }
     }
 }

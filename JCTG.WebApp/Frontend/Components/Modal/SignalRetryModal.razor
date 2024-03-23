@@ -8,7 +8,7 @@
         <div class="modal-content">
             <div class="modal-header modal-colored-header bg-warning text-white">
                 <h4 class="modal-title text-white" id="danger-header-modalLabel">Retry a signal</h4>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" @onclick="() => Close()"></button>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" @onclick="async () => await CloseAsync()"></button>
             </div>
             <div class="modal-body">
                 <h5 class="mt-0">Retry a signal?</h5>
@@ -17,7 +17,7 @@
             <div class="modal-footer">
                 <div class="d-flex gap-6 m-0">
                     <button type="submit" class="btn btn-warning rounded-pill px-4" @onclick="async () => await SubmitAsync()"> Retry </button>
-                    <button class="btn bg-danger-subtle text-danger rounded-pill" @onclick="() => Close()"> Discard </button>
+                    <button class="btn bg-danger-subtle text-danger rounded-pill" @onclick="async () => await CloseAsync()"> Discard </button>
                 </div>
             </div>
         </div>
@@ -25,6 +25,12 @@
 </div>
 
 @code {
+     [Parameter]
+    public EventCallback OnClose { get; set; }
+
+    [Parameter]
+    public EventCallback OnOpen { get; set; }
+
     [SupplyParameterFromForm]
     private Signal signal { get; set; } = new();
     private CrudState _crudState { get; set; } = CrudState.None;
@@ -32,17 +38,19 @@
     private string _display = "none;";
     private string _cssClass = "hide";
 
-    public void Open()
+    public async Task OpenAsync()
     {
         _display = "block;";
         _cssClass = "show";
+        await OnOpen.InvokeAsync();
         StateHasChanged();
     }
 
-    public void Close()
+    public async Task CloseAsync()
     {
         _display = "none;";
         _cssClass = "hide";
+        await OnClose.InvokeAsync();
         StateHasChanged();
     }
 
@@ -52,7 +60,7 @@
         if (signalNew != null)
         {
             signal = signalNew;
-            Open();
+            await OpenAsync();
             _crudState = CrudState.Custom1;
         }
     }
@@ -89,7 +97,7 @@
 
             _crudState = CrudState.None;
             signal = new();
-            Close();
+            await CloseAsync();
         }
     }
 }

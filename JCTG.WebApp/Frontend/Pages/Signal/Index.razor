@@ -32,7 +32,7 @@
                     </nav>
                 </div>
                 <div>
-                   <LastMonthWidget></LastMonthWidget>
+                    <LastMonthWidget></LastMonthWidget>
                 </div>
             </div>
         </div>
@@ -267,9 +267,9 @@
                                     @{
                                         var orderCount = signal.Orders.Count();
                                         var clientCount = _clients.SelectMany(f => f.Pairs).Count(f => f.TickerInTradingView == signal.Instrument && f.StrategyType == signal.StrategyType);
-                                       
+
                                         <span>@orderCount / @clientCount</span>
-                                        
+
                                     }
                                 </td>
                                 <td>
@@ -322,11 +322,11 @@
         </div>
     </div>
 
-    <SignalAddOrEditModal @ref="@_signalAddOrEditModal"></SignalAddOrEditModal>
+    <SignalAddOrEditModal @ref="@_signalAddOrEditModal" OnClose="async () => await ReloadAsync()"></SignalAddOrEditModal>
 
-    <SignalDeleteModal @ref="@_signalDeleteModal"></SignalDeleteModal>
+    <SignalDeleteModal @ref="@_signalDeleteModal" OnClose="async () => await ReloadAsync()"></SignalDeleteModal>
 
-    <SignalRetryModal @ref="@_signalRetryModal"></SignalRetryModal>
+    <SignalRetryModal @ref="@_signalRetryModal" OnClose="async () => await ReloadAsync()"></SignalRetryModal>
 
     <SignalLogModal @ref="@_signalLogModal"></SignalLogModal>
 </div>
@@ -344,6 +344,9 @@
     private SignalAddOrEditModal? _signalAddOrEditModal { get; set; } = null;
     private SignalDeleteModal? _signalDeleteModal { get; set; } = null;
     private SignalRetryModal? _signalRetryModal { get; set; } = null;
+
+
+
     private SignalLogModal? _signalLogModal { get; set; } = null;
 
     private double _totalPnl = 0.0;
@@ -361,7 +364,7 @@
 
     private async Task SubmitStrategyTypeFilterAsync(ChangeEventArgs? e)
     {
-         // Get data from database
+        // Get data from database
         var filter = e == null || e.Value == null ? StrategyType.None : Enum.Parse<StrategyType>(e.Value.ToString());
 
         _filterStrategyType = filter;
@@ -372,7 +375,7 @@
 
     private async Task SubmitFilterInstrumentAsync(ChangeEventArgs? e)
     {
-         // Get data from database
+        // Get data from database
         var filter = e == null || e.Value == null || e.Value == string.Empty ? null : e.Value.ToString();
 
         _filterInstrument = filter;
@@ -431,7 +434,7 @@
             }
         }
         _instruments = _signals.Select(f => f.Instrument).Distinct().ToList();
-        _totalPnl = Math.Round( _signals.SelectMany(f => f.Orders).Sum(f => f.Pnl), 2);
+        _totalPnl = Math.Round(_signals.SelectMany(f => f.Orders).Sum(f => f.Pnl), 2);
         _totalCommission = Math.Round(_signals.SelectMany(f => f.Orders).Sum(f => f.Commission), 2);
         _totalSwapCosts = Math.Round(_signals.SelectMany(f => f.Orders).Sum(f => f.Swap), 2);
         _totalSpreadCosts = Math.Round(_signals.SelectMany(f => f.Orders).Sum(f => f.SpreadCost), 2);
