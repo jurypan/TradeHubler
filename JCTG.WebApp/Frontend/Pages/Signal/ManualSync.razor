@@ -1,0 +1,231 @@
+﻿@page "/Signals/ManualSync";
+@inject TradingviewAlertRepository _tradingviewAlertRepository;
+@using JCTG.WebApp.Frontend.Components.Widget;
+@using JCTG.WebApp.Frontend.Pages.Signal.Models;
+@using System.Net.Http.Headers;
+@using JCTG.Models;
+
+<div class="container-fluid mw-100">
+
+    <div class="font-weight-medium shadow-none position-relative overflow-hidden mb-4">
+        <div class="card-body px-0">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h4 class="font-weight-medium ">Synchronize the alerts</h4>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item">
+                                <a class="text-primary text-decoration-none" href="/">
+                                    Home
+                                </a>
+                            </li>
+                            <li class="breadcrumb-item d-flex justify-content-center align-items-center ps-0">
+                                <iconify-icon icon="tabler:chevron-right"></iconify-icon>
+                            </li>
+                            <li class="breadcrumb-item" aria-current="page">
+                                <a class="text-primary text-decoration-none" href="/Signals">
+                                    Signals
+                                </a>
+                            </li>
+                            <li class="breadcrumb-item d-flex justify-content-center align-items-center ps-0">
+                                <iconify-icon icon="tabler:chevron-right"></iconify-icon>
+                            </li>
+                            <li class="breadcrumb-item" aria-current="page">
+                                Manual Sync
+                            </li>
+                        </ol>
+                    </nav>
+                </div>
+                <div>
+                    <LastMonthWidget></LastMonthWidget>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="card card-body">
+            <h5 class="mb-3">Synchronize the alerts</h5>
+            <div class="mb-3">
+                <EditForm Model="@model" OnValidSubmit="@SubmitAsync">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary />
+                    <AntiforgeryToken />
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Strategy</label>
+                                <InputSelect class="form-select col-12" @bind-Value="model.StrategyType">
+                                    <option>Choose...</option>
+                                    @foreach (var item in Enum.GetValues(typeof(StrategyType)))
+                                    {
+                                        <option value="@item">@item</option>
+                                    }
+                                </InputSelect>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Direction</label>
+                                <InputSelect class="form-select col-12" @bind-Value="model.Direction">
+                                    <option value="Long">Long</option>
+                                    <option value="Short">Short</option>
+                                </InputSelect>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Ticker</label>
+                                <InputText class="form-control" @bind-Value="model.Ticker" />
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="formFile" class="form-label">CSV File</label>
+                                <InputFile class="form-control" OnChange="HandleFileUpload"></InputFile>
+                                <span>@_fileName</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="mt-3 mt-md-0 ms-auto">
+                            <button type="submit" class="btn btn-warning  rounded-pill px-4"> Submit </button>
+                        </div>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    </div>
+
+    @if (model != null && model.Items.Count > 0)
+    {
+        <div class="row">
+            <div class="datatables">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="mb-2">
+                                    <h5 class="mb-0">Logs</h5>
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="table border table-striped table-bordered display text-nowrap">
+                                        <thead>
+                                            <tr>
+                                                <th>Magic</th>
+                                                <th>Date</th>
+                                                <th>Exit RR</th>
+                                                <th>Comment</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var log in model.Items)
+                                            {
+                                                <tr>
+                                                    <td>@log.Magic</td>
+                                                    <td>@log.Date</td>
+                                                    <td>@log.ExitRR</td>
+                                                    <td>@log.Comment</td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                        <tfoot>
+                                            <tr>
+                                                <th>Magic</th>
+                                                <th>Date</th>
+                                                <th>Exit RR</th>
+                                                <th>Comment</th>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+</div>
+
+
+@code {
+
+    [SupplyParameterFromForm]
+    private TradingviewImport model { get; set; } = new();
+
+    private string _fileName { get; set; } = string.Empty;
+
+
+    private async Task HandleFileUpload(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        if (file == null) return;
+
+        try
+        {
+            _fileName = file.Name;
+            var content = new MultipartFormDataContent();
+            var fileContent = new StreamContent(file.OpenReadStream(10485760)); // 10MB limit
+            string text = await fileContent.ReadAsStringAsync();
+            string[] lines = text.Split(new string[] { Environment.NewLine }, StringSplitOptions.None);
+
+            for (var i = 0; i < lines.Count(); i++)
+            {
+                if (i != 0)
+                {
+                    var values = lines[i].Split(',');
+                    if (values[1].Contains("Entry"))
+                    {
+                        var item = model.Items.FirstOrDefault(f => f.ID == int.Parse(values[0]));
+                        if (item != null)
+                        {
+                            item.Date = DateTime.Parse(values[3]);
+                            item.Magic = int.Parse(values[2]);
+                        }
+                        else
+                        {
+                            model.Items.Add(new TradingviewImportItem()
+                                {
+                                    ID = int.Parse(values[0]),
+                                    Date = DateTime.Parse(values[3]),
+                                    Magic = int.Parse(values[2])
+                                });
+                        }
+
+                    }
+                    else if (values[1].Contains("Exit"))
+                    {
+                        var item = model.Items.FirstOrDefault(f => f.ID == int.Parse(values[0]));
+                        if (item != null)
+                        {
+                            item.ExitRR = double.Parse(values[2]);
+                        }
+                        else
+                        {
+                            model.Items.Add(new TradingviewImportItem()
+                                {
+                                    ID = int.Parse(values[0]),
+                                    ExitRR = double.Parse(values[2]),
+                                });
+                        }
+
+                    }
+                }
+            }
+
+            model.Items = model.Items.OrderByDescending(f => f.Date).ToList();
+        }
+        catch (Exception ex)
+        {
+
+        }
+    }
+
+    public void SubmitAsync()
+    {
+    }
+}

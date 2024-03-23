@@ -10,4 +10,14 @@ public class TradingviewAlertRepository(IDbContextFactory<JCTGDbContext> dbConte
         using var context = await dbContextFactory.CreateDbContextAsync();
         return await context.TradingviewAlert.Where(f => f.SignalID == signalId).OrderByDescending(f => f.DateCreated).ToListAsync();
     }
+
+    public async Task<List<TradingviewAlert>> GetAllLast200(long accountId)
+    {
+        using var context = await dbContextFactory.CreateDbContextAsync();
+        return await context.TradingviewAlert
+            .Where(f => f.Signal.AccountID == accountId)
+            .OrderByDescending(f => f.DateCreated)
+            .Take(200)
+            .ToListAsync();
+    }
 }

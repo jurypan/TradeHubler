@@ -434,10 +434,10 @@
             }
         }
         _instruments = _signals.Select(f => f.Instrument).Distinct().ToList();
-        _totalPnl = Math.Round(_signals.SelectMany(f => f.Orders).Sum(f => f.Pnl), 2);
-        _totalCommission = Math.Round(_signals.SelectMany(f => f.Orders).Sum(f => f.Commission), 2);
-        _totalSwapCosts = Math.Round(_signals.SelectMany(f => f.Orders).Sum(f => f.Swap), 2);
-        _totalSpreadCosts = Math.Round(_signals.SelectMany(f => f.Orders).Sum(f => f.SpreadCost), 2);
+        _totalPnl = Math.Abs( Math.Round(_signals.SelectMany(f => f.Orders).Sum(f => f.Pnl), 2));
+        _totalCommission = Math.Abs(Math.Round(_signals.SelectMany(f => f.Orders).Sum(f => f.Commission), 2));
+        _totalSwapCosts = Math.Abs(Math.Round(_signals.SelectMany(f => f.Orders).Sum(f => f.Swap), 2));
+        _totalSpreadCosts = Math.Abs(Math.Round(_signals.SelectMany(f => f.Orders).Sum(f => f.SpreadCost), 2));
 
     }
 

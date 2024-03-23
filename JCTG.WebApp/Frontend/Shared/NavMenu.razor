@@ -72,13 +72,41 @@
             </a>
         </li>
         <li class="sidebar-item">
-            <a class="sidebar-link sidebar-link" href="/signals" aria-expanded="false">
-                <iconify-icon icon="solar:widget-4-outline" class="fs-5"></iconify-icon>
+            <a class="sidebar-link has-arrow @(isSignalCollapsed ? "" : "active")" href="javascript:void(0)" @onclick="() => ToggleSignal()">
+                <span class="d-flex">
+                    <iconify-icon icon="solar:widget-4-outline" class="fs-5"></iconify-icon>
+                </span>
                 <span class="hide-menu">Signals</span>
             </a>
+            <ul class="collapse first-level @(isSignalCollapsed ? "" : "in")">
+                <li class="sidebar-item">
+                    <a href="/Signals" class="sidebar-link sublink">
+                        <div class="round-16 d-flex align-items-center justify-content-center">
+                            <i class="sidebar-icon"></i>
+                        </div>
+                        <span class="hide-menu"> Overview </span>
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="/Signals/ManualSync" class="sidebar-link sublink">
+                        <div class="round-16 d-flex align-items-center justify-content-center">
+                            <i class="sidebar-icon"></i>
+                        </div>
+                        <span class="hide-menu"> Manual Sync </span>
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="/Signals/Logs" class="sidebar-link sublink">
+                        <div class="round-16 d-flex align-items-center justify-content-center">
+                            <i class="sidebar-icon"></i>
+                        </div>
+                        <span class="hide-menu"> Log </span>
+                    </a>
+                </li>
+            </ul>
         </li>
         <li class="sidebar-item">
-            <a class="sidebar-link has-arrow @(isStrategyCollapsed ? "" : "active")" href="javascript:void(0)" @onclick="() => ToggleStrategy()">
+            <a class="sidebar-link has-arrow @(isStrategyCollapsed ? "" : "active")" href="javascript:void(0)" @onclick="() => ToggleStrategyButton()">
                 <span class="d-flex">
                     <iconify-icon icon="solar:pie-chart-3-line-duotone" class="fs-6"></iconify-icon>
                 </span>
@@ -107,9 +135,15 @@
 
 @code {
     private bool isStrategyCollapsed { get; set; } = true;
+    private bool isSignalCollapsed { get; set; } = true;
 
-    private void ToggleStrategy()
+    private void ToggleStrategyButton()
     {
         isStrategyCollapsed = !isStrategyCollapsed;
+    }
+
+    private void ToggleSignal()
+    {
+        isSignalCollapsed = !isSignalCollapsed;
     }
 }
