@@ -54,6 +54,9 @@
                                         <li>
                                             <a class="dropdown-item" href="@($"Clients/{_clients[i].ID}/Delete")">Delete</a>
                                         </li>
+                                        <li>
+                                            <a class="dropdown-item" href="@($"Clients/{_clients[i].ID}/Logs")">Logs</a>
+                                        </li>
                                     </ul>
                                 </div>
                             </div>
@@ -105,9 +108,9 @@
                             </div>
                             <div class="col-9 d-flex align-items-center">
                                 <div>
-                                    <a href="@($"Clients/{_clients[i].ID}/Logs")">
-                                        <h5 class="card-title mb-1">Logs</h5>
-                                        <p class="text-muted mb-0">View log track</p>
+                                    <a href="@($"Clients/{_clients[i].ID}/Strategy")">
+                                        <h5 class="card-title mb-1">Strategy</h5>
+                                        <p class="text-muted mb-0">Insights into the strategy</p>
                                     </a>
                                 </div>
                             </div>
