@@ -142,7 +142,7 @@
         {
             _deals = await _dealRepository.GetAllLast25(_clients[i].ID);
 
-            await _areaCharts[i].InitMiniAsync("Deals", _deals
+            await _areaCharts[i].InitMiniAsync("Balance", _deals
             .Where(f => f.AccountBalance.HasValue && f.AccountBalance.Value > 0)
             .Select(x => new Components.Apex.AreaPoint()
                 {

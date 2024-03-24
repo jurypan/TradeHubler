@@ -336,6 +336,9 @@ export function apexAreaChartMiniInit(element, refId, name, data, color) {
                 show: false,
             },
             tooltip: {
+                x: {
+                    format: "dd/MM/yy HH:mm:ss"
+                },
                 theme: "dark",
             },
         }
