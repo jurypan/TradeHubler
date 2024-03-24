@@ -135,9 +135,9 @@ namespace JCTG.WebApp.Backend.Api
                                     existingSignal.TradingviewStateType = TradingviewStateType.SlHit;
                                 else if (signal.OrderType.Equals("behit", StringComparison.CurrentCultureIgnoreCase))
                                     existingSignal.TradingviewStateType = TradingviewStateType.BeHit;
-                                else if (signal.OrderType.Equals("entry", StringComparison.CurrentCultureIgnoreCase) && existingSignal.TradingviewStateType == TradingviewStateType.Init)
+                                else if (signal.OrderType.Equals("entry", StringComparison.CurrentCultureIgnoreCase))
                                     existingSignal.TradingviewStateType = TradingviewStateType.Entry;
-                                else if (signal.OrderType.Equals("cancelorder", StringComparison.CurrentCultureIgnoreCase) && existingSignal.TradingviewStateType == TradingviewStateType.Cancel)
+                                else if (signal.OrderType.Equals("cancelorder", StringComparison.CurrentCultureIgnoreCase))
                                     existingSignal.TradingviewStateType = TradingviewStateType.Cancel;
 
                                 // Update
@@ -169,7 +169,7 @@ namespace JCTG.WebApp.Backend.Api
                             foreach (var existingSignal in existingSignals2)
                             {
                                 // Update properties based on your logic
-                                if (signal.OrderType.Equals("closeall", StringComparison.CurrentCultureIgnoreCase) && existingSignal.TradingviewStateType == TradingviewStateType.Init)
+                                if (signal.OrderType.Equals("closeall", StringComparison.CurrentCultureIgnoreCase))
                                     existingSignal.TradingviewStateType = TradingviewStateType.CloseAll;
 
                                 // Update
