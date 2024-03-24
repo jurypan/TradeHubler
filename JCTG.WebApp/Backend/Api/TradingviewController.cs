@@ -137,7 +137,7 @@ namespace JCTG.WebApp.Backend.Api
                                     existingSignal.TradingviewStateType = TradingviewStateType.BeHit;
                                 else if (signal.OrderType.Equals("entry", StringComparison.CurrentCultureIgnoreCase) && existingSignal.TradingviewStateType == TradingviewStateType.Init)
                                     existingSignal.TradingviewStateType = TradingviewStateType.Entry;
-                                else if (signal.OrderType.Equals("cancelorder", StringComparison.CurrentCultureIgnoreCase) && existingSignal.TradingviewStateType == TradingviewStateType.Init)
+                                else if (signal.OrderType.Equals("cancelorder", StringComparison.CurrentCultureIgnoreCase) && existingSignal.TradingviewStateType == TradingviewStateType.Cancel)
                                     existingSignal.TradingviewStateType = TradingviewStateType.Cancel;
 
                                 // Update
