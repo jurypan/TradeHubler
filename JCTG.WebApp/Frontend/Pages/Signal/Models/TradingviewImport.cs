@@ -1,4 +1,5 @@
 ﻿using JCTG.Models;
+using JCTG.Entity;
 
 namespace JCTG.WebApp.Frontend.Pages.Signal.Models
 {
@@ -20,6 +21,6 @@ namespace JCTG.WebApp.Frontend.Pages.Signal.Models
         public int Magic { get; set; }
         public string Comment { get; set; } = string.Empty;
         public CrudState Action { get; set; } = CrudState.None;
-        public long? SignalId { get; set; }
+        public Entity.Signal? Signal { get; set; }
     }
 }

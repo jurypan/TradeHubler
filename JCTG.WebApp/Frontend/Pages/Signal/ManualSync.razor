@@ -2,6 +2,7 @@
 @inject TradingviewAlertRepository _tradingviewAlertRepository;
 @inject SignalRepository _signalRepository;
 @using JCTG.WebApp.Frontend.Components.Widget;
+@using JCTG.WebApp.Frontend.Components.Modal;
 @using JCTG.WebApp.Frontend.Pages.Signal.Models;
 @using System.Net.Http.Headers;
 @using JCTG.Models;
@@ -46,10 +47,10 @@
     </div>
 
     <div class="row">
-        <div class="card card-body">
+        <div class="card">
             <h5 class="mb-3">Synchronize the alerts</h5>
             <div class="mb-3">
-                <EditForm Model="@model" OnValidSubmit="@SubmitAsync">
+                <EditForm Model="@model" OnValidSubmit="@ReloadAsync">
                     <DataAnnotationsValidator />
                     <ValidationSummary />
                     <AntiforgeryToken />
@@ -85,27 +86,6 @@
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label for="formFile" class="form-label">Timeframe</label>
-                                <InputSelect class="form-select col-12" @bind-Value="model.Timeframe">
-                                    <option value="5M">5 Min</option>
-                                    <option value="10M">10 Min</option>
-                                    <option value="15M">15 Min</option>
-                                    <option value="20M">20 Min</option>
-                                    <option value="30M">30 Min</option>
-                                    <option value="45M">45 Min</option>
-                                    <option value="1H">1 Hour</option>
-                                    <option value="2H">2 Hour</option>
-                                    <option value="5H">4 Hour</option>
-                                    <option value="6H">6 Hour</option>
-                                    <option value="12H">12 Hour</option>
-                                    <option value="1D">1 Day</option>
-                                </InputSelect>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-12">
-                            <div class="mb-3">
                                 <label for="formFile" class="form-label">CSV File</label>
                                 <InputFile class="form-control" OnChange="HandleFileUpload"></InputFile>
                             </div>
@@ -113,13 +93,13 @@
                     </div>
                     @if (model.Items.Count > 0)
                     {
-                        <div class="row">
-                            <div class="form-actions">
-                                <div class="card-body border-top">
-                                    <button type="submit" class="btn btn-success rounded-pill px-4">
-                                        Sync
+                        <div class="p-3 border-top">
+                            <div>
+                                <div class="mb-3 mb-0 text-end">
+                                    <button type="submit" class="btn btn-primary rounded-pill px-4">
+                                        Save
                                     </button>
-                                    <button type="button" class="btn bg-danger-subtle text-danger rounded-pill px-4 ms-6">
+                                    <button type="submit" class="btn bg-danger-subtle text-danger rounded-pill ms-6 px-4">
                                         Cancel
                                     </button>
                                 </div>
@@ -148,7 +128,9 @@
                                             <tr>
                                                 <th>Magic</th>
                                                 <th>Date</th>
-                                                <th>Exit RR</th>
+                                                <th>File Exit RR</th>
+                                                <th>Signal Exit RR</th>
+                                                <th>Signal State</th>
                                                 <th>Comment</th>
                                                 <th></th>
                                             </tr>
@@ -160,19 +142,89 @@
                                                     <td>@log.Magic</td>
                                                     <td>@log.Date</td>
                                                     <td>@log.ExitRR</td>
+                                                    <td>
+                                                        @{
+                                                            if (log.Signal != null)
+                                                            {
+                                                                <span>@log.Signal.ExitRiskRewardRatio</span>
+                                                            }
+                                                        }
+                                                    </td>
+                                                    <td>
+                                                        @{
+                                                            if (log.Signal != null)
+                                                            {
+                                                                @if (log.Signal.TradingviewStateType == TradingviewStateType.Init)
+                                                                {
+                                                                    <span class="mb-1 badge rounded-pill  bg-primary-subtle text-primary">Init</span>
+                                                                }
+                                                                else if (log.Signal.TradingviewStateType == TradingviewStateType.Entry)
+                                                                {
+                                                                    <span class="mb-1 badge rounded-pill  bg-secondary-subtle text-secondary">Entry</span>
+                                                                }
+                                                                else if (log.Signal.TradingviewStateType == TradingviewStateType.BeHit)
+                                                                {
+                                                                    <span class="mb-1 badge rounded-pill  bg-warning-subtle text-warning">BE</span>
+                                                                }
+                                                                else if (log.Signal.TradingviewStateType == TradingviewStateType.SlHit)
+                                                                {
+                                                                    <span class="mb-1 badge rounded-pill  bg-danger-subtle text-danger">SL</span>
+                                                                }
+                                                                else if (log.Signal.TradingviewStateType == TradingviewStateType.TpHit)
+                                                                {
+                                                                    <span class="mb-1 badge rounded-pill  bg-success-subtle text-success">TP</span>
+                                                                }
+                                                                else if (log.Signal.TradingviewStateType == TradingviewStateType.Cancel)
+                                                                {
+                                                                    <span class="mb-1 badge rounded-pill  bg-info-subtle text-info">Cancelled</span>
+                                                                }
+                                                                else if (log.Signal.TradingviewStateType == TradingviewStateType.CloseAll)
+                                                                {
+                                                                    <span class="mb-1 badge rounded-pill  bg-info-subtle text-info">Close</span>
+                                                                }
+                                                            }
+                                                        }
+                                                    </td>
                                                     <td>@log.Comment</td>
                                                     <td>
-                                                        @if (log.Action == CrudState.Add)
+                                                        @if (log.Signal != null || log.Action == CrudState.Add || log.Action == CrudState.Edit)
                                                         {
-                                                            <a class="d-flex align-items-center gap-3" @onclick="async () => await AddSignalAsync(log)">
-                                                                Add
-                                                            </a>
-                                                        }
-                                                        else if (log.Action == CrudState.Edit)
-                                                        {
-                                                            <a class="d-flex align-items-center gap-3" @onclick="async () => await UpdateSignalAsync(log)">
-                                                                Edit
-                                                            </a>
+                                                            <div class="dropdown dropstart">
+                                                                <a href="#" class="text-muted" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+                                                                    <i class="ti ti-dots-vertical fs-6"></i>
+                                                                </a>
+                                                                <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                                                                    @if (log.Signal != null)
+                                                                    {
+                                                                        <li>
+                                                                            <a class="dropdown-item d-flex align-items-center gap-3" href="/Signals/@log.Signal.ID/Orders">
+                                                                                Orders
+                                                                            </a>
+                                                                        </li>
+                                                                        <li>
+                                                                            <a class="dropdown-item d-flex align-items-center gap-3" @onclick="() => EditASignalClick(log.Signal.ID)">
+                                                                                Edit Signal
+                                                                            </a>
+                                                                        </li>
+                                                                    }
+                                                                    @if (log.Action == CrudState.Add)
+                                                                    {
+                                                                        <li>
+                                                                            <a class="dropdown-item d-flex align-items-center gap-3" @onclick="async () => await AutoAddASignalFromFileClickAsync(log)">
+                                                                                Auto add form file
+                                                                            </a>
+                                                                        </li>
+                                                                    }
+                                                                    else if (log.Action == CrudState.Edit)
+                                                                    {
+                                                                        <li>
+                                                                            <a class="dropdown-item d-flex align-items-center gap-3" @onclick="async () => await AutoUpdateASignalFromFileClickAsync(log)">
+                                                                                Auto update form file
+                                                                            </a>
+                                                                        </li>
+                                                                    }
+                                                                </ul>
+                                                            </div>
                                                         }
                                                     </td>
                                                 </tr>
@@ -183,6 +235,8 @@
                                                 <th>Magic</th>
                                                 <th>Date</th>
                                                 <th>Exit RR</th>
+                                                <th>Signal TV Exit RR</th>
+                                                <th>Signal TV State</th>
                                                 <th>Comment</th>
                                                 <th></th>
                                             </tr>
@@ -199,29 +253,30 @@
 
 </div>
 
+ <SignalAddOrEditModal @ref="@_signalAddOrEditModal" OnClose="async () => await ReloadAsync()"></SignalAddOrEditModal>
 
 @code {
 
     [SupplyParameterFromForm]
     private TradingviewImport model { get; set; } = new();
+    private SignalAddOrEditModal? _signalAddOrEditModal { get; set; } = null;
 
-
-    private async Task UpdateSignalAsync(TradingviewImportItem item)
+    private async Task AutoUpdateASignalFromFileClickAsync(TradingviewImportItem item)
     {
         // Do null reference check
-        if(item != null && item.SignalId.HasValue && item.ExitRR.HasValue)
+        if (item != null && item.Signal != null && item.ExitRR.HasValue)
         {
             // Get signal from database
-            var signal = await _signalRepository.GetById(692803787, item.SignalId.Value);
+            var signal = await _signalRepository.GetById(692803787, item.Signal.ID);
 
             // Do null reference check
-            if(signal != null)
+            if (signal != null)
             {
                 // Update properties
                 signal.ExitRiskRewardRatio = item.ExitRR;
                 if (item.ExitRR.Value == -1)
                     signal.TradingviewStateType = TradingviewStateType.SlHit;
-                else if(item.ExitRR.Value == 0)
+                else if (item.ExitRR.Value == 0)
                     signal.TradingviewStateType = TradingviewStateType.BeHit;
                 else if (signal.RiskRewardRatio.HasValue && item.ExitRR.Value == signal.RiskRewardRatio.Value)
                     signal.TradingviewStateType = TradingviewStateType.TpHit;
@@ -238,10 +293,10 @@
         }
     }
 
-    private async Task AddSignalAsync(TradingviewImportItem item)
+    private async Task AutoAddASignalFromFileClickAsync(TradingviewImportItem item)
     {
         // Do null reference check
-        if (item != null && item.SignalId.HasValue && item.ExitRR.HasValue)
+        if (item != null && item.Signal != null && item.ExitRR.HasValue)
         {
             // Get signal from database
             var signal = new Signal()
@@ -330,24 +385,27 @@
         }
     }
 
-    private async Task SubmitAsync()
+    private async Task ReloadAsync()
     {
         // Get signals out of database
         var signals = await _signalRepository.GetAllByInstrumentAndStrategyType(692803787, model.Ticker, model.StrategyType);
 
         // Forech signal
-        foreach(var item in model.Items)
+        foreach (var item in model.Items)
         {
             // Get signal based on magic
             var signal = signals.FirstOrDefault(f => f.Magic == item.Magic);
 
             // Do null reference check
-            if(signal != null)
+            if (signal != null)
             {
+                // Put signal in object
+                item.Signal = signal;
+
                 // Check Exit RR is the same
-                if(signal.ExitRiskRewardRatio.HasValue)
+                if (signal.ExitRiskRewardRatio.HasValue)
                 {
-                    if(signal.ExitRiskRewardRatio.Value == item.ExitRR)
+                    if (signal.ExitRiskRewardRatio.Value == item.ExitRR)
                     {
 
                     }
@@ -355,14 +413,12 @@
                     {
                         item.Comment = $"Exit RR in database is {signal.ExitRiskRewardRatio} and in tradingview export is it {item.ExitRR}";
                         item.Action = CrudState.Edit;
-                        item.SignalId = signal.ID;
                     }
                 }
                 else
                 {
                     item.Comment = $"No Exit RR in database";
                     item.Action = CrudState.Edit;
-                    item.SignalId = signal.ID;
                 }
             }
             else
@@ -370,6 +426,14 @@
                 item.Comment = $"Trade was not found in database";
                 item.Action = CrudState.Add;
             }
+        }
+    }
+
+    private async Task EditASignalClick(long id)
+    {
+        if (_signalAddOrEditModal != null)
+        {
+            await _signalAddOrEditModal.InitAsync(692803787, id);
         }
     }
 }
