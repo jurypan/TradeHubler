@@ -1482,7 +1482,7 @@ namespace JCTG.Client
                                 AccountEquity = api.AccountInfo?.Equity,
                                 Price = decimal.ToDouble(metadataTick.Ask),
                                 Spread = spread,
-                                SpreadCost = spread * trade.Lots * decimal.ToDouble(metadataTick.TickValue),
+                                SpreadCost = RiskCalculator.CostSpread(spread, trade.Lots, metadataTick.Point, metadataTick.ContractSize),
                             });
                         });
                     }

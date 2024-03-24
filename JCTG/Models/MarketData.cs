@@ -30,6 +30,12 @@ namespace JCTG.Models
         [JsonProperty("min_lot_size")]
         public double MinLotSize { get; set; }
 
+        [JsonProperty("point")]
+        public double Point { get; set; }
+
+        [JsonProperty("contract_size")]
+        public double ContractSize { get; set; }
+
 
         [JsonProperty("max_lot_size")]
         public double MaxLotSize { get; set; }

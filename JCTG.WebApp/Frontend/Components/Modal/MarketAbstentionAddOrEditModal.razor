@@ -3,15 +3,16 @@
 
 
 <div class="modal fade @_cssClass" tabindex="-1" style="display:@_display">
-    <div class=" modal-dialog modal-dialog-scrollable modal-lg" role="document">
-        <div class="modal-content">
-            <div class="modal-header modal-colored-header bg-primary text-white">
-                <h4 class="modal-title text-white" id="primary-header-modalLabel"> Market Abstention </h4>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" @onclick="async () => await CloseAsync()"></button>
-            </div>
+    <EditForm Model="@model" OnValidSubmit="@SubmitAsync">
+        <div class=" modal-dialog modal-dialog-scrollable modal-xl">
+            <div class="modal-content">
+                <div class="modal-header modal-colored-header bg-primary text-white">
+                    <h4 class="modal-title text-white" id="primary-header-modalLabel"> Market Abstention </h4>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" @onclick="async () => await CloseAsync()"></button>
+                </div>
 
-            <div class="modal-body">
-                <EditForm Model="@model" OnValidSubmit="@SubmitAsync">
+                <div class="modal-body">
+
                     <DataAnnotationsValidator />
                     <ValidationSummary />
                     <AntiforgeryToken />
@@ -55,16 +56,17 @@
                             </div>
                         </div>
                     </div>
-                </EditForm>
-            </div>
-            <div class="modal-footer">
-                <div class="d-flex gap-6 m-0">
-                    <button type="submit" class="btn btn-primary  rounded-pill px-4"> Save </button>
-                    <button class="btn bg-danger-subtle text-danger rounded-pill" @onclick="async () => await CloseAsync()"> Discard </button>
+
+                </div>
+                <div class="modal-footer">
+                    <div class="d-flex gap-6 m-0">
+                        <button type="submit" class="btn btn-primary  rounded-pill px-4"> Save </button>
+                        <button class="btn bg-danger-subtle text-danger rounded-pill" @onclick="async () => await CloseAsync()"> Discard </button>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
+    </EditForm>
 </div>
 
 

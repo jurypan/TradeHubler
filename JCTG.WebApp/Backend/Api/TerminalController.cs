@@ -1,6 +1,7 @@
 ﻿using JCTG.Models;
 using Microsoft.AspNetCore.Mvc;
-using System.Data.Entity;
+using Microsoft.EntityFrameworkCore;
+
 
 namespace JCTG.WebApp.Backend.Api
 {
@@ -19,7 +20,7 @@ namespace JCTG.WebApp.Backend.Api
         [HttpGet("terminalconfig")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> TerminalConfig()
+        public IActionResult TerminalConfig()
         {
             // Security 
             var code = Request.Query["code"];

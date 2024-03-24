@@ -38,6 +38,7 @@ namespace JCTG.Entity
 
         Entry = 0,
         MoveSlToBe = 1,
+        CancelOrder = 2,
 
         TpHit = 10,
         SlHit = 11,
@@ -49,6 +50,8 @@ namespace JCTG.Entity
         BuyLimit = 22,
         SellLimit = 23,
         BuyStop = 24,
-        SellStop = 25
+        SellStop = 25,
+
+        CloseAll = 40,
     }
 }

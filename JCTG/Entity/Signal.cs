@@ -202,7 +202,7 @@ namespace JCTG.Entity
         SlHit = 2,
         BeHit = 3,
         Entry = 10,
-        Cancel = 20,
+        CancelOrder = 20,
         CloseAll = 21
     }
 }

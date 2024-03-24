@@ -47,7 +47,7 @@
     </div>
 
     <div class="row">
-        <div class="card">
+        <div class="card card-body">
             <h5 class="mb-3">Synchronize the alerts</h5>
             <div class="mb-3">
                 <EditForm Model="@model" OnValidSubmit="@ReloadAsync">
@@ -69,19 +69,16 @@
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label class="form-label">Direction</label>
-                                <InputSelect class="form-select col-12" @bind-Value="model.Direction">
-                                    <option value="Long">Long</option>
-                                    <option value="Short">Short</option>
-                                </InputSelect>
+                                <label class="form-label">Ticker</label>
+                                <InputText class="form-control" @bind-Value="model.Ticker" />
                             </div>
                         </div>
                     </div>
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label class="form-label">Ticker</label>
-                                <InputText class="form-control" @bind-Value="model.Ticker" />
+                                <label for="formFile" class="form-label">TakeProfit</label>
+                                <InputText class="form-control" @bind-Value="model.TakeProfitAsString" />
                             </div>
                         </div>
                         <div class="col-md-6">
@@ -96,12 +93,7 @@
                         <div class="p-3 border-top">
                             <div>
                                 <div class="mb-3 mb-0 text-end">
-                                    <button type="submit" class="btn btn-primary rounded-pill px-4">
-                                        Save
-                                    </button>
-                                    <button type="submit" class="btn bg-danger-subtle text-danger rounded-pill ms-6 px-4">
-                                        Cancel
-                                    </button>
+                                    <button type="submit" class="btn btn-primary rounded-pill px-4">Sync</button>
                                 </div>
                             </div>
                         </div>
@@ -119,8 +111,18 @@
                     <div class="col-12">
                         <div class="card">
                             <div class="card-body">
-                                <div class="mb-2">
-                                    <h5 class="mb-0">Logs</h5>
+                                <div class="d-flex align-items-center">
+                                    <div>
+                                        <h4 class="card-title">Tradingview export</h4>
+                                        <h5 class="card-subtitle">Overview of Tradingview export CSV file</h5>
+                                    </div>
+                                    <div class="ms-auto d-flex align-items-center">
+                                        <ul class="list-inline fs-2 dl me-2">
+                                            <li class="list-inline-item">
+                                                <button type="button" class="btn btn-primary rounded-pill px-4" @onclick="async () => await AutoUpdateAllSignalsFromFileClickAsync()">Auto update</button>
+                                            </li>
+                                        </ul>
+                                    </div>
                                 </div>
                                 <div class="table-responsive">
                                     <table class="table border table-striped table-bordered display text-nowrap">
@@ -174,7 +176,7 @@
                                                                 {
                                                                     <span class="mb-1 badge rounded-pill  bg-success-subtle text-success">TP</span>
                                                                 }
-                                                                else if (log.Signal.TradingviewStateType == TradingviewStateType.Cancel)
+                                                                else if (log.Signal.TradingviewStateType == TradingviewStateType.CancelOrder)
                                                                 {
                                                                     <span class="mb-1 badge rounded-pill  bg-info-subtle text-info">Cancelled</span>
                                                                 }
@@ -251,15 +253,44 @@
         </div>
     }
 
+    @if (_exception != null)
+    {
+        <div class="alert customize-alert alert-dismissible alert-light-danger bg-danger-subtle text-danger fade show remove-close-icon" role="alert">
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            <div class="d-flex align-items-center  me-3 me-md-0">
+                <i class="ti ti-info-circle fs-5 me-2 text-danger"></i>
+                @_exception.Message
+                @if (_exception.InnerException != null)
+                {
+                    <br />
+                    @_exception.InnerException.Message
+                }
+            </div>
+        </div>
+    }
+
+
 </div>
 
- <SignalAddOrEditModal @ref="@_signalAddOrEditModal" OnClose="async () => await ReloadAsync()"></SignalAddOrEditModal>
+<SignalAddOrEditModal @ref="@_signalAddOrEditModal" OnClose="async () => await ReloadAsync()"></SignalAddOrEditModal>
 
 @code {
 
     [SupplyParameterFromForm]
     private TradingviewImport model { get; set; } = new();
     private SignalAddOrEditModal? _signalAddOrEditModal { get; set; } = null;
+    private Exception? _exception { get; set; } = null;
+
+    private async Task AutoUpdateAllSignalsFromFileClickAsync()
+    {
+        foreach (var item in model.Items)
+        {
+            if (item.Action == CrudState.Edit && item.Signal != null && item.ExitRR.HasValue)
+            {
+                await AutoUpdateASignalFromFileClickAsync(item);
+            }
+        }
+    }
 
     private async Task AutoUpdateASignalFromFileClickAsync(TradingviewImportItem item)
     {
@@ -278,7 +309,7 @@
                     signal.TradingviewStateType = TradingviewStateType.SlHit;
                 else if (item.ExitRR.Value == 0)
                     signal.TradingviewStateType = TradingviewStateType.BeHit;
-                else if (signal.RiskRewardRatio.HasValue && item.ExitRR.Value == signal.RiskRewardRatio.Value)
+                else if (item.ExitRR.Value == model.TakeProfit)
                     signal.TradingviewStateType = TradingviewStateType.TpHit;
                 else
                     signal.TradingviewStateType = TradingviewStateType.CloseAll;
@@ -327,6 +358,9 @@
         var file = e.File;
         if (file == null) return;
 
+        model.Items = new();
+        _exception = null;
+
         try
         {
             var content = new MultipartFormDataContent();
@@ -347,42 +381,35 @@
                             item.Date = DateTime.Parse(values[3]);
                             item.Magic = int.Parse(values[2]);
                         }
-                        else
-                        {
-                            model.Items.Add(new TradingviewImportItem()
-                                {
-                                    ID = int.Parse(values[0]),
-                                    Date = DateTime.Parse(values[3]),
-                                    Magic = int.Parse(values[2])
-                                });
-                        }
-
                     }
                     else if (values[1].Contains("Exit"))
                     {
-                        var item = model.Items.FirstOrDefault(f => f.ID == int.Parse(values[0]));
-                        if (item != null)
+                        if (values[2] != "Open")
                         {
-                            item.ExitRR = double.Parse(values[2]);
+                            var item = model.Items.FirstOrDefault(f => f.ID == int.Parse(values[0]));
+                            if (item != null)
+                            {
+                                item.ExitRR = double.Parse(values[2]);
+                            }
+                            else
+                            {
+                                model.Items.Add(new TradingviewImportItem()
+                                    {
+                                        ID = int.Parse(values[0]),
+                                        ExitRR = double.Parse(values[2]),
+                                    });
+                            }
                         }
-                        else
-                        {
-                            model.Items.Add(new TradingviewImportItem()
-                                {
-                                    ID = int.Parse(values[0]),
-                                    ExitRR = double.Parse(values[2]),
-                                });
-                        }
-
                     }
                 }
             }
 
             model.Items = model.Items.OrderByDescending(f => f.Date).ToList();
+            await ReloadAsync();
         }
         catch (Exception ex)
         {
-
+            _exception = ex;
         }
     }
 
@@ -406,9 +433,10 @@
                 // Check Exit RR is the same
                 if (signal.ExitRiskRewardRatio.HasValue)
                 {
-                    if (signal.ExitRiskRewardRatio.Value == item.ExitRR)
+                    if (signal.ExitRiskRewardRatio == item.ExitRR)
                     {
-
+                        item.Comment = "OK";
+                        item.Action = CrudState.None;
                     }
                     else
                     {
@@ -426,6 +454,7 @@
             {
                 item.Comment = $"Trade was not found in database";
                 item.Action = CrudState.Add;
+                item.Signal = null;
             }
         }
     }

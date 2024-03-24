@@ -1,11 +1,9 @@
 ﻿using JCTG.Command;
 using JCTG.Entity;
-using JCTG.Events;
 using JCTG.WebApp.Backend.Websocket;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Newtonsoft.Json;
-using System.Data.Entity;
+using Microsoft.EntityFrameworkCore;
 
 
 namespace JCTG.WebApp.Backend.Api
@@ -73,8 +71,21 @@ namespace JCTG.WebApp.Backend.Api
                             if (prevSignal != null)
                             {
                                 if (prevSignal.TradingviewStateType == TradingviewStateType.Init)
-                                    prevSignal.TradingviewStateType = TradingviewStateType.Cancel;
+                                    prevSignal.TradingviewStateType = TradingviewStateType.CancelOrder;
                             }
+
+                            if (signal.OrderType.Equals("buy", StringComparison.CurrentCultureIgnoreCase))
+                                signal.TradingviewStateType = TradingviewStateType.Entry;
+                            else if (signal.OrderType.Equals("buystop", StringComparison.CurrentCultureIgnoreCase))
+                                signal.TradingviewStateType = TradingviewStateType.Init;
+                            else if (signal.OrderType.Equals("buylimit", StringComparison.CurrentCultureIgnoreCase))
+                                signal.TradingviewStateType = TradingviewStateType.Init;
+                            else if (signal.OrderType.Equals("sell", StringComparison.CurrentCultureIgnoreCase))
+                                signal.TradingviewStateType = TradingviewStateType.Entry;
+                            else if (signal.OrderType.Equals("selllimit", StringComparison.CurrentCultureIgnoreCase))
+                                signal.TradingviewStateType = TradingviewStateType.Init;
+                            else if (signal.OrderType.Equals("sellstop", StringComparison.CurrentCultureIgnoreCase))
+                                signal.TradingviewStateType = TradingviewStateType.Init;
 
                             // If the order type is one of the order types, add the signal to the database
                             await _dbContext.Signal.AddAsync(signal);
@@ -90,8 +101,6 @@ namespace JCTG.WebApp.Backend.Api
                                 SignalID = signal.ID,
                                 Type = TradingviewAlert.ParseTradingviewAlertTypeOrDefault(signal.OrderType.ToLower()),
                             });
-
-                           
 
                             // Save to the database
                             await _dbContext.SaveChangesAsync();
@@ -148,7 +157,7 @@ namespace JCTG.WebApp.Backend.Api
                                 else if (signal.OrderType.Equals("entry", StringComparison.CurrentCultureIgnoreCase))
                                     existingSignal.TradingviewStateType = TradingviewStateType.Entry;
                                 else if (signal.OrderType.Equals("cancelorder", StringComparison.CurrentCultureIgnoreCase))
-                                    existingSignal.TradingviewStateType = TradingviewStateType.Cancel;
+                                    existingSignal.TradingviewStateType = TradingviewStateType.CancelOrder;
 
                                 // Update
                                 existingSignal.DateLastUpdated = DateTime.UtcNow;
@@ -166,10 +175,21 @@ namespace JCTG.WebApp.Backend.Api
                                     Type = TradingviewAlert.ParseTradingviewAlertTypeOrDefault(signal.OrderType.ToLower()),
                                 });
 
+                                // Update database
+                                _logger.Information($"Updated database in table Signal with ID: {existingSignal.ID}", existingSignal);
+                            }
+
+                            if (!existingSignals.Any())
+                            {
+                                // Add error to log
+                                _logger.Error($"Error! Could not find Signal with magic: {signal.Magic} in database", signal);
                             }
 
                             // Save to the database
                             await _dbContext.SaveChangesAsync();
+
+                            // Add log
+                            _logger.Information($"Updated database in table Signal with ID: {signal.ID}", signal);
 
                             break;
                         case "closeall":
@@ -179,11 +199,8 @@ namespace JCTG.WebApp.Backend.Api
 
                             foreach (var existingSignal in existingSignals2)
                             {
-                                // Update properties based on your logic
-                                if (signal.OrderType.Equals("closeall", StringComparison.CurrentCultureIgnoreCase))
-                                    existingSignal.TradingviewStateType = TradingviewStateType.CloseAll;
-
                                 // Update
+                                existingSignal.TradingviewStateType = TradingviewStateType.CloseAll;
                                 existingSignal.DateLastUpdated = DateTime.UtcNow;
                                 existingSignal.ExitRiskRewardRatio = signal.ExitRiskRewardRatio;
 
@@ -198,20 +215,31 @@ namespace JCTG.WebApp.Backend.Api
                                     SignalID = existingSignal.ID,
                                     Type = TradingviewAlert.ParseTradingviewAlertTypeOrDefault(signal.OrderType.ToLower()),
                                 });
+
+                                // Update database
+                                _logger.Information($"Updated database in table Signal with ID: {existingSignal.ID}", existingSignal);
+                            }
+
+                            if (!existingSignals2.Any())
+                            {
+                                // Add error to log
+                                _logger.Error($"Error! Could not find Signal with magic: {signal.Magic} in database", signal);
                             }
 
                             // Save to the database
                             await _dbContext.SaveChangesAsync();
 
+
+
                             break;
                         default:
                             // Optionally, handle unknown order types
-                            _logger.Warning($"Unknown or not used ordertype: {signal.OrderType}");
+                            _logger.Error($"Error! Unknown or not used ordertype: {signal.OrderType}");
                             break;
                     }
 
 
-                   
+
                 }
                 catch (Exception ex)
                 {

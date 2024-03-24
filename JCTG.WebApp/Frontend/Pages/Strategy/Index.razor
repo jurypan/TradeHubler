@@ -114,6 +114,7 @@
                                                 <th>Type</th>
                                                 <th>Date Created</th>
                                                 <th>RR</th>
+                                                <th>State</th>
                                                 <th>PNL</th>
                                                 <th>Warning</th>
                                                 <th></th>
@@ -128,7 +129,36 @@
                                                     <td>@signal.OrderType</td>
                                                     <td>@signal.DateCreated</td>
                                                     <td>@signal.ExitRiskRewardRatioAsString</td>
-
+                                                    <td>
+                                                        @if (signal.TradingviewStateType == TradingviewStateType.Init)
+                                                        {
+                                                            <span class="mb-1 badge rounded-pill  bg-primary-subtle text-primary">Init</span>
+                                                        }
+                                                        else if (signal.TradingviewStateType == TradingviewStateType.Entry)
+                                                        {
+                                                            <span class="mb-1 badge rounded-pill  bg-secondary-subtle text-secondary">Entry</span>
+                                                        }
+                                                        else if (signal.TradingviewStateType == TradingviewStateType.BeHit)
+                                                        {
+                                                            <span class="mb-1 badge rounded-pill  bg-warning-subtle text-warning">BE</span>
+                                                        }
+                                                        else if (signal.TradingviewStateType == TradingviewStateType.SlHit)
+                                                        {
+                                                            <span class="mb-1 badge rounded-pill  bg-danger-subtle text-danger">SL</span>
+                                                        }
+                                                        else if (signal.TradingviewStateType == TradingviewStateType.TpHit)
+                                                        {
+                                                            <span class="mb-1 badge rounded-pill  bg-success-subtle text-success">TP</span>
+                                                        }
+                                                        else if (signal.TradingviewStateType == TradingviewStateType.CancelOrder)
+                                                        {
+                                                            <span class="mb-1 badge rounded-pill  bg-info-subtle text-info">Cancelled</span>
+                                                        }
+                                                        else if (signal.TradingviewStateType == TradingviewStateType.CloseAll)
+                                                        {
+                                                            <span class="mb-1 badge rounded-pill  bg-info-subtle text-info">Close</span>
+                                                        }
+                                                    </td>
                                                     @{
                                                         var order = _orders.FirstOrDefault(f => f.SignalID == signal.ID);
                                                         var marketAbstention = _marketAbstentions.FirstOrDefault(f => f.SignalID == signal.ID);
@@ -190,6 +220,7 @@
                                                 <th>Type</th>
                                                 <th>Date Created</th>
                                                 <th>RR</th>
+                                                <th>State</th>
                                                 <th>PNL</th>
                                                 <th>Warning</th>
                                                 <th></th>

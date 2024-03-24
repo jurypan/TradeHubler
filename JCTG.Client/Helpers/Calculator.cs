@@ -49,6 +49,20 @@ namespace JCTG.Client
             return 0.0M;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="spread"></param>
+        /// <param name="lotsize"></param>
+        /// <param name="points"></param>
+        /// <param name="contractsize"></param>
+        /// <returns></returns>
+        public static double CostSpread(double spread, double lotsize, double points, double contractsize)
+        {
+            //  SymbolInfoInteger(_Symbol, SYMBOL_SPREAD) * _Point * Lots * CONTRACT_SIZE;
+            return spread * lotsize * points * contractsize;
+        }
+
 
         /// <summary>
         /// Calculate the stop loss signalEntryPrice for long positions based on the specified parameters

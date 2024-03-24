@@ -3,15 +3,14 @@
 
 
 <div class="modal fade @_cssClass" tabindex="-1" style="display:@_display">
-    <div class=" modal-dialog modal-dialog-scrollable modal-lg" role="document">
-        <div class="modal-content">
-            <EditForm Model="@model" OnValidSubmit="@SubmitAsync">
+    <EditForm Model="@model" OnValidSubmit="@SubmitAsync">
+        <div class=" modal-dialog modal-dialog-scrollable modal-xl">
+            <div class="modal-content">
                 <div class="modal-header modal-colored-header bg-primary text-white">
                     <h4 class="modal-title text-white" id="primary-header-modalLabel"> Order </h4>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" @onclick="async () => await CloseAsync()"></button>
                 </div>
                 <div class="modal-body">
-
                     <DataAnnotationsValidator />
                     <ValidationSummary />
                     <AntiforgeryToken />
@@ -157,9 +156,9 @@
                         <button class="btn bg-danger-subtle text-danger rounded-pill" @onclick="async () => await CloseAsync()"> Discard </button>
                     </div>
                 </div>
-            </EditForm>
+            </div>
         </div>
-    </div>
+    </EditForm>
 </div>
 
 @code {

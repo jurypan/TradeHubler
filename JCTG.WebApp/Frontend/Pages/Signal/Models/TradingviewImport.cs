@@ -1,5 +1,4 @@
 ﻿using JCTG.Models;
-using JCTG.Entity;
 
 namespace JCTG.WebApp.Frontend.Pages.Signal.Models
 {
@@ -7,9 +6,19 @@ namespace JCTG.WebApp.Frontend.Pages.Signal.Models
     {
 
         public StrategyType StrategyType { get; set; }
-        public string Direction { get; set; } = string.Empty;
         public string Ticker { get; set; } = string.Empty;
-        public string Timeframe { get; set; } = string.Empty;
+        public double TakeProfit { get; set; }
+        public string TakeProfitAsString
+        {
+            get => TakeProfit.ToString();
+            set
+            {
+                if (double.TryParse(value, out double newValue))
+                {
+                    TakeProfit = newValue;
+                }
+            }
+        }
         public List<TradingviewImportItem> Items { get; set; } = [];
     }
 
