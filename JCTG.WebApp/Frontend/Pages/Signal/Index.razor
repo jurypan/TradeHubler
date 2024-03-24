@@ -149,6 +149,9 @@
                                 <h6 class="fs-4 fw-semibold mb-0">Strategy</h6>
                             </th>
                             <th>
+                                <h6 class="fs-4 fw-semibold mb-0">Magic</h6>
+                            </th>
+                            <th>
                                 <h6 class="fs-4 fw-semibold mb-0">Signal</h6>
                             </th>
                             <th>
@@ -159,6 +162,9 @@
                             </th>
                             <th>
                                 <h6 class="fs-4 fw-semibold mb-0">TV Status</h6>
+                            </th>
+                            <th>
+                                <h6 class="fs-4 fw-semibold mb-0">TV Exit RR</h6>
                             </th>
                             <th>
                                 <h6 class="fs-4 fw-semibold mb-0">PNL</h6>
@@ -202,6 +208,9 @@
                                     </div>
                                 </td>
                                 <td>
+                                    <p class="mb-0 fw-normal">@signal.Magic</p>
+                                </td>
+                                <td>
                                     <h6 class="fs-4 fw-semibold mb-0">@signal.Instrument</h6>
                                     <p class="mb-0 fw-normal">@signal.OrderType</p>
                                 </td>
@@ -240,8 +249,8 @@
                                     {
                                         <span class="mb-1 badge rounded-pill  bg-info-subtle text-info">Close</span>
                                     }
-
                                 </td>
+                                <td>@signal.ExitRiskRewardRatio</td>
                                 <td>@Math.Round(signal.Orders.Sum(f => f.Pnl), 2)</td>
                                 <td>
                                     @if (signal.TradingviewStateType == TradingviewStateType.Init)

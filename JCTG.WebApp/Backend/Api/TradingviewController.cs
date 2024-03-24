@@ -108,6 +108,10 @@ namespace JCTG.WebApp.Backend.Api
                                 } : null,
                             });
 
+                            // Check if previous signal of this strategy is set as init (if -> set as cancelled)
+          
+
+
                             // Add log
                             _logger.Information($"Sent to Azure Web PubSub with response client request id: {id}", id);
                             break;

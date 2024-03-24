@@ -1,9 +1,11 @@
 ﻿@page "/Signals/ManualSync";
 @inject TradingviewAlertRepository _tradingviewAlertRepository;
+@inject SignalRepository _signalRepository;
 @using JCTG.WebApp.Frontend.Components.Widget;
 @using JCTG.WebApp.Frontend.Pages.Signal.Models;
 @using System.Net.Http.Headers;
 @using JCTG.Models;
+@using System.Text.RegularExpressions
 
 <div class="container-fluid mw-100">
 
@@ -83,17 +85,47 @@
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label for="formFile" class="form-label">CSV File</label>
-                                <InputFile class="form-control" OnChange="HandleFileUpload"></InputFile>
-                                <span>@_fileName</span>
+                                <label for="formFile" class="form-label">Timeframe</label>
+                                <InputSelect class="form-select col-12" @bind-Value="model.Timeframe">
+                                    <option value="5M">5 Min</option>
+                                    <option value="10M">10 Min</option>
+                                    <option value="15M">15 Min</option>
+                                    <option value="20M">20 Min</option>
+                                    <option value="30M">30 Min</option>
+                                    <option value="45M">45 Min</option>
+                                    <option value="1H">1 Hour</option>
+                                    <option value="2H">2 Hour</option>
+                                    <option value="5H">4 Hour</option>
+                                    <option value="6H">6 Hour</option>
+                                    <option value="12H">12 Hour</option>
+                                    <option value="1D">1 Day</option>
+                                </InputSelect>
                             </div>
                         </div>
                     </div>
                     <div class="row">
-                        <div class="mt-3 mt-md-0 ms-auto">
-                            <button type="submit" class="btn btn-warning  rounded-pill px-4"> Submit </button>
+                        <div class="col-md-12">
+                            <div class="mb-3">
+                                <label for="formFile" class="form-label">CSV File</label>
+                                <InputFile class="form-control" OnChange="HandleFileUpload"></InputFile>
+                            </div>
                         </div>
                     </div>
+                    @if (model.Items.Count > 0)
+                    {
+                        <div class="row">
+                            <div class="form-actions">
+                                <div class="card-body border-top">
+                                    <button type="submit" class="btn btn-success rounded-pill px-4">
+                                        Sync
+                                    </button>
+                                    <button type="button" class="btn bg-danger-subtle text-danger rounded-pill px-4 ms-6">
+                                        Cancel
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    }
                 </EditForm>
             </div>
         </div>
@@ -118,6 +150,7 @@
                                                 <th>Date</th>
                                                 <th>Exit RR</th>
                                                 <th>Comment</th>
+                                                <th></th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -128,6 +161,20 @@
                                                     <td>@log.Date</td>
                                                     <td>@log.ExitRR</td>
                                                     <td>@log.Comment</td>
+                                                    <td>
+                                                        @if (log.Action == CrudState.Add)
+                                                        {
+                                                            <a class="d-flex align-items-center gap-3" @onclick="async () => await AddSignalAsync(log)">
+                                                                Add
+                                                            </a>
+                                                        }
+                                                        else if (log.Action == CrudState.Edit)
+                                                        {
+                                                            <a class="d-flex align-items-center gap-3" @onclick="async () => await UpdateSignalAsync(log)">
+                                                                Edit
+                                                            </a>
+                                                        }
+                                                    </td>
                                                 </tr>
                                             }
                                         </tbody>
@@ -137,6 +184,7 @@
                                                 <th>Date</th>
                                                 <th>Exit RR</th>
                                                 <th>Comment</th>
+                                                <th></th>
                                             </tr>
                                         </tfoot>
                                     </table>
@@ -157,8 +205,66 @@
     [SupplyParameterFromForm]
     private TradingviewImport model { get; set; } = new();
 
-    private string _fileName { get; set; } = string.Empty;
 
+    private async Task UpdateSignalAsync(TradingviewImportItem item)
+    {
+        // Do null reference check
+        if(item != null && item.SignalId.HasValue && item.ExitRR.HasValue)
+        {
+            // Get signal from database
+            var signal = await _signalRepository.GetById(692803787, item.SignalId.Value);
+
+            // Do null reference check
+            if(signal != null)
+            {
+                // Update properties
+                signal.ExitRiskRewardRatio = item.ExitRR;
+                if (item.ExitRR.Value == -1)
+                    signal.TradingviewStateType = TradingviewStateType.SlHit;
+                else if(item.ExitRR.Value == 0)
+                    signal.TradingviewStateType = TradingviewStateType.BeHit;
+                else if (signal.RiskRewardRatio.HasValue && item.ExitRR.Value == signal.RiskRewardRatio.Value)
+                    signal.TradingviewStateType = TradingviewStateType.TpHit;
+                else
+                    signal.TradingviewStateType = TradingviewStateType.CloseAll;
+
+                // Update signal
+                await _signalRepository.EditAsync(signal);
+
+                // Update item
+                item.Comment = string.Empty;
+                item.Action = CrudState.None;
+            }
+        }
+    }
+
+    private async Task AddSignalAsync(TradingviewImportItem item)
+    {
+        // Do null reference check
+        if (item != null && item.SignalId.HasValue && item.ExitRR.HasValue)
+        {
+            // Get signal from database
+            var signal = new Signal()
+                {
+                    AccountID = 692803787,
+
+                };
+
+            // Do null reference check
+            if (signal != null)
+            {
+                // Update properties
+                signal.ExitRiskRewardRatio = item.ExitRR;
+                if (item.ExitRR.Value == -1)
+                    signal.TradingviewStateType = TradingviewStateType.SlHit;
+                else if (item.ExitRR.Value == 0)
+                    signal.TradingviewStateType = TradingviewStateType.BeHit;
+
+                // Update signal
+                await _signalRepository.AddAsync(signal);
+            }
+        }
+    }
 
     private async Task HandleFileUpload(InputFileChangeEventArgs e)
     {
@@ -167,7 +273,6 @@
 
         try
         {
-            _fileName = file.Name;
             var content = new MultipartFormDataContent();
             var fileContent = new StreamContent(file.OpenReadStream(10485760)); // 10MB limit
             string text = await fileContent.ReadAsStringAsync();
@@ -225,7 +330,46 @@
         }
     }
 
-    public void SubmitAsync()
+    private async Task SubmitAsync()
     {
+        // Get signals out of database
+        var signals = await _signalRepository.GetAllByInstrumentAndStrategyType(692803787, model.Ticker, model.StrategyType);
+
+        // Forech signal
+        foreach(var item in model.Items)
+        {
+            // Get signal based on magic
+            var signal = signals.FirstOrDefault(f => f.Magic == item.Magic);
+
+            // Do null reference check
+            if(signal != null)
+            {
+                // Check Exit RR is the same
+                if(signal.ExitRiskRewardRatio.HasValue)
+                {
+                    if(signal.ExitRiskRewardRatio.Value == item.ExitRR)
+                    {
+
+                    }
+                    else
+                    {
+                        item.Comment = $"Exit RR in database is {signal.ExitRiskRewardRatio} and in tradingview export is it {item.ExitRR}";
+                        item.Action = CrudState.Edit;
+                        item.SignalId = signal.ID;
+                    }
+                }
+                else
+                {
+                    item.Comment = $"No Exit RR in database";
+                    item.Action = CrudState.Edit;
+                    item.SignalId = signal.ID;
+                }
+            }
+            else
+            {
+                item.Comment = $"Trade was not found in database";
+                item.Action = CrudState.Add;
+            }
+        }
     }
 }

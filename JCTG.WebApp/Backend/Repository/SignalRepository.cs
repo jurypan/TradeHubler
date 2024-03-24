@@ -39,6 +39,16 @@ public class SignalRepository(IDbContextFactory<JCTGDbContext> dbContextFactory)
             .ToListAsync();
     }
 
+    public async Task<List<Signal>> GetAllByInstrumentAndStrategyType(int accountId, string instrument, StrategyType strategyType)
+    {
+        using var context = await dbContextFactory.CreateDbContextAsync();
+        return await context.Signal
+            .Include(f => f.Orders)
+            .Where(f => f.AccountID == accountId && f.Instrument == instrument && f.StrategyType == strategyType)
+            .OrderByDescending(f => f.DateLastUpdated)
+            .ToListAsync();
+    }
+
     public async Task<List<Signal>> GetAllLast200ByStrategyType(int accountId, StrategyType strategyType)
     {
         using var context = await dbContextFactory.CreateDbContextAsync();
