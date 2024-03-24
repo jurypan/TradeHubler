@@ -5,6 +5,7 @@ using JCTG.WebApp.Backend.Websocket;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Newtonsoft.Json;
+using System.Data.Entity;
 
 
 namespace JCTG.WebApp.Backend.Api
@@ -64,6 +65,17 @@ namespace JCTG.WebApp.Backend.Api
                         case "sell":
                         case "selllimit":
                         case "sellstop":
+
+                            // Check if previous signal of this strategy is set as init (if -> set as cancelled)
+                            var prevSignal = await _dbContext.Signal.Where(s => s.Instrument == signal.Instrument && s.AccountID == signal.AccountID && s.StrategyType == signal.StrategyType).OrderByDescending(f => f.DateCreated).FirstOrDefaultAsync();
+
+                            // do null reference check
+                            if (prevSignal != null)
+                            {
+                                if (prevSignal.TradingviewStateType == TradingviewStateType.Init)
+                                    prevSignal.TradingviewStateType = TradingviewStateType.Cancel;
+                            }
+
                             // If the order type is one of the order types, add the signal to the database
                             await _dbContext.Signal.AddAsync(signal);
 
@@ -78,6 +90,8 @@ namespace JCTG.WebApp.Backend.Api
                                 SignalID = signal.ID,
                                 Type = TradingviewAlert.ParseTradingviewAlertTypeOrDefault(signal.OrderType.ToLower()),
                             });
+
+                           
 
                             // Save to the database
                             await _dbContext.SaveChangesAsync();
@@ -107,10 +121,6 @@ namespace JCTG.WebApp.Backend.Api
                                     RiskRewardRatio = Convert.ToDecimal(signal.RiskRewardRatio),
                                 } : null,
                             });
-
-                            // Check if previous signal of this strategy is set as init (if -> set as cancelled)
-          
-
 
                             // Add log
                             _logger.Information($"Sent to Azure Web PubSub with response client request id: {id}", id);
@@ -155,6 +165,7 @@ namespace JCTG.WebApp.Backend.Api
                                     SignalID = existingSignal.ID,
                                     Type = TradingviewAlert.ParseTradingviewAlertTypeOrDefault(signal.OrderType.ToLower()),
                                 });
+
                             }
 
                             // Save to the database
