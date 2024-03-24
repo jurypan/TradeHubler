@@ -166,14 +166,6 @@ export function apexLineChartInit(element, refId, name1, data1, name2, data2) {
                     format: "dd/MM/yy HH:mm:ss"
                 },
                 theme: "dark",
-                //custom: function ({ series, seriesIndex, dataPointIndex, w }) {
-                //    var data = series[seriesIndex][dataPointIndex];
-
-                //    return '<ul>' +
-                //        '<li><b>RR</b>: ' + data.Price + '</li>' +
-                //        '<li><b>Magic</b>: ' + data.Magic + '</li>' +
-                //        '</ul>';
-                //}
             },
             legend: {
                 show: false,

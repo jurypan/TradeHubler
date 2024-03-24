@@ -250,7 +250,22 @@
                                         <span class="mb-1 badge rounded-pill  bg-info-subtle text-info">Close</span>
                                     }
                                 </td>
-                                <td>@signal.ExitRiskRewardRatio</td>
+                                <td>
+                                    @signal.ExitRiskRewardRatio
+
+                                    @if (signal.TradingviewStateType == TradingviewStateType.CancelOrder)
+                                    {
+                                       <text>-</text>
+                                    }
+                                    else if (signal.TradingviewStateType == TradingviewStateType.Init)
+                                    {
+                                        <text>?</text>
+                                    }
+                                    else if (signal.TradingviewStateType == TradingviewStateType.Entry)
+                                    {
+                                        <text>?</text>
+                                    }
+                                </td>
                                 <td>@Math.Round(signal.Orders.Sum(f => f.Pnl), 2)</td>
                                 <td>
                                     @if (signal.TradingviewStateType == TradingviewStateType.Init)
