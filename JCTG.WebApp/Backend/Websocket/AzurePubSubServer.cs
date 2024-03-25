@@ -140,7 +140,8 @@ public class AzurePubSubServer(WebsocketClient client)
         _logger.Warning($"Disconnected, type: '{info.Type}', reason: '{info.CloseStatus}'");
 
         // Reconnect
-        Task.Run(async () => await client.Reconnect());
+        Task.Run(ResetAsync);
+        Task.Run(async () => await ListeningToServerAsync());
     }
 
     public async Task StopListeningToServerAsync() 
@@ -149,6 +150,16 @@ public class AzurePubSubServer(WebsocketClient client)
         {
             if (client.IsStarted)
                 await client.StopOrFail(System.Net.WebSockets.WebSocketCloseStatus.NormalClosure, "shut down");
+        }
+    }
+
+    public async Task ResetAsync()
+    {
+        if (client != null)
+        {
+            if (client.IsRunning)
+                await client.StopOrFail(System.Net.WebSockets.WebSocketCloseStatus.NormalClosure, "shut down");
+            client.Dispose();
         }
     }
 }

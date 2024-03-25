@@ -64,7 +64,8 @@ namespace JCTG.Client
                 });
 
                 // Start the web socket
-                await _client.Start();
+                if (!_client.IsStarted)
+                    await _client.Start();
             }
         }
 
@@ -79,14 +80,16 @@ namespace JCTG.Client
             Console.WriteLine($"INFO : {DateTime.UtcNow} / Disconnection happened, type: {info.Type}, reason: {info.CloseStatus}");
 
             // Reconnect
-            Task.Run(async () => await client.Reconnect());
+            Task.Run(async () => await StopListeningToServerAsync());
+            Task.Run(async () => await ListeningToServerAsync());
         }
 
         public async Task<bool> StopListeningToServerAsync() 
         {
             if (_client != null) 
             {
-                return await _client.StopOrFail(System.Net.WebSockets.WebSocketCloseStatus.NormalClosure, "shut down");
+                if (client.IsStarted)
+                    return await _client.StopOrFail(System.Net.WebSockets.WebSocketCloseStatus.NormalClosure, "shut down");
             }
             return false;
         }
