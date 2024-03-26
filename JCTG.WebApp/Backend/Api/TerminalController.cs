@@ -93,6 +93,7 @@ namespace JCTG.WebApp.Backend.Api
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> OnOrderCreatedEvent([FromBody] OnOrderCreatedEvent model)
         {
+
             // Log
             _logger.Debug($"On order create event triggered: {JsonConvert.SerializeObject(model)}");
 

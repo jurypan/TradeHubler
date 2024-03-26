@@ -7,7 +7,7 @@ using JCTG.WebApp.Frontend.Components.Tradingview;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
-
+using Newtonsoft;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,7 +18,11 @@ var baseAddress = builder.Environment.IsDevelopment()
 
 // Add services to the container.
 builder.Services.AddRazorPages();
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+       .AddNewtonsoftJson(options =>
+       {
+           options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
+       });
 builder.Services.AddServerSideBlazor();
 builder.Services.AddScoped(sp => new HttpClient
 {
