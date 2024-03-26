@@ -3,6 +3,7 @@ using JCTG.Events;
 using JCTG.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 
 namespace JCTG.WebApp.Backend.Api
 {
@@ -90,11 +91,12 @@ namespace JCTG.WebApp.Backend.Api
         [HttpPost("OnOrderCreatedEvent")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> OnOrderCreatedEvent(OnOrderCreatedEvent model)
+        public async Task<IActionResult> OnOrderCreatedEvent([FromBody] OnOrderCreatedEvent model)
         {
             // Log
-            _logger.Debug("On order create event triggered", model);
+            _logger.Debug($"On order create event triggered: {JsonConvert.SerializeObject(model)}");
 
+            // Null reference check
             if (model != null && model.ClientID > 0 && model.SignalID > 0)
             {
                 // Log
@@ -156,12 +158,13 @@ namespace JCTG.WebApp.Backend.Api
         [HttpPost("OnOrderUpdatedEvent")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> OnOrderUpdatedEvent(OnOrderUpdatedEvent model)
+        public async Task<IActionResult> OnOrderUpdatedEvent([FromBody] OnOrderUpdatedEvent model)
         {
-            // Log
-            _logger.Debug("On order update event triggered", model);
 
-            // Do null reference check
+            // Log
+            _logger.Debug($"On order update event triggered: {JsonConvert.SerializeObject(model)}");
+
+            // Null reference check
             if (model != null && model.ClientID > 0 && model.Order != null && model.SignalID > 0)
             {
                 // Log
@@ -211,10 +214,10 @@ namespace JCTG.WebApp.Backend.Api
         [HttpPost("OnOrderClosedEvent")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> OnOrderClosedEvent(OnOrderClosedEvent model)
+        public async Task<IActionResult> OnOrderClosedEvent([FromBody] OnOrderClosedEvent model)
         {
             // Log
-            _logger.Debug("On order close event triggered", model);
+            _logger.Debug($"On order close event triggered: {JsonConvert.SerializeObject(model)}");
 
             // Do null reference check
             if (model != null && model.ClientID > 0 && model.SignalID > 0)
@@ -268,10 +271,10 @@ namespace JCTG.WebApp.Backend.Api
         [HttpPost("OnOrderAutoMoveSlToBeEvent")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> OnOrderAutoMoveSlToBeEvent(OnOrderAutoMoveSlToBeEvent model)
+        public async Task<IActionResult> OnOrderAutoMoveSlToBeEvent([FromBody] OnOrderAutoMoveSlToBeEvent model)
         {
             // Log
-            _logger.Debug("On auto move SL to BE event triggered", model);
+            _logger.Debug($"On auto move SL to BE event triggered: {JsonConvert.SerializeObject(model)}");
 
             // Do null reference check
             if (model != null && model.ClientID > 0 && model.SignalID > 0)
@@ -325,10 +328,10 @@ namespace JCTG.WebApp.Backend.Api
         [HttpPost("OnItsTimeToCloseTheOrderEvent")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> OnItsTimeToCloseTheOrderEvent(OnItsTimeToCloseTheOrderEvent model)
+        public async Task<IActionResult> OnItsTimeToCloseTheOrderEvent([FromBody] OnItsTimeToCloseTheOrderEvent model)
         {
             // Log
-            _logger.Debug("On Its time to close the order event triggered", model);
+            _logger.Debug($"On Its time to close the order event triggered: {JsonConvert.SerializeObject(model)}");
 
             // Do null reference check
             if (model != null && model.ClientID > 0 && model.SignalID > 0)
@@ -363,10 +366,10 @@ namespace JCTG.WebApp.Backend.Api
         [HttpPost("OnLogEvent")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> OnLogEvent(OnLogEvent model)
+        public async Task<IActionResult> OnLogEvent([FromBody] OnLogEvent model)
         {
             // Log
-            _logger.Debug("On log event triggered", model);
+            _logger.Debug($"On log event triggered: {JsonConvert.SerializeObject(model)}");
 
             // Do null reference check
             if (model != null)
@@ -397,10 +400,10 @@ namespace JCTG.WebApp.Backend.Api
         [HttpPost("OnDealCreatedEvent")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> OnDealCreatedEvent(OnDealCreatedEvent model)
+        public async Task<IActionResult> OnDealCreatedEvent([FromBody] OnDealCreatedEvent model)
         {
             // Log
-            _logger.Debug("On deal created event triggered", model);
+            _logger.Debug($"On deal created event triggered: {JsonConvert.SerializeObject(model)}");
 
             // Do null reference check
             if (model != null && model.ClientID > 0 && model.Deal != null && model.MtDealID > 0)
@@ -553,10 +556,10 @@ namespace JCTG.WebApp.Backend.Api
         [HttpPost("OnAccountInfoChangedEvent")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> OnAccountInfoChangedEvent(OnAccountInfoChangedEvent model)
+        public async Task<IActionResult> OnAccountInfoChangedEvent([FromBody] OnAccountInfoChangedEvent model)
         {
             // Log
-            _logger.Debug("On account info changed event triggered", model);
+            _logger.Debug($"On  account info changed event triggered: {JsonConvert.SerializeObject(model)}");
 
             // Do null reference check
             if (model != null && model.ClientID > 0 && model.AccountInfo != null)
@@ -592,10 +595,10 @@ namespace JCTG.WebApp.Backend.Api
         [HttpPost("OnMarketAbstentionEvent")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> OnMarketAbstentionEvent(OnMarketAbstentionEvent model)
+        public async Task<IActionResult> OnMarketAbstentionEvent([FromBody] OnMarketAbstentionEvent model)
         {
             // Log
-            _logger.Debug("On market abstention event triggered", model);
+            _logger.Debug($"On market abstention event triggered: {JsonConvert.SerializeObject(model)}");
 
             // Do null reference check
             if (model != null &&
