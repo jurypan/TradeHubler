@@ -2,7 +2,6 @@
 @inject OrderRepository _orderRepository;
 @inject DealRepository _dealRepository;
 @inject ClientRepository _clientRepository;
-@inject JCTG.WebApp.Backend.Websocket.WebsocketFrontend _websocket;
 @inject JCTG.WebApp.Backend.Websocket.AzurePubSubClient _pubSubClient;
 @using JCTG.WebApp.Frontend.Components.Apex;
 @using JCTG.WebApp.Frontend.Components.Widget;
@@ -122,17 +121,6 @@
         </div>
     </div>
 
-    <div class="row" hidden="@(_pair == null)">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-body">
-                    <h5>Candle chart</h5>
-                    <CandleChart @ref=_candleChart />
-                </div>
-            </div>
-        </div>
-    </div>
-
     <div class="row">
         <div class="datatables">
             <div class="row">
@@ -217,7 +205,7 @@
     private List<Entity.Order> _orders = new();
     private List<Entity.Deal> _deals = new();
     private Entity.Client? _client;
-    private CandleChart? _candleChart;
+
     private double _totalPnl = 0.0;
     private double _totalCommission = 0.0;
     private double _totalSwapCosts = 0.0;
@@ -254,7 +242,7 @@
         }
 
         // Do null reference check
-        else if (_candleChart != null && _client != null && _pair != null)
+        else if (_client != null && _pair != null)
         {
             // Get orders
             _orders = await _orderRepository.GetAll(692803787, ClientId, _pair);
@@ -265,39 +253,6 @@
             _totalSwapCosts = Math.Round(_deals.Select(f => f.Swap).Sum(), 2);
             _totalSpreadCosts = Math.Round(_deals.Select(f => f.SpreadCost).Sum(), 2);
 
-            // Init the event handler
-            _websocket.SubscribeToOnGetHistoricalBarDataEvent(async (onGetHistoricalBarDataEvent) =>
-            {
-                // Do null reference check
-                if (onGetHistoricalBarDataEvent != null
-                    && onGetHistoricalBarDataEvent.ClientID > 0
-                    && onGetHistoricalBarDataEvent.AccountID > 0
-                    && onGetHistoricalBarDataEvent.BarData != null
-                    && onGetHistoricalBarDataEvent.AccountID == 692803787
-                    && onGetHistoricalBarDataEvent.ClientID == ClientId
-                )
-                {
-                    // Load the chart
-                    await _candleChart.InitAsync(_client.Name, onGetHistoricalBarDataEvent.BarData.Select(x => new Components.Apex.CandleData()
-                        {
-                            Time = x.Time,
-                            High = x.High,
-                            Low = x.Low,
-                            Open = x.Open,
-                            Close = x.Close
-                        }).OrderBy(f => f.Time).ToList());
-                }
-            });
-
-            // Send command to Metatrader
-            await _pubSubClient.SendGetHistoricalBarDataAsync(692803787, new Command.OnSendGetHistoricalBarDataCommand()
-                {
-                    AccountID = 692803787,
-                    ClientID = ClientId,
-                    Symbol = _pair,
-                    Timeframe = "M5",
-                    StartDate = DateTime.UtcNow.AddDays(-7),
-                });
         }
     }
 

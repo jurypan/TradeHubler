@@ -80,18 +80,17 @@ namespace JCTG.Client
             Console.WriteLine($"INFO : {DateTime.UtcNow} / Disconnection happened, type: {info.Type}, reason: {info.CloseStatus}");
 
             // Reconnect
-            Task.Run(async () => await StopListeningToServerAsync());
-            Task.Run(async () => await ListeningToServerAsync());
+            Task.Run(ResetAsync);
         }
 
-        public async Task<bool> StopListeningToServerAsync() 
+        public async Task ResetAsync()
         {
-            if (_client != null) 
+            if (client != null)
             {
-                if (client.IsStarted)
-                    return await _client.StopOrFail(System.Net.WebSockets.WebSocketCloseStatus.NormalClosure, "shut down");
+                if (client.IsRunning)
+                    await client.StopOrFail(System.Net.WebSockets.WebSocketCloseStatus.NormalClosure, "shut down");
+                await ListeningToServerAsync();
             }
-            return false;
         }
     }
 }

@@ -34,7 +34,6 @@ builder.Services.AddDbContextFactory<JCTGDbContext>(
            category != DbLoggerCategory.Database.Command.Name || level > LogLevel.Information))));
 
 // Add Websocket Server <-> Terminal
-builder.Services.AddAzurePubSubClient(builder.Configuration.GetConnectionString("AZURE_PUBSUB_CONNECTIONSTRING"));
 builder.Services.AddAzurePubSubServer();
 
 // Add Components
@@ -85,11 +84,4 @@ app.MapFallbackToPage("/_Host");
 app.MapControllers();
 app.UseWebSockets();
 
-using (var serviceScope = app.Services.CreateScope())
-{
-    app.Logger.LogInformation("Starting the app");
-    if (!app.Environment.IsDevelopment())
-        await serviceScope.ServiceProvider.GetRequiredService<WebsocketBackend>().RunAsync();
-    await serviceScope.ServiceProvider.GetRequiredService<WebsocketFrontend>().RunAsync();
-    app.Run();
-}
+app.Run();

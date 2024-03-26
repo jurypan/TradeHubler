@@ -1021,23 +1021,6 @@ namespace JCTG.Client
                         }
                     };
 
-                    // OnSendGetHistoricalBarDataCommand
-                    azurePubSub.OnSendGetHistoricalBarDataCommand += async (cmd) =>
-                    {
-                        if (cmd != null && cmd.AccountID > 0 && cmd.AccountID == _appConfig.AccountId && cmd.ClientID > 0 && cmd.AccountID == _appConfig.AccountId)
-                        {
-                            // Get the API
-                            var api = _apis.FirstOrDefault(f => f.ClientId == cmd.ClientID);
-
-                            // Send the command
-                            api?.GetHistoricData(cmd.Symbol, cmd.Timeframe, cmd.StartDate.AddHours(api.AccountInfo == null ? 0.0 : api.AccountInfo.TimezoneOffset), DateTimeOffset.UtcNow.AddHours(api.AccountInfo == null ? 0.0 : api.AccountInfo.TimezoneOffset));
-                        }
-                        else
-                        {
-                            await LogAsync(0, new Log() { Time = DateTime.UtcNow, Type = "ERROR", ErrorType = "Error message received from the server. Could not link it to a signal." });
-                        }
-                    };
-
                     // Start the web socket
                     await azurePubSub.ListeningToServerAsync();
                 }
@@ -1083,8 +1066,8 @@ namespace JCTG.Client
                             // Send log to files
                             Task.Run(async () =>
                             {
-                                // Send the event to Azure PubSub server
-                                await new AzurePubSubServer().SendOnItsTimeToCloseTheOrderEventAsync(new OnItsTimeToCloseTheOrderEvent()
+                                // Send the event to server
+                                await HttpCall.OnItsTimeToCloseTheOrderEvent(new OnItsTimeToCloseTheOrderEvent()
                                 {
                                     ClientID = clientId,
                                     SignalID = signalId,
@@ -1191,7 +1174,7 @@ namespace JCTG.Client
                                                 Task.Run(async () =>
                                                 {
                                                     // Send the event to Azure PubSub server
-                                                    await new AzurePubSubServer().SendOnOrderAutoMoveSlToBeEventAsync(new OnOrderAutoMoveSlToBeEvent()
+                                                    await HttpCall.OnOrderAutoMoveSlToBeEvent(new OnOrderAutoMoveSlToBeEvent()
                                                     {
                                                         ClientID = clientId,
                                                         SignalID = signalId,
@@ -1241,7 +1224,7 @@ namespace JCTG.Client
                                                 Task.Run(async () =>
                                                 {
                                                     // Send the event to Azure PubSub server
-                                                    await new AzurePubSubServer().SendOnOrderAutoMoveSlToBeEventAsync(new OnOrderAutoMoveSlToBeEvent()
+                                                    await HttpCall.OnOrderAutoMoveSlToBeEvent(new OnOrderAutoMoveSlToBeEvent()
                                                     {
                                                         ClientID = clientId,
                                                         SignalID = signalId,
@@ -1286,13 +1269,13 @@ namespace JCTG.Client
                         .SelectMany(pair => pair.Value.BarData) // Use SelectMany to flatten the lists into a single list
                         .ToList(); // Convert to List<BarData>
 
-                    await new AzurePubSubServer().SendOnGetHistoricalBarDataEventAsync(new OnGetHistoricalBarDataEvent()
-                    {
-                        ClientID = clientId,
-                        AccountID = _appConfig.AccountId,
-                        BarData = historicDataForSymbol,
-                        Log = log
-                    });
+                    //await AzurePubSubServer.SendOnGetHistoricalBarDataEventAsync(new OnGetHistoricalBarDataEvent()
+                    //{
+                    //    ClientID = clientId,
+                    //    AccountID = _appConfig.AccountId,
+                    //    BarData = historicDataForSymbol,
+                    //    Log = log
+                    //});
                 });
             }
         }
@@ -1347,7 +1330,7 @@ namespace JCTG.Client
                 Task.Run(async () =>
                 {
                     // Send the tradejournal to Azure PubSub server
-                    await new AzurePubSubServer().SendOnOrderCreateEventAsync(new OnOrderCreatedEvent()
+                    await HttpCall.OnOrderCreatedEvent(new OnOrderCreatedEvent()
                     {
                         ClientID = clientId,
                         SignalID = signalId,
@@ -1387,7 +1370,7 @@ namespace JCTG.Client
                 Task.Run(async () =>
                 {
                     // Send the tradejournal to Azure PubSub server
-                    await new AzurePubSubServer().SendOnOrderUpdateEventAsync(new OnOrderUpdatedEvent()
+                    await HttpCall.OnOrderUpdatedEvent(new OnOrderUpdatedEvent()
                     {
                         ClientID = clientId,
                         SignalID = signalId,
@@ -1430,7 +1413,7 @@ namespace JCTG.Client
                 Task.Run(async () =>
                 {
                     // Send the tradejournal to Azure PubSub server
-                    await new AzurePubSubServer().SendOnOrderCloseEventAsync(new OnOrderClosedEvent()
+                    await HttpCall.OnOrderClosedEvent(new OnOrderClosedEvent()
                     {
                         ClientID = clientId,
                         SignalID = signalId,
@@ -1472,7 +1455,7 @@ namespace JCTG.Client
                         Task.Run(async () =>
                         {
                             // Send the tradejournal to Azure PubSub server
-                            await new AzurePubSubServer().SendOnTradeEventAsync(new OnDealCreatedEvent()
+                            await HttpCall.OnDealCreatedEvent(new OnDealCreatedEvent()
                             {
                                 ClientID = clientId,
                                 MtDealID = tradeId,
@@ -1502,7 +1485,7 @@ namespace JCTG.Client
                 Task.Run(async () =>
                 {
                     // Send the tradejournal to Azure PubSub server
-                    await new AzurePubSubServer().SendOnAccountInfoChangedAsync(new OnAccountInfoChangedEvent()
+                    await HttpCall.OnAccountInfoChangedEvent(new OnAccountInfoChangedEvent()
                     {
                         ClientID = clientId,
                         AccountInfo = accountInfo,
@@ -1553,7 +1536,7 @@ namespace JCTG.Client
             if (_appConfig != null && _apis != null && (_apis.Count(f => f.ClientId == clientId) == 1 || clientId == 0) && _appConfig.DropLogsInFile)
             {
                 // Send the tradejournal to Azure PubSub server
-                await new AzurePubSubServer().SendOnMarketAbstentionEventAsync(new OnMarketAbstentionEvent()
+                await HttpCall.OnMarketAbstentionEvent(new OnMarketAbstentionEvent()
                 {
                     ClientID = clientId,
                     SignalID = signalId,
@@ -1572,7 +1555,7 @@ namespace JCTG.Client
             if (_appConfig != null && _apis != null && (_apis.Count(f => f.ClientId == clientId) == 1 || clientId == 0) && _appConfig.DropLogsInFile)
             {
                 // Send the tradejournal to Azure PubSub server
-                await new AzurePubSubServer().SendOnLogEventAsync(new OnLogEvent()
+                await HttpCall.OnLogEvent(new OnLogEvent()
                 {
                     ClientID = clientId,
                     SignalID = signalId,

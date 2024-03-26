@@ -1,5 +1,7 @@
-﻿using JCTG.Models;
+﻿using JCTG.Events;
+using JCTG.Models;
 using Newtonsoft.Json;
+using System.Text;
 
 namespace JCTG.Client
 {
@@ -28,6 +30,29 @@ namespace JCTG.Client
             }
         }
 
+        public static async Task<string?> PostJsonAsync(string url, string jsonData)
+        {
+            try
+            {
+                // Serialize the data to JSON and prepare it for sending
+                HttpContent content = new StringContent(jsonData, Encoding.UTF8, "application/json");
+
+                // Asynchronously call the URI specified, posting the data, and await the response.
+                // Make sure to call .EnsureSuccessStatusCode() to throw an exception if the response is an error.
+                HttpResponseMessage response = await _httpClient.PostAsync(url, content);
+                response.EnsureSuccessStatusCode();
+
+                // Asynchronously read the response as a string.
+                string json = await response.Content.ReadAsStringAsync();
+
+                return json;
+            }
+            catch (HttpRequestException)
+            {
+                return null;
+            }
+        }
+
         public static async Task<TerminalConfig?> GetTerminalConfigAsync()
         {
             var json = await GetJsonAsync("http://justcalltheguy.westeurope.cloudapp.azure.com/api/terminalconfig?code=Ocebxtg1excWosFez5rWMtNp3ZsmIzSFQ0XhqtrfHlMuAzFuQ0OGhA==&accountid=692803787");
@@ -35,6 +60,51 @@ namespace JCTG.Client
                 return JsonConvert.DeserializeObject<TerminalConfig>(json);
             else
                 return null;
+        }
+
+        public static async Task OnOrderCreatedEvent(OnOrderCreatedEvent model)
+        {
+            await PostJsonAsync("http://justcalltheguy.westeurope.cloudapp.azure.com/api/OnOrderCreatedEvent", JsonConvert.SerializeObject(model));
+        }
+
+        public static async Task OnOrderUpdatedEvent(OnOrderUpdatedEvent model)
+        {
+            await PostJsonAsync("http://justcalltheguy.westeurope.cloudapp.azure.com/api/OnOrderUpdatedEvent", JsonConvert.SerializeObject(model));
+        }
+
+        public static async Task OnOrderClosedEvent(OnOrderClosedEvent model)
+        {
+            await PostJsonAsync("http://justcalltheguy.westeurope.cloudapp.azure.com/api/OnOrderClosedEvent", JsonConvert.SerializeObject(model));
+        }
+
+        public static async Task OnOrderAutoMoveSlToBeEvent(OnOrderAutoMoveSlToBeEvent model)
+        {
+            await PostJsonAsync("http://justcalltheguy.westeurope.cloudapp.azure.com/api/OnOrderAutoMoveSlToBeEvent", JsonConvert.SerializeObject(model));
+        }
+
+        public static async Task OnItsTimeToCloseTheOrderEvent(OnItsTimeToCloseTheOrderEvent model)
+        {
+            await PostJsonAsync("http://justcalltheguy.westeurope.cloudapp.azure.com/api/OnItsTimeToCloseTheOrderEvent", JsonConvert.SerializeObject(model));
+        }
+
+        public static async Task OnLogEvent(OnLogEvent model)
+        {
+            await PostJsonAsync("http://justcalltheguy.westeurope.cloudapp.azure.com/api/OnLogEvent", JsonConvert.SerializeObject(model));
+        }
+
+        public static async Task OnDealCreatedEvent(OnDealCreatedEvent model)
+        {
+            await PostJsonAsync("http://justcalltheguy.westeurope.cloudapp.azure.com/api/OnDealCreatedEvent", JsonConvert.SerializeObject(model));
+        }
+
+        public static async Task OnAccountInfoChangedEvent(OnAccountInfoChangedEvent model)
+        {
+            await PostJsonAsync("http://justcalltheguy.westeurope.cloudapp.azure.com/api/OnAccountInfoChangedEvent", JsonConvert.SerializeObject(model));
+        }
+
+        public static async Task OnMarketAbstentionEvent(OnMarketAbstentionEvent model)
+        {
+            await PostJsonAsync("http://justcalltheguy.westeurope.cloudapp.azure.com/api/OnMarketAbstentionEvent", JsonConvert.SerializeObject(model));
         }
     }
 }
