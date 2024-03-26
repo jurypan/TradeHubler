@@ -1,9 +1,9 @@
 ﻿using JCTG.Command;
 using JCTG.Entity;
-using JCTG.WebApp.Backend.Websocket;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Microsoft.EntityFrameworkCore;
+using JCTG.WebApp.Backend.Queue;
 
 
 namespace JCTG.WebApp.Backend.Api
@@ -14,9 +14,9 @@ namespace JCTG.WebApp.Backend.Api
     {
         private readonly Serilog.ILogger _logger = Serilog.Log.ForContext<TradingviewController>();
         private readonly JCTGDbContext _dbContext;
-        private readonly AzurePubSubClient _server;
+        private readonly AzureQueueClient _server;
 
-        public TradingviewController(JCTGDbContext dbContext, AzurePubSubClient server)
+        public TradingviewController(JCTGDbContext dbContext, AzureQueueClient server)
         {
             _dbContext = dbContext;
             _server = server;

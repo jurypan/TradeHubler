@@ -97,13 +97,13 @@ namespace JCTG.Client
             if (_appConfig != null && _apis != null)
             {
                 // Get web socket _client
-                var azurePubSub = Program.Service?.GetService<AzurePubSubClient>();
+                var azureQueue = Program.Service?.GetService<AzureQueueClient>();
 
                 // Do null reference check
-                if (azurePubSub != null)
+                if (azureQueue != null)
                 {
                     // OnSendTradingviewSignalCommand
-                    azurePubSub.OnSendTradingviewSignalCommand += async (cmd) =>
+                    azureQueue.OnSendTradingviewSignalCommand += async (cmd) =>
                     {
                         if (cmd != null && cmd.SignalID > 0 && cmd.AccountID == _appConfig.AccountId)
                         {
@@ -1021,8 +1021,8 @@ namespace JCTG.Client
                         }
                     };
 
-                    // Start the web socket
-                    await azurePubSub.ListeningToServerAsync();
+                    // Start listening to the queue
+                    await azureQueue.ListeningToServerAsync();
                 }
             }
         }

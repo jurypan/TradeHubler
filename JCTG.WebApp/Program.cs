@@ -1,13 +1,12 @@
 using JCTG;
 using JCTG.WebApp.Backend.Middleware;
+using JCTG.WebApp.Backend.Queue;
 using JCTG.WebApp.Backend.Repository;
-using JCTG.WebApp.Backend.Websocket;
 using JCTG.WebApp.Frontend.Components.Apex;
 using JCTG.WebApp.Frontend.Components.Tradingview;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
-using Newtonsoft;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -37,8 +36,8 @@ builder.Services.AddDbContextFactory<JCTGDbContext>(
        builder.AddFilter((category, level) =>
            category != DbLoggerCategory.Database.Command.Name || level > LogLevel.Information))));
 
-// Add Websocket Server <-> Terminal
-builder.Services.AddAzurePubSubServer();
+// Add Queue Server <-> Terminal
+builder.Services.AddAzureQueueServer();
 
 // Add Components
 builder.Services.InitTradingview();

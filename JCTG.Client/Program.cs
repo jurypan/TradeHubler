@@ -1,14 +1,11 @@
-﻿using Azure.Messaging.WebPubSub;
-using JCTG.Models;
+﻿using JCTG.Models;
 using Microsoft.Extensions.DependencyInjection;
-using System.Net.WebSockets;
-using Websocket.Client;
 
 namespace JCTG.Client
 {
     public class Program
     {
-        private static string _pubsubConnectionString = "Endpoint=https://justcalltheguy.webpubsub.azure.com;AccessKey=BdxAvvoxX7+nkCq/lQDNe2LAy41lwDfJD8bCPiNuY/k=;Version=1.0;";
+        private static string _queueConnectionString = "DefaultEndpointsProtocol=https;AccountName=justcalltheguy;AccountKey=nGb/y75LMEqV1hGgvZn77Lm94fBkaVLU0wFZoQpxPbDpc0VVQnG8NTX3+EWyPg1L1196N4JKxTtq+AStKOTpAg==;EndpointSuffix=core.windows.net";
         public static IServiceProvider? Service { get; private set; }
 
         static async Task Main(string[] args)
@@ -56,9 +53,8 @@ namespace JCTG.Client
             // Register configuration instance with DI container
             services.AddSingleton(config);
 
-            var serviceClient = new WebPubSubServiceClient(_pubsubConnectionString, "account" + config.AccountId.ToString());
-            var client = new WebsocketClient(serviceClient.GetClientAccessUri());
-            services.AddSingleton(new AzurePubSubClient(client));
+            // Queue
+            services.AddSingleton(new AzureQueueClient(_queueConnectionString, config.AccountId));
 
             return services.BuildServiceProvider();
         }
