@@ -83,6 +83,18 @@
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
+                                <label for="formFile" class="form-label">Order Type</label>
+                                <InputSelect class="form-select col-12" @bind-Value="model.OrderType">
+                                    <option>Choose...</option>
+                                    <option value="BUY">Long</option>
+                                    <option value="SELL">Short</option>
+                                </InputSelect>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
                                 <label for="formFile" class="form-label">CSV File</label>
                                 <InputFile class="form-control" OnChange="HandleFileUpload"></InputFile>
                             </div>
@@ -416,7 +428,7 @@
     private async Task ReloadAsync()
     {
         // Get signals out of database
-        var signals = await _signalRepository.GetAllByInstrumentAndStrategyType(692803787, model.Ticker, model.StrategyType);
+        var signals = await _signalRepository.GetAllByInstrumentAndStrategyType(692803787, model.Ticker, model.OrderType, model.StrategyType);
 
         // Forech signal
         foreach (var item in model.Items)

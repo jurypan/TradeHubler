@@ -199,25 +199,32 @@ namespace JCTG.WebApp.Backend.Api
 
                             foreach (var existingSignal in existingSignals2)
                             {
+                                if (existingSignal.TradingviewStateType == TradingviewStateType.Entry || existingSignal.TradingviewStateType == TradingviewStateType.Init)
+                                {
+                                    existingSignal.TradingviewStateType = TradingviewStateType.CloseAll;
+                                    existingSignal.DateLastUpdated = DateTime.UtcNow;
+                                    existingSignal.ExitRiskRewardRatio = signal.ExitRiskRewardRatio;
+
+                                    // Update state
+                                    _dbContext.Signal.Update(existingSignal);
+
+                                    // Add to the tradingview alert
+                                    await _dbContext.TradingviewAlert.AddAsync(new TradingviewAlert()
+                                    {
+                                        DateCreated = DateTime.UtcNow,
+                                        RawMessage = requestBody,
+                                        SignalID = existingSignal.ID,
+                                        Type = TradingviewAlert.ParseTradingviewAlertTypeOrDefault(signal.OrderType.ToLower()),
+                                    });
+
+
+                                    // Update database
+                                    _logger.Information($"Updated database in table Signal with ID: {existingSignal.ID}", existingSignal);
+                                }
+
                                 // Update
                                 existingSignal.TradingviewStateType = TradingviewStateType.CloseAll;
-                                existingSignal.DateLastUpdated = DateTime.UtcNow;
-                                existingSignal.ExitRiskRewardRatio = signal.ExitRiskRewardRatio;
 
-                                // Update state
-                                _dbContext.Signal.Update(existingSignal);
-
-                                // Add to the tradingview alert
-                                await _dbContext.TradingviewAlert.AddAsync(new TradingviewAlert()
-                                {
-                                    DateCreated = DateTime.UtcNow,
-                                    RawMessage = requestBody,
-                                    SignalID = existingSignal.ID,
-                                    Type = TradingviewAlert.ParseTradingviewAlertTypeOrDefault(signal.OrderType.ToLower()),
-                                });
-
-                                // Update database
-                                _logger.Information($"Updated database in table Signal with ID: {existingSignal.ID}", existingSignal);
                             }
 
                             if (!existingSignals2.Any())
@@ -225,6 +232,7 @@ namespace JCTG.WebApp.Backend.Api
                                 // Add error to log
                                 _logger.Error($"Error! Could not find Signal with magic: {signal.Magic} in database", signal);
                             }
+
 
                             // Save to the database
                             await _dbContext.SaveChangesAsync();

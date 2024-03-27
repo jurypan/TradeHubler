@@ -191,6 +191,11 @@ namespace JCTG.Entity
                 throw new ArgumentException("Insufficient data. StrategyType is mandatory.");
             }
 
+            if (signal.Magic == 0)
+            {
+                throw new ArgumentException("Insufficient data. Magic is mandatory.");
+            }
+
             return signal;
         }
     }
