@@ -20,7 +20,7 @@ namespace JCTG.WebApp.Backend.Queue
 
         private QueueClient GetClient(int accountId)
         {
-            return new QueueClient(_connectionString, "account_" + accountId);
+            return new QueueClient(_connectionString, "account" + accountId);
         }
 
         private async Task<string?> SendMessageAsync<T>(int accountId, T cmd, string messageType, string typeName)

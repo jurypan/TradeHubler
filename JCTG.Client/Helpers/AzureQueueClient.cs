@@ -19,7 +19,7 @@ namespace JCTG.Client
             this.accountId = accountId;
 
             // Initialize the QueueClient which will be used to interact with the queue
-            queueClient = new QueueClient(connectionString, "account_" + accountId.ToString());
+            queueClient = new QueueClient(connectionString, "account" + accountId.ToString());
 
             // Create the queue if it doesn't exist
             queueClient.CreateIfNotExists();
