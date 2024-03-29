@@ -17,6 +17,16 @@ public class MarketAbstentionRepository(IDbContextFactory<JCTGDbContext> dbConte
                                                     ).OrderBy(f => f.DateLastUpdated).ToListAsync();
     }
 
+    public async Task<List<MarketAbstention>> GetAllByClientId(int accountId, long clientId)
+    {
+        using var context = await dbContextFactory.CreateDbContextAsync();
+        return await context.MarketAbstention.Where(f => f.Client != null
+                                                    && f.Client.AccountID == accountId
+                                                    && f.ClientID == clientId
+                                                    && f.Signal != null
+                                                    ).OrderBy(f => f.DateLastUpdated).ToListAsync();
+    }
+
     public async Task<List<MarketAbstention>> GetAllBySignalId(int accountId, long signalId)
     {
         using var context = await dbContextFactory.CreateDbContextAsync();

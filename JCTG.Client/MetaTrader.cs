@@ -11,7 +11,7 @@ namespace JCTG.Client
     public class Metatrader : IDisposable
     {
 
-        private readonly TerminalConfig? _appConfig;
+        private TerminalConfig? _appConfig;
         private readonly List<MetatraderApi> _apis;
         private readonly List<DailyTaskScheduler> _timing;
         private SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1); // Initial count 1, maximum count 1
@@ -35,7 +35,17 @@ namespace JCTG.Client
                 // Add to the list
                 _apis.Add(_api);
             }
-        }
+
+            // Update terminalConfig
+            new AppConfigManager(_appConfig).OnTerminalConfigChange += (config) =>
+            {
+                // Print on the screen
+                Print($"WARNING : {DateTime.UtcNow} / UPDATED CONFIGURATION");
+
+                // Update property
+                _appConfig = config;
+            };
+         }
 
 
         public async Task ListenToTheClientsAsync()

@@ -49,6 +49,17 @@ public class SignalRepository(IDbContextFactory<JCTGDbContext> dbContextFactory)
             .ToListAsync();
     }
 
+    public async Task<List<Signal>> GetAllLast200ByClientId(int accountId, long clientId)
+    {
+        using var context = await dbContextFactory.CreateDbContextAsync();
+        return await context.Signal
+            .Include(f => f.Orders)
+            .Where(f => f.AccountID == accountId && f.Orders.Any(g => g.ClientID == clientId))
+            .OrderByDescending(f => f.DateLastUpdated)
+            .Take(200)
+            .ToListAsync();
+    }
+
     public async Task<List<Signal>> GetAllLast200ByStrategyType(int accountId, StrategyType strategyType)
     {
         using var context = await dbContextFactory.CreateDbContextAsync();
