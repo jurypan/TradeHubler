@@ -118,7 +118,7 @@ namespace JCTG.Client
                         if (cmd != null && cmd.SignalID > 0 && cmd.AccountID == _appConfig.AccountId)
                         {
                             // Iterate through the broker's
-                            Parallel.ForEach(_apis, async api =>
+                            Parallel.ForEach(_apis.Where(f => f.IsActive), async api =>
                             {
                                 // Get the right pair back from the local database
                                 var pair = new List<Pairs>(_appConfig.Brokers.Where(f => f.ClientId == api.ClientId).SelectMany(f => f.Pairs)).FirstOrDefault(f => f.TickerInTradingView.Equals(cmd.Instrument) && f.StrategyNr == cmd.StrategyType);
@@ -1137,7 +1137,7 @@ namespace JCTG.Client
                         if (pair != null && signalEntryPrice > 0 && api.MarketData != null && signalStopLoss > 0 && strategyType != StrategyType.None)
                         {
                             // When the risk setting is enabled
-                            if (pair.Risk > 0)
+                            if (pair.Risk > 0 && pair.SLtoBEafterR > 0)
                             {
                                 // Calculate the risk
                                 var risk = Math.Abs(signalEntryPrice - signalStopLoss);

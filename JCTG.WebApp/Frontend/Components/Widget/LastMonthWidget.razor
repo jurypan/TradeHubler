@@ -21,15 +21,17 @@
         if (!firstRender || _breadBarChart == null)
             return;
 
+        // Set begin date
+        var beginDate = DateTime.UtcNow.AddMonths(-1);
 
         // Get signals
-        var signals = await _signalRepository.GetAllLast200(692803787, DateTime.UtcNow.AddMonths(-1));
+        var signals = await _signalRepository.GetAll(692803787, beginDate);
 
         // PNL
         _totalPnl = Math.Round(signals.SelectMany(f => f.Orders).Sum(f => f.Pnl), 2);
 
         // Aggregate data
-        var data = AggregateData(signals);
+        var data = AggregateData(signals, beginDate);
 
         // Init chart
         await _breadBarChart.InitAsync(data);
@@ -37,16 +39,15 @@
         StateHasChanged();
     }
 
-    private List<Apex.BarData> AggregateData(List<Signal> signals)
+    private List<Apex.BarData> AggregateData(List<Signal> signals, DateTime startDate)
     {
         // Veronderstelt dat Orders een Datum eigenschap hebben om te bepalen tot welke bar ze behoren
         var endDate = DateTime.Today;
-        var startDate = endDate.AddMonths(-1);
 
         var ordersLastMonth = signals.SelectMany(s => s.Orders).ToList();
 
         // Verdeel de periode in 8 gelijke delen
-        int bars = 4;
+        int bars = 8;
         var period = (endDate - startDate).TotalDays;
         var daysPerBar = period / bars;
 

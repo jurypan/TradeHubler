@@ -1,6 +1,7 @@
 ﻿@page "/Signals/Logs";
 @inject TradingviewAlertRepository _tradingviewAlertRepository;
 @using JCTG.WebApp.Frontend.Components.Widget;
+@using JCTG.Models;
 
 <div class="container-fluid mw-100">
 
@@ -54,9 +55,11 @@
                                     <thead>
                                         <tr>
                                             <th>ID</th>
+                                            <th>Signal Id</th>
                                             <th>Date Created</th>
                                             <th>Type</th>
-                                            <th>Signal Id</th>
+                                            <th>Strategy</th>
+                                            <th>Instrument</th>
                                             <th>Message</th>
                                         </tr>
                                     </thead>
@@ -65,9 +68,37 @@
                                         {
                                             <tr>
                                                 <td>@alert.ID</td>
+                                                <td>@alert.SignalID</td>
                                                 <td>@alert.DateCreated</td>
                                                 <td>@alert.Type</td>
-                                                <td>@alert.SignalID</td>
+                                                <td>
+                                                    <div class="d-flex align-items-center gap-2">
+                                                        @if (alert.Signal.StrategyType == StrategyType.Strategy1)
+                                                        {
+                                                            <span class="badge text-bg-primary rounded-3 fw-semibold fs-2">Strategy 1</span>
+                                                        }
+                                                        else if (alert.Signal.StrategyType == StrategyType.Strategy2)
+                                                        {
+                                                            <span class="badge text-bg-success rounded-3 fw-semibold fs-2">Strategy 2</span>
+                                                        }
+                                                        else if (alert.Signal.StrategyType == StrategyType.Strategy3)
+                                                        {
+                                                            <span class="badge text-bg-secondary rounded-3 fw-semibold fs-2">Strategy 3</span>
+                                                        }
+                                                        else if (alert.Signal.StrategyType == StrategyType.Strategy4)
+                                                        {
+                                                            <span class="badge text-bg-danger rounded-3 fw-semibold fs-2">Strategy 4</span>
+                                                        }
+                                                        else if (alert.Signal.StrategyType == StrategyType.Strategy5)
+                                                        {
+                                                            <span class="badge text-bg-indigo rounded-3 fw-semibold fs-2">Strategy 5</span>
+                                                        }
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <h6 class="fs-4 fw-semibold mb-0">@alert.Signal.Instrument</h6>
+                                                    <p class="mb-0 fw-normal">@alert.Signal.OrderType</p>
+                                                </td>
                                                 <td>@((MarkupString)alert.RawMessage.Replace("||", "<br />").Replace(",", "<br />"))</td>
                                             </tr>
                                         }
@@ -75,9 +106,11 @@
                                     <tfoot>
                                         <tr>
                                             <th>ID</th>
+                                            <th>Signal Id</th>
                                             <th>Date Created</th>
                                             <th>Type</th>
-                                            <th>Signal Id</th>
+                                            <th>Strategy</th>
+                                            <th>Instrument</th>
                                             <th>Message</th>
                                         </tr>
                                     </tfoot>

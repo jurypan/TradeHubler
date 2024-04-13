@@ -393,7 +393,7 @@
 
         _filterStrategyType = filter;
         _filterInstrument = null;
-        _instruments = (await _signalRepository.GetAllLast200ByStrategyType(692803787, _filterStrategyType, _filterDate)).Select(f => f.Instrument).Distinct().ToList();
+        _instruments = (await _signalRepository.GetAllByStrategyType(692803787, _filterStrategyType, _filterDate)).Select(f => f.Instrument).Distinct().ToList();
         await ReloadAsync();
     }
 
@@ -439,26 +439,26 @@
         {
             if (_filterInstrument == null)
             {
-                _signals = await _signalRepository.GetAllLast200(692803787, _filterDate);
+                _signals = await _signalRepository.GetAll(692803787, _filterDate);
             }
             else
             {
-                _signals = await _signalRepository.GetAllLast200ByInstrument(692803787, _filterInstrument, _filterDate);
+                _signals = await _signalRepository.GetAllByInstrument(692803787, _filterInstrument, _filterDate);
             }
         }
         else
         {
             if (_filterInstrument == null)
             {
-                _signals = await _signalRepository.GetAllLast200ByStrategyType(692803787, _filterStrategyType, _filterDate);
+                _signals = await _signalRepository.GetAllByStrategyType(692803787, _filterStrategyType, _filterDate);
             }
             else
             {
-                _signals = await _signalRepository.GetAllLast200ByStrategyType(692803787, _filterStrategyType, _filterInstrument, _filterDate);
+                _signals = await _signalRepository.GetAllByStrategyType(692803787, _filterStrategyType, _filterInstrument, _filterDate);
             }
         }
         _instruments = _signals.Select(f => f.Instrument).Distinct().ToList();
-        _totalPnl = Math.Abs( Math.Round(_signals.SelectMany(f => f.Orders).Sum(f => f.Pnl), 2));
+        _totalPnl =  Math.Round(_signals.SelectMany(f => f.Orders).Sum(f => f.Pnl), 2);
         _totalCommission = Math.Abs(Math.Round(_signals.SelectMany(f => f.Orders).Sum(f => f.Commission), 2));
         _totalSwapCosts = Math.Abs(Math.Round(_signals.SelectMany(f => f.Orders).Sum(f => f.Swap), 2));
         _totalSpreadCosts = Math.Abs(Math.Round(_signals.SelectMany(f => f.Orders).Sum(f => f.SpreadCost), 2));

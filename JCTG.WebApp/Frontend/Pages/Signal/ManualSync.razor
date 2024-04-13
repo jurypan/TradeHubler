@@ -447,8 +447,21 @@
                 {
                     if (signal.ExitRiskRewardRatio == item.ExitRR)
                     {
-                        item.Comment = "OK";
-                        item.Action = CrudState.None;
+                        if(signal.ExitRiskRewardRatio == -1 && signal.TradingviewStateType != TradingviewStateType.SlHit)
+                        {
+                            item.Comment = $"TradingviewStateType in database is {signal.TradingviewStateType} and should be {TradingviewStateType.SlHit}";
+                            item.Action = CrudState.Edit;
+                        }
+                        else if (signal.ExitRiskRewardRatio == model.TakeProfit && signal.TradingviewStateType != TradingviewStateType.TpHit)
+                        {
+                            item.Comment = $"TradingviewStateType in database should be {TradingviewStateType.TpHit} because ExitRiskRewardRatio is equal to Take Profit";
+                            item.Action = CrudState.Edit;
+                        }
+                        else
+                        {
+                            item.Comment = "OK";
+                            item.Action = CrudState.None;
+                        }
                     }
                     else
                     {

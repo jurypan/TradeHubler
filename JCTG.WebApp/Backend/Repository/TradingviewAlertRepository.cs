@@ -15,6 +15,7 @@ public class TradingviewAlertRepository(IDbContextFactory<JCTGDbContext> dbConte
     {
         using var context = await dbContextFactory.CreateDbContextAsync();
         return await context.TradingviewAlert
+            .Include(f => f.Signal)
             .Where(f => f.Signal.AccountID == accountId)
             .OrderByDescending(f => f.DateCreated)
             .Take(200)

@@ -65,14 +65,22 @@ namespace JCTG.WebApp.Backend.Api
                         case "sellstop":
 
                             // Check if previous signal of this strategy is set as init (if -> set as cancelled)
-                            var prevSignal = await _dbContext.Signal.Where(s => s.Instrument == signal.Instrument && s.AccountID == signal.AccountID && s.StrategyType == signal.StrategyType).OrderByDescending(f => f.DateCreated).FirstOrDefaultAsync();
-
-                            // do null reference check
-                            if (prevSignal != null)
+                            if (signal.OrderType.Equals("buystop", StringComparison.CurrentCultureIgnoreCase)
+                                 || signal.OrderType.Equals("buylimit", StringComparison.CurrentCultureIgnoreCase)
+                                 || signal.OrderType.Equals("selllimit", StringComparison.CurrentCultureIgnoreCase)
+                                 || signal.OrderType.Equals("sellstop", StringComparison.CurrentCultureIgnoreCase)
+                                )
                             {
-                                if (prevSignal.TradingviewStateType == TradingviewStateType.Init)
-                                    prevSignal.TradingviewStateType = TradingviewStateType.CancelOrder;
+                                var prevSignal = await _dbContext.Signal.Where(s => s.Instrument == signal.Instrument && s.AccountID == signal.AccountID && s.OrderType == signal.OrderType && s.StrategyType == signal.StrategyType).OrderByDescending(f => f.DateCreated).FirstOrDefaultAsync();
+
+                                // do null reference check
+                                if (prevSignal != null)
+                                {
+                                    if (prevSignal.TradingviewStateType == TradingviewStateType.Init)
+                                        prevSignal.TradingviewStateType = TradingviewStateType.CancelOrder;
+                                }
                             }
+
 
                             if (signal.OrderType.Equals("buy", StringComparison.CurrentCultureIgnoreCase))
                                 signal.TradingviewStateType = TradingviewStateType.Entry;
@@ -135,16 +143,22 @@ namespace JCTG.WebApp.Backend.Api
                             _logger.Information($"Sent to Azure Web PubSub with response client request id: {id}", id);
                             break;
                         case "entry":
-                        case "cancelorder":
                         case "movesltobe":
                         case "tphit":
                         case "slhit":
                         case "behit":
                             // Implement the logic to update the database based on instrument, client, and magic number.
                             // This is a placeholder for your actual update logic.
-                            var existingSignals = _dbContext.Signal.Where(s => s.Instrument == signal.Instrument && s.AccountID == signal.AccountID && s.Magic == signal.Magic && s.StrategyType == signal.StrategyType);
+                            var existingSignal = await _dbContext.Signal
+                                .Where(s => s.Instrument == signal.Instrument
+                                            && s.AccountID == signal.AccountID
+                                            && s.Magic == signal.Magic
+                                            && s.StrategyType == signal.StrategyType
+                                )
+                                .OrderByDescending(f => f.DateCreated)
+                                .FirstOrDefaultAsync();
 
-                            foreach (var existingSignal in existingSignals)
+                            if(existingSignal != null) 
                             {
                                 // Update properties based on your logic
                                 // For example: existingSignal.Status = "Updated";
@@ -156,8 +170,8 @@ namespace JCTG.WebApp.Backend.Api
                                     existingSignal.TradingviewStateType = TradingviewStateType.BeHit;
                                 else if (signal.OrderType.Equals("entry", StringComparison.CurrentCultureIgnoreCase))
                                     existingSignal.TradingviewStateType = TradingviewStateType.Entry;
-                                else if (signal.OrderType.Equals("cancelorder", StringComparison.CurrentCultureIgnoreCase))
-                                    existingSignal.TradingviewStateType = TradingviewStateType.CancelOrder;
+                                //else if (signal.OrderType.Equals("cancelorder", StringComparison.CurrentCultureIgnoreCase))
+                                //    existingSignal.TradingviewStateType = TradingviewStateType.CancelOrder;
 
                                 // Update
                                 existingSignal.DateLastUpdated = DateTime.UtcNow;
@@ -177,68 +191,90 @@ namespace JCTG.WebApp.Backend.Api
 
                                 // Update database
                                 _logger.Information($"Updated database in table Signal with ID: {existingSignal.ID}", existingSignal);
-                            }
 
-                            if (!existingSignals.Any())
+                                // Save to the database
+                                await _dbContext.SaveChangesAsync();
+                            }
+                            else
                             {
                                 // Add error to log
                                 _logger.Error($"Error! Could not find Signal with magic: {signal.Magic} in database", signal);
                             }
 
-                            // Save to the database
-                            await _dbContext.SaveChangesAsync();
-
-                            // Add log
-                            _logger.Information($"Updated database in table Signal with ID: {signal.ID}", signal);
-
                             break;
                         case "closeall":
                             // Implement the logic to update the database based on instrument, client, and magic number.
                             // This is a placeholder for your actual update logic.
-                            var existingSignals2 = _dbContext.Signal.Where(s => s.Instrument == signal.Instrument && s.AccountID == signal.AccountID && s.StrategyType == signal.StrategyType);
+                            var existingSignal2 = await _dbContext.Signal
+                                .Where(s => s.Instrument == signal.Instrument && s.AccountID == signal.AccountID && s.StrategyType == signal.StrategyType)
+                                .OrderByDescending(f => f.DateCreated)
+                                .FirstOrDefaultAsync();
+                                ;
 
-                            foreach (var existingSignal in existingSignals2)
-                            {
-                                if (existingSignal.TradingviewStateType == TradingviewStateType.Entry || existingSignal.TradingviewStateType == TradingviewStateType.Init)
+                            if(existingSignal2 != null) 
+                            { 
+                                if (existingSignal2.TradingviewStateType == TradingviewStateType.Entry)
                                 {
-                                    existingSignal.TradingviewStateType = TradingviewStateType.CloseAll;
-                                    existingSignal.DateLastUpdated = DateTime.UtcNow;
-                                    existingSignal.ExitRiskRewardRatio = signal.ExitRiskRewardRatio;
+                                    existingSignal2.TradingviewStateType = TradingviewStateType.CloseAll;
+                                    existingSignal2.DateLastUpdated = DateTime.UtcNow;
+                                    existingSignal2.ExitRiskRewardRatio = signal.ExitRiskRewardRatio;
 
                                     // Update state
-                                    _dbContext.Signal.Update(existingSignal);
+                                    _dbContext.Signal.Update(existingSignal2);
 
                                     // Add to the tradingview alert
                                     await _dbContext.TradingviewAlert.AddAsync(new TradingviewAlert()
                                     {
                                         DateCreated = DateTime.UtcNow,
                                         RawMessage = requestBody,
-                                        SignalID = existingSignal.ID,
+                                        SignalID = existingSignal2.ID,
                                         Type = TradingviewAlert.ParseTradingviewAlertTypeOrDefault(signal.OrderType.ToLower()),
                                     });
 
 
                                     // Update database
-                                    _logger.Information($"Updated database in table Signal with ID: {existingSignal.ID}", existingSignal);
+                                    _logger.Information($"Updated database in table Signal with ID: {existingSignal2.ID}", existingSignal2);
+                                }
+                                else if (existingSignal2.TradingviewStateType == TradingviewStateType.Init)
+                                {
+                                    existingSignal2.TradingviewStateType = TradingviewStateType.CancelOrder;
+                                    existingSignal2.DateLastUpdated = DateTime.UtcNow;
+                                    existingSignal2.ExitRiskRewardRatio = signal.ExitRiskRewardRatio;
+
+                                    // Update state
+                                    _dbContext.Signal.Update(existingSignal2);
+
+                                    // Add to the tradingview alert
+                                    await _dbContext.TradingviewAlert.AddAsync(new TradingviewAlert()
+                                    {
+                                        DateCreated = DateTime.UtcNow,
+                                        RawMessage = requestBody,
+                                        SignalID = existingSignal2.ID,
+                                        Type = TradingviewAlert.ParseTradingviewAlertTypeOrDefault(signal.OrderType.ToLower()),
+                                    });
+
+
+                                    // Update database
+                                    _logger.Information($"Updated database in table Signal with ID: {existingSignal2.ID}", existingSignal2);
                                 }
 
                                 // Update
-                                existingSignal.TradingviewStateType = TradingviewStateType.CloseAll;
+                                existingSignal2.TradingviewStateType = TradingviewStateType.CloseAll;
 
+                                // Save to the database
+                                await _dbContext.SaveChangesAsync();
+
+                                // Update logger
+                                _logger.Information($"Updated database in table Signal with ID: {existingSignal2.ID}", existingSignal2);
                             }
-
-                            if (!existingSignals2.Any())
+                            else
                             {
                                 // Add error to log
                                 _logger.Error($"Error! Could not find Signal with magic: {signal.Magic} in database", signal);
                             }
 
-
-                            // Save to the database
-                            await _dbContext.SaveChangesAsync();
-
-
-
+                            break;
+                        case "cancelorder":
                             break;
                         default:
                             // Optionally, handle unknown order types

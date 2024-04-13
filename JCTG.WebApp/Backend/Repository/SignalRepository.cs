@@ -1,6 +1,7 @@
 ﻿using JCTG.Entity;
 using JCTG.Models;
 using Microsoft.EntityFrameworkCore;
+using System.Diagnostics.Metrics;
 
 namespace JCTG.WebApp.Backend.Repository;
 
@@ -17,25 +18,23 @@ public class SignalRepository(IDbContextFactory<JCTGDbContext> dbContextFactory)
             .ToListAsync();
     }
 
-    public async Task<List<Signal>> GetAllLast200(int accountId, DateTime startDate)
+    public async Task<List<Signal>> GetAll(int accountId, DateTime startDate)
     {
         using var context = await dbContextFactory.CreateDbContextAsync();
         return await context.Signal
             .Include(f => f.Orders)
             .Where(f => f.AccountID == accountId && f.DateCreated >= startDate)
-            .OrderByDescending(f => f.DateLastUpdated)
-            .Take(200)
+            .OrderByDescending(f => f.DateCreated)
             .ToListAsync();
     }
 
-    public async Task<List<Signal>> GetAllLast200ByInstrument(int accountId, string instrument, DateTime startDate)
+    public async Task<List<Signal>> GetAllByInstrument(int accountId, string instrument, DateTime startDate)
     {
         using var context = await dbContextFactory.CreateDbContextAsync();
         return await context.Signal
             .Include(f => f.Orders)
             .Where(f => f.AccountID == accountId && f.Instrument == instrument && f.DateCreated >= startDate)
-            .OrderByDescending(f => f.DateLastUpdated)
-            .Take(200)
+            .OrderByDescending(f => f.DateCreated)
             .ToListAsync();
     }
 
@@ -52,12 +51,18 @@ public class SignalRepository(IDbContextFactory<JCTGDbContext> dbContextFactory)
     public async Task<List<Signal>> GetAllLast200ByClientId(int accountId, long clientId)
     {
         using var context = await dbContextFactory.CreateDbContextAsync();
-        return await context.Signal
-            .Include(f => f.Orders)
-            .Where(f => f.AccountID == accountId && f.Orders.Any(g => g.ClientID == clientId))
-            .OrderByDescending(f => f.DateLastUpdated)
-            .Take(200)
-            .ToListAsync();
+        var pairs = await context.ClientPair.Where(f => f.Client != null && f.Client.AccountID == accountId && f.ClientID == clientId).ToListAsync();
+
+        var signals = new List<Signal>();
+        foreach(var pair in pairs)
+        {
+            signals.AddRange(await context.Signal
+                .Include(f => f.Orders)
+                .Where(f => f.AccountID == accountId && f.Instrument == pair.TickerInTradingView && f.StrategyType == pair.StrategyType)
+                .ToListAsync());
+        }
+
+        return signals.OrderByDescending(f => f.DateLastUpdated).ToList();
     }
 
     public async Task<List<Signal>> GetAllLast200ByStrategyType(int accountId, StrategyType strategyType)
@@ -71,25 +76,23 @@ public class SignalRepository(IDbContextFactory<JCTGDbContext> dbContextFactory)
             .ToListAsync();
     }
 
-    public async Task<List<Signal>> GetAllLast200ByStrategyType(int accountId, StrategyType strategyType, DateTime startDate)
+    public async Task<List<Signal>> GetAllByStrategyType(int accountId, StrategyType strategyType, DateTime startDate)
     {
         using var context = await dbContextFactory.CreateDbContextAsync();
         return await context.Signal
             .Include(f => f.Orders)
             .Where(f => f.AccountID == accountId && f.StrategyType == strategyType && f.DateCreated >= startDate)
             .OrderByDescending(f => f.DateLastUpdated)
-            .Take(200)
             .ToListAsync();
     }
 
-    public async Task<List<Signal>> GetAllLast200ByStrategyType(int accountId, StrategyType strategyType, string instrument, DateTime startDate)
+    public async Task<List<Signal>> GetAllByStrategyType(int accountId, StrategyType strategyType, string instrument, DateTime startDate)
     {
         using var context = await dbContextFactory.CreateDbContextAsync();
         return await context.Signal
             .Include(f => f.Orders)
             .Where(f => f.AccountID == accountId && f.StrategyType == strategyType && f.Instrument == instrument && f.DateCreated >= startDate)
             .OrderByDescending(f => f.DateLastUpdated)
-            .Take(200)
             .ToListAsync();
     }
 
