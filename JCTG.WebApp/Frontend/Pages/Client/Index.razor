@@ -3,6 +3,7 @@
 @inject DealRepository _dealRepository;
 @using JCTG.WebApp.Frontend.Components.Apex;
 @using JCTG.WebApp.Frontend.Components.Widget;
+@using JCTG.WebApp.Frontend.Components.Modal;
 
 <div class="container-fluid mw-100">
     <div class="font-weight-medium shadow-none position-relative overflow-hidden mb-4">
@@ -32,15 +33,15 @@
     </div>
 
     <div class="row">
-        @for (int i = 0; i < _clients.Count; i++)
+        @foreach (var client in _clients)
         {
             <div class="col-lg-4">
                 <div class="card">
                     <div class="card-body">
                         <div class="d-flex align-items-start">
                             <div>
-                                <h4 class="card-title">@_clients[i].Name</h4>
-                                <h6 class="card-subtitle">@_clients[i].Balance</h6>
+                                <h4 class="card-title">@client.Name</h4>
+                                <h6 class="card-subtitle">@client.Balance</h6>
                             </div>
                             <div class="ms-auto">
                                 <div class="dropdown">
@@ -49,13 +50,13 @@
                                     </a>
                                     <ul class="dropdown-menu" aria-labelledby="new">
                                         <li>
-                                            <a class="dropdown-item" href="@($"Clients/{_clients[i].ID}/Edit")">Edit</a>
+                                            <a class="dropdown-item" href="@($"Clients/{client.ID}/Edit")">Edit</a>
                                         </li>
                                         <li>
-                                            <a class="dropdown-item" href="@($"Clients/{_clients[i].ID}/Delete")">Delete</a>
+                                            <a class="dropdown-item" style="cursor:pointer;" @onclick="() => DeleteAClientClick(client.ID)">Delete</a>
                                         </li>
                                         <li>
-                                            <a class="dropdown-item" href="@($"Clients/{_clients[i].ID}/Logs")">Logs</a>
+                                            <a class="dropdown-item" href="@($"Clients/{client.ID}/Logs")">Logs</a>
                                         </li>
                                     </ul>
                                 </div>
@@ -74,7 +75,7 @@
                             </div>
                             <div class="col-9 d-flex align-items-center">
                                 <div>
-                                    <a href="@($"Clients/{_clients[i].ID}/History")">
+                                    <a href="@($"Clients/{client.ID}/History")">
                                         <h5 class="card-title mb-1">History</h5>
                                         <p class="text-muted mb-0">
                                             History of this signal incl signal'' sl or tp
@@ -91,7 +92,7 @@
                             </div>
                             <div class="col-9 d-flex align-items-center">
                                 <div>
-                                    <a href="@($"Clients/{_clients[i].ID}/Pairs")">
+                                    <a href="@($"Clients/{client.ID}/Pairs")">
                                         <h5 class="card-title mb-1">Pairs</h5>
                                         <p class="text-muted mb-0">
                                             View every signal on Tradingview
@@ -108,7 +109,7 @@
                             </div>
                             <div class="col-9 d-flex align-items-center">
                                 <div>
-                                    <a href="@($"Clients/{_clients[i].ID}/Strategy")">
+                                    <a href="@($"Clients/{client.ID}/Strategy")">
                                         <h5 class="card-title mb-1">Strategy</h5>
                                         <p class="text-muted mb-0">Insights into the strategy</p>
                                     </a>
@@ -121,6 +122,9 @@
         }
     </div>
 </div>
+
+<ClientDeleteModal @ref="@_clientDeleteModal" OnClose="async () => await ReloadAsync()"></ClientDeleteModal>
+
 @code {
     public AreaChart Ref { set => _areaCharts.Add(value); }
 
@@ -129,9 +133,11 @@
     private List<Entity.Deal> _deals = new();
     string[] colors = { "#3699ff", "#6610f2", "#fb8c00", "#0bb7af", "#f64e60", "#4fc3f7", "#787f8e", "#e83e8c" };
 
+    private ClientDeleteModal? _clientDeleteModal { get; set; } = null;
+
     protected async override Task OnInitializedAsync()
     {
-        _clients = await _clientRepository.GetAllAsync(692803787);
+        await ReloadAsync();
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -154,5 +160,18 @@
                 }).OrderBy(f => f.Time)
                     .ToList(), colors[i % _clients.Count]);
         }
+    }
+
+    private async Task DeleteAClientClick(long id)
+    {
+        if (_clientDeleteModal != null)
+        {
+            await _clientDeleteModal.InitAsync(692803787, id);
+        }
+    }
+
+    private async Task ReloadAsync()
+    {
+        _clients = await _clientRepository.GetAllAsync(692803787);
     }
 }

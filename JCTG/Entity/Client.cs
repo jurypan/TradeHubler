@@ -5,16 +5,6 @@ namespace JCTG.Entity
 {
     public class Client
     {
-        public Client()
-        {
-            DateCreated = DateTime.UtcNow;
-            Orders = [];
-            Logs = [];
-            Risks = [];
-            Pairs = [];
-            MarketAbstentions = [];
-        }
-
         [Key]
         public long ID { get; set; }
         [NotMapped]
@@ -29,10 +19,10 @@ namespace JCTG.Entity
                 }
             }
         }
-        public DateTime DateCreated { get; set; }
+        public DateTime DateCreated { get; set; } = DateTime.UtcNow;
         public Account? Account { get; set; }
         public int AccountID { get; set; }
-        public required string Name { get; set; }
+        public string Name { get; set; } = string.Empty;
         public string? Currency { get; set; }
         public int? Leverage { get; set; }
         public double? Balance { get; set; }
@@ -51,13 +41,13 @@ namespace JCTG.Entity
             }
         }
         public bool IsEnable { get; set; }
-        public string MetaTraderDirPath { get; set; }
+        public  string MetaTraderDirPath { get; set; } = string.Empty;
 
-        public List<ClientRisk> Risks { get; set; }
-        public List<ClientPair> Pairs { get; set; }
+        public List<ClientRisk> Risks { get; set; } = [];
+        public List<ClientPair> Pairs { get; set; } = [];
 
-        public List<Order> Orders { get; set; }
-        public List<MarketAbstention> MarketAbstentions { get; set; }
-        public List<Log> Logs { get; set; }
+        public List<Order> Orders { get; set; } = [];
+        public List<MarketAbstention> MarketAbstentions { get; set; } = [];
+        public List<Log> Logs { get; set; } = [];
     }
 }

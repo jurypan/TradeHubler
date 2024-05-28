@@ -142,6 +142,10 @@ public class ClientRepository(IDbContextFactory<JCTGDbContext> dbContextFactory)
         var entitiesLogs = await context.Log.Where(f => f.ClientID == id).ToListAsync();
         context.Log.RemoveRange(entitiesLogs);
 
+        // MarketAbstention
+        var entitiesMarketAbstention = await context.MarketAbstention.Where(f => f.ClientID == id).ToListAsync();
+        context.MarketAbstention.RemoveRange(entitiesMarketAbstention);
+
         // Client
         var entity = await context.Client.FirstOrDefaultAsync(f => f.AccountID == accountId && f.ID == id);
         if (entity != null)
