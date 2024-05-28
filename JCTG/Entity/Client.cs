@@ -25,8 +25,44 @@ namespace JCTG.Entity
         public string Name { get; set; } = string.Empty;
         public string? Currency { get; set; }
         public int? Leverage { get; set; }
+        [NotMapped]
+        public string? LeverageAsString
+        {
+            get => Leverage?.ToString();
+            set
+            {
+                if (int.TryParse(value, out int newValue))
+                {
+                    Leverage = newValue;
+                }
+            }
+        }
         public double? Balance { get; set; }
+        [NotMapped]
+        public string? BalanceAsString
+        {
+            get => Balance?.ToString();
+            set
+            {
+                if (double.TryParse(value, out double newValue))
+                {
+                    Balance = newValue;
+                }
+            }
+        }
         public double? Equity { get; set; }
+        [NotMapped]
+        public string? EquityAsString
+        {
+            get => Equity?.ToString();
+            set
+            {
+                if (double.TryParse(value, out double newValue))
+                {
+                    Equity = newValue;
+                }
+            }
+        }
         public double StartBalance { get; set; }
         [NotMapped]
         public string StartBalanceAsString

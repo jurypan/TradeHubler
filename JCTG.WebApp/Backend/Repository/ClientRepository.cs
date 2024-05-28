@@ -195,8 +195,6 @@ public class ClientRepository(IDbContextFactory<JCTGDbContext> dbContextFactory)
     {
         using var context = await dbContextFactory.CreateDbContextAsync();
         context.Entry(client).State = EntityState.Detached;
-        client.ID = long.Parse(client.IDAsString + "0");
-        client.Name += " (copy)";
         client.Balance = client.StartBalance;
         client.Equity = client.StartBalance;
         client.DateCreated = DateTime.UtcNow;

@@ -4,24 +4,78 @@
 @using JCTG.Models;
 
 <div class="modal fade @_cssClass" tabindex="-1" style="display:@_display">
-    <div class="modal-dialog modal-dialog-scrollable modal-lg">
-        <div class="modal-content">
-            <div class="modal-header modal-colored-header bg-warning text-white">
-                <h4 class="modal-title text-white" id="danger-header-modalLabel">Copy a client</h4>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" @onclick="async () => await CloseAsync()"></button>
-            </div>
-            <div class="modal-body">
-                <h5 class="mt-0">Copy a client?</h5>
-                <p>Are you sure you want to copy this client?</p>
-            </div>
-            <div class="modal-footer">
-                <div class="d-flex gap-6 m-0">
-                    <button type="submit" class="btn btn-warning rounded-pill px-4" @onclick="async () => await SubmitAsync()"> Copy </button>
-                    <button class="btn bg-danger-subtle text-danger rounded-pill" @onclick="async () => await CloseAsync()"> Discard </button>
+    <EditForm Model="@model" OnValidSubmit="@SubmitAsync">
+        <div class="modal-dialog modal-dialog-scrollable modal-lg">
+            <div class="modal-content">
+                <div class="modal-header modal-colored-header bg-warning text-white">
+                    <h4 class="modal-title text-white" id="danger-header-modalLabel">Copy a client</h4>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" @onclick="async () => await CloseAsync()"></button>
+                </div>
+                <div class="modal-body">
+                    <h5 class="mt-0">Copy a client?</h5>
+                    <p>Are you sure you want to copy this client?</p>
+
+                    <DataAnnotationsValidator />
+                    <ValidationSummary />
+                    <AntiforgeryToken />
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">ID</label>
+                                <InputText class="form-control" @bind-Value="model.IDAsString" />
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Name</label>
+                                <InputText class="form-control" @bind-Value="model.Name" />
+                            </div>
+                        </div>
+                       
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Currency</label>
+                                <InputText class="form-control" @bind-Value="model.Currency" />
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="mb-3">
+                                <label class="form-label">MT Path</label>
+                                <InputText class="form-control" @bind-Value="model.MetaTraderDirPath" />
+                            </div>
+                        </div>
+                    </div>
+                    <hr class="m-3">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Start Balance</label>
+                                <InputText class="form-control" @bind-Value="model.StartBalanceAsString" />
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Equity</label>
+                                <InputText class="form-control" @bind-Value="model.EquityAsString" />
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Leverage</label>
+                                <InputText class="form-control" @bind-Value="model.LeverageAsString" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <div class="d-flex gap-6 m-0">
+                        <button type="submit" class="btn btn-warning  rounded-pill px-4"> Copy </button>
+                        <button class="btn bg-danger-subtle text-danger rounded-pill" @onclick="async () => await CloseAsync()"> Discard </button>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
+    </EditForm>
 </div>
 
 @code {
@@ -32,7 +86,7 @@
     public EventCallback OnOpen { get; set; }
 
     [SupplyParameterFromForm]
-    private Client client { get; set; } = new();
+    private Entity.Client model { get; set; } = new();
     private CrudState _crudState { get; set; } = CrudState.None;
 
     private string _display = "none;";
@@ -59,7 +113,9 @@
         var clientNew = await _clientRepository.GetByIdAsync(accountId, clientId);
         if (clientNew != null)
         {
-            client = clientNew;
+            model.ID = long.Parse(model.IDAsString + "0");
+            model.Name += " (copy)";
+            model = clientNew;
             await OpenAsync();
             _crudState = CrudState.Custom1;
         }
@@ -67,15 +123,15 @@
 
     public async Task SubmitAsync()
     {
-        if (client != null)
+        if (model != null)
         {
             if (_crudState == CrudState.Custom1)
             {
-                await _clientRepository.CopyAsync(client, client.Risks, client.Pairs);
+                await _clientRepository.CopyAsync(model, model.Risks, model.Pairs);
             }
 
             _crudState = CrudState.None;
-            client = new();
+            model = new();
             await CloseAsync();
         }
     }
