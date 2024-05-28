@@ -1,0 +1,82 @@
+﻿@inject ClientRepository _clientRepository;
+
+@using JCTG.Command
+@using JCTG.Models;
+
+<div class="modal fade @_cssClass" tabindex="-1" style="display:@_display">
+    <div class="modal-dialog modal-dialog-scrollable modal-lg">
+        <div class="modal-content">
+            <div class="modal-header modal-colored-header bg-warning text-white">
+                <h4 class="modal-title text-white" id="danger-header-modalLabel">Copy a client</h4>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" @onclick="async () => await CloseAsync()"></button>
+            </div>
+            <div class="modal-body">
+                <h5 class="mt-0">Copy a client?</h5>
+                <p>Are you sure you want to copy this client?</p>
+            </div>
+            <div class="modal-footer">
+                <div class="d-flex gap-6 m-0">
+                    <button type="submit" class="btn btn-warning rounded-pill px-4" @onclick="async () => await SubmitAsync()"> Copy </button>
+                    <button class="btn bg-danger-subtle text-danger rounded-pill" @onclick="async () => await CloseAsync()"> Discard </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public EventCallback OnClose { get; set; }
+
+    [Parameter]
+    public EventCallback OnOpen { get; set; }
+
+    [SupplyParameterFromForm]
+    private Client client { get; set; } = new();
+    private CrudState _crudState { get; set; } = CrudState.None;
+
+    private string _display = "none;";
+    private string _cssClass = "hide";
+
+    public async Task OpenAsync()
+    {
+        _display = "block;";
+        _cssClass = "show";
+        await OnOpen.InvokeAsync();
+        StateHasChanged();
+    }
+
+    public async Task CloseAsync()
+    {
+        _display = "none;";
+        _cssClass = "hide";
+        await OnClose.InvokeAsync();
+        StateHasChanged();
+    }
+
+    public async Task InitAsync(int accountId, long clientId)
+    {
+        var clientNew = await _clientRepository.GetByIdAsync(accountId, clientId);
+        if (clientNew != null)
+        {
+            client = clientNew;
+            await OpenAsync();
+            _crudState = CrudState.Custom1;
+        }
+    }
+
+    public async Task SubmitAsync()
+    {
+        if (client != null)
+        {
+            if (_crudState == CrudState.Custom1)
+            {
+                await _clientRepository.CopyAsync(client, client.Risks, client.Pairs);
+            }
+
+            _crudState = CrudState.None;
+            client = new();
+            await CloseAsync();
+        }
+    }
+}

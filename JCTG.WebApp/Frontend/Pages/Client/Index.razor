@@ -56,6 +56,9 @@
                                             <a class="dropdown-item" style="cursor:pointer;" @onclick="() => DeleteAClientClick(client.ID)">Delete</a>
                                         </li>
                                         <li>
+                                            <a class="dropdown-item" style="cursor:pointer;" @onclick="() => CopyAClientClick(client.ID)">Copy</a>
+                                        </li>
+                                        <li>
                                             <a class="dropdown-item" href="@($"Clients/{client.ID}/Logs")">Logs</a>
                                         </li>
                                     </ul>
@@ -125,6 +128,8 @@
 
 <ClientDeleteModal @ref="@_clientDeleteModal" OnClose="async () => await ReloadAsync()"></ClientDeleteModal>
 
+<ClientCopyModal @ref="@_clientCopyModal" OnClose="async () => await ReloadAsync()"></ClientCopyModal>
+
 @code {
     public AreaChart Ref { set => _areaCharts.Add(value); }
 
@@ -134,6 +139,7 @@
     string[] colors = { "#3699ff", "#6610f2", "#fb8c00", "#0bb7af", "#f64e60", "#4fc3f7", "#787f8e", "#e83e8c" };
 
     private ClientDeleteModal? _clientDeleteModal { get; set; } = null;
+    private ClientCopyModal? _clientCopyModal { get; set; } = null;
 
     protected async override Task OnInitializedAsync()
     {
@@ -167,6 +173,14 @@
         if (_clientDeleteModal != null)
         {
             await _clientDeleteModal.InitAsync(692803787, id);
+        }
+    }
+
+    private async Task CopyAClientClick(long id)
+    {
+        if (_clientCopyModal != null)
+        {
+            await _clientCopyModal.InitAsync(692803787, id);
         }
     }
 

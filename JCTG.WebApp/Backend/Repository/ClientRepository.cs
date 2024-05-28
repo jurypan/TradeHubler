@@ -1,6 +1,7 @@
 ﻿using JCTG.Entity;
 using JCTG.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Identity.Client;
 
 namespace JCTG.WebApp.Backend.Repository;
 
@@ -20,6 +21,20 @@ public class ClientRepository(IDbContextFactory<JCTGDbContext> dbContextFactory)
         await context.ClientPair.AddAsync(clientPair);
         await context.SaveChangesAsync();
         return clientPair;
+    }
+
+    public async Task AddPairAsync(List<ClientPair> clientPairs, long clientId)
+    {
+        using var context = await dbContextFactory.CreateDbContextAsync();
+        foreach (var pair in clientPairs)
+        {
+            context.Entry(pair).State = EntityState.Detached;
+            pair.GetType().GetProperty("ID")?.SetValue(pair, 0);
+            pair.GetType().GetProperty("Client")?.SetValue(pair, null);
+            pair.ClientID = clientId;
+            await context.ClientPair.AddAsync(pair);
+        }
+        await context.SaveChangesAsync();
     }
 
     public async Task<ClientPair> CopyPairAsync(ClientPair clientPair)
@@ -60,6 +75,20 @@ public class ClientRepository(IDbContextFactory<JCTGDbContext> dbContextFactory)
     {
         using var context = await dbContextFactory.CreateDbContextAsync();
         await context.ClientRisk.AddAsync(clientRisk);
+        await context.SaveChangesAsync();
+    }
+
+    public async Task AddRiskAsync(List<ClientRisk> clientRisks, long clientId)
+    {
+        using var context = await dbContextFactory.CreateDbContextAsync();
+        foreach (var risk in clientRisks)
+        {
+            context.Entry(risk).State = EntityState.Detached;
+            risk.GetType().GetProperty("ID")?.SetValue(risk, 0);
+            risk.GetType().GetProperty("Client")?.SetValue(risk, null);
+            risk.ClientID = clientId;
+            await context.ClientRisk.AddAsync(risk);
+        }
         await context.SaveChangesAsync();
     }
 
@@ -112,6 +141,14 @@ public class ClientRepository(IDbContextFactory<JCTGDbContext> dbContextFactory)
             .SelectMany(f => f.Pairs).ToListAsync();
     }
 
+    public async Task<Client> AddAsync(Client client)
+    {
+        using var context = await dbContextFactory.CreateDbContextAsync();
+        await context.Client.AddAsync(client);
+        await context.SaveChangesAsync();
+        return client;
+    }
+
     public async Task EditAsync(int accountId, Client client)
     {
         using var context = await dbContextFactory.CreateDbContextAsync();
@@ -122,6 +159,7 @@ public class ClientRepository(IDbContextFactory<JCTGDbContext> dbContextFactory)
             await context.SaveChangesAsync();
         }
     }
+
     public async Task DeleteAsync(int accountId, long id)
     {
         using var context = await dbContextFactory.CreateDbContextAsync();
@@ -151,5 +189,22 @@ public class ClientRepository(IDbContextFactory<JCTGDbContext> dbContextFactory)
         if (entity != null)
             context.Client.Remove(entity);
         await context.SaveChangesAsync();
+    }
+
+    public async Task<Client> CopyAsync(Client client, List<ClientRisk> clientRisks, List<ClientPair> clientPairs)
+    {
+        using var context = await dbContextFactory.CreateDbContextAsync();
+        context.Entry(client).State = EntityState.Detached;
+        client.ID = long.Parse(client.IDAsString + "0");
+        client.Name += " (copy)";
+        client.Balance = client.StartBalance;
+        client.Equity = client.StartBalance;
+        client.DateCreated = DateTime.UtcNow;
+        client.Risks = [];
+        client.Pairs = [];
+        client = await AddAsync(client);
+        await AddRiskAsync(clientRisks, client.ID);
+        await AddPairAsync(clientPairs, client.ID);
+        return client;
     }
 }
