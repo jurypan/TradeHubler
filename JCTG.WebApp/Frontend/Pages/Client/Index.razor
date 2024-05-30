@@ -26,12 +26,19 @@
                     </nav>
                 </div>
                 <div>
-                   <LastMonthWidget></LastMonthWidget>
+                    <LastMonthWidget></LastMonthWidget>
                 </div>
             </div>
         </div>
     </div>
 
+    <div class="card card-body">
+        <div class="row">
+            <div class="col-md-12 col-xl-12 text-end d-flex justify-content-md-end justify-content-center mt-3 mt-md-0">
+                <a class="btn btn-primary d-flex align-items-center" @onclick="() => AddAClientClick()">Add a client</a>
+            </div>
+        </div>
+    </div>
     <div class="row">
         @foreach (var client in _clients)
         {
@@ -130,6 +137,8 @@
 
 <ClientCopyModal @ref="@_clientCopyModal" OnClose="async () => await ReloadAsync()"></ClientCopyModal>
 
+<ClientAddModal @ref="@_clientAddModal" OnClose="async () => await ReloadAsync()"></ClientAddModal>
+
 @code {
     public AreaChart Ref { set => _areaCharts.Add(value); }
 
@@ -140,6 +149,7 @@
 
     private ClientDeleteModal? _clientDeleteModal { get; set; } = null;
     private ClientCopyModal? _clientCopyModal { get; set; } = null;
+    private ClientAddModal? _clientAddModal { get; set; } = null;
 
     protected async override Task OnInitializedAsync()
     {
@@ -184,8 +194,17 @@
         }
     }
 
+    private async Task AddAClientClick()
+    {
+        if (_clientAddModal != null)
+        {
+            await _clientAddModal.InitAsync(692803787);
+        }
+    }
+
     private async Task ReloadAsync()
     {
         _clients = await _clientRepository.GetAllAsync(692803787);
+        StateHasChanged();
     }
 }

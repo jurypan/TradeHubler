@@ -1,0 +1,131 @@
+﻿@inject ClientRepository _clientRepository;
+
+@using JCTG.Command
+@using JCTG.Models;
+
+<div class="modal fade @_cssClass" tabindex="-1" style="display:@_display">
+    <EditForm Model="@model" OnValidSubmit="@SubmitAsync">
+        <div class="modal-dialog modal-dialog-scrollable modal-lg">
+            <div class="modal-content">
+                <div class="modal-header modal-colored-header bg-warning text-white">
+                    <h4 class="modal-title text-white" id="danger-header-modalLabel">Add a client</h4>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" @onclick="async () => await CloseAsync()"></button>
+                </div>
+                <div class="modal-body">
+                    <h5 class="mt-0">Add a client?</h5>
+
+                    <DataAnnotationsValidator />
+                    <ValidationSummary />
+                    <AntiforgeryToken />
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">ID</label>
+                                <InputText class="form-control" @bind-Value="model.IDAsString" />
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Name</label>
+                                <InputText class="form-control" @bind-Value="model.Name" />
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Currency</label>
+                                <InputText class="form-control" @bind-Value="model.Currency" />
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="mb-3">
+                                <label class="form-label">MT Path</label>
+                                <InputText class="form-control" @bind-Value="model.MetaTraderDirPath" />
+                            </div>
+                        </div>
+                    </div>
+                    <hr class="m-3">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Start Balance</label>
+                                <InputText class="form-control" @bind-Value="model.StartBalanceAsString" />
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Equity</label>
+                                <InputText class="form-control" @bind-Value="model.EquityAsString" />
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Leverage</label>
+                                <InputText class="form-control" @bind-Value="model.LeverageAsString" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <div class="d-flex gap-6 m-0">
+                        <button type="submit" class="btn btn-warning  rounded-pill px-4"> Add </button>
+                        <button class="btn bg-danger-subtle text-danger rounded-pill" @onclick="async () => await CloseAsync()"> Discard </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </EditForm>
+</div>
+
+@code {
+    [Parameter]
+    public EventCallback OnClose { get; set; }
+
+    [Parameter]
+    public EventCallback OnOpen { get; set; }
+
+    [SupplyParameterFromForm]
+    private Entity.Client model { get; set; } = new();
+    private CrudState _crudState { get; set; } = CrudState.None;
+
+    private string _display = "none;";
+    private string _cssClass = "hide";
+
+    public async Task OpenAsync()
+    {
+        _display = "block;";
+        _cssClass = "show";
+        await OnOpen.InvokeAsync();
+        StateHasChanged();
+    }
+
+    public async Task CloseAsync()
+    {
+        _display = "none;";
+        _cssClass = "hide";
+        await OnClose.InvokeAsync();
+        StateHasChanged();
+    }
+
+    public async Task InitAsync(int accountId)
+    {
+        model = new();
+        await OpenAsync();
+        _crudState = CrudState.Custom1;
+    }
+
+    public async Task SubmitAsync()
+    {
+        if (model != null)
+        {
+            if (_crudState == CrudState.Custom1)
+            {
+                await _clientRepository.AddAsync(model);
+            }
+
+            _crudState = CrudState.None;
+            model = new();
+            await CloseAsync();
+        }
+    }
+}

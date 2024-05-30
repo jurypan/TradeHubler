@@ -270,6 +270,7 @@
     protected async override Task OnInitializedAsync()
     {
         _clients = await _clientRepository.GetAllAsync(692803787);
+        _clients = _clients.Where(f => f.IsEnable).OrderBy(f => f.Name).ToList();
 
         NavManager.LocationChanged += HandleLocationChanged;
     }
@@ -290,6 +291,7 @@
 
         // Inline method
         _clients = await _clientRepository.GetAllAsync(692803787);
+        _clients = _clients.Where(f => f.IsEnable).OrderBy(f => f.Name).ToList();
         if (_clients.Count > 0 && _lineChart != null)
         {
             // Get First client
