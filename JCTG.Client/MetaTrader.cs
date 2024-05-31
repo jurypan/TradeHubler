@@ -231,7 +231,7 @@ namespace JCTG.Client
                                                                                 orderType = OrderType.BuyStop;
                                                                             else if (pair.OrderExecType == OrderExecType.Passive && metadataTick.Ask > cmd.MarketOrder.Price.Value)
                                                                                 orderType = OrderType.BuyLimit;
-                                                                            api.ExecuteOrder(pair.TickerInMetatrader, orderType, lotSize, 0, slPrice, tpPrice, (int)cmd.Magic, comment);
+                                                                            api.ExecuteOrder(pair.TickerInMetatrader, orderType, lotSize, orderType == OrderType.Buy ? 0 : cmd.MarketOrder.Price.Value, slPrice, tpPrice, (int)cmd.Magic, comment);
 
                                                                             // Send to logs
                                                                             if (_appConfig.Debug)
@@ -413,9 +413,9 @@ namespace JCTG.Client
                                                                                     // Open order
                                                                                     var comment = string.Format($"{cmd.SignalID}/{price}/{sl}/{(int)pair.StrategyNr}/{spread}");
                                                                                     var orderType = OrderType.BuyStop;
-                                                                                    if (pair.OrderExecType == OrderExecType.Passive && metadataTick.Bid > price)
+                                                                                    if (pair.OrderExecType == OrderExecType.Passive && metadataTick.Ask <= price)
                                                                                         orderType = OrderType.BuyLimit;
-                                                                                    else if (pair.OrderExecType == OrderExecType.Active && metadataTick.Bid >= price)
+                                                                                    else if (pair.OrderExecType == OrderExecType.Active && metadataTick.Ask >= price)
                                                                                         orderType = OrderType.Buy;
                                                                                     api.ExecuteOrder(pair.TickerInMetatrader, orderType, lotSize, orderType == OrderType.Buy ? 0 : price.Value, sl, tp, (int)cmd.Magic, comment);
 
@@ -501,7 +501,7 @@ namespace JCTG.Client
                                                         {
                                                             // Calculate SL Price
                                                             var slPrice = RiskCalculator.SLForShort(
-                                                            mtPrice: metadataTick.Ask,
+                                                            mtPrice: metadataTick.Bid,
                                                             mtSpread: spread,
                                                             mtDigits: metadataTick.Digits,
                                                             signalPrice: cmd.MarketOrder.Price.Value,
@@ -514,18 +514,18 @@ namespace JCTG.Client
                                                             if (_appConfig.Debug)
                                                             {
                                                                 var message = string.Format($"StopLossCalculated || Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},Magic={cmd.Magic},StrategyType={cmd.StrategyType},Price={cmd.MarketOrder.Price},TP={cmd.MarketOrder.TakeProfit},SL={cmd.MarketOrder.StopLoss}");
-                                                                var description = string.Format($"SLForShort: Ask={metadataTick.Ask},Spread={spread},Digits={metadataTick.Digits},SignalPrice={cmd.MarketOrder.Price},SignalSL={cmd.MarketOrder.StopLoss}");
+                                                                var description = string.Format($"SLForShort: Bid={metadataTick.Bid},Spread={spread},Digits={metadataTick.Digits},SignalPrice={cmd.MarketOrder.Price},SignalSL={cmd.MarketOrder.StopLoss}");
                                                                 await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, cmd.SignalID);
                                                             }
 
                                                             // Calculate the lot size
-                                                            var lotSize = RiskCalculator.LotSize(startbalance, api.AccountInfo.Balance, pair.Risk, metadataTick.Ask, slPrice, metadataTick.TickValue, metadataTick.TickSize, metadataTick.LotStep, metadataTick.MinLotSize, metadataTick.MaxLotSize, dynRisk);
+                                                            var lotSize = RiskCalculator.LotSize(startbalance, api.AccountInfo.Balance, pair.Risk, metadataTick.Bid, slPrice, metadataTick.TickValue, metadataTick.TickSize, metadataTick.LotStep, metadataTick.MinLotSize, metadataTick.MaxLotSize, dynRisk);
 
                                                             // Send to logs
                                                             if (_appConfig.Debug)
                                                             {
                                                                 var message = string.Format($"LotSizeCalculated || Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},Magic={cmd.Magic},StrategyType={cmd.StrategyType},Price={cmd.MarketOrder.Price},TP={cmd.MarketOrder.TakeProfit},SL={cmd.MarketOrder.StopLoss}");
-                                                                var description = string.Format($"LotSize: StartBalance={startbalance},Balance={api.AccountInfo.Balance},Risk={pair.Risk},AskPrice={metadataTick.Ask},SlPrice={slPrice},TickValue={metadataTick.TickValue},TickSize={metadataTick.TickSize},LotStep={metadataTick.LotStep},MinLotSize={metadataTick.MinLotSize},MaxLotSize={metadataTick.MaxLotSize},DynRisk={RiskCalculator.ChooseClosestMultiplier(startbalance, api.AccountInfo.Balance, dynRisk)}");
+                                                                var description = string.Format($"LotSize: StartBalance={startbalance},Balance={api.AccountInfo.Balance},Risk={pair.Risk},BidPrice={metadataTick.Bid},SlPrice={slPrice},TickValue={metadataTick.TickValue},TickSize={metadataTick.TickSize},LotStep={metadataTick.LotStep},MinLotSize={metadataTick.MinLotSize},MaxLotSize={metadataTick.MaxLotSize},DynRisk={RiskCalculator.ChooseClosestMultiplier(startbalance, api.AccountInfo.Balance, dynRisk)}");
                                                                 await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, cmd.SignalID);
                                                             }
 
@@ -539,11 +539,11 @@ namespace JCTG.Client
                                                                     if (pair.MaxLotSize == 0 || pair.MaxLotSize > 0 && lotSize <= pair.MaxLotSize)
                                                                     {
                                                                         // Do check if risk is x times the spread
-                                                                        if (pair.RiskMinXTimesTheSpread <= 0 || (spread * pair.RiskMinXTimesTheSpread < slPrice - metadataTick.Ask))
+                                                                        if (pair.RiskMinXTimesTheSpread <= 0 || (spread * pair.RiskMinXTimesTheSpread < slPrice - metadataTick.Bid))
                                                                         {
                                                                             // Calculate TP Price
                                                                             var tpPrice = RiskCalculator.TPForShort(
-                                                                                    mtPrice: metadataTick.Ask,
+                                                                                    mtPrice: metadataTick.Bid,
                                                                                     mtSpread: spread,
                                                                                     mtDigits: metadataTick.Digits,
                                                                                     signalPrice: cmd.MarketOrder.Price.Value,
@@ -555,7 +555,7 @@ namespace JCTG.Client
                                                                             if (_appConfig.Debug)
                                                                             {
                                                                                 var message = string.Format($"TakeProfitCalculated || Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},Magic={cmd.Magic},StrategyType={cmd.StrategyType},Price={cmd.MarketOrder.Price},TP={cmd.MarketOrder.TakeProfit},SL={cmd.MarketOrder.StopLoss}");
-                                                                                var description = string.Format($"TPForShort: Ask={metadataTick.Ask},Spread={spread},Digits={metadataTick.Digits},SignalPrice={cmd.MarketOrder.Price},SignalTP={cmd.MarketOrder.TakeProfit}");
+                                                                                var description = string.Format($"TPForShort: Bid={metadataTick.Bid},Spread={spread},Digits={metadataTick.Digits},SignalPrice={cmd.MarketOrder.Price},SignalTP={cmd.MarketOrder.TakeProfit}");
                                                                                 await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, cmd.SignalID);
                                                                             }
 
@@ -567,13 +567,13 @@ namespace JCTG.Client
 
                                                                             // Passive / Active
                                                                             var orderType = OrderType.Sell;
-                                                                            if (pair.OrderExecType == OrderExecType.Passive && metadataTick.Ask > cmd.MarketOrder.Price.Value)
+                                                                            if (pair.OrderExecType == OrderExecType.Passive && metadataTick.Bid >= cmd.MarketOrder.Price.Value)
                                                                                 orderType = OrderType.SellStop;
-                                                                            else if (pair.OrderExecType == OrderExecType.Passive && metadataTick.Ask < cmd.MarketOrder.Price.Value)
+                                                                            else if (pair.OrderExecType == OrderExecType.Passive && metadataTick.Bid <= cmd.MarketOrder.Price.Value)
                                                                                 orderType = OrderType.SellLimit;
 
                                                                             // Execute order
-                                                                            api.ExecuteOrder(pair.TickerInMetatrader, orderType, lotSize, 0, slPrice, tpPrice, (int)cmd.Magic, comment);
+                                                                            api.ExecuteOrder(pair.TickerInMetatrader, orderType, lotSize, orderType == OrderType.Sell ? 0 : cmd.MarketOrder.Price.Value, slPrice, tpPrice, (int)cmd.Magic, comment);
 
                                                                             // Send to logs
                                                                             if (_appConfig.Debug)
@@ -586,7 +586,7 @@ namespace JCTG.Client
                                                                         else
                                                                         {
                                                                             var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},Magic={cmd.Magic},StrategyType={cmd.StrategyType},Price={cmd.MarketOrder.Price},TP={cmd.MarketOrder.TakeProfit},SL={cmd.MarketOrder.StopLoss}");
-                                                                            var log = new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = $"The risk {slPrice - metadataTick.Ask} should be at least {pair.RiskMinXTimesTheSpread} times the spread : {spread}" };
+                                                                            var log = new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = $"The risk {slPrice - metadataTick.Bid} should be at least {pair.RiskMinXTimesTheSpread} times the spread : {spread}" };
                                                                             await RaiseMarketAbstentionAsync(api.ClientId, cmd.SignalID, cmd.Instrument, cmd.OrderType, MarketAbstentionType.RiskShouldBeAtLeastXTimesTheSpread, cmd.Magic, log);
                                                                         }
                                                                     }
@@ -704,7 +704,7 @@ namespace JCTG.Client
                                                                 if (_appConfig.Debug)
                                                                 {
                                                                     var message = string.Format($"LotSizeCalculated || Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},Magic={cmd.Magic},StrategyType={cmd.StrategyType},EntryExpr={cmd.PassiveOrder.EntryExpression},Risk={cmd.PassiveOrder.Risk},RR={cmd.PassiveOrder.RiskRewardRatio}");
-                                                                    var description = string.Format($"LotSize: StartBalance={startbalance},Balance={api.AccountInfo.Balance},Risk={pair.Risk},AskPrice={metadataTick.Ask},SlPrice={sl},TickValue={metadataTick.TickValue},TickSize={metadataTick.TickSize},LotStep={metadataTick.LotStep},MinLotSize={metadataTick.MinLotSize},MaxLotSize={metadataTick.MaxLotSize},DynRisk={RiskCalculator.ChooseClosestMultiplier(startbalance, api.AccountInfo.Balance, dynRisk)}");
+                                                                    var description = string.Format($"LotSize: StartBalance={startbalance},Balance={api.AccountInfo.Balance},Risk={pair.Risk},BidPrice={metadataTick.Bid},SlPrice={sl},TickValue={metadataTick.TickValue},TickSize={metadataTick.TickSize},LotStep={metadataTick.LotStep},MinLotSize={metadataTick.MinLotSize},MaxLotSize={metadataTick.MaxLotSize},DynRisk={RiskCalculator.ChooseClosestMultiplier(startbalance, api.AccountInfo.Balance, dynRisk)}");
                                                                     await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, cmd.SignalID);
                                                                 }
 
@@ -724,7 +724,7 @@ namespace JCTG.Client
                                                                                 if (pair.RiskMinXTimesTheSpread == 0 || (spread * pair.RiskMinXTimesTheSpread < cmd.PassiveOrder.Risk.Value))
                                                                                 {
                                                                                     // Print on the screen
-                                                                                    if (metadataTick.Ask < price)
+                                                                                    if (metadataTick.Bid < price)
                                                                                         Print($"INFO : {DateTime.UtcNow} / {_appConfig.Brokers.First(f => f.ClientId == api.ClientId).Name} / {pair.TickerInMetatrader} / SELL LIMIT COMMAND / {cmd.Magic} / {cmd.StrategyType}");
                                                                                     else
                                                                                         Print($"INFO : {DateTime.UtcNow} / {_appConfig.Brokers.First(f => f.ClientId == api.ClientId).Name} / {pair.TickerInMetatrader} / SELL STOP COMMAND / {cmd.Magic} / {cmd.StrategyType}");
@@ -753,9 +753,9 @@ namespace JCTG.Client
                                                                                     // Setup the order
                                                                                     var comment = string.Format($"{cmd.SignalID}/{price}/{sl}/{(int)pair.StrategyNr}/{spread}");
                                                                                     var orderType = OrderType.SellStop;
-                                                                                    if (pair.OrderExecType == OrderExecType.Passive && metadataTick.Ask < price.Value)
+                                                                                    if (pair.OrderExecType == OrderExecType.Passive && metadataTick.Bid < price.Value)
                                                                                         orderType = OrderType.SellLimit;
-                                                                                    else if (pair.OrderExecType == OrderExecType.Active && metadataTick.Ask <= price.Value)
+                                                                                    else if (pair.OrderExecType == OrderExecType.Active && metadataTick.Bid <= price.Value)
                                                                                         orderType = OrderType.Sell;
 
                                                                                     // Execute order
