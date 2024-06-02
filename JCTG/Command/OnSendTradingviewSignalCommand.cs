@@ -9,6 +9,7 @@ namespace JCTG.Command
         public long SignalID { get; set; }
         public StrategyType StrategyType { get; set; }
         public int AccountID { get; set; }
+        public List<long>? ClientIDs { get; set; }
         public required string OrderType { get; set; }
         public required string Instrument { get; set; }
         public long Magic { get; set; }

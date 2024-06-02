@@ -140,7 +140,7 @@ namespace JCTG.WebApp.Backend.Api
                             });
 
                             // Add log
-                            _logger.Information($"Sent to Azure Web PubSub with response client request id: {id}", id);
+                            _logger.Information($"Sent to Azure Queue with response client request id: {id}", id);
                             break;
                         case "entry":
                         case "movesltobe":
@@ -150,6 +150,7 @@ namespace JCTG.WebApp.Backend.Api
                             // Implement the logic to update the database based on instrument, client, and magic number.
                             // This is a placeholder for your actual update logic.
                             var existingSignal = await _dbContext.Signal
+                                .Include(f => f.MarketAbstentions)
                                 .Where(s => s.Instrument == signal.Instrument
                                             && s.AccountID == signal.AccountID
                                             && s.Magic == signal.Magic
@@ -160,6 +161,86 @@ namespace JCTG.WebApp.Backend.Api
 
                             if(existingSignal != null) 
                             {
+                                // If is entry
+                                if (signal.OrderType.Equals("entry", StringComparison.CurrentCultureIgnoreCase))
+                                {
+                                    // Create a list to store the items to be removed
+                                    var marketAbstentionsToRemove = new List<MarketAbstention>();
+
+                                    // IF this order is of type BUY STOP/LIMIT or SELL STOP/LIMIT
+                                    if (existingSignal.OrderType.Equals("buystop", StringComparison.CurrentCultureIgnoreCase) || existingSignal.OrderType.Equals("buylimit", StringComparison.CurrentCultureIgnoreCase))
+                                    {
+                                        foreach(var marketAbstention in existingSignal.MarketAbstentions)
+                                        {
+                                            if(marketAbstention.MarketAbstentionType == Models.MarketAbstentionType.ExceptionCalculatingEntryPrice)
+                                            {
+                                                // Create model and send to the client
+                                                id = await _server.SendOnTradingviewSignalCommandAsync(signal.AccountID, new OnSendTradingviewSignalCommand()
+                                                {
+                                                    SignalID = signal.ID,
+                                                    AccountID = signal.AccountID,
+                                                    ClientIDs = [marketAbstention.ClientID],
+                                                    Instrument = signal.Instrument,
+                                                    Magic = signal.ID,
+                                                    OrderType = "BUY",
+                                                    StrategyType = signal.StrategyType,
+                                                    MarketOrder = new OnReceivingTradingviewSignalEventMarketOrder()
+                                                    {
+                                                        StopLoss = Convert.ToDecimal(signal.StopLoss),
+                                                        Price = Convert.ToDecimal(signal.EntryPrice),
+                                                        TakeProfit = Convert.ToDecimal(signal.TakeProfit),
+                                                    },
+                                                });
+
+                                                // Add log
+                                                _logger.Information($"Sent to Azure Queue with response client request id: {id}", id);
+
+                                                marketAbstentionsToRemove.Add(marketAbstention);
+                                            }
+                                        }
+                                    }
+                                    else if (existingSignal.OrderType.Equals("sellstop", StringComparison.CurrentCultureIgnoreCase) || existingSignal.OrderType.Equals("selllimit", StringComparison.CurrentCultureIgnoreCase))
+                                    {
+                                        foreach (var marketAbstention in existingSignal.MarketAbstentions)
+                                        {
+                                            if (marketAbstention.MarketAbstentionType == Models.MarketAbstentionType.ExceptionCalculatingEntryPrice)
+                                            {
+                                                // Create model and send to the client
+                                                id = await _server.SendOnTradingviewSignalCommandAsync(signal.AccountID, new OnSendTradingviewSignalCommand()
+                                                {
+                                                    SignalID = signal.ID,
+                                                    AccountID = signal.AccountID,
+                                                    ClientIDs = [marketAbstention.ClientID],
+                                                    Instrument = signal.Instrument,
+                                                    Magic = signal.ID,
+                                                    OrderType = "SELL",
+                                                    StrategyType = signal.StrategyType,
+                                                    MarketOrder = new OnReceivingTradingviewSignalEventMarketOrder()
+                                                    {
+                                                        StopLoss = Convert.ToDecimal(signal.StopLoss),
+                                                        Price = Convert.ToDecimal(signal.EntryPrice),
+                                                        TakeProfit = Convert.ToDecimal(signal.TakeProfit),
+                                                    },
+                                                });
+
+                                                // Add log
+                                                _logger.Information($"Sent to Azure Queue with response client request id: {id}", id);
+
+                                                marketAbstentionsToRemove.Add(marketAbstention);
+                                            }
+                                        }
+                                    }
+
+                                    // Remove the items from the original collection
+                                    foreach (var marketAbstention in marketAbstentionsToRemove)
+                                    {
+                                        _dbContext.MarketAbstention.Remove(marketAbstention);
+                                    }
+
+                                    // Save to the database
+                                    await _dbContext.SaveChangesAsync();
+                                }
+
                                 // Update properties based on your logic
                                 // For example: existingSignal.Status = "Updated";
                                 if (signal.OrderType.Equals("tphit", StringComparison.CurrentCultureIgnoreCase))
@@ -170,8 +251,6 @@ namespace JCTG.WebApp.Backend.Api
                                     existingSignal.TradingviewStateType = TradingviewStateType.BeHit;
                                 else if (signal.OrderType.Equals("entry", StringComparison.CurrentCultureIgnoreCase))
                                     existingSignal.TradingviewStateType = TradingviewStateType.Entry;
-                                //else if (signal.OrderType.Equals("cancelorder", StringComparison.CurrentCultureIgnoreCase))
-                                //    existingSignal.TradingviewStateType = TradingviewStateType.CancelOrder;
 
                                 // Update
                                 existingSignal.DateLastUpdated = DateTime.UtcNow;
@@ -194,6 +273,8 @@ namespace JCTG.WebApp.Backend.Api
 
                                 // Save to the database
                                 await _dbContext.SaveChangesAsync();
+
+                               
                             }
                             else
                             {

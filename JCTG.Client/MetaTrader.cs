@@ -117,8 +117,13 @@ namespace JCTG.Client
                     {
                         if (cmd != null && cmd.SignalID > 0 && cmd.AccountID == _appConfig.AccountId)
                         {
+                            // Make the query
+                            var query = _apis.Where(f => f.IsActive);
+                            if (cmd.ClientIDs != null && cmd.ClientIDs.Count != 0)
+                                query = query.Where(f => cmd.ClientIDs.Contains(f.ClientId));
+
                             // Iterate through the broker's
-                            Parallel.ForEach(_apis.Where(f => f.IsActive), async api =>
+                            Parallel.ForEach(query, async api =>
                             {
                                 // Get the right pair back from the local database
                                 var pair = new List<Pairs>(_appConfig.Brokers.Where(f => f.ClientId == api.ClientId).SelectMany(f => f.Pairs)).FirstOrDefault(f => f.TickerInTradingView.Equals(cmd.Instrument) && f.StrategyNr == cmd.StrategyType);
