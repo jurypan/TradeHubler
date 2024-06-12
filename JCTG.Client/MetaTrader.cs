@@ -236,7 +236,14 @@ namespace JCTG.Client
                                                                                 orderType = OrderType.BuyStop;
                                                                             else if (pair.OrderExecType == OrderExecType.Passive && metadataTick.Ask > cmd.MarketOrder.Price.Value)
                                                                                 orderType = OrderType.BuyLimit;
-                                                                            api.ExecuteOrder(pair.TickerInMetatrader, orderType, lotSize, orderType == OrderType.Buy ? 0 : cmd.MarketOrder.Price.Value, slPrice, tpPrice, (int)cmd.Magic, comment);
+
+                                                                            // Round
+                                                                            var price = Math.Round(cmd.MarketOrder.Price.Value / metadataTick.TickSize * metadataTick.TickSize, metadataTick.Digits, MidpointRounding.AwayFromZero);
+                                                                            var sl = Math.Round(slPrice / metadataTick.TickSize * metadataTick.TickSize, metadataTick.Digits, MidpointRounding.AwayFromZero);
+                                                                            var tp = Math.Round(tpPrice / metadataTick.TickSize * metadataTick.TickSize, metadataTick.Digits, MidpointRounding.AwayFromZero);
+
+                                                                            // Execute order
+                                                                            api.ExecuteOrder(pair.TickerInMetatrader, orderType, lotSize, orderType == OrderType.Buy ? 0 : price, sl, tp, (int)cmd.Magic, comment);
 
                                                                             // Send to logs
                                                                             if (_appConfig.Debug)
@@ -343,10 +350,7 @@ namespace JCTG.Client
                                                                         tp -= spread;
                                                                 }
 
-                                                                // Round
-                                                                price = Math.Round(price.Value, metadataTick.Digits, MidpointRounding.AwayFromZero);
-                                                                sl = Math.Round(sl, metadataTick.Digits, MidpointRounding.AwayFromZero);
-                                                                tp = Math.Round(tp, metadataTick.Digits, MidpointRounding.AwayFromZero);
+                                                              
 
                                                                 // Send to logs
                                                                 if (_appConfig.Debug)
@@ -422,6 +426,13 @@ namespace JCTG.Client
                                                                                         orderType = OrderType.BuyLimit;
                                                                                     else if (pair.OrderExecType == OrderExecType.Active && metadataTick.Ask >= price)
                                                                                         orderType = OrderType.Buy;
+
+                                                                                    // Round
+                                                                                    price = Math.Round(price.Value / metadataTick.TickSize * metadataTick.TickSize, metadataTick.Digits, MidpointRounding.AwayFromZero);
+                                                                                    sl = Math.Round(sl / metadataTick.TickSize * metadataTick.TickSize, metadataTick.Digits, MidpointRounding.AwayFromZero);
+                                                                                    tp = Math.Round(tp / metadataTick.TickSize * metadataTick.TickSize, metadataTick.Digits, MidpointRounding.AwayFromZero);
+
+                                                                                    // Execute order
                                                                                     api.ExecuteOrder(pair.TickerInMetatrader, orderType, lotSize, orderType == OrderType.Buy ? 0 : price.Value, sl, tp, (int)cmd.Magic, comment);
 
                                                                                     // Send to logs
@@ -506,14 +517,14 @@ namespace JCTG.Client
                                                         {
                                                             // Calculate SL Price
                                                             var slPrice = RiskCalculator.SLForShort(
-                                                            mtPrice: metadataTick.Bid,
-                                                            mtSpread: spread,
-                                                            mtDigits: metadataTick.Digits,
-                                                            signalPrice: cmd.MarketOrder.Price.Value,
-                                                            signalSL: cmd.MarketOrder.StopLoss.Value,
-                                                            spreadExecType: pair.SpreadSL,
-                                                            pairSlMultiplier: pair.SLMultiplier
-                                                            );
+                                                                            mtPrice: metadataTick.Bid,
+                                                                            mtSpread: spread,
+                                                                            mtDigits: metadataTick.Digits,
+                                                                            signalPrice: cmd.MarketOrder.Price.Value,
+                                                                            signalSL: cmd.MarketOrder.StopLoss.Value,
+                                                                            spreadExecType: pair.SpreadSL,
+                                                                            pairSlMultiplier: pair.SLMultiplier
+                                                                            );
 
                                                             // Send to logs
                                                             if (_appConfig.Debug)
@@ -577,8 +588,13 @@ namespace JCTG.Client
                                                                             else if (pair.OrderExecType == OrderExecType.Passive && metadataTick.Bid <= cmd.MarketOrder.Price.Value)
                                                                                 orderType = OrderType.SellLimit;
 
+                                                                            // Round
+                                                                            var price = Math.Round(cmd.MarketOrder.Price.Value / metadataTick.TickSize * metadataTick.TickSize, metadataTick.Digits, MidpointRounding.AwayFromZero);
+                                                                            var sl = Math.Round(slPrice / metadataTick.TickSize * metadataTick.TickSize, metadataTick.Digits, MidpointRounding.AwayFromZero);
+                                                                            var tp = Math.Round(tpPrice / metadataTick.TickSize * metadataTick.TickSize, metadataTick.Digits, MidpointRounding.AwayFromZero);
+
                                                                             // Execute order
-                                                                            api.ExecuteOrder(pair.TickerInMetatrader, orderType, lotSize, orderType == OrderType.Sell ? 0 : cmd.MarketOrder.Price.Value, slPrice, tpPrice, (int)cmd.Magic, comment);
+                                                                            api.ExecuteOrder(pair.TickerInMetatrader, orderType, lotSize, orderType == OrderType.Sell ? 0 : price, sl, tp, (int)cmd.Magic, comment);
 
                                                                             // Send to logs
                                                                             if (_appConfig.Debug)
@@ -683,11 +699,6 @@ namespace JCTG.Client
                                                                         tp += spread;
                                                                 }
 
-                                                                // Round
-                                                                price = Math.Round(price.Value, metadataTick.Digits, MidpointRounding.AwayFromZero);
-                                                                sl = Math.Round(sl, metadataTick.Digits, MidpointRounding.AwayFromZero);
-                                                                tp = Math.Round(tp, metadataTick.Digits, MidpointRounding.AwayFromZero);
-
                                                                 // Send to logs
                                                                 if (_appConfig.Debug)
                                                                 {
@@ -763,6 +774,11 @@ namespace JCTG.Client
                                                                                     else if (pair.OrderExecType == OrderExecType.Active && metadataTick.Bid <= price.Value)
                                                                                         orderType = OrderType.Sell;
 
+                                                                                    // Round
+                                                                                    price = Math.Round(price.Value / metadataTick.TickSize * metadataTick.TickSize, metadataTick.Digits, MidpointRounding.AwayFromZero);
+                                                                                    sl = Math.Round(sl / metadataTick.TickSize * metadataTick.TickSize, metadataTick.Digits, MidpointRounding.AwayFromZero);
+                                                                                    tp = Math.Round(tp / metadataTick.TickSize * metadataTick.TickSize, metadataTick.Digits, MidpointRounding.AwayFromZero);
+                                                                                    
                                                                                     // Execute order
                                                                                     api.ExecuteOrder(pair.TickerInMetatrader, orderType, lotSize, orderType == OrderType.Sell ? 0 : price.Value, sl, tp, (int)cmd.Magic, comment);
 

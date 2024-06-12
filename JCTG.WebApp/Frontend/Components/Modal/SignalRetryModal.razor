@@ -1,39 +1,61 @@
 ﻿@inject SignalRepository _signalRepository;
+@inject ClientRepository _clientRepository;
 @inject JCTG.WebApp.Backend.Queue.AzureQueueClient _server;
 @using JCTG.Command
 @using JCTG.Models;
 
 <div class="modal fade @_cssClass" tabindex="-1" style="display:@_display">
-    <div class="modal-dialog modal-dialog-scrollable modal-lg">
-        <div class="modal-content">
-            <div class="modal-header modal-colored-header bg-warning text-white">
-                <h4 class="modal-title text-white" id="danger-header-modalLabel">Retry a signal</h4>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" @onclick="async () => await CloseAsync()"></button>
-            </div>
-            <div class="modal-body">
-                <h5 class="mt-0">Retry a signal?</h5>
-                <p>Are you sure you want to retry this signal?</p>
-            </div>
-            <div class="modal-footer">
-                <div class="d-flex gap-6 m-0">
-                    <button type="submit" class="btn btn-warning rounded-pill px-4" @onclick="async () => await SubmitAsync()"> Retry </button>
-                    <button class="btn bg-danger-subtle text-danger rounded-pill" @onclick="async () => await CloseAsync()"> Discard </button>
+    <EditForm Model="@model" OnValidSubmit="@SubmitAsync">
+        <div class="modal-dialog modal-dialog-scrollable modal-lg">
+            <div class="modal-content">
+                <div class="modal-header modal-colored-header bg-warning text-white">
+                    <h4 class="modal-title text-white" id="danger-header-modalLabel">Retry a signal</h4>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" @onclick="async () => await CloseAsync()"></button>
+                </div>
+                <div class="modal-body">
+                    <h5 class="mt-0">Retry a signal?</h5>
+                    <p>Are you sure you want to retry this signal?</p>
+                    <DataAnnotationsValidator />
+                    <ValidationSummary />
+                    <AntiforgeryToken />
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label" for="strategy">Client?</label>
+                                <InputSelect class="form-select col-12" @bind-Value="model">
+                                    <option value="0">Choose...</option>
+                                    @foreach (var item in _clientids)
+                                    {
+                                        <option value="@item">@item</option>
+                                    }
+                                </InputSelect>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <div class="d-flex gap-6 m-0">
+                            <button type="submit" class="btn btn-warning rounded-pill px-4"> Retry </button>
+                            <button class="btn bg-danger-subtle text-danger rounded-pill" @onclick="async () => await CloseAsync()"> Discard </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
+    </EditForm>
 </div>
 
 @code {
-     [Parameter]
+    [Parameter]
     public EventCallback OnClose { get; set; }
 
     [Parameter]
     public EventCallback OnOpen { get; set; }
 
     [SupplyParameterFromForm]
+    private long model { get; set; } = 0;
     private Signal signal { get; set; } = new();
     private CrudState _crudState { get; set; } = CrudState.None;
+    private List<long> _clientids { get; set; } = new();
 
     private string _display = "none;";
     private string _cssClass = "hide";
@@ -57,6 +79,7 @@
     public async Task InitAsync(int accountId, long signalId)
     {
         var signalNew = await _signalRepository.GetById(accountId, signalId);
+        _clientids = (await _clientRepository.GetAllAsync(accountId)).Select(f => f.ID).ToList();
         if (signalNew != null)
         {
             signal = signalNew;
@@ -78,6 +101,7 @@
                         AccountID = signal.AccountID,
                         Instrument = signal.Instrument,
                         Magic = signal.ID,
+                        ClientIDs = model == 0 ? null : new List<long>() { model },
                         OrderType = signal.OrderType,
                         StrategyType = signal.StrategyType,
                         MarketOrder = signal.OrderType == "BUY" || signal.OrderType == "SELL" ? new OnReceivingTradingviewSignalEventMarketOrder()

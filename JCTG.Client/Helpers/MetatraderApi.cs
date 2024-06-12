@@ -1,5 +1,6 @@
 using System.Globalization;
 using JCTG.Models;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using static JCTG.Client.Helpers;
@@ -189,7 +190,7 @@ namespace JCTG.Client
                 var accountInfo = data["account_info"]?.ToObject<AccountInfo>();
 
                 // Check if the account info is changed
-                if(accountInfo != null && AccountInfo != null && accountInfo.Balance != AccountInfo.Balance)
+                if (accountInfo != null && AccountInfo != null && accountInfo.Balance != AccountInfo.Balance)
                 {
                     // Invoke the event
                     OnAccountInfoChangedEvent?.Invoke(this.ClientId, accountInfo);
@@ -510,81 +511,89 @@ namespace JCTG.Client
                         var value = property.Value as JObject;
                         if (value != null && value["time"] != null && value["open"] != null && value["high"] != null && value["low"] != null && value["close"] != null && value["tick_volume"] != null)
                         {
-                            string[] stSplit = property.Name.Split("_");
-                            if (stSplit.Length != 2)
-                                continue;
+                            int lastIndex = property.Name.LastIndexOf('_');
 
-                            var instrument = stSplit[0];
-
-                            var newBarData = new BarData
+                            if (lastIndex != -1)
                             {
-                                Timeframe = stSplit[1],
-                                Time = DateTime.SpecifyKind(value["time"].ToObject<DateTime>().AddHours(-(this.AccountInfo == null ? 0.0 : this.AccountInfo.TimezoneOffset)), DateTimeKind.Utc),
-                                Open = value["open"].ToObject<decimal>(),
-                                High = value["high"].ToObject<decimal>(),
-                                Low = value["low"].ToObject<decimal>(),
-                                Close = value["close"].ToObject<decimal>(),
-                                TickVolume = value["tick_volume"].ToObject<int>()
-                            };
+                                string firstPart = property.Name.Substring(0, lastIndex);
+                                string secondPart = property.Name.Substring(lastIndex + 1);
 
-                            // Check if the ticker already has previous values
-                            if (LastBarData.TryGetValue(property.Name, out var previousData))
-                            {
-                                // Update the previous values
-                                LastBarData[property.Name] = new BarData
+                                string[] stSplit = [firstPart, secondPart];
+                                if (stSplit.Length != 2)
+                                    continue;
+
+                                var instrument = stSplit[0];
+
+                                var newBarData = new BarData
                                 {
-                                    Timeframe = newBarData.Timeframe,
-                                    Time = newBarData.Time,
-                                    Open = newBarData.Open,
-                                    High = newBarData.High,
-                                    Low = newBarData.Low,
-                                    Close = newBarData.Close,
-                                    TickVolume = newBarData.TickVolume
-
+                                    Timeframe = stSplit[1],
+                                    Time = DateTime.SpecifyKind(value["time"].ToObject<DateTime>().AddHours(-(this.AccountInfo == null ? 0.0 : this.AccountInfo.TimezoneOffset)), DateTimeKind.Utc),
+                                    Open = value["open"].ToObject<decimal>(),
+                                    High = value["high"].ToObject<decimal>(),
+                                    Low = value["low"].ToObject<decimal>(),
+                                    Close = value["close"].ToObject<decimal>(),
+                                    TickVolume = value["tick_volume"].ToObject<int>()
                                 };
 
-                                // Invoke the event
-                                OnCandleCloseEvent?.Invoke(ClientId, property.Name, newBarData.Timeframe, newBarData.Time, newBarData.Open, newBarData.High, newBarData.Low, newBarData.Close, newBarData.TickVolume);
-                            }
-                            else
-                            {
-                                // If it's a new ticker, add it to the dictionary and invoke the event
-                                LastBarData.Add(property.Name, new BarData
+                                // Check if the ticker already has previous values
+                                if (LastBarData.TryGetValue(property.Name, out var previousData))
                                 {
-                                    Timeframe = newBarData.Timeframe,
-                                    Time = newBarData.Time,
-                                    Open = newBarData.Open,
-                                    High = newBarData.High,
-                                    Low = newBarData.Low,
-                                    Close = newBarData.Close,
-                                    TickVolume = newBarData.TickVolume
-                                });
+                                    // Update the previous values
+                                    LastBarData[property.Name] = new BarData
+                                    {
+                                        Timeframe = newBarData.Timeframe,
+                                        Time = newBarData.Time,
+                                        Open = newBarData.Open,
+                                        High = newBarData.High,
+                                        Low = newBarData.Low,
+                                        Close = newBarData.Close,
+                                        TickVolume = newBarData.TickVolume
 
-                                // Invoke the event
-                                OnCandleCloseEvent?.Invoke(ClientId, property.Name, newBarData.Timeframe, newBarData.Time, newBarData.Open, newBarData.High, newBarData.Low, newBarData.Close, newBarData.TickVolume);
-                            }
+                                    };
 
-                            // Update the historic dataOrders
-                            if (HistoricData == null)
-                                HistoricData = new Dictionary<string, HistoricBarData>();
+                                    // Invoke the event
+                                    OnCandleCloseEvent?.Invoke(ClientId, property.Name, newBarData.Timeframe, newBarData.Time, newBarData.Open, newBarData.High, newBarData.Low, newBarData.Close, newBarData.TickVolume);
+                                }
+                                else
+                                {
+                                    // If it's a new ticker, add it to the dictionary and invoke the event
+                                    LastBarData.Add(property.Name, new BarData
+                                    {
+                                        Timeframe = newBarData.Timeframe,
+                                        Time = newBarData.Time,
+                                        Open = newBarData.Open,
+                                        High = newBarData.High,
+                                        Low = newBarData.Low,
+                                        Close = newBarData.Close,
+                                        TickVolume = newBarData.TickVolume
+                                    });
 
-                            // Update historic candles
-                            if (HistoricData.ContainsKey(instrument))
-                            {
-                                // Update the previous values
-                                if (!HistoricData[instrument].BarData.Any(f => f.Time == newBarData.Time && f.Timeframe == newBarData.Timeframe))
-                                    HistoricData[instrument].BarData.Add(newBarData);
-                            }
-                            else
-                            {
-                                var hbd = new HistoricBarData();
-                                hbd.BarData.Add(newBarData);
-                                HistoricData.Add(instrument, hbd);
-                            }
+                                    // Invoke the event
+                                    OnCandleCloseEvent?.Invoke(ClientId, property.Name, newBarData.Timeframe, newBarData.Time, newBarData.Open, newBarData.High, newBarData.Low, newBarData.Close, newBarData.TickVolume);
+                                }
 
-                            foreach (var valueBD in HistoricData.Values)
-                            {
-                                valueBD.BarData = valueBD.BarData.OrderBy(f => f.Time).ToList();
+                                // Update the historic dataOrders
+                                if (HistoricData == null)
+                                    HistoricData = new Dictionary<string, HistoricBarData>();
+
+                                // Update historic candles
+                                if (HistoricData.ContainsKey(instrument))
+                                {
+                                    // Update the previous values
+                                    if (!HistoricData[instrument].BarData.Any(f => f.Time == newBarData.Time && f.Timeframe == newBarData.Timeframe))
+                                        HistoricData[instrument].BarData.Add(newBarData);
+                                }
+                                else
+                                {
+                                    var hbd = new HistoricBarData();
+                                    hbd.BarData.Add(newBarData);
+                                    HistoricData.Add(instrument, hbd);
+                                }
+
+                                foreach (var valueBD in HistoricData.Values)
+                                {
+                                    valueBD.BarData = valueBD.BarData.OrderBy(f => f.Time).ToList();
+                                }
                             }
                         }
                     }
@@ -641,54 +650,61 @@ namespace JCTG.Client
                         var items = property.Value as JArray;
                         if (items != null)
                         {
-                            string[] stSplit = property.Name.Split("_");
-                            if (stSplit.Length != 2)
-                                continue;
+                            int lastIndex = property.Name.LastIndexOf('_');
 
-                            // Instrument
-                            var instrument = stSplit[0];
-                            var timeframe = stSplit[1];
-
-                            // Foreach bardata
-                            foreach (var item in items)
+                            if (lastIndex != -1)
                             {
-                                if (HistoricData.ContainsKey(instrument))
+                                string firstPart = property.Name.Substring(0, lastIndex);
+                                string secondPart = property.Name.Substring(lastIndex + 1);
+
+                                string[] stSplit = [firstPart, secondPart];
+                                if (stSplit.Length != 2)
+                                    continue;
+
+                                var instrument = stSplit[0];
+                                var timeframe = stSplit[1];
+
+                                // Foreach bardata
+                                foreach (var item in items)
                                 {
-                                    var obj = new BarData
+                                    if (HistoricData.ContainsKey(instrument))
                                     {
-                                        Timeframe = timeframe,
-                                        Time = DateTime.SpecifyKind(item["time"].ToObject<DateTime>().AddHours(-(this.AccountInfo == null ? 0.0 : this.AccountInfo.TimezoneOffset)), DateTimeKind.Utc),
-                                        Open = item["open"].ToObject<decimal>(),
-                                        High = item["high"].ToObject<decimal>(),
-                                        Low = item["low"].ToObject<decimal>(),
-                                        Close = item["close"].ToObject<decimal>(),
-                                        TickVolume = item["tick_volume"].ToObject<int>()
-                                    };
-                                    // Update the previous values
-                                    if (!HistoricData[instrument].BarData.Any(f => f.Time == obj.Time && f.Timeframe == obj.Timeframe))
+                                        var obj = new BarData
+                                        {
+                                            Timeframe = timeframe,
+                                            Time = DateTime.SpecifyKind(item["time"].ToObject<DateTime>().AddHours(-(this.AccountInfo == null ? 0.0 : this.AccountInfo.TimezoneOffset)), DateTimeKind.Utc),
+                                            Open = item["open"].ToObject<decimal>(),
+                                            High = item["high"].ToObject<decimal>(),
+                                            Low = item["low"].ToObject<decimal>(),
+                                            Close = item["close"].ToObject<decimal>(),
+                                            TickVolume = item["tick_volume"].ToObject<int>()
+                                        };
+                                        // Update the previous values
+                                        if (!HistoricData[instrument].BarData.Any(f => f.Time == obj.Time && f.Timeframe == obj.Timeframe))
+                                        {
+                                            HistoricData[instrument].BarData.Add(obj);
+                                        }
+                                    }
+                                    else
                                     {
-                                        HistoricData[instrument].BarData.Add(obj);
+                                        var hbd = new HistoricBarData();
+                                        hbd.BarData.Add(new BarData
+                                        {
+                                            Timeframe = timeframe,
+                                            Time = DateTime.SpecifyKind(item["time"].ToObject<DateTime>().AddHours(-(this.AccountInfo == null ? 0.0 : this.AccountInfo.TimezoneOffset)), DateTimeKind.Utc),
+                                            Open = item["open"].ToObject<decimal>(),
+                                            High = item["high"].ToObject<decimal>(),
+                                            Low = item["low"].ToObject<decimal>(),
+                                            Close = item["close"].ToObject<decimal>(),
+                                            TickVolume = item["tick_volume"].ToObject<int>()
+                                        });
+                                        HistoricData.Add(instrument, hbd);
                                     }
                                 }
-                                else
-                                {
-                                    var hbd = new HistoricBarData();
-                                    hbd.BarData.Add(new BarData
-                                    {
-                                        Timeframe = timeframe,
-                                        Time = DateTime.SpecifyKind(item["time"].ToObject<DateTime>().AddHours(-(this.AccountInfo == null ? 0.0 : this.AccountInfo.TimezoneOffset)), DateTimeKind.Utc),
-                                        Open = item["open"].ToObject<decimal>(),
-                                        High = item["high"].ToObject<decimal>(),
-                                        Low = item["low"].ToObject<decimal>(),
-                                        Close = item["close"].ToObject<decimal>(),
-                                        TickVolume = item["tick_volume"].ToObject<int>()
-                                    });
-                                    HistoricData.Add(instrument, hbd);
-                                }
-                            }
 
-                            // Trigger event
-                            OnHistoricDataEvent?.Invoke(ClientId, instrument, timeframe);
+                                // Trigger event
+                                OnHistoricDataEvent?.Invoke(ClientId, instrument, timeframe);
+                            }
                         }
                     }
 
