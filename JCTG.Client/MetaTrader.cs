@@ -4,6 +4,7 @@ using JCTG.Models;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using static JCTG.Client.Helpers;
 
 namespace JCTG.Client
@@ -192,7 +193,7 @@ namespace JCTG.Client
                                                             if (_appConfig.Debug)
                                                             {
                                                                 var message = string.Format($"LotSizeCalculated || Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},Magic={cmd.Magic},StrategyType={cmd.StrategyType},Price={cmd.MarketOrder.Price},TP={cmd.MarketOrder.TakeProfit},SL={cmd.MarketOrder.StopLoss}");
-                                                                var description = string.Format($"LotSize || StartBalance={startbalance},Balance={api.AccountInfo.Balance},Risk={pair.Risk},AskPrice={metadataTick.Ask},SlPrice={slPrice},TickValue={metadataTick.TickValue},TickSize={metadataTick.TickSize},LotStep={metadataTick.LotStep},MinLotSize={metadataTick.MinLotSize},MaxLotSize={metadataTick.MaxLotSize},DynRisk={RiskCalculator.ChooseClosestMultiplier(startbalance, api.AccountInfo.Balance, dynRisk)}");
+                                                                var description = string.Format($"LotSize || StartBalance={startbalance},Balance={api.AccountInfo.Balance},Risk={pair.Risk},AskPrice={metadataTick.Ask},SlPrice={slPrice},TickValue={metadataTick.TickValue},TickSize={metadataTick.TickSize},PointSize={metadataTick.PointSize},LotStep={metadataTick.LotStep},MinLotSize={metadataTick.MinLotSize},MaxLotSize={metadataTick.MaxLotSize},DynRisk={RiskCalculator.ChooseClosestMultiplier(startbalance, api.AccountInfo.Balance, dynRisk)}");
                                                                 await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, cmd.SignalID);
                                                             }
 
@@ -373,7 +374,7 @@ namespace JCTG.Client
                                                                 if (_appConfig.Debug)
                                                                 {
                                                                     var message = string.Format($"LotSizeCalculated || Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},Magic={cmd.Magic},StrategyType={cmd.StrategyType},EntryExpr={cmd.PassiveOrder.EntryExpression},Risk={cmd.PassiveOrder.Risk},RR={cmd.PassiveOrder.RiskRewardRatio}");
-                                                                    var description = string.Format($"LotSize: StartBalance={startbalance},Balance={api.AccountInfo.Balance},Risk={pair.Risk},AskPrice={metadataTick.Ask},SlPrice={sl},TickValue={metadataTick.TickValue},TickSize={metadataTick.TickSize},LotStep={metadataTick.LotStep},MinLotSize={metadataTick.MinLotSize},MaxLotSize={metadataTick.MaxLotSize},DynRisk={RiskCalculator.ChooseClosestMultiplier(startbalance, api.AccountInfo.Balance, dynRisk)}");
+                                                                    var description = string.Format($"LotSize: StartBalance={startbalance},Balance={api.AccountInfo.Balance},Risk={pair.Risk},AskPrice={metadataTick.Ask},SlPrice={sl},TickValue={metadataTick.TickValue},TickSize={metadataTick.TickSize},PointSize={metadataTick.PointSize},LotStep={metadataTick.LotStep},MinLotSize={metadataTick.MinLotSize},MaxLotSize={metadataTick.MaxLotSize},DynRisk={RiskCalculator.ChooseClosestMultiplier(startbalance, api.AccountInfo.Balance, dynRisk)}");
                                                                     await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, cmd.SignalID);
                                                                 }
 
@@ -541,7 +542,7 @@ namespace JCTG.Client
                                                             if (_appConfig.Debug)
                                                             {
                                                                 var message = string.Format($"LotSizeCalculated || Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},Magic={cmd.Magic},StrategyType={cmd.StrategyType},Price={cmd.MarketOrder.Price},TP={cmd.MarketOrder.TakeProfit},SL={cmd.MarketOrder.StopLoss}");
-                                                                var description = string.Format($"LotSize: StartBalance={startbalance},Balance={api.AccountInfo.Balance},Risk={pair.Risk},BidPrice={metadataTick.Bid},SlPrice={slPrice},TickValue={metadataTick.TickValue},TickSize={metadataTick.TickSize},LotStep={metadataTick.LotStep},MinLotSize={metadataTick.MinLotSize},MaxLotSize={metadataTick.MaxLotSize},DynRisk={RiskCalculator.ChooseClosestMultiplier(startbalance, api.AccountInfo.Balance, dynRisk)}");
+                                                                var description = string.Format($"LotSize: StartBalance={startbalance},Balance={api.AccountInfo.Balance},Risk={pair.Risk},BidPrice={metadataTick.Bid},SlPrice={slPrice},TickValue={metadataTick.TickValue},TickSize={metadataTick.TickSize},LotStep={metadataTick.LotStep},PointSize={metadataTick.PointSize},MinLotSize={metadataTick.MinLotSize},MaxLotSize={metadataTick.MaxLotSize},DynRisk={RiskCalculator.ChooseClosestMultiplier(startbalance, api.AccountInfo.Balance, dynRisk)}");
                                                                 await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, cmd.SignalID);
                                                             }
 
@@ -720,7 +721,7 @@ namespace JCTG.Client
                                                                 if (_appConfig.Debug)
                                                                 {
                                                                     var message = string.Format($"LotSizeCalculated || Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},Magic={cmd.Magic},StrategyType={cmd.StrategyType},EntryExpr={cmd.PassiveOrder.EntryExpression},Risk={cmd.PassiveOrder.Risk},RR={cmd.PassiveOrder.RiskRewardRatio}");
-                                                                    var description = string.Format($"LotSize: StartBalance={startbalance},Balance={api.AccountInfo.Balance},Risk={pair.Risk},BidPrice={metadataTick.Bid},SlPrice={sl},TickValue={metadataTick.TickValue},TickSize={metadataTick.TickSize},LotStep={metadataTick.LotStep},MinLotSize={metadataTick.MinLotSize},MaxLotSize={metadataTick.MaxLotSize},DynRisk={RiskCalculator.ChooseClosestMultiplier(startbalance, api.AccountInfo.Balance, dynRisk)}");
+                                                                    var description = string.Format($"LotSize: StartBalance={startbalance},Balance={api.AccountInfo.Balance},Risk={pair.Risk},BidPrice={metadataTick.Bid},SlPrice={sl},TickValue={metadataTick.TickValue},TickSize={metadataTick.TickSize},PointSize={metadataTick.PointSize},LotStep={metadataTick.LotStep},MinLotSize={metadataTick.MinLotSize},MaxLotSize={metadataTick.MaxLotSize},DynRisk={RiskCalculator.ChooseClosestMultiplier(startbalance, api.AccountInfo.Balance, dynRisk)}");
                                                                     await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, cmd.SignalID);
                                                                 }
 
@@ -901,7 +902,7 @@ namespace JCTG.Client
                                                         }
 
                                                         // Round
-                                                        sl = Math.Round(sl, metadataTick.Digits, MidpointRounding.AwayFromZero);
+                                                        sl = Math.Round(sl / metadataTick.TickSize * metadataTick.TickSize, metadataTick.Digits, MidpointRounding.AwayFromZero);
 
                                                         // Send to logs
                                                         if (_appConfig.Debug)
@@ -1496,7 +1497,7 @@ namespace JCTG.Client
                                 AccountEquity = api.AccountInfo?.Equity,
                                 Price = decimal.ToDouble(metadataTick.Ask),
                                 Spread = spread,
-                                SpreadCost = RiskCalculator.CostSpread(spread, trade.Lots, metadataTick.Point, metadataTick.ContractSize),
+                                SpreadCost = RiskCalculator.CostSpread(spread, trade.Lots, metadataTick.PointSize, metadataTick.ContractSize),
                             });
                         });
                     }

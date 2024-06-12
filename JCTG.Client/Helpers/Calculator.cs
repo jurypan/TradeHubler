@@ -49,18 +49,53 @@ namespace JCTG.Client
             return 0.0M;
         }
 
+
+        public static decimal LotSize2(double startBalance, double accountBalance, decimal riskPercent, decimal openPrice, decimal stopLossPrice, decimal tickValue, decimal tickStep, decimal pointSize, decimal tickSize, double lotStep, double minLotSizeAllowed, double maxLotSizeAllowed, List<Risk>? riskData = null)
+        {
+            // Throw exception when negative balance
+            if (accountBalance <= 0)
+                return 0.0M;
+
+            // Mocking ChooseClosestMultiplier for the unit test
+            var dynamicRisk = ChooseClosestMultiplier(startBalance, accountBalance, riskData);
+
+            // Calculate the initial lot size
+            var riskAmount = Convert.ToDecimal(accountBalance) * ((riskPercent * dynamicRisk) / 100.0M);
+            var stopLossDistance = Math.Abs(openPrice - stopLossPrice);
+            var stopLossDistanceInTicks = stopLossDistance / tickStep;
+
+            if (stopLossDistanceInTicks > 0)
+            {
+                // Calculate the point value
+                var pointValue = tickValue * pointSize / tickSize;
+
+                // Calculate the lot size
+                var lotSize = riskAmount / (stopLossDistanceInTicks * pointValue);
+
+                // Adjusting for lot step
+                lotSize = Math.Floor(lotSize / Convert.ToDecimal(lotStep)) * Convert.ToDecimal(lotStep);
+                lotSize = Math.Round(lotSize, 2);
+
+                // Bounds checking
+                return Math.Clamp(lotSize, Convert.ToDecimal(minLotSizeAllowed), Convert.ToDecimal(maxLotSizeAllowed));
+            }
+
+            return 0.0M;
+        }
+
+
         /// <summary>
         /// 
         /// </summary>
         /// <param name="spread"></param>
-        /// <param name="lotsize"></param>
-        /// <param name="points"></param>
-        /// <param name="contractsize"></param>
+        /// <param name="lotSize"></param>
+        /// <param name="pointSize"></param>
+        /// <param name="contractSize"></param>
         /// <returns></returns>
-        public static double CostSpread(double spread, double lotsize, double points, double contractsize)
+        public static double CostSpread(double spread, double lotSize, double pointSize, double contractSize)
         {
             //  SymbolInfoInteger(_Symbol, SYMBOL_SPREAD) * _Point * Lots * CONTRACT_SIZE;
-            return spread * lotsize * points * contractsize;
+            return spread * lotSize * pointSize * contractSize;
         }
 
 

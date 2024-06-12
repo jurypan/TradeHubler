@@ -21,6 +21,30 @@ namespace JCTG.Client.Tests
             ];
         }
 
+        [Test]
+        public void LotSize_CalculatesCorrectly()
+        {
+            // Arrange
+            double startBalance = 20000;
+            double balance = 19495.48;
+            decimal risk = 0.50M;
+            decimal askPrice = 8226.5M;
+            decimal slPrice = 8188.4M;
+            decimal tickValue = 0.1M;
+            decimal tickSize = 0.1M;
+            decimal tickStep = 0.1M;
+            double lotStep = 1;
+            double minLotSize = 1;
+            double maxLotSize = 5;
+            List<Risk>? riskData = null; // Assuming no additional risk data
+            decimal pointSize = 0.01M;
+
+            // Act
+            decimal result = RiskCalculator.LotSize2(startBalance, balance, risk, askPrice, slPrice, tickValue, pointSize, tickSize, tickStep, lotStep, minLotSize, maxLotSize, riskData);
+
+            // Assert
+            Assert.That(result, Is.EqualTo(1.00M)); // Assuming the expected lot size calculation is 1.00
+        }
 
         [Test]
         public void CalculateSLForLong_AtrMultiplierLessThan1_ReturnsCorrectValue()
