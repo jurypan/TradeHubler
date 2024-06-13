@@ -31,7 +31,7 @@ namespace JCTG.Models
         public double MinLotSize { get; set; }
 
         [JsonProperty("point")]
-        public double PointSize { get; set; }
+        public decimal PointSize { get; set; }
 
         [JsonProperty("contract_size")]
         public double ContractSize { get; set; }

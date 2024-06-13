@@ -50,7 +50,7 @@ namespace JCTG.Client
         }
 
 
-        public static decimal LotSize2(double startBalance, double accountBalance, decimal riskPercent, decimal openPrice, decimal stopLossPrice, decimal tickValue, decimal tickStep, decimal pointSize, decimal tickSize, double lotStep, double minLotSizeAllowed, double maxLotSizeAllowed, List<Risk>? riskData = null)
+        public static decimal LotSize2(double startBalance, double accountBalance, decimal riskPercent, decimal openPrice, decimal stopLossPrice, decimal tickValue, decimal tickStep, decimal pointSize, double lotStep, double minLotSizeAllowed, double maxLotSizeAllowed, List<Risk>? riskData = null)
         {
             // Throw exception when negative balance
             if (accountBalance <= 0)
@@ -62,15 +62,14 @@ namespace JCTG.Client
             // Calculate the initial lot size
             var riskAmount = Convert.ToDecimal(accountBalance) * ((riskPercent * dynamicRisk) / 100.0M);
             var stopLossDistance = Math.Abs(openPrice - stopLossPrice);
-            var stopLossDistanceInTicks = stopLossDistance / tickStep;
 
-            if (stopLossDistanceInTicks > 0)
+            if (stopLossDistance > 0)
             {
                 // Calculate the point value
-                var pointValue = tickValue * pointSize / tickSize;
+                var pointValue = tickValue * pointSize / tickStep;
 
                 // Calculate the lot size
-                var lotSize = riskAmount / (stopLossDistanceInTicks * pointValue);
+                var lotSize = riskAmount / (stopLossDistance * pointValue);
 
                 // Adjusting for lot step
                 lotSize = Math.Floor(lotSize / Convert.ToDecimal(lotStep)) * Convert.ToDecimal(lotStep);
@@ -83,6 +82,11 @@ namespace JCTG.Client
             return 0.0M;
         }
 
+        public static decimal RoundToNearestTickSize(decimal value, decimal tickSize, int digits)
+        {
+            var roundedValue = Math.Round(value / tickSize) * tickSize;
+            return Math.Round(roundedValue, digits);
+        }
 
         /// <summary>
         /// 
@@ -92,10 +96,10 @@ namespace JCTG.Client
         /// <param name="pointSize"></param>
         /// <param name="contractSize"></param>
         /// <returns></returns>
-        public static double CostSpread(double spread, double lotSize, double pointSize, double contractSize)
+        public static double CostSpread(double spread, double lotSize, decimal pointSize, double contractSize)
         {
             //  SymbolInfoInteger(_Symbol, SYMBOL_SPREAD) * _Point * Lots * CONTRACT_SIZE;
-            return spread * lotSize * pointSize * contractSize;
+            return spread * lotSize * Convert.ToDouble(pointSize) * contractSize;
         }
 
 

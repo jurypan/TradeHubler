@@ -187,7 +187,7 @@ namespace JCTG.Client
                                                             }
 
                                                             // Calculate the lot size
-                                                            var lotSize = RiskCalculator.LotSize(startbalance, api.AccountInfo.Balance, pair.Risk, metadataTick.Ask, slPrice, metadataTick.TickValue, metadataTick.TickSize, metadataTick.LotStep, metadataTick.MinLotSize, metadataTick.MaxLotSize, dynRisk);
+                                                            var lotSize = RiskCalculator.LotSize2(startbalance, api.AccountInfo.Balance, pair.Risk, metadataTick.Ask, slPrice, metadataTick.TickValue, metadataTick.TickSize, metadataTick.PointSize, metadataTick.LotStep, metadataTick.MinLotSize, metadataTick.MaxLotSize, dynRisk);
 
                                                             // Send to logs
                                                             if (_appConfig.Debug)
@@ -239,9 +239,9 @@ namespace JCTG.Client
                                                                                 orderType = OrderType.BuyLimit;
 
                                                                             // Round
-                                                                            var price = Math.Round(cmd.MarketOrder.Price.Value / metadataTick.TickSize * metadataTick.TickSize, metadataTick.Digits, MidpointRounding.AwayFromZero);
-                                                                            var sl = Math.Round(slPrice / metadataTick.TickSize * metadataTick.TickSize, metadataTick.Digits, MidpointRounding.AwayFromZero);
-                                                                            var tp = Math.Round(tpPrice / metadataTick.TickSize * metadataTick.TickSize, metadataTick.Digits, MidpointRounding.AwayFromZero);
+                                                                            var price = RiskCalculator.RoundToNearestTickSize(cmd.MarketOrder.Price.Value, metadataTick.TickSize, metadataTick.Digits);
+                                                                            var sl = RiskCalculator.RoundToNearestTickSize(slPrice, metadataTick.TickSize, metadataTick.Digits);
+                                                                            var tp = RiskCalculator.RoundToNearestTickSize(tpPrice, metadataTick.TickSize, metadataTick.Digits);
 
                                                                             // Execute order
                                                                             api.ExecuteOrder(pair.TickerInMetatrader, orderType, lotSize, orderType == OrderType.Buy ? 0 : price, sl, tp, (int)cmd.Magic, comment);
@@ -368,7 +368,7 @@ namespace JCTG.Client
                                                                 }
 
                                                                 // Calculate the lot size
-                                                                var lotSize = RiskCalculator.LotSize(startbalance, api.AccountInfo.Balance, pair.Risk, price.Value, sl, metadataTick.TickValue, metadataTick.TickSize, metadataTick.LotStep, metadataTick.MinLotSize, metadataTick.MaxLotSize, dynRisk); ;
+                                                                var lotSize = RiskCalculator.LotSize2(startbalance, api.AccountInfo.Balance, pair.Risk, price.Value, sl, metadataTick.TickValue, metadataTick.TickSize, metadataTick.PointSize, metadataTick.LotStep, metadataTick.MinLotSize, metadataTick.MaxLotSize, dynRisk); ;
 
                                                                 // Send to logs
                                                                 if (_appConfig.Debug)
@@ -429,9 +429,9 @@ namespace JCTG.Client
                                                                                         orderType = OrderType.Buy;
 
                                                                                     // Round
-                                                                                    price = Math.Round(price.Value / metadataTick.TickSize * metadataTick.TickSize, metadataTick.Digits, MidpointRounding.AwayFromZero);
-                                                                                    sl = Math.Round(sl / metadataTick.TickSize * metadataTick.TickSize, metadataTick.Digits, MidpointRounding.AwayFromZero);
-                                                                                    tp = Math.Round(tp / metadataTick.TickSize * metadataTick.TickSize, metadataTick.Digits, MidpointRounding.AwayFromZero);
+                                                                                    price = RiskCalculator.RoundToNearestTickSize(price.Value, metadataTick.TickSize, metadataTick.Digits);
+                                                                                    sl = RiskCalculator.RoundToNearestTickSize(sl, metadataTick.TickSize, metadataTick.Digits);
+                                                                                    tp = RiskCalculator.RoundToNearestTickSize(tp, metadataTick.TickSize, metadataTick.Digits);
 
                                                                                     // Execute order
                                                                                     api.ExecuteOrder(pair.TickerInMetatrader, orderType, lotSize, orderType == OrderType.Buy ? 0 : price.Value, sl, tp, (int)cmd.Magic, comment);
@@ -536,7 +536,7 @@ namespace JCTG.Client
                                                             }
 
                                                             // Calculate the lot size
-                                                            var lotSize = RiskCalculator.LotSize(startbalance, api.AccountInfo.Balance, pair.Risk, metadataTick.Bid, slPrice, metadataTick.TickValue, metadataTick.TickSize, metadataTick.LotStep, metadataTick.MinLotSize, metadataTick.MaxLotSize, dynRisk);
+                                                            var lotSize = RiskCalculator.LotSize2(startbalance, api.AccountInfo.Balance, pair.Risk, metadataTick.Bid, slPrice, metadataTick.TickValue, metadataTick.TickSize, metadataTick.PointSize, metadataTick.LotStep, metadataTick.MinLotSize, metadataTick.MaxLotSize, dynRisk);
 
                                                             // Send to logs
                                                             if (_appConfig.Debug)
@@ -590,9 +590,9 @@ namespace JCTG.Client
                                                                                 orderType = OrderType.SellLimit;
 
                                                                             // Round
-                                                                            var price = Math.Round(cmd.MarketOrder.Price.Value / metadataTick.TickSize * metadataTick.TickSize, metadataTick.Digits, MidpointRounding.AwayFromZero);
-                                                                            var sl = Math.Round(slPrice / metadataTick.TickSize * metadataTick.TickSize, metadataTick.Digits, MidpointRounding.AwayFromZero);
-                                                                            var tp = Math.Round(tpPrice / metadataTick.TickSize * metadataTick.TickSize, metadataTick.Digits, MidpointRounding.AwayFromZero);
+                                                                            var price = RiskCalculator.RoundToNearestTickSize(cmd.MarketOrder.Price.Value, metadataTick.TickSize, metadataTick.Digits);
+                                                                            var sl = RiskCalculator.RoundToNearestTickSize(slPrice, metadataTick.TickSize, metadataTick.Digits);
+                                                                            var tp = RiskCalculator.RoundToNearestTickSize(tpPrice, metadataTick.TickSize, metadataTick.Digits);
 
                                                                             // Execute order
                                                                             api.ExecuteOrder(pair.TickerInMetatrader, orderType, lotSize, orderType == OrderType.Sell ? 0 : price, sl, tp, (int)cmd.Magic, comment);
@@ -715,7 +715,7 @@ namespace JCTG.Client
                                                                 }
 
                                                                 // Calculate the lot size
-                                                                var lotSize = RiskCalculator.LotSize(startbalance, api.AccountInfo.Balance, pair.Risk, price.Value, sl, metadataTick.TickValue, metadataTick.TickSize, metadataTick.LotStep, metadataTick.MinLotSize, metadataTick.MaxLotSize, dynRisk); ;
+                                                                var lotSize = RiskCalculator.LotSize2(startbalance, api.AccountInfo.Balance, pair.Risk, price.Value, sl, metadataTick.TickValue, metadataTick.TickSize, metadataTick.PointSize, metadataTick.LotStep, metadataTick.MinLotSize, metadataTick.MaxLotSize, dynRisk); ;
 
                                                                 // Send to logs
                                                                 if (_appConfig.Debug)
@@ -776,10 +776,10 @@ namespace JCTG.Client
                                                                                         orderType = OrderType.Sell;
 
                                                                                     // Round
-                                                                                    price = Math.Round(price.Value / metadataTick.TickSize * metadataTick.TickSize, metadataTick.Digits, MidpointRounding.AwayFromZero);
-                                                                                    sl = Math.Round(sl / metadataTick.TickSize * metadataTick.TickSize, metadataTick.Digits, MidpointRounding.AwayFromZero);
-                                                                                    tp = Math.Round(tp / metadataTick.TickSize * metadataTick.TickSize, metadataTick.Digits, MidpointRounding.AwayFromZero);
-                                                                                    
+                                                                                    price = RiskCalculator.RoundToNearestTickSize(price.Value, metadataTick.TickSize, metadataTick.Digits);
+                                                                                    sl = RiskCalculator.RoundToNearestTickSize(sl, metadataTick.TickSize, metadataTick.Digits);
+                                                                                    tp = RiskCalculator.RoundToNearestTickSize(tp, metadataTick.TickSize, metadataTick.Digits);
+
                                                                                     // Execute order
                                                                                     api.ExecuteOrder(pair.TickerInMetatrader, orderType, lotSize, orderType == OrderType.Sell ? 0 : price.Value, sl, tp, (int)cmd.Magic, comment);
 

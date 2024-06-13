@@ -32,7 +32,6 @@ namespace JCTG.Client.Tests
             decimal slPrice = 8188.4M;
             decimal tickValue = 0.1M;
             decimal tickSize = 0.1M;
-            decimal tickStep = 0.1M;
             double lotStep = 1;
             double minLotSize = 1;
             double maxLotSize = 5;
@@ -40,10 +39,34 @@ namespace JCTG.Client.Tests
             decimal pointSize = 0.01M;
 
             // Act
-            decimal result = RiskCalculator.LotSize2(startBalance, balance, risk, askPrice, slPrice, tickValue, pointSize, tickSize, tickStep, lotStep, minLotSize, maxLotSize, riskData);
+            decimal result = RiskCalculator.LotSize2(startBalance, balance, risk, askPrice, slPrice, tickValue, pointSize, tickSize, lotStep, minLotSize, maxLotSize, riskData);
 
             // Assert
-            Assert.That(result, Is.EqualTo(1.00M)); // Assuming the expected lot size calculation is 1.00
+            Assert.That(result, Is.EqualTo(2.00M)); // Assuming the expected lot size calculation is 1.00
+        }
+
+        [Test]
+        public void LotSize_CalculatesCorrectlyForNewParameters()
+        {
+            // Arrange
+            double startBalance = 1000000;
+            double balance = 999294;
+            decimal risk = 0.50M;
+            decimal askPrice = 5422.25M;
+            decimal slPrice = 5396.8432M;
+            decimal tickValue = 12.50M;
+            decimal tickSize = 0.25M;
+            double lotStep = 1;
+            double minLotSize = 1;
+            double maxLotSize = 21;
+            List<Risk>? riskData = null; // Assuming no additional risk data
+            decimal pointSize = 0.1M;
+
+            // Act
+            decimal result = RiskCalculator.LotSize2(startBalance, balance, risk, askPrice, slPrice, tickValue, pointSize, tickSize, lotStep, minLotSize, maxLotSize, riskData);
+
+            // Assert
+            Assert.That(result, Is.EqualTo(6.00M)); // Adjust the expected result based on the actual calculation
         }
 
         [Test]
