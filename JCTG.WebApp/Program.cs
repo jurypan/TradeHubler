@@ -16,7 +16,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Determine the base address dynamically based on the environment
 var baseAddress = builder.Environment.IsDevelopment()
     ? "https://localhost:7197/" // Development base URL
-    : "http://justcalltheguy.westeurope.cloudapp.azure.com/"; // Production base URL
+    : "https://app.tradehubler.com/"; // Production base URL
 
 // Authentication
 builder.Services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme).AddMicrosoftIdentityWebApp(builder.Configuration.GetSection("AzureAd"));
@@ -26,6 +26,7 @@ builder.Services.AddAuthorization(options =>
     options.FallbackPolicy = options.DefaultPolicy;
 });
 
+
 // Add services to the container.
 builder.Services.AddRazorPages();
 builder.Services.AddControllers()
@@ -33,8 +34,7 @@ builder.Services.AddControllers()
        {
            options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
        });
-builder.Services.AddServerSideBlazor()
-    .AddMicrosoftIdentityConsentHandler();
+builder.Services.AddServerSideBlazor().AddMicrosoftIdentityConsentHandler();
 builder.Services.AddScoped(sp => new HttpClient
 {
     BaseAddress = new Uri(baseAddress)
@@ -86,7 +86,7 @@ if (!app.Environment.IsDevelopment())
 }
 
 
-//app.UseHttpsRedirection();
+app.UseHttpsRedirection();
 
 app.UseStaticFiles();
 
