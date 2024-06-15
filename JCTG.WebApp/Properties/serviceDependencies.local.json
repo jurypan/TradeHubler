@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "identityapp1": {
+      "connectionInfo": "App registration: JCTG, Tenant: The Trade Hubler (justcalltheguy.onmicrosoft.com - AAD B2C)",
+      "type": "identityapp.default"
+    }
+  }
+}

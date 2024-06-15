@@ -1,6 +1,7 @@
 ﻿using JCTG.Entity;
 using JCTG.Events;
 using JCTG.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
@@ -13,6 +14,7 @@ namespace JCTG.WebApp.Backend.Api
     {
         private readonly Serilog.ILogger _logger = Serilog.Log.ForContext<TerminalController>();
 
+        [AllowAnonymous]
         [HttpGet("TerminalConfig")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -88,6 +90,7 @@ namespace JCTG.WebApp.Backend.Api
             return Ok(retour);
         }
 
+        [AllowAnonymous]
         [HttpPost("OnOrderCreatedEvent")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -156,6 +159,7 @@ namespace JCTG.WebApp.Backend.Api
             return Ok();
         }
 
+        [AllowAnonymous]
         [HttpPost("OnOrderUpdatedEvent")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -212,6 +216,7 @@ namespace JCTG.WebApp.Backend.Api
             return Ok();
         }
 
+        [AllowAnonymous]
         [HttpPost("OnOrderClosedEvent")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -269,6 +274,7 @@ namespace JCTG.WebApp.Backend.Api
             return Ok();
         }
 
+        [AllowAnonymous]
         [HttpPost("OnOrderAutoMoveSlToBeEvent")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -326,6 +332,7 @@ namespace JCTG.WebApp.Backend.Api
             return Ok();
         }
 
+        [AllowAnonymous]
         [HttpPost("OnItsTimeToCloseTheOrderEvent")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -364,6 +371,7 @@ namespace JCTG.WebApp.Backend.Api
             return Ok();
         }
 
+        [AllowAnonymous]
         [HttpPost("OnLogEvent")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -398,6 +406,7 @@ namespace JCTG.WebApp.Backend.Api
             return Ok();
         }
 
+        [AllowAnonymous]
         [HttpPost("OnDealCreatedEvent")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -554,6 +563,7 @@ namespace JCTG.WebApp.Backend.Api
             return Ok();
         }
 
+        [AllowAnonymous]
         [HttpPost("OnAccountInfoChangedEvent")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -593,6 +603,7 @@ namespace JCTG.WebApp.Backend.Api
             return Ok();
         }
 
+        [AllowAnonymous]
         [HttpPost("OnMarketAbstentionEvent")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]

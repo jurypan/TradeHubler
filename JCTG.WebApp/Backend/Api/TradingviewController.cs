@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Microsoft.EntityFrameworkCore;
 using JCTG.WebApp.Backend.Queue;
+using Microsoft.AspNetCore.Authorization;
 
 
 namespace JCTG.WebApp.Backend.Api
@@ -22,6 +23,7 @@ namespace JCTG.WebApp.Backend.Api
             _server = server;
         }
 
+        [AllowAnonymous]
         [HttpGet("tradingview")]
         [HttpPost("tradingview")]
         [ProducesResponseType(StatusCodes.Status200OK)]

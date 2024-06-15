@@ -7,6 +7,9 @@ using JCTG.WebApp.Frontend.Components.Tradingview;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
+using Microsoft.Identity.Web;
+using Microsoft.Identity.Web.UI;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,6 +18,14 @@ var baseAddress = builder.Environment.IsDevelopment()
     ? "https://localhost:7197/" // Development base URL
     : "http://justcalltheguy.westeurope.cloudapp.azure.com/"; // Production base URL
 
+// Authentication
+builder.Services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme).AddMicrosoftIdentityWebApp(builder.Configuration.GetSection("AzureAd"));
+builder.Services.AddControllersWithViews().AddMicrosoftIdentityUI();
+builder.Services.AddAuthorization(options =>
+{
+    options.FallbackPolicy = options.DefaultPolicy;
+});
+
 // Add services to the container.
 builder.Services.AddRazorPages();
 builder.Services.AddControllers()
@@ -22,7 +33,8 @@ builder.Services.AddControllers()
        {
            options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
        });
-builder.Services.AddServerSideBlazor();
+builder.Services.AddServerSideBlazor()
+    .AddMicrosoftIdentityConsentHandler();
 builder.Services.AddScoped(sp => new HttpClient
 {
     BaseAddress = new Uri(baseAddress)
@@ -79,6 +91,10 @@ if (!app.Environment.IsDevelopment())
 app.UseStaticFiles();
 
 app.UseRouting();
+
+app.UseAuthentication();
+
+app.UseAuthorization();
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 

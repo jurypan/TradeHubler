@@ -55,7 +55,7 @@ namespace JCTG.Client
 
         public static async Task<TerminalConfig?> GetTerminalConfigAsync()
         {
-            var json = await GetJsonAsync("http://justcalltheguy.westeurope.cloudapp.azure.com/api/terminalconfig?code=Ocebxtg1excWosFez5rWMtNp3ZsmIzSFQ0XhqtrfHlMuAzFuQ0OGhA==&accountid=692803787");
+            var json = await GetJsonAsync("http://app.tradehubler.com/api/terminalconfig?code=Ocebxtg1excWosFez5rWMtNp3ZsmIzSFQ0XhqtrfHlMuAzFuQ0OGhA==&accountid=692803787");
             if (json != null)
                 return JsonConvert.DeserializeObject<TerminalConfig>(json);
             else
@@ -64,47 +64,47 @@ namespace JCTG.Client
 
         public static async Task OnOrderCreatedEvent(OnOrderCreatedEvent model)
         {
-            await PostJsonAsync("http://justcalltheguy.westeurope.cloudapp.azure.com/api/OnOrderCreatedEvent", JsonConvert.SerializeObject(model));
+            await PostJsonAsync("http://app.tradehubler.com/api/OnOrderCreatedEvent", JsonConvert.SerializeObject(model));
         }
 
         public static async Task OnOrderUpdatedEvent(OnOrderUpdatedEvent model)
         {
-            await PostJsonAsync("http://justcalltheguy.westeurope.cloudapp.azure.com/api/OnOrderUpdatedEvent", JsonConvert.SerializeObject(model));
+            await PostJsonAsync("http://app.tradehubler.com/api/OnOrderUpdatedEvent", JsonConvert.SerializeObject(model));
         }
 
         public static async Task OnOrderClosedEvent(OnOrderClosedEvent model)
         {
-            await PostJsonAsync("http://justcalltheguy.westeurope.cloudapp.azure.com/api/OnOrderClosedEvent", JsonConvert.SerializeObject(model));
+            await PostJsonAsync("http://app.tradehubler.com/api/OnOrderClosedEvent", JsonConvert.SerializeObject(model));
         }
 
         public static async Task OnOrderAutoMoveSlToBeEvent(OnOrderAutoMoveSlToBeEvent model)
         {
-            await PostJsonAsync("http://justcalltheguy.westeurope.cloudapp.azure.com/api/OnOrderAutoMoveSlToBeEvent", JsonConvert.SerializeObject(model));
+            await PostJsonAsync("http://app.tradehubler.com/api/OnOrderAutoMoveSlToBeEvent", JsonConvert.SerializeObject(model));
         }
 
         public static async Task OnItsTimeToCloseTheOrderEvent(OnItsTimeToCloseTheOrderEvent model)
         {
-            await PostJsonAsync("http://justcalltheguy.westeurope.cloudapp.azure.com/api/OnItsTimeToCloseTheOrderEvent", JsonConvert.SerializeObject(model));
+            await PostJsonAsync("http://app.tradehubler.com/api/OnItsTimeToCloseTheOrderEvent", JsonConvert.SerializeObject(model));
         }
 
         public static async Task OnLogEvent(OnLogEvent model)
         {
-            await PostJsonAsync("http://justcalltheguy.westeurope.cloudapp.azure.com/api/OnLogEvent", JsonConvert.SerializeObject(model));
+            await PostJsonAsync("http://app.tradehubler.com/api/OnLogEvent", JsonConvert.SerializeObject(model));
         }
 
         public static async Task OnDealCreatedEvent(OnDealCreatedEvent model)
         {
-            await PostJsonAsync("http://justcalltheguy.westeurope.cloudapp.azure.com/api/OnDealCreatedEvent", JsonConvert.SerializeObject(model));
+            await PostJsonAsync("http://app.tradehubler.com/api/OnDealCreatedEvent", JsonConvert.SerializeObject(model));
         }
 
         public static async Task OnAccountInfoChangedEvent(OnAccountInfoChangedEvent model)
         {
-            await PostJsonAsync("http://justcalltheguy.westeurope.cloudapp.azure.com/api/OnAccountInfoChangedEvent", JsonConvert.SerializeObject(model));
+            await PostJsonAsync("http://app.tradehubler.com/api/OnAccountInfoChangedEvent", JsonConvert.SerializeObject(model));
         }
 
         public static async Task OnMarketAbstentionEvent(OnMarketAbstentionEvent model)
         {
-            await PostJsonAsync("http://justcalltheguy.westeurope.cloudapp.azure.com/api/OnMarketAbstentionEvent", JsonConvert.SerializeObject(model));
+            await PostJsonAsync("http://app.tradehubler.com/api/OnMarketAbstentionEvent", JsonConvert.SerializeObject(model));
         }
     }
 }
