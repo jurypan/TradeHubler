@@ -3,7 +3,7 @@
 //+------------------------------------------------s-----------------+
 #property copyright "Copyright 2024, JP.x BV"
 #property link      "https://www.justcalltheguy.io"
-#property version   "2.008"
+#property version   "2.011"
 #property strict
 
 /*
@@ -25,7 +25,7 @@ CTrade  trade;
 
 
 // if the timer is too small, we might have problems accessing the files from python (mql will write to file every update time). 
-input int MILLISECOND_TIMER = 100;  // Timer to drop files on the HD, in ms
+input int MILLISECOND_TIMER = 500;  // Timer to drop files on the HD, in ms
 input int numLastMessages = 50;  // Maximum number of messages to save
 input bool openChartsForBarData = true;  // Open charts for bar data?
 input bool openChartsForHistoricData = true;  // Open charts for historical data?
@@ -289,33 +289,33 @@ void OpenOrder(string orderStr) {
    int digits = (int)SymbolInfoInteger(symbol, SYMBOL_DIGITS);
    int orderType = StringToOrderType(data[1]);
    double lots = NormalizeDouble(StringToDouble(data[2]), lotSizeDigits);
-   double price = NormalizeDouble(StringToDouble(data[3]), digits);
+   double orderPrice = NormalizeDouble(StringToDouble(data[3]), digits);
    double stopLoss = NormalizeDouble(StringToDouble(data[4]), digits);
    double takeProfit = NormalizeDouble(StringToDouble(data[5]), digits);
    int magic = (int)StringToInteger(data[6]);
    string comment = data[7];
    datetime expiration = (datetime)StringToInteger(data[8]);
    
-   if (price == 0 && orderType == POSITION_TYPE_BUY) price = ask(symbol);
-   if (price == 0 && orderType == POSITION_TYPE_SELL) price = bid(symbol);
+   if (orderType == POSITION_TYPE_BUY) orderPrice = ask(symbol);
+   if (orderType == POSITION_TYPE_SELL) orderPrice = bid(symbol);
    
    if (orderType == -1) {
-      SendError("OPEN_ORDER_TYPE", StringFormat("Order type could not be parsed: %f (%f)", orderType, data[1]));
+      SendError("OPEN_ORDER_TYPE", StringFormat("Order type could not be parsed: %f (%f)", orderType, data[1]), magic);
       return;
    }
    
    if (lots < SymbolInfoDouble(symbol, SYMBOL_VOLUME_MIN) || lots > SymbolInfoDouble(symbol, SYMBOL_VOLUME_MAX)) {
-      SendError("OPEN_ORDER_LOTSIZE_OUT_OF_RANGE", StringFormat("Lot size out of range (min: %f, max: %f): %f", SymbolInfoDouble(symbol, SYMBOL_VOLUME_MIN), SymbolInfoDouble(symbol, SYMBOL_VOLUME_MAX), lots));
+      SendError("OPEN_ORDER_LOTSIZE_OUT_OF_RANGE", StringFormat("Lot size out of range (min: %f, max: %f): %f", SymbolInfoDouble(symbol, SYMBOL_VOLUME_MIN), SymbolInfoDouble(symbol, SYMBOL_VOLUME_MAX), lots), magic);
       return;
    }
    
    if (lots > MaximumLotSize) {
-      SendError("OPEN_ORDER_LOTSIZE_TOO_LARGE", StringFormat("Lot size (%.2f) larger than MaximumLotSize (%.2f).", lots, MaximumLotSize));
+      SendError("OPEN_ORDER_LOTSIZE_TOO_LARGE", StringFormat("Lot size (%.2f) larger than MaximumLotSize (%.2f).", lots, MaximumLotSize), magic);
       return;
    }
    
-   if (price == 0) {
-      SendError("OPEN_ORDER_PRICE_ZERO", "Price is zero: " + orderStr);
+   if (orderPrice == 0) {
+      SendError("OPEN_ORDER_PRICE_ZERO", "Price is zero: " + orderStr, magic);
       return;
    }
    
@@ -323,34 +323,36 @@ void OpenOrder(string orderStr) {
    
    // Check for market conditions and adjust order type if necessary
    if(CheckForMarketCondAndAdjustIfNecessary) {
-       double currentPrice = (orderType == ORDER_TYPE_BUY || orderType == ORDER_TYPE_BUY_STOP || orderType == ORDER_TYPE_BUY_LIMIT) ? ask(symbol) : bid(symbol);
-       if ((orderType == ORDER_TYPE_BUY_STOP && currentPrice > price) ||
-           (orderType == ORDER_TYPE_BUY_LIMIT && currentPrice < price) ||
-           (orderType == ORDER_TYPE_SELL_STOP && currentPrice < price) ||
-           (orderType == ORDER_TYPE_SELL_LIMIT && currentPrice > price)) {
+
+       if (orderType == ORDER_TYPE_BUY_STOP && ask(symbol) >= orderPrice || orderType == ORDER_TYPE_BUY_LIMIT && ask(symbol) <= orderPrice) {
            // Adjust order to market order if conditions are met
-           orderType = (orderType == ORDER_TYPE_BUY_STOP || orderType == ORDER_TYPE_BUY_LIMIT) ? ORDER_TYPE_BUY : ORDER_TYPE_SELL;
+           orderType = ORDER_TYPE_BUY;
+           orderPrice = ask(symbol);
+       }
+       else if (orderType == ORDER_TYPE_SELL_STOP && bid(symbol) <= orderPrice || orderType == ORDER_TYPE_SELL_LIMIT && bid(symbol) >= orderPrice) {
+           orderType = ORDER_TYPE_SELL;
+           orderPrice = bid(symbol);
        }
     }
    
    bool res = false;
    if (orderType == ORDER_TYPE_BUY)
-      res = trade.Buy(lots, symbol, price, stopLoss, takeProfit, comment);
+      res = trade.Buy(lots, symbol, orderPrice, stopLoss, takeProfit, comment);
    if (orderType == ORDER_TYPE_SELL)
-      res = trade.Sell(lots, symbol, price, stopLoss, takeProfit, comment);
+      res = trade.Sell(lots, symbol, orderPrice, stopLoss, takeProfit, comment);
    if (orderType == ORDER_TYPE_BUY_LIMIT)
-      res = trade.BuyLimit(lots, price, symbol, stopLoss, takeProfit, ORDER_TIME_GTC, expiration, comment);
+      res = trade.BuyLimit(lots, orderPrice, symbol, stopLoss, takeProfit, ORDER_TIME_GTC, expiration, comment);
    if (orderType == ORDER_TYPE_SELL_LIMIT)
-      res = trade.SellLimit(lots, price, symbol, stopLoss, takeProfit, ORDER_TIME_GTC, expiration, comment);
+      res = trade.SellLimit(lots, orderPrice, symbol, stopLoss, takeProfit, ORDER_TIME_GTC, expiration, comment);
    if (orderType == ORDER_TYPE_BUY_STOP)
-      res = trade.BuyStop(lots, price, symbol, stopLoss, takeProfit, ORDER_TIME_GTC, expiration, comment);
+      res = trade.BuyStop(lots, orderPrice, symbol, stopLoss, takeProfit, ORDER_TIME_GTC, expiration, comment);
    if (orderType == ORDER_TYPE_SELL_STOP)
-      res = trade.SellStop(lots, price, symbol, stopLoss, takeProfit, ORDER_TIME_GTC, expiration, comment);
+      res = trade.SellStop(lots, orderPrice, symbol, stopLoss, takeProfit, ORDER_TIME_GTC, expiration, comment);
    
    if (res) {
-      SendInfo("Successfully sent order: " + symbol + ", " + OrderTypeToString(orderType) + ", " + DoubleToString(lots, lotSizeDigits) + ", " + DoubleToString(price, digits));
+      SendInfo("Successfully sent order: " + symbol + ", " + OrderTypeToString(orderType) + ", " + DoubleToString(lots, lotSizeDigits) + ", " + DoubleToString(orderPrice, digits), magic);
    } else {
-      SendError("OPEN_ORDER", "Could not open order: " + ErrorDescription(GetLastError()));
+      SendError("OPEN_ORDER", "Could not open order: " + ErrorDescription(GetLastError()), magic);
    }
 }
 
@@ -360,18 +362,19 @@ void ModifyOrder(string orderStr) {
    string data[];
    int splits = StringSplit(orderStr, uSep, data);
    
-   if (ArraySize(data) != 6) {
+   if (ArraySize(data) != 7) {
       SendError("MODIFY_ORDER_WRONG_FORMAT", "Wrong format for MODIFY_ORDER command: " + orderStr);
       return;
    }
    
    ulong ticket = StringToInteger(data[0]);
+   int magic = (int)StringToInteger(data[5]);
    
    bool isPosition = true;
    if (!PositionSelectByTicket(ticket)) {
       isPosition = false;
       if (!OrderSelect(ticket)) {
-         SendError("MODIFY_ORDER_SELECT_TICKET", "Could not select order with ticket: " + IntegerToString(ticket));
+         SendError("MODIFY_ORDER_SELECT_TICKET", "Could not select order with ticket: " + IntegerToString(ticket), magic);
          return;
       }
    }
@@ -391,14 +394,14 @@ void ModifyOrder(string orderStr) {
    double price = NormalizeDouble(StringToDouble(data[2]), digits);
    double stopLoss = NormalizeDouble(StringToDouble(data[3]), digits);
    double takeProfit = NormalizeDouble(StringToDouble(data[4]), digits);
-   datetime expiration = (datetime)StringToInteger(data[5]);
+   datetime expiration = (datetime)StringToInteger(data[6]);
    
    if (!isPosition && price == 0) {
       price = OrderGetDouble(ORDER_PRICE_OPEN);
    }
      
    if (lots < SymbolInfoDouble(symbol, SYMBOL_VOLUME_MIN) || lots > SymbolInfoDouble(symbol, SYMBOL_VOLUME_MAX)) {
-      SendError("MODIFY_ORDER_LOTSIZE_OUT_OF_RANGE", StringFormat("Lot size out of range (min: %f, max: %f): %f", SymbolInfoDouble(symbol, SYMBOL_VOLUME_MIN), SymbolInfoDouble(symbol, SYMBOL_VOLUME_MAX), lots));
+      SendError("MODIFY_ORDER_LOTSIZE_OUT_OF_RANGE", StringFormat("Lot size out of range (min: %f, max: %f): %f", SymbolInfoDouble(symbol, SYMBOL_VOLUME_MIN), SymbolInfoDouble(symbol, SYMBOL_VOLUME_MAX), lots), magic);
       return;
    }
    
@@ -408,9 +411,9 @@ void ModifyOrder(string orderStr) {
    else
       res = trade.OrderModify(ticket, price, stopLoss, takeProfit, ORDER_TIME_GTC, expiration);
    if (res) {
-      SendInfo(StringFormat("Successfully modified order %d: %s, %s, %.2f, %.5f, %.5f, %.5f", ticket, symbol, OrderTypeToString(orderType), lots, price, stopLoss, takeProfit));
+      SendInfo(StringFormat("Successfully modified order %d: %s, %s, %.2f, %.5f, %.5f, %.5f", ticket, symbol, OrderTypeToString(orderType), lots, price, stopLoss, takeProfit), magic);
    } else {
-      SendError("MODIFY_ORDER", StringFormat("Error in modifying order %d: %s", ticket, ErrorDescription(GetLastError())));
+      SendError("MODIFY_ORDER", StringFormat("Error in modifying order %d: %s", ticket, ErrorDescription(GetLastError())), magic);
    }
 }
 
@@ -421,18 +424,20 @@ void CloseOrder(string orderStr) {
    string data[];
    int splits = StringSplit(orderStr, uSep, data);
    
-   if (ArraySize(data) != 2) {
+   if (ArraySize(data) != 3) {
       SendError("CLOSE_ORDER_WRONG_FORMAT", "Wrong format for CLOSE_ORDER command: " + orderStr);
       return;
    }
    ulong ticket = StringToInteger(data[0]);
    double lots = NormalizeDouble(StringToDouble(data[1]), lotSizeDigits);
+   int magic = (int)StringToInteger(data[2]);
+   
    
    bool isPosition = true;
    if (!PositionSelectByTicket(ticket)) {
       isPosition = false;
       if (!OrderSelect(ticket)) {
-         SendError("CLOSE_ORDER_SELECT_TICKET", "Could not select order with ticket: " + IntegerToString(ticket));
+         SendError("CLOSE_ORDER_SELECT_TICKET", "Could not select order with ticket: " + IntegerToString(ticket), magic);
          return;
       }
    }
@@ -456,9 +461,9 @@ void CloseOrder(string orderStr) {
          symbol = PositionGetString(POSITION_SYMBOL);
       else
         symbol = OrderGetString(ORDER_SYMBOL);
-      SendInfo("Successfully closed order: " + IntegerToString(ticket) + ", " + symbol + ", " + DoubleToString(lots, lotSizeDigits));
+      SendInfo("Successfully closed order: " + IntegerToString(ticket) + ", " + symbol + ", " + DoubleToString(lots, lotSizeDigits), magic);
    } else {
-      SendError("CLOSE_ORDER_TICKET", "Could not close position " + IntegerToString(ticket) + ": " + ErrorDescription(GetLastError()));
+      SendError("CLOSE_ORDER_TICKET", "Could not close position " + IntegerToString(ticket) + ": " + ErrorDescription(GetLastError()), magic);
    }
 }
 
@@ -506,7 +511,19 @@ void CloseAllOrders() {
 }
 
 
-void CloseOrdersBySymbol(string symbol) {
+void CloseOrdersBySymbol(string orderStr) {
+
+   string sep = ",";
+   ushort uSep = StringGetCharacter(sep, 0);
+   string data[];
+   int splits = StringSplit(orderStr, uSep, data);
+   
+   if (ArraySize(data) != 2) {
+      SendError("CLOSE_ORDERS_BY_SYMBOL_WRONG_FORMAT", "Wrong format for CLOSE_ORDERS_BY_SYMBOL command: " + orderStr);
+      return;
+   }
+   string symbol = data[0];
+   int magic = (int)StringToInteger(data[1]);
 
    int closed = 0, errors = 0;
 
@@ -541,11 +558,11 @@ void CloseOrdersBySymbol(string symbol) {
    }
    
    if (closed == 0 && errors == 0) 
-      SendInfo("No orders to close with symbol " + symbol + ".");
+      SendInfo("No orders to close with symbol " + symbol + ".", magic);
    else if (errors > 0) 
-      SendError("CLOSE_ORDER_SYMBOL", "Error during closing of " + IntegerToString(errors) + " orders with symbol " + symbol + ".");
+      SendError("CLOSE_ORDER_SYMBOL", "Error during closing of " + IntegerToString(errors) + " orders with symbol " + symbol + ".", magic);
    else
-      SendInfo("Successfully closed " + IntegerToString(closed) + " orders with symbol " + symbol + ".");
+      SendInfo("Successfully closed " + IntegerToString(closed) + " orders with symbol " + symbol + ".", magic);
 }
 
 
@@ -586,11 +603,11 @@ void CloseOrdersByMagic(string magicStr) {
    }
    
    if (closed == 0 && errors == 0) 
-      SendInfo("No orders to close with magic " + IntegerToString(magic) + ".");
+      SendInfo("No orders to close with magic " + IntegerToString(magic) + ".", magic);
    else if (errors > 0) 
-      SendError("CLOSE_ORDER_MAGIC", "Error during closing of " + IntegerToString(errors) + " orders with magic " + IntegerToString(magic) + ".");
+      SendError("CLOSE_ORDER_MAGIC", "Error during closing of " + IntegerToString(errors) + " orders with magic " + IntegerToString(magic) + ".", magic);
    else
-      SendInfo("Successfully closed " + IntegerToString(closed) + " orders with magic " + IntegerToString(magic) + ".");
+      SendInfo("Successfully closed " + IntegerToString(closed) + " orders with magic " + IntegerToString(magic) + ".", magic);
 }
 
 
@@ -879,7 +896,7 @@ void CheckMarketData() {
          double atrH1 = CalculateATR(MarketDataSymbols[i], 1, 14, "H1");
          double atrD = CalculateATR(MarketDataSymbols[i], 1, 14, "D1");
                               
-         text += StringFormat("\"%s\": {\"bid\": %.10f, \"ask\": %.10f, \"tick_value\": %.10f, \"min_lot_size\": %.10f, \"max_lot_size\": %.10f, \"contract_size\": %.10f, \"volume_step\": %.10f, \"tick_size\": %.10f, \"digits\": %d, \"atr_M5\": %.10f, \"atr_M15\": %.10f, \"atr_H1\": %.10f, \"atr_D\": %.10f}", 
+         text += StringFormat("\"%s\": {\"bid\": %.10f, \"ask\": %.10f, \"tick_value\": %.10f, \"min_lot_size\": %.10f, \"max_lot_size\": %.10f, \"contract_size\": %.10f, \"volume_step\": %.10f, \"tick_size\": %.10f, \"point\": %.10f, \"digits\": %d, \"atr_M5\": %.10f, \"atr_M15\": %.10f, \"atr_H1\": %.10f, \"atr_D\": %.10f}", 
                      MarketDataSymbols[i], 
                      lastTick.bid, 
                      lastTick.ask,
@@ -889,6 +906,7 @@ void CheckMarketData() {
                      SymbolInfoDouble(MarketDataSymbols[i], SYMBOL_TRADE_CONTRACT_SIZE),
                      SymbolInfoDouble(MarketDataSymbols[i], SYMBOL_VOLUME_STEP),
                      SymbolInfoDouble(MarketDataSymbols[i], SYMBOL_TRADE_TICK_SIZE),
+                     SymbolInfoDouble(MarketDataSymbols[i], SYMBOL_POINT),
                      Digits(),
                      atrM5,
                      atrM15,
@@ -1113,20 +1131,35 @@ bool WriteToFile(string filePath, string text) {
 }
 
 
-void SendError(string errorType, string errorDescription) {
-   Print("ERROR: " + errorType + " | " + errorDescription);
-   string message = StringFormat("{\"type\": \"ERROR\", \"time\": \"%s %s\", \"error_type\": \"%s\", \"description\": \"%s\"}", 
-                                 TimeToString(TimeGMT(), TIME_DATE), TimeToString(TimeGMT(), TIME_SECONDS), errorType, errorDescription);
-   SendMessage(message);
+void SendError(string errorType, string errorDescription, int magicId = -1) {
+   if (magicId == -1) {
+      Print("ERROR: " + errorType + " | " + errorDescription);
+      string message = StringFormat("{\"type\": \"ERROR\", \"time\": \"%s %s\", \"error_type\": \"%s\", \"description\": \"%s\"}", 
+                                    TimeToString(TimeGMT(), TIME_DATE), TimeToString(TimeGMT(), TIME_SECONDS), errorType, errorDescription);
+      SendMessage(message);
+   } else {
+      Print("ERROR: " + errorType + " | " + errorDescription + " | Magic ID: " + IntegerToString(magicId));
+      string message = StringFormat("{\"type\": \"ERROR\", \"time\": \"%s %s\", \"error_type\": \"%s\", \"description\": \"%s\", \"magic\": \"%d\"}", 
+                                    TimeToString(TimeGMT(), TIME_DATE), TimeToString(TimeGMT(), TIME_SECONDS), errorType, errorDescription, magicId);
+      SendMessage(message);
+   }
 }
 
 
-void SendInfo(string message) {
-   Print("INFO: " + message);
-   message = StringFormat("{\"type\": \"INFO\", \"time\": \"%s %s\", \"message\": \"%s\"}", 
-                          TimeToString(TimeGMT(), TIME_DATE), TimeToString(TimeGMT(), TIME_SECONDS), message);
-   SendMessage(message);
+void SendInfo(string message, int magicId = -1) {
+   if (magicId == -1) {
+      Print("INFO: " + message);
+      string formattedMessage = StringFormat("{\"type\": \"INFO\", \"time\": \"%s %s\", \"message\": \"%s\"}", 
+                                             TimeToString(TimeGMT(), TIME_DATE), TimeToString(TimeGMT(), TIME_SECONDS), message);
+      SendMessage(formattedMessage);
+   } else {
+      Print("INFO: " + message + " | Magic ID: " + IntegerToString(magicId));
+      string formattedMessage = StringFormat("{\"type\": \"INFO\", \"time\": \"%s %s\", \"message\": \"%s\", \"magic\": \"%d\"}", 
+                                             TimeToString(TimeGMT(), TIME_DATE), TimeToString(TimeGMT(), TIME_SECONDS), message, magicId);
+      SendMessage(formattedMessage);
+   }
 }
+
 
 
 void SendMessage(string message) {

@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Reflection.PortableExecutable;
 using JCTG.Models;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Newtonsoft.Json;
@@ -954,10 +955,11 @@ namespace JCTG.Client
         /// <param name="price">Ask of the (pending) order. Non-zero only works for pending orders</param>
         /// <param name="stopLoss">New stop loss price</param>
         /// <param name="takeProfit">New take profit price</param>
+        /// <param name="magic">Magic number</param>
         /// <param name="expiration">New expiration time given as timestamp in seconds. Can be zero if the order should not have an expiration time</param>
-        public void ModifyOrder(long ticket, decimal lots, decimal price, decimal stopLoss, decimal takeProfit, long expiration = 0)
+        public void ModifyOrder(long ticket, decimal lots, decimal price, decimal stopLoss, decimal takeProfit, int magic = -1, long expiration = 0)
         {
-            string content = $"{ticket},{Format(lots)},{Format(price)},{Format(stopLoss)},{Format(takeProfit)},{expiration}";
+            string content = $"{ticket},{Format(lots)},{Format(price)},{Format(stopLoss)},{Format(takeProfit)},{magic},{expiration}";
             SendCommand("MODIFY_ORDER", content);
         }
 
@@ -967,9 +969,10 @@ namespace JCTG.Client
         /// </summary>
         /// <param name="ticket">Ticket of the order that should be closed.</param>
         /// <param name="lots"> Volume in lots. If lots=0 it will try to close the complete position</param>
-        public void CloseOrder(long ticket, double lots = 0)
+        /// <param name="magic">Magic number</param>
+        public void CloseOrder(long ticket, double lots = 0, int magic = -1)
         {
-            string content = ticket + "," + Format(lots);
+            string content = $"{ticket},{Format(lots)},{magic}";
             SendCommand("CLOSE_ORDER", content);
         }
 
@@ -987,9 +990,11 @@ namespace JCTG.Client
         /// Sends a CLOSE_ORDERS_BY_SYMBOL command to close all orders  with a given symbol.
         /// </summary>
         /// <param name="symbol"> Symbol for which all orders should be closed. </param>
-        public void CloseOrdersBySymbol(string symbol)
+        /// <param name="magic">Magic number</param>
+        public void CloseOrdersBySymbol(string symbol, int magic = -1)
         {
-            SendCommand("CLOSE_ORDERS_BY_SYMBOL", symbol);
+            string content = $"{symbol},{magic}";
+            SendCommand("CLOSE_ORDERS_BY_SYMBOL", content);
         }
 
 

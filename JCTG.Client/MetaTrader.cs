@@ -126,6 +126,9 @@ namespace JCTG.Client
                             // Iterate through the broker's
                             Parallel.ForEach(query, async api =>
                             {
+                                // Print
+                                Print($"INFO : {DateTime.UtcNow} / {_appConfig.Brokers.First(f => f.ClientId == api.ClientId).Name} / NEW SIGNAL / {cmd.SignalID}");
+
                                 // Get the right pair back from the local database
                                 var pair = new List<Pairs>(_appConfig.Brokers.Where(f => f.ClientId == api.ClientId).SelectMany(f => f.Pairs)).FirstOrDefault(f => f.TickerInTradingView.Equals(cmd.Instrument) && f.StrategyNr == cmd.StrategyType);
 
@@ -147,7 +150,7 @@ namespace JCTG.Client
                                             // Get the metadata tick
                                             var metadataTick = api.MarketData.FirstOrDefault(f => f.Key == pair.TickerInMetatrader).Value;
 
-                                            if (metadataTick != null && metadataTick.Ask > 0 && metadataTick.Bid > 0 && metadataTick.Digits > 0)
+                                            if (metadataTick != null && metadataTick.Ask > 0 && metadataTick.Bid > 0 && metadataTick.Digits >= 0)
                                             {
                                                 // Calculate spread
                                                 var spread = Math.Round(Math.Abs(metadataTick.Ask - metadataTick.Bid), metadataTick.Digits, MidpointRounding.AwayFromZero);
@@ -916,7 +919,7 @@ namespace JCTG.Client
                                                         Print($"INFO : {DateTime.UtcNow} / {_appConfig.Brokers.First(f => f.ClientId == api.ClientId).Name} / {pair.TickerInMetatrader} / MODIFY SL TO BE COMMAND / {cmd.Magic} / {cmd.StrategyType}");
 
                                                         // Modify order
-                                                        api.ModifyOrder(ticketId.Key, ticketId.Value.Lots, 0, sl, ticketId.Value.TakeProfit);
+                                                        api.ModifyOrder(ticketId.Key, ticketId.Value.Lots, 0, sl, ticketId.Value.TakeProfit, (int)cmd.Magic);
 
                                                         // Send to logs
                                                         if (_appConfig.Debug)
@@ -1197,7 +1200,7 @@ namespace JCTG.Client
                                                 Print($"INFO : {DateTime.UtcNow} / {_appConfig.Brokers.First(f => f.ClientId == api.ClientId).Name} / {order.Value.Symbol} / AUTO - MODIFY SL TO BE / {order.Value.Magic} / {strategyType}");
 
                                                 // Modify order
-                                                api.ModifyOrder(order.Key, order.Value.Lots, 0, slPrice, order.Value.TakeProfit);
+                                                api.ModifyOrder(order.Key, order.Value.Lots, 0, slPrice, order.Value.TakeProfit, order.Value.Magic);
 
                                                 var message2 = string.Format($"Symbol={order.Value.Symbol},Ticket={order.Key},Lots={order.Value.Lots},Type={order.Value.Type},Magic={order.Value.Magic},Price={order.Value.OpenPrice},TP={order.Value.TakeProfit},SL={slPrice},Comment={order.Value.Comment}");
                                                 var log = new Log() { Time = DateTime.UtcNow, Type = "INFO", Message = message2, Description = "Auto move SL to BE" };
@@ -1246,7 +1249,7 @@ namespace JCTG.Client
                                                 Print($"INFO : {DateTime.UtcNow} / {_appConfig.Brokers.First(f => f.ClientId == api.ClientId).Name} / {order.Value.Symbol} / AUTO - MODIFY SL TO BE / {order.Value.Magic} / {strategyType}");
 
                                                 // Modify order
-                                                api.ModifyOrder(order.Key, order.Value.Lots, 0, slPrice, order.Value.TakeProfit);
+                                                api.ModifyOrder(order.Key, order.Value.Lots, 0, slPrice, order.Value.TakeProfit, order.Value.Magic);
 
                                                 // Send log to files
                                                 var message2 = string.Format($"Symbol={order.Value.Symbol},Ticket={order.Key},Lots={order.Value.Lots},Type={order.Value.Type},Magic={order.Value.Magic},Price={order.Value.OpenPrice},TP={order.Value.TakeProfit},SL={slPrice},Comment={order.Value.Comment}");
@@ -1300,14 +1303,6 @@ namespace JCTG.Client
                         .Where(pair => pair.Key == symbol) // Filter for the specific symbol
                         .SelectMany(pair => pair.Value.BarData) // Use SelectMany to flatten the lists into a single list
                         .ToList(); // Convert to List<BarData>
-
-                    //await AzurePubSubServer.SendOnGetHistoricalBarDataEventAsync(new OnGetHistoricalBarDataEvent()
-                    //{
-                    //    ClientID = clientId,
-                    //    AccountID = _appConfig.AccountId,
-                    //    BarData = historicDataForSymbol,
-                    //    Log = log
-                    //});
                 });
             }
         }
@@ -1330,7 +1325,7 @@ namespace JCTG.Client
                 Task.Run(async () =>
                 {
                     // Send log to files
-                    await LogAsync(clientId, log); //signalID TODO
+                    await LogAsync(clientId, log, log.Magic);
                 });
             }
         }

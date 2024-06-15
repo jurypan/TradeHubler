@@ -10,6 +10,6 @@ namespace JCTG.Models
         [JsonProperty("Error_type")]
         public string? ErrorType { get; set; }
         public string? Description { get; set; }
-
+        public int? Magic { get; set; }
     }
 }

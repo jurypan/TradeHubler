@@ -1,4 +1,6 @@
 ﻿using JCTG.Models;
+using System.Reflection;
+using System.Text;
 
 namespace JCTG.Command
 {
@@ -17,8 +19,6 @@ namespace JCTG.Command
         public OnReceivingTradingviewSignalEventMarketOrder? MarketOrder { get; set; }
 
         public OnReceivingTradingviewSignalEventPassiveOrder? PassiveOrder { get; set; }
-
-
 
     }
 
