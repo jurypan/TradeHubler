@@ -396,7 +396,7 @@
             foreach (var signal in signalPoints)
             {
                 // Check if the order exist
-                if (_orders.Count(f => f.SignalID == signal.Id && f.OpenStopLoss.HasValue && f.ClosePrice.HasValue && f.Signal.RiskRewardRatio.HasValue) > 0)
+                if (_orders.Count(f => f.SignalID == signal.Id && f.OpenStopLoss.HasValue && f.ClosePrice.HasValue) > 0)
                 {
                     var order = _orders.First(f => f.SignalID == signal.Id);
                     var prevRR = 0.0M;
@@ -405,8 +405,8 @@
                     var newRR = getRrForLong(order.OpenStopLoss.Value, order.OpenPrice, order.ClosePrice.Value);
                     if (order.Type.Contains("sell"))
                         newRR = getRrForShort(order.OpenStopLoss.Value, order.OpenPrice, order.ClosePrice.Value);
-                    if (newRR > Convert.ToDecimal(order.Signal.RiskRewardRatio.Value))
-                        newRR = Convert.ToDecimal(order.Signal.RiskRewardRatio.Value);
+                    if (newRR > Convert.ToDecimal(order.Signal.RiskRewardRatio))
+                        newRR = Convert.ToDecimal(order.Signal.RiskRewardRatio);
                     orderPoints.Add(new LinePoint()
                         {
                             Price = prevRR + newRR,

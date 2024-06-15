@@ -24,9 +24,8 @@ namespace JCTG.Command
 
     public class OnReceivingTradingviewSignalEventMarketOrder // BUY or SELL
     {
-        public decimal? Price { get; set; }
-        public decimal? StopLoss { get; set; }
-        public decimal? TakeProfit { get; set; }
+        public decimal? Risk { get; set; }
+        public decimal? RiskRewardRatio { get; set; }
     }
 
     public class OnReceivingTradingviewSignalEventPassiveOrder // BUYSTOP or SELLSTOP

@@ -91,11 +91,11 @@ namespace JCTG.Entity
 
         // Optional BUYSTOP or SELLSTOP
         public string? EntryExpression { get; set; }
-        public double? Risk { get; set; }
+        public double Risk { get; set; }
         [NotMapped]
-        public string? RiskAsString
+        public string RiskAsString
         {
-            get => Risk.HasValue ? Risk.ToString() : null;
+            get => Risk.ToString();
             set
             {
                 if (double.TryParse(value, out double newValue))
@@ -104,11 +104,11 @@ namespace JCTG.Entity
                 }
             }
         }
-        public double? RiskRewardRatio { get; set; }
+        public double RiskRewardRatio { get; set; }
         [NotMapped]
-        public string? RiskRewardRatioAsString
+        public string RiskRewardRatioAsString
         {
-            get => RiskRewardRatio.HasValue ? RiskRewardRatio.ToString() : null;
+            get => RiskRewardRatio.ToString();
             set
             {
                 if (double.TryParse(value, out double newValue))
@@ -194,6 +194,16 @@ namespace JCTG.Entity
             if (signal.Magic == 0)
             {
                 throw new ArgumentException("Insufficient data. Magic is mandatory.");
+            }
+
+            if (signal.Risk == 0)
+            {
+                throw new ArgumentException("Insufficient data. Risk is mandatory.");
+            }
+
+            if (signal.RiskRewardRatio == 0)
+            {
+                throw new ArgumentException("Insufficient data. RiskRewardRatio is mandatory.");
             }
 
             return signal;

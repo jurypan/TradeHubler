@@ -77,7 +77,10 @@ namespace JCTG.WebApp.Backend.Api
                                 if (prevSignal != null)
                                 {
                                     if (prevSignal.TradingviewStateType == TradingviewStateType.Init)
+                                    {
                                         prevSignal.TradingviewStateType = TradingviewStateType.CancelOrder;
+                                        prevSignal.ExitRiskRewardRatio = 0;
+                                    }
                                 }
                             }
 
@@ -127,9 +130,8 @@ namespace JCTG.WebApp.Backend.Api
                                 StrategyType = signal.StrategyType,
                                 MarketOrder = signal.OrderType == "BUY" || signal.OrderType == "SELL" ? new OnReceivingTradingviewSignalEventMarketOrder()
                                 {
-                                    StopLoss = Convert.ToDecimal(signal.StopLoss),
-                                    Price = Convert.ToDecimal(signal.EntryPrice),
-                                    TakeProfit = Convert.ToDecimal(signal.TakeProfit),
+                                    Risk = Convert.ToDecimal(signal.Risk),
+                                    RiskRewardRatio = Convert.ToDecimal(signal.RiskRewardRatio)
                                 } : null,
                                 PassiveOrder = signal.OrderType == "BUYSTOP" || signal.OrderType == "SELLSTOP" ? new OnReceivingTradingviewSignalEventPassiveOrder()
                                 {
@@ -186,9 +188,8 @@ namespace JCTG.WebApp.Backend.Api
                                                     StrategyType = signal.StrategyType,
                                                     MarketOrder = new OnReceivingTradingviewSignalEventMarketOrder()
                                                     {
-                                                        StopLoss = Convert.ToDecimal(signal.StopLoss),
-                                                        Price = Convert.ToDecimal(signal.EntryPrice),
-                                                        TakeProfit = Convert.ToDecimal(signal.TakeProfit),
+                                                        Risk = Convert.ToDecimal(signal.Risk),
+                                                        RiskRewardRatio = Convert.ToDecimal(signal.RiskRewardRatio),
                                                     },
                                                 });
 
@@ -217,9 +218,8 @@ namespace JCTG.WebApp.Backend.Api
                                                     StrategyType = signal.StrategyType,
                                                     MarketOrder = new OnReceivingTradingviewSignalEventMarketOrder()
                                                     {
-                                                        StopLoss = Convert.ToDecimal(signal.StopLoss),
-                                                        Price = Convert.ToDecimal(signal.EntryPrice),
-                                                        TakeProfit = Convert.ToDecimal(signal.TakeProfit),
+                                                        Risk = Convert.ToDecimal(signal.Risk),
+                                                        RiskRewardRatio = Convert.ToDecimal(signal.RiskRewardRatio),
                                                     },
                                                 });
 
