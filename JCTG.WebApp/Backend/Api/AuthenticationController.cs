@@ -13,13 +13,9 @@ namespace JCTG.WebApp.Backend.Api
         private readonly Serilog.ILogger _logger = Serilog.Log.ForContext<AuthenticationController>();
 
         [HttpGet("Login")]
-        public async Task<IActionResult> Login(string redirectUrl)
+        public IActionResult Login()
         {
-            var props = new AuthenticationProperties()
-            {
-                RedirectUri = redirectUrl == null ? "/" : redirectUrl,
-            };
-            return await Task.Run(() => Challenge(props, MicrosoftAccountDefaults.AuthenticationScheme));
+            return Redirect("/");
         }
 
         [HttpGet("Logout")]

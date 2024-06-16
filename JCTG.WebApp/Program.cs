@@ -21,14 +21,24 @@ var baseAddress = builder.Environment.IsDevelopment()
 
 // Authentication
 builder.Services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
-    .AddMicrosoftIdentityWebApp(builder.Configuration.GetSection("AzureAd"));
+    .AddMicrosoftIdentityWebApp(builder.Configuration.GetSection("AzureAd"))
+        .EnableTokenAcquisitionToCallDownstreamApi(builder.Configuration["Graph:Scopes"]?.Split(' '))
+            .AddMicrosoftGraph(builder.Configuration.GetSection("Graph"))
+            .AddInMemoryTokenCaches();
 builder.Services.AddControllersWithViews().AddMicrosoftIdentityUI();
 builder.Services.AddAuthorization(options =>
 {
     options.FallbackPolicy = options.DefaultPolicy;
 });
-builder.Services.AddHttpContextAccessor();
 
+//builder.Services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
+//    .AddMicrosoftIdentityWebApp(builder.Configuration.GetSection("AzureAd"));
+//builder.Services.AddControllersWithViews().AddMicrosoftIdentityUI();
+//builder.Services.AddAuthorization(options =>
+//{
+//    options.FallbackPolicy = options.DefaultPolicy;
+//});
+//builder.Services.AddHttpContextAccessor();
 
 
 // Add services to the container.

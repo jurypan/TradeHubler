@@ -1,17 +1,18 @@
-﻿using System.Security.Principal;
+﻿using Microsoft.Graph;
+using Microsoft.Graph.Models;
 
 namespace JCTG.WebApp.Backend.Security
 {
     public class Membership(IHttpContextAccessor AuthManager, IConfiguration configuration)
     {
-        public IIdentity? GetUser() 
-        {
-            if (AuthManager != null && AuthManager.HttpContext != null)
-            {
-                return AuthManager.HttpContext.User.Identity;
-            }
-            return null;
-        }
+        //public async Task<User?> GetUser() 
+        //{
+        //    if (AuthManager != null && AuthManager.HttpContext != null)
+        //    {
+        //        return await graphServiceClient.Me.GetAsync();
+        //    }
+        //    return null;
+        //}
 
         public bool IsAuthenticated()
         {
