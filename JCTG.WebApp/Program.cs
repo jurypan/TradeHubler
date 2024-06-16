@@ -10,6 +10,7 @@ using Serilog;
 using Microsoft.Identity.Web;
 using Microsoft.Identity.Web.UI;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using JCTG.WebApp.Backend.Security;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,12 +20,15 @@ var baseAddress = builder.Environment.IsDevelopment()
     : "https://app.tradehubler.com/"; // Production base URL
 
 // Authentication
-builder.Services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme).AddMicrosoftIdentityWebApp(builder.Configuration.GetSection("AzureAd"));
+builder.Services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
+    .AddMicrosoftIdentityWebApp(builder.Configuration.GetSection("AzureAd"));
 builder.Services.AddControllersWithViews().AddMicrosoftIdentityUI();
 builder.Services.AddAuthorization(options =>
 {
     options.FallbackPolicy = options.DefaultPolicy;
 });
+builder.Services.AddHttpContextAccessor();
+
 
 
 // Add services to the container.
@@ -56,6 +60,7 @@ builder.Services.InitTradingview();
 builder.Services.InitApex();
 
 // Add services to the scope
+builder.Services.AddTransient<Membership>();
 builder.Services.AddTransient<SignalRepository>();
 builder.Services.AddTransient<OrderRepository>();
 builder.Services.AddTransient<LogRepository>();
@@ -76,6 +81,9 @@ builder.Logging.SetMinimumLevel(LogLevel.Debug);
 builder.Host.UseSerilog((context, configuration) =>
     configuration.ReadFrom.Configuration(context.Configuration));
 
+
+
+// Build
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

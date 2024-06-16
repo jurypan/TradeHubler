@@ -1,4 +1,10 @@
 ﻿@using JCTG.Models;
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.AspNetCore.Authentication;
+@using Microsoft.Identity.Web.UI
+@using Microsoft.AspNetCore.Http
+@inject Membership Membership
+@inject NavigationManager NavManager
 
 <div class="brand-logo d-flex align-items-center justify-content-between">
     <a href="/" class="text-nowrap logo-img">
@@ -37,16 +43,12 @@
                             <iconify-icon icon="solar:card-outline" class="text-primary iconify-sm me-2 ms-1"></iconify-icon>
                             My Balance
                         </a>
-                        <a class="dropdown-item d-flex" href="../dark/app-email.html">
-                            <iconify-icon icon="solar:inbox-linear" class="text-success iconify-sm me-2 ms-1"></iconify-icon>
-                            Inbox
-                        </a>
                         <a class="dropdown-item d-flex border-bottom border-top mt-1 py-3" href="../dark/page-account-settings.html">
                             <iconify-icon icon="solar:settings-outline" class="text-warning iconify-sm me-2 ms-1"></iconify-icon>
                             Account Setting
                         </a>
 
-                        <a class="dropdown-item d-flex py-3 pb-2" href="MicrosoftIdentity/Account/SignOut">
+                        <a class="dropdown-item d-flex py-3 pb-2" href="/Authentication/Logout">
                             <iconify-icon icon="solar:login-2-outline" class="text-danger iconify-sm me-2 ms-1"></iconify-icon>
                             Logout
                         </a>
@@ -133,21 +135,44 @@
             <iconify-icon icon="solar:menu-dots-bold" class="nav-small-cap-icon fs-4"></iconify-icon>
             <span class="hide-menu">Research</span>
         </li>
+
+
+
+        <li class="nav-small-cap">
+            <iconify-icon icon="solar:menu-dots-bold" class="nav-small-cap-icon fs-4"></iconify-icon>
+            <span class="hide-menu">Admin</span>
+        </li>
+        <li class="sidebar-item">
+            <a class="sidebar-link sidebar-link" href="/" aria-expanded="false">
+                <iconify-icon icon="solar:calendar-minimalistic-outline" class="fs-5"></iconify-icon>
+                <span class="hide-menu">Users</span>
+            </a>
+        </li>
+
     </ul>
 </nav>
 
 
 @code {
+
     private bool isStrategyCollapsed { get; set; } = true;
     private bool isSignalCollapsed { get; set; } = true;
 
-    private void ToggleStrategyButton()
+    void ToggleStrategyButton()
     {
         isStrategyCollapsed = !isStrategyCollapsed;
     }
 
-    private void ToggleSignal()
+    void ToggleSignal()
     {
         isSignalCollapsed = !isSignalCollapsed;
+    }
+
+    public void Logout()
+    {
+        if (Membership.IsAuthenticated())
+        {
+            NavManager.NavigateTo(Membership.SignoutURL());
+        }
     }
 }
