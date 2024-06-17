@@ -5,6 +5,7 @@ using Newtonsoft.Json;
 using Microsoft.EntityFrameworkCore;
 using JCTG.WebApp.Backend.Queue;
 using Microsoft.AspNetCore.Authorization;
+using JCTG.Models;
 
 
 namespace JCTG.WebApp.Backend.Api
@@ -56,7 +57,117 @@ namespace JCTG.WebApp.Backend.Api
 
                     _logger.Information($"Parsed object to Signal : {JsonConvert.SerializeObject(signal)}", signal);
 
-                    // Check the order type of the signal
+                    // ALWAYS MANDATORY
+                    if (string.IsNullOrEmpty(signal.Instrument))
+                    {
+                        _logger.Error($"'instrument' is mandatory for {signal.OrderType}");
+                        return BadRequest("'instrument' is mandatory");
+                    }
+
+                    if (signal.AccountID == 0)
+                    {
+                        _logger.Error($"'account_id' is mandatory for {signal.OrderType}");
+                        return BadRequest("'account_id' is mandatory");
+                    }
+
+                    if (string.IsNullOrEmpty(signal.OrderType))
+                    {
+                        _logger.Error($"'order_type' is mandatory for {signal.OrderType}");
+                        return BadRequest("'order_type' is mandatory");
+                    }
+
+                    if (signal.StrategyType == StrategyType.None)
+                    {
+                        _logger.Error($"'strategytype' is mandatory for {signal.OrderType}");
+                        return BadRequest("'strategytype' is mandatory");
+                    }
+
+                    if (signal.Magic == 0)
+                    {
+                        _logger.Error($"'magic' is mandatory for {signal.OrderType}");
+                        return BadRequest("'magic' is mandatory");
+                    }
+
+                    // MARKET ORDERS + PASSIVE ORDERS
+                    switch (signal.OrderType.ToLower())
+                    {
+                        case "buy":
+                        case "buystop":
+                        case "buylimit":
+                        case "sell":
+                        case "selllimit":
+                        case "sellstop":
+                            if (signal.Risk == 0)
+                            {
+                                _logger.Error($"'risk' is mandatory for {signal.OrderType}");
+                                return BadRequest("'risk' is mandatory");
+                            }
+
+                            if (signal.RiskRewardRatio == 0)
+                            {
+                                _logger.Error($"'rrr' is mandatory for {signal.OrderType}");
+                                return BadRequest("'rrr' is mandatory");
+                            }
+
+                            if (signal.ExitRiskRewardRatio == 0)
+                            {
+                                _logger.Error($"'exitrr' is mandatory for {signal.OrderType}");
+                                return BadRequest("'exitrr' is mandatory");
+                            }
+
+                            if (!signal.EntryPrice.HasValue)
+                            {
+                                _logger.Error($"'entryprice' is mandatory for {signal.OrderType}");
+                                return BadRequest("'entryprice' is mandatory");
+                            }
+                            break;
+                        default:
+                            break;
+                    }
+
+                    // PASSIVE ORDERS
+                    switch (signal.OrderType.ToLower())
+                    {
+                        case "buystop":
+                        case "buylimit":
+                        case "selllimit":
+                        case "sellstop":
+                            if (string.IsNullOrEmpty(signal.EntryExpression))
+                            {
+                                _logger.Error($"'entryexpr' is mandatory for {signal.OrderType}");
+                                return BadRequest("'entryexpr' is mandatory");
+                            }
+
+                            break;
+                        default:
+                            break;
+                    }
+
+                    // CANCEL ORDER
+                    switch (signal.OrderType.ToLower())
+                    {
+                        case "entry":
+                        case "movesltobe":
+                        case "tphit":
+                        case "slhit":
+                        case "behit":
+                        case "cancelorder":
+                            if (signal.ExitRiskRewardRatio == 0)
+                            {
+                                _logger.Error($"'exitrr' is mandatory for {signal.OrderType}");
+                                return BadRequest("'exitrr' is mandatory");
+                            }
+                            break;
+                        case "closeall":
+                            break;
+                        default:
+                            break;
+                    }
+
+
+
+
+                    // Action!
                     switch (signal.OrderType.ToLower())
                     {
                         case "buy":
@@ -73,6 +184,7 @@ namespace JCTG.WebApp.Backend.Api
                                  || signal.OrderType.Equals("sellstop", StringComparison.CurrentCultureIgnoreCase)
                                 )
                             {
+                                // Cancel potential previous  trades
                                 var prevSignal = await _dbContext.Signal.Where(s => s.Instrument == signal.Instrument && s.AccountID == signal.AccountID && s.OrderType == signal.OrderType && s.StrategyType == signal.StrategyType).OrderByDescending(f => f.DateCreated).FirstOrDefaultAsync();
 
                                 // do null reference check
@@ -362,6 +474,13 @@ namespace JCTG.WebApp.Backend.Api
                         default:
                             // Optionally, handle unknown order types
                             _logger.Error($"Error! Unknown or not used ordertype: {signal.OrderType}");
+
+                            // Return bad request
+                            if (string.IsNullOrEmpty(signal.OrderType))
+                            {
+                                return BadRequest("wrong 'order_type'");
+                            }
+
                             break;
                     }
 

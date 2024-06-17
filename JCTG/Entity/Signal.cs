@@ -186,25 +186,6 @@ namespace JCTG.Entity
                 signal.TradingviewStateType = TradingviewStateType.Entry;
             }
 
-            if (signal.StrategyType == StrategyType.None)
-            {
-                throw new ArgumentException("Insufficient data. StrategyType is mandatory.");
-            }
-
-            if (signal.Magic == 0)
-            {
-                throw new ArgumentException("Insufficient data. Magic is mandatory.");
-            }
-
-            if (signal.Risk == 0)
-            {
-                throw new ArgumentException("Insufficient data. Risk is mandatory.");
-            }
-
-            if (signal.RiskRewardRatio == 0)
-            {
-                throw new ArgumentException("Insufficient data. RiskRewardRatio is mandatory.");
-            }
 
             return signal;
         }
