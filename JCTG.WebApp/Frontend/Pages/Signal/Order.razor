@@ -38,161 +38,166 @@
                     </nav>
                 </div>
                 <div>
-                     <LastMonthWidget></LastMonthWidget>
+                    <LastMonthWidget></LastMonthWidget>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-body">
-                    <div class="mb-2">
-                        <h5 class="mb-4">Orders</h5>
-                    </div>
-                    <div class="table-responsive">
-                        @if(_orders.Count() > 0)
-                        {
-                            <table class="table border table-striped table-bordered display text-nowrap">
-                                <thead>
+    <div class="card w-100 position-relative overflow-hidden">
+        <div class="card card-body">
+            <div class="row">
+                <div class="col-md-4 col-xl-3">
+                    <h5 class="card-title fw-semibold mb-0 lh-sm">Orders</h5>
+                </div>
+                <div class="col-md-8 col-xl-9 text-end d-flex justify-content-md-end justify-content-center mt-3 mt-md-0">
+                    <a href="javascript:void(0)" class="btn btn-primary d-flex align-items-center" @onclick="() => OrderAddClick()">Add an order</a>
+                </div>
+            </div>
+            @if (_orders.Count() > 0)
+            {
+                <div class="card-body p-4">
+                    <div class="table-responsive rounded-2 mb-4">
+                        <table class="table border text-nowrap customize-table mb-0 align-middle">
+                            <thead class="text-dark fs-4">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Client</th>
+                                    <th>Symbol</th>
+                                    <th>Type</th>
+                                    <th>Magic</th>
+                                    <th>Pnl</th>
+                                    <th>TV State Type</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var order in _orders)
+                                {
                                     <tr>
-                                        <th>ID</th>
-                                        <th>Client</th>
-                                        <th>Symbol</th>
-                                        <th>Type</th>
-                                        <th>Magic</th>
-                                        <th>Pnl</th>
-                                        <th>TV State Type</th>
+                                        <td>@order.ID</td>
+                                        <td>@order.Client?.Name</td>
+                                        <td>@order.Symbol</td>
+                                        <td>@order.Type</td>
+                                        <td>@order.Magic</td>
+                                        <td>@order.Pnl</td>
+                                        <td>@order.Signal.TradingviewStateType</td>
+                                        <td>
+                                            <div class="dropdown dropstart">
+                                                <a href="#" class="text-muted" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+                                                    <i class="ti ti-dots-vertical fs-6"></i>
+                                                </a>
+                                                <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                                                    <li>
+                                                        <a class="dropdown-item d-flex align-items-center gap-3" @onclick="async () => await OrderEditClick(order.ID)">Edit</a>
+                                                    </li>
+                                                    <li>
+                                                        <a class="dropdown-item d-flex align-items-center gap-3" @onclick="async () => await OrderLogClick(order.ClientID, order.SignalID)">Log</a>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </td>
                                     </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach (var order in _orders)
-                                    {
-                                        <tr>
-                                            <td>@order.ID</td>
-                                            <td>@order.Client?.Name</td>
-                                            <td>@order.Symbol</td>
-                                            <td>@order.Type</td>
-                                            <td>@order.Magic</td>
-                                            <td>@order.Pnl</td>
-                                            <td>@order.Signal.TradingviewStateType</td>
-                                            <td>
-                                                <div class="dropdown dropstart">
-                                                    <a href="#" class="text-muted" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
-                                                        <i class="ti ti-dots-vertical fs-6"></i>
-                                                    </a>
-                                                    <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                                                        <li>
-                                                            <a class="dropdown-item d-flex align-items-center gap-3" @onclick="async () => await OrderEditClick(order.ID)">Edit</a>
-                                                        </li>
-                                                        <li>
-                                                            <a class="dropdown-item d-flex align-items-center gap-3" @onclick="async () => await OrderLogClick(order.ClientID, order.SignalID)">Log</a>
-                                                        </li>
-                                                    </ul>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    }
-                                </tbody>
-                            </table>
-                        }
-                        else
-                        {
-                            <div class="mt-4">
-                                <div class="alert bg-primary-subtle text-primary alert-dismissible fade show" role="alert">
-                                    <div class="d-flex align-items-center text-danger ">
-                                        <i class="ti ti-info-circle me-2 fs-4"></i>
-                                        This signal doesn't have any orders
-                                    </div>
-                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                                </div>
-                            </div>
-                        }
+                                }
+                            </tbody>
+                        </table>
                     </div>
                 </div>
-            </div>
+            }
+            else
+            {
+                <div class="card-body text-center">
+                    <h3 class="fw-semibold">No orders available for this signal</h3>
+                    <p class="fw-normal mb-4 fs-4">Is this correct? Are you sure your signal hasn't entered a trade yet?</p>
+                    <a href="javascript:void(0)" class="btn btn-primary mb-8" @onclick="() => OrderAddClick()">Add an order</a>
+                </div>
+            }
+
         </div>
     </div>
 
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-body">
-                    <div class="mb-2">
-                        <h5 class="mb-4">Market Abstention</h5>
-                    </div>
-                    <div class="table-responsive">
-                        @if (_marketAbstentions.Count() > 0)
-                        {
-                            <table class="table border table-striped table-bordered display text-nowrap">
-                                <thead>
+    <div class="card w-100 position-relative overflow-hidden">
+        <div class="card card-body">
+            <div class="row">
+                <div class="col-md-4 col-xl-3">
+                    <h5 class="card-title fw-semibold mb-0 lh-sm">Market Abstention</h5>
+                </div>
+                <div class="col-md-8 col-xl-9 text-end d-flex justify-content-md-end justify-content-center mt-3 mt-md-0">
+                    <a href="javascript:void(0)" class="btn btn-primary d-flex align-items-center" @onclick="() => MarketAbstentionAddClick()">Add a Market Abstention</a>
+                </div>
+            </div>
+            @if (_marketAbstentions.Count() > 0)
+            {
+                <div class="card-body p-4">
+                    <div class="table-responsive rounded-2 mb-4">
+                        <table class="table border text-nowrap customize-table mb-0 align-middle">
+                            <thead class="text-dark fs-4">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Client</th>
+                                    <th>Symbol</th>
+                                    <th>Type</th>
+                                    <th>Magic</th>
+                                    <th>Message</th>
+                                    <th>TV State Type</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var marketAbstention in _marketAbstentions)
+                                {
                                     <tr>
-                                        <th>ID</th>
-                                        <th>Client</th>
-                                        <th>Symbol</th>
-                                        <th>Type</th>
-                                        <th>Magic</th>
-                                        <th>Message</th>
-                                        <th>TV State Type</th>
-                                        <th></th>
+                                        <td>@marketAbstention.ID</td>
+                                        <td>@marketAbstention.Client?.Name</td>
+                                        <td>@marketAbstention.Symbol</td>
+                                        <td>@marketAbstention.Type</td>
+                                        <td>@marketAbstention.Magic</td>
+                                        <td>@marketAbstention.LogMessage</td>
+                                        <td>@marketAbstention.Signal.TradingviewStateType</td>
+                                        <td>
+                                            <div class="dropdown dropstart">
+                                                <a href="#" class="text-muted" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+                                                    <i class="ti ti-dots-vertical fs-6"></i>
+                                                </a>
+                                                <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                                                    <li>
+                                                        <a class="dropdown-item d-flex align-items-center gap-3" @onclick="async () => await MarketAbstentionEditClick(marketAbstention.ID)">Edit</a>
+                                                    </li>
+                                                    <li>
+                                                        <a class="dropdown-item d-flex align-items-center gap-3" @onclick="async () => await MarketAbstentionDeleteClick(marketAbstention.ID)">Delete</a>
+                                                    </li>
+                                                    <li>
+                                                        <a class="dropdown-item d-flex align-items-center gap-3" @onclick="async () => await OrderLogClick(marketAbstention.ClientID, marketAbstention.SignalID)">Log</a>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </td>
                                     </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach (var marketAbstention in _marketAbstentions)
-                                    {
-                                        <tr>
-                                            <td>@marketAbstention.ID</td>
-                                            <td>@marketAbstention.Client?.Name</td>
-                                            <td>@marketAbstention.Symbol</td>
-                                            <td>@marketAbstention.Type</td>
-                                            <td>@marketAbstention.Magic</td>
-                                            <td>@marketAbstention.LogMessage</td>
-                                            <td>@marketAbstention.Signal.TradingviewStateType</td>
-                                            <td>
-                                                <div class="dropdown dropstart">
-                                                    <a href="#" class="text-muted" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
-                                                        <i class="ti ti-dots-vertical fs-6"></i>
-                                                    </a>
-                                                    <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                                                        <li>
-                                                            <a class="dropdown-item d-flex align-items-center gap-3" @onclick="async () => await MarketAbstentionEditClick(marketAbstention.ID)">Edit</a>
-                                                        </li>
-                                                        <li>
-                                                            <a class="dropdown-item d-flex align-items-center gap-3" @onclick="async () => await OrderLogClick(marketAbstention.ClientID, marketAbstention.SignalID)">Log</a>
-                                                        </li>
-                                                    </ul>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    }
-                                </tbody>
-                            </table>
-                        }
-                        else
-                        {
-                            <div class="mt-4">
-                                <div class="alert bg-primary-subtle text-primary alert-dismissible fade show" role="alert">
-                                    <div class="d-flex align-items-center text-danger ">
-                                        <i class="ti ti-info-circle me-2 fs-4"></i>
-                                        This signal doesn't have any market abstentions
-                                    </div>
-                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                                </div>
-                            </div>
-                        }
+                                }
+                            </tbody>
+                        </table>
                     </div>
                 </div>
-            </div>
+            }
+            else
+            {
+                <div class="card-body text-center">
+                    <h3 class="fw-semibold">No market abstentions available for this signal</h3>
+                    <p class="fw-normal mb-4 fs-4">You are doing a great job!</p>
+                    <a href="javascript:void(0)" class="btn btn-primary mb-8" @onclick="() => MarketAbstentionAddClick()">Add a Market Abstention</a>
+                </div>
+            }
         </div>
+
     </div>
-
-    <OrderAddOrEditModal @ref="@_orderAddOrEditModal" OnClose="async () => await ReloadAsync()"></OrderAddOrEditModal>
-
-    <MarketAbstentionAddOrEditModal @ref="@_marketAbstentionAddOrEditModal" OnClose="async () => await ReloadAsync()"></MarketAbstentionAddOrEditModal>
-
-    <OrderLogModal @ref="@_orderLogModal"></OrderLogModal>
 </div>
+
+<OrderAddOrEditModal @ref="@_orderAddOrEditModal" OnClose="async () => await ReloadAsync()"></OrderAddOrEditModal>
+
+<MarketAbstentionAddOrEditModal @ref="@_marketAbstentionAddOrEditModal" OnClose="async () => await ReloadAsync()"></MarketAbstentionAddOrEditModal>
+
+<MarketAbstentionDeleteModal @ref="@_marketAbstentionDeleteModal" OnClose="async () => await ReloadAsync()"></MarketAbstentionDeleteModal>
+
+<OrderLogModal @ref="@_orderLogModal"></OrderLogModal>
 
 @code {
 
@@ -201,6 +206,7 @@
 
     private OrderAddOrEditModal? _orderAddOrEditModal { get; set; } = null;
     private MarketAbstentionAddOrEditModal? _marketAbstentionAddOrEditModal { get; set; } = null;
+    private MarketAbstentionDeleteModal? _marketAbstentionDeleteModal { get; set; } = null;
     private OrderLogModal? _orderLogModal { get; set; } = null;
 
 
@@ -227,6 +233,14 @@
         }
     }
 
+    private async Task OrderAddClick()
+    {
+        if (_orderAddOrEditModal != null)
+        {
+            await _orderAddOrEditModal.InitAsync(692803787);
+        }
+    }
+
     private async Task OrderEditClick(long orderId)
     {
         if (_orderAddOrEditModal != null)
@@ -235,11 +249,27 @@
         }
     }
 
+    private async Task MarketAbstentionAddClick()
+    {
+        if (_marketAbstentionAddOrEditModal != null)
+        {
+            await _marketAbstentionAddOrEditModal.InitAsync(692803787);
+        }
+    }
+
     private async Task MarketAbstentionEditClick(long marketAbstentionId)
     {
         if (_marketAbstentionAddOrEditModal != null)
         {
             await _marketAbstentionAddOrEditModal.InitAsync(692803787, marketAbstentionId);
+        }
+    }
+
+    private async Task MarketAbstentionDeleteClick(long marketAbstentionId)
+    {
+        if (_marketAbstentionDeleteModal != null)
+        {
+            await _marketAbstentionDeleteModal.InitAsync(692803787, marketAbstentionId);
         }
     }
 }
