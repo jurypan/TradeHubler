@@ -653,5 +653,64 @@ namespace JCTG.WebApp.Backend.Api
 
             return Ok();
         }
+
+        [AllowAnonymous]
+        [HttpPost("OnMetatraderMarketAbstentionEvent")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> OnMetatraderMarketAbstentionEvent([FromBody] OnMetatraderMarketAbstentionEvent model)
+        {
+            // Log
+            _logger.Debug($"On metatrader market abstention event triggered: {JsonConvert.SerializeObject(model)}");
+
+            // Do null reference check
+            if (model != null &&
+                    model.ClientID > 0 &&
+                    model.Magic > 0 &&
+                    model.Log != null &&
+                    model.Log.Type != null &&
+                    model.Log.Type.ToUpper() == "ERROR" &&
+                    model.Log.Description != null &&
+                    model.Log.ErrorType != null
+                    )
+            {
+
+                // Add market abstention to the system
+                await dbContext.MarketAbstention.AddAsync(new MarketAbstention()
+                {
+                    LogMessage = $"{model.Log.ErrorType} {model.Log.Description}",
+                    Symbol = model.Symbol,
+                    Type = model.OrderType,
+                    ClientID = model.ClientID,
+                    Magic = Convert.ToInt32(model.Magic),
+                    MarketAbstentionType = model.Type,
+                    SignalID = Convert.ToInt64(model.Log.Magic),
+                });
+
+                // Add as log
+                await dbContext.Log.AddAsync(new Entity.Log()
+                {
+                    ClientID = model.ClientID,
+                    SignalID = model.Magic,
+                    Description = model.Log.Description,
+                    ErrorType = model.Log.ErrorType,
+                    Message = model.Log.Message,
+                    Time = model.Log.Time,
+                    Type = model.Log.Type,
+                });
+
+                // Save
+                await dbContext.SaveChangesAsync();
+
+                // Log
+                _logger.Debug($"Saved database");
+            }
+            else
+            {
+                // Log
+                _logger.Error($"Not the right data entered the system");
+            }
+            return Ok();
+        }
     }
 }

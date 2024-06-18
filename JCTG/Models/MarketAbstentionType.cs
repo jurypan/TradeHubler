@@ -41,5 +41,8 @@ namespace JCTG.Models
 
         [Description("Exception calculating entry price")]
         ExceptionCalculatingEntryPrice = 33,
+
+        [Description("Metatrader order error")]
+        MetatraderOpenOrderError = 40,
     }
 }

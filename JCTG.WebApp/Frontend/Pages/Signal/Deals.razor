@@ -1,0 +1,192 @@
+﻿@page "/Signals/{signalid:long}/Order/{orderid:long}/Deals";
+@inject DealRepository _dealRepository;
+@using JCTG.WebApp.Frontend.Components.Modal;
+@using JCTG.WebApp.Frontend.Components.Widget;
+
+
+<div class="container-fluid mw-100">
+    <div class="font-weight-medium shadow-none position-relative overflow-hidden mb-4">
+        <div class="card-body px-0">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h4 class="font-weight-medium ">Joeri</h4>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item">
+                                <a class="text-primary text-decoration-none" href="/">
+                                    Home
+                                </a>
+                            </li>
+                            <li class="breadcrumb-item d-flex justify-content-center align-items-center ps-0">
+                                <iconify-icon icon="tabler:chevron-right"></iconify-icon>
+                            </li>
+                            <li class="breadcrumb-item" aria-current="page">
+                                <a class="text-primary text-decoration-none" href="/Signals">
+                                    Signal @SignalId
+                                </a>
+                            </li>
+                            <li class="breadcrumb-item d-flex justify-content-center align-items-center ps-0">
+                                <iconify-icon icon="tabler:chevron-right"></iconify-icon>
+                            </li>
+                            <li class="breadcrumb-item" aria-current="page">
+                                <a class="text-primary text-decoration-none" href="/Signals/@SignalId/Orders">
+                                    Order @OrderId
+                                </a>
+                            </li>
+                            <li class="breadcrumb-item d-flex justify-content-center align-items-center ps-0">
+                                <iconify-icon icon="tabler:chevron-right"></iconify-icon>
+                            </li>
+                            <li class="breadcrumb-item" aria-current="page">
+                                Deals
+                            </li>
+                        </ol>
+                    </nav>
+                </div>
+                <div>
+                    <LastMonthWidget></LastMonthWidget>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card w-100 position-relative overflow-hidden">
+        <div class="card card-body">
+            <div class="row">
+                <div class="col-md-4 col-xl-3">
+                    <h5 class="card-title fw-semibold mb-0 lh-sm">Deals</h5>
+                </div>
+                <div class="col-md-8 col-xl-9 text-end d-flex justify-content-md-end justify-content-center mt-3 mt-md-0">
+                    <a href="javascript:void(0)" class="btn btn-primary d-flex align-items-center" @onclick="() => DealAddClick()">Add a deal</a>
+                </div>
+            </div>
+            @if (_deals.Count() > 0)
+            {
+                <div class="card-body p-4">
+                    <div class="table-responsive rounded-2 mb-4">
+                        <table class="table border text-nowrap customize-table mb-0 align-middle">
+                            <thead class="text-dark fs-4">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Order ID</th>
+                                    <th>MT Deal ID</th>
+                                    <th>Symbol</th>
+                                    <th>Lots</th>
+                                    <th>Type</th>
+                                    <th>Entry</th>
+                                    <th>Price</th>
+                                    <th>Pnl</th>
+                                    <th>Commission</th>
+                                    <th>Swap</th>
+                                    <th>Magic</th>
+                                    <th>Spread</th>
+                                    <th>SpreadCost</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var deal in _deals)
+                                {
+                                    <tr>
+                                        <td>@deal.ID</td>
+                                        <td>@deal.OrderID</td>
+                                        <td>@deal.MtDealId</td>
+                                        <td>@deal.Symbol</td>
+                                        <td>@deal.Lots</td>
+                                        <td>@deal.Type</td>
+                                        <td>@deal.Entry</td>
+                                        <td>@deal.Price</td>
+                                        <td>@deal.Pnl</td>
+                                        <td>@deal.Commission</td>
+                                        <td>@deal.Swap</td>
+                                        <td>@deal.Magic</td>
+                                        <td>@deal.Spread</td>
+                                        <td>@deal.SpreadCost</td>
+                                        <td>
+                                            <div class="dropdown dropstart">
+                                                <a href="#" class="text-muted" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+                                                    <i class="ti ti-dots-vertical fs-6"></i>
+                                                </a>
+                                                <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                                                    <li>
+                                                        <a href="javascript:void(0)" class="dropdown-item d-flex align-items-center gap-3" @onclick="async () => await DealEditClick(deal.ID)">Edit</a>
+                                                    </li>
+                                                    <li>
+                                                        <a href ="javascript:void(0)" class="dropdown-item d-flex align-items-center gap-3" @onclick="async () => await DealDeleteClick(deal.ID)">Delete</a>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="card-body text-center">
+                    <h3 class="fw-semibold">No deals available for this order</h3>
+                    <p class="fw-normal mb-4 fs-4">Is this correct? Are you sure your signal hasn't entered a trade yet?</p>
+                    <a href="javascript:void(0)" class="btn btn-primary mb-8" @onclick="() => DealAddClick()">Add a deal</a>
+                </div>
+            }
+
+        </div>
+    </div>
+
+
+</div>
+
+
+<DealAddOrEditModal @ref="@_dealAddOrEditModal" OnClose="async () => await ReloadAsync()"></DealAddOrEditModal>
+
+<DealDeleteModal @ref="@_dealDeleteModal" OnClose="async () => await ReloadAsync()"></DealDeleteModal>
+
+
+@code {
+
+    [Parameter]
+    public long SignalId { get; set; }
+
+    [Parameter]
+    public long OrderId { get; set; }
+
+    private DealAddOrEditModal? _dealAddOrEditModal { get; set; } = null;
+    private DealDeleteModal? _dealDeleteModal { get; set; } = null;
+
+    private List<Entity.Deal> _deals = new List<Entity.Deal>();
+
+    protected async override Task OnInitializedAsync()
+    {
+        await ReloadAsync();
+    }
+
+    private async Task ReloadAsync()
+    {
+        _deals = await _dealRepository.GetAllBySignalId(692803787, SignalId, OrderId);
+    }
+
+    private async Task DealAddClick()
+    {
+        if (_dealAddOrEditModal != null)
+        {
+            await _dealAddOrEditModal.InitAsync(692803787, OrderId);
+        }
+    }
+
+    private async Task DealEditClick(long dealId)
+    {
+        if (_dealAddOrEditModal != null)
+        {
+            await _dealAddOrEditModal.InitAsync(692803787, OrderId, dealId);
+        }
+    }
+
+    private async Task DealDeleteClick(long dealId)
+    {
+        if (_dealDeleteModal != null)
+        {
+            await _dealDeleteModal.InitAsync(692803787, OrderId, dealId);
+        }
+    }
+}

@@ -101,6 +101,12 @@ public class OrderRepository(IDbContextFactory<JCTGDbContext> dbContextFactory)
     public async Task DeleteAsync(Order model)
     {
         using var context = await dbContextFactory.CreateDbContextAsync();
+
+        // Deals
+        var entitiesDeal = await context.Deal.Where(f => f.OrderID == model.ID).ToListAsync();
+        context.Deal.RemoveRange(entitiesDeal);
+
+        // Order
         var entity = await context.Order.FirstOrDefaultAsync(f => f.ClientID == model.ClientID && f.ID == model.ID);
         if (entity != null)
         {

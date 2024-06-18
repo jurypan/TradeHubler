@@ -22,4 +22,57 @@ public class DealRepository(IDbContextFactory<JCTGDbContext> dbContextFactory)
         using var context = await dbContextFactory.CreateDbContextAsync();
         return await context.Deal.Where(f => f.Order.ClientID == clientId && f.AccountBalance.HasValue && f.Symbol == symbol).OrderBy(f => f.DateCreated).ToListAsync();
     }
+
+    public async Task<List<Deal>> GetAllBySignalId(long accountId, long signalId, long orderId)
+    {
+        using var context = await dbContextFactory.CreateDbContextAsync();
+        return await context.Deal
+            .Include(f => f.Order)
+            .Include(f => f.Order.Signal)
+            .Include(f => f.Order.Client)
+            .Where(f => f.Order.Client != null
+                        && f.Order.Client.AccountID == accountId
+                        && f.Order.SignalID == signalId
+                        && f.OrderID == orderId
+                        )
+                        .OrderByDescending(f => f.DateCreated)
+                        .ToListAsync();
+    }
+
+    public async Task<Deal?> GetById(long accountId, long orderId, long id)
+    {
+        using var context = await dbContextFactory.CreateDbContextAsync();
+        return await context.Deal.FirstOrDefaultAsync(f => f.Order.Client != null && f.Order.Client.AccountID == accountId && f.OrderID == orderId && f.ID == id);
+    }
+
+    public async Task AddAsync(Deal model)
+    {
+        using var context = await dbContextFactory.CreateDbContextAsync();
+        await context.Deal.AddAsync(model);
+        await context.SaveChangesAsync();
+    }
+
+    public async Task EditAsync(Deal model)
+    {
+        using var context = await dbContextFactory.CreateDbContextAsync();
+        var entity = await context.Deal.FirstOrDefaultAsync(f => f.OrderID == model.OrderID && f.ID == model.ID);
+        if (entity != null)
+        {
+            context.Entry(entity).CurrentValues.SetValues(model);
+            await context.SaveChangesAsync();
+        }
+    }
+
+    public async Task DeleteAsync(Deal model)
+    {
+        using var context = await dbContextFactory.CreateDbContextAsync();
+
+        // Order
+        var entity = await context.Deal.FirstOrDefaultAsync(f => f.OrderID == model.OrderID && f.ID == model.ID);
+        if (entity != null)
+        {
+            context.Deal.Remove(entity);
+            await context.SaveChangesAsync();
+        }
+    }
 }

@@ -31,16 +31,6 @@ builder.Services.AddAuthorization(options =>
     options.FallbackPolicy = options.DefaultPolicy;
 });
 
-//builder.Services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
-//    .AddMicrosoftIdentityWebApp(builder.Configuration.GetSection("AzureAd"));
-//builder.Services.AddControllersWithViews().AddMicrosoftIdentityUI();
-//builder.Services.AddAuthorization(options =>
-//{
-//    options.FallbackPolicy = options.DefaultPolicy;
-//});
-//builder.Services.AddHttpContextAccessor();
-
-
 // Add services to the container.
 builder.Services.AddRazorPages();
 builder.Services.AddControllers()
@@ -75,6 +65,8 @@ builder.Services.AddTransient<SignalRepository>();
 builder.Services.AddTransient<OrderRepository>();
 builder.Services.AddTransient<LogRepository>();
 builder.Services.AddTransient<ClientRepository>();
+builder.Services.AddTransient<ClientPairRepository>();
+builder.Services.AddTransient<ClientRiskRepository>();
 builder.Services.AddTransient<DealRepository>();
 builder.Services.AddTransient<TradingviewAlertRepository>();
 builder.Services.AddTransient<MarketAbstentionRepository>();

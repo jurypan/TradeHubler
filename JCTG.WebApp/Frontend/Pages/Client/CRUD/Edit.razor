@@ -1,8 +1,10 @@
 ﻿@page "/Clients/{clientid:long}/Edit";
 @inject ClientRepository _clientRepository;
+@inject ClientRiskRepository _clientRiskRepository;
 @inject NavigationManager NavManager
 @using JCTG.Models;
 @using JCTG.WebApp.Frontend.Components.Widget;
+@using JCTG.WebApp.Frontend.Components.Modal;
 
 <div class="container-fluid mw-100">
 
@@ -45,7 +47,7 @@
                         To use add <mark><code>.r-separator</code></mark> class in the form with form styling.
                     </p>
                 </div>
-                <EditForm Model="@client" OnValidSubmit="@SubmitFormClientAsync" class="form-horizontal r-separator">
+                <EditForm Model="@client" OnValidSubmit="@SubmitAsync" class="form-horizontal r-separator">
                     <DataAnnotationsValidator />
                     <ValidationSummary />
                     <AntiforgeryToken />
@@ -120,216 +122,6 @@
         </div>
     </div>
 
-    <div class="modal fade @(!_hideModifyModalPair && pair != null ? "show" : "hide")" tabindex="-1" style="display:@(!_hideModifyModalPair && pair != null ? "block" : "hidden");">
-        <div class=" modal-dialog modal-dialog-scrollable modal-lg" role="document">
-            <div class="modal-content">
-                <div class="modal-header modal-colored-header bg-primary text-white">
-                    <h4 class="modal-title text-white" id="primary-header-modalLabel"> Pair </h4>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" @onclick="() => ToggleModifyModalPair()"></button>
-                </div>
-                <EditForm Model="@pair" OnValidSubmit="@SubmitModalPairAsync">
-                    <div class="modal-body">
-                        <DataAnnotationsValidator />
-                        <ValidationSummary />
-                        <AntiforgeryToken />
-                        <div class="row">
-                            <div class="col-md-4">
-                                <div class="mb-3">
-                                    <label class="form-label" for="ticker-in-tradingview">Ticker in tradingview</label>
-                                    <InputText class="form-control" @bind-Value="pair.TickerInTradingView" />
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="mb-3">
-                                    <label class="form-label" for="ticker-in-metatrader">Ticker in metatrader</label>
-                                    <InputText class="form-control" @bind-Value="pair.TickerInMetatrader" />
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="mb-3">
-                                    <label class="form-label" for="timeframe">Timeframe</label>
-                                    <InputSelect class="form-select col-12" @bind-Value="pair.Timeframe">
-                                        <option>Choose...</option>
-                                        <option value="M5">M5</option>
-                                        <option value="M10">M10</option>
-                                        <option value="M15">M15</option>
-                                        <option value="M30">M30</option>
-                                        <option value="M45">M45</option>
-                                        <option value="H1">H1</option>
-                                        <option value="H4">H4</option>
-                                        <option value="D">D</option>
-                                    </InputSelect>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-4">
-                                <div class="mb-3">
-                                    <label class="form-label" for="strategy">Strategy</label>
-                                    <InputSelect class="form-select col-12" @bind-Value="pair.StrategyType">
-                                        <option>Choose...</option>
-                                        @foreach (var item in Enum.GetValues(typeof(StrategyType)))
-                                        {
-                                            <option value="@item">@item</option>
-                                        }
-                                    </InputSelect>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="mb-3">
-                                    <label class="form-label" for="risk">Risk</label>
-                                    <InputText class="form-control" @bind-Value="pair.RiskAsString" />
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="mb-3">
-                                    <label class="form-label" for="risk">SL to BE after R</label>
-                                    <InputText class="form-control" @bind-Value="pair.SLtoBEafterRAsString" />
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-4">
-                                <div class="mb-3">
-                                    <label class="form-label" for="max-spread">Max Spread</label>
-                                    <InputText class="form-control" @bind-Value="pair.MaxSpreadAsString" />
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="mb-3">
-                                    <label class="form-label" for="sl-multiplier">SLMultiplier</label>
-                                    <InputText class="form-control" @bind-Value="pair.SLMultiplierAsString" />
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="mb-3">
-                                    <label class="form-label" for="max-lot-size">Max Lotsize</label>
-                                    <InputText class="form-control" @bind-Value="pair.MaxLotSizeAsString" />
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-4">
-                                <div class="mb-3">
-                                    <label class="form-label" for="order-exec-type">Order Exec Type</label>
-                                    <InputSelect class="form-select col-12" @bind-Value="pair.OrderExecType">
-                                        <option>Choose...</option>
-                                        @foreach (var Item in Enum.GetValues(typeof(OrderExecType)))
-                                        {
-                                            <option value="@Item">@Item</option>
-                                        }
-                                    </InputSelect>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="mb-3">
-                                    <div class="form-check py-2 form-switch">
-                                        <InputCheckbox class="form-check-input" @bind-Value="pair.CancelStopOrLimitOrderWhenNewSignal" />
-                                        <label class="form-check-label" for="flexSwitchCheckDefault">
-                                            Cancel STOP or LIMIT order when new signal
-                                        </label>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="mb-3">
-                                    <label class="form-label" for="sl-multiplier">NumberOfHistoricalBarsRequested</label>
-                                    <InputText class="form-control" @bind-Value="pair.NumberOfHistoricalBarsRequestedAsString" />
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-4">
-                                <div class="mb-3">
-                                    <label class="form-label" for="max-spread">CloseAllTradesAt</label>
-                                    <InputText class="form-control" @bind-Value="pair.CloseAllTradesAt" />
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="mb-3">
-                                    <label class="form-label" for="sl-multiplier">DoNotOpenTradeXMinutesBeforeClose</label>
-                                    <InputText class="form-control" @bind-Value="pair.DoNotOpenTradeXMinutesBeforeCloseAsString" />
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="mb-3">
-                                    <label class="form-label" for="max-spread">Spread Entry</label>
-                                    <InputSelect class="form-select col-12" @bind-Value="pair.SpreadEntry">
-                                        <option>Choose...</option>
-                                        @foreach (var Item in Enum.GetValues(typeof(SpreadExecType)))
-                                        {
-                                            <option value="@Item">@Item</option>
-                                        }
-                                    </InputSelect>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-4">
-                                <div class="mb-3">
-                                    <label class="form-label" for="sl-multiplier">Spread SL</label>
-                                    <InputSelect class="form-select col-12" @bind-Value="pair.SpreadSL">
-                                        <option>Choose...</option>
-                                        @foreach (var Item in Enum.GetValues(typeof(SpreadExecType)))
-                                        {
-                                            <option value="@Item">@Item</option>
-                                        }
-                                    </InputSelect>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="mb-3">
-                                    <label class="form-label" for="max-spread">Spread TP</label>
-                                    <InputSelect class="form-select col-12" @bind-Value="pair.SpreadTP">
-                                        <option>Choose...</option>
-                                        @foreach (var Item in Enum.GetValues(typeof(SpreadExecType)))
-                                        {
-                                            <option value="@Item">@Item</option>
-                                        }
-                                    </InputSelect>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="mb-3">
-                                    <label class="form-label" for="sl-multiplier">Risk Min X Times The Spread</label>
-                                    <InputText class="form-control" @bind-Value="pair.RiskMinXTimesTheSpreadAsString" />
-                                </div>
-                            </div>
-                        </div>
-
-                    </div>
-                    <div class="modal-footer">
-                        <div class="d-flex gap-6 m-0">
-                            <button type="submit" class="btn btn-primary  rounded-pill px-4"> Save </button>
-                            <button class="btn bg-danger-subtle text-danger rounded-pill" @onclick="() => ToggleModifyModalPair()"> Discard </button>
-                        </div>
-                    </div>
-                </EditForm>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal fade  @(!_hideDeleteModalPair ? "show" : "hide")" tabindex="-1" style="display:@(!_hideDeleteModalPair ? "block" : "hidden");">
-        <div class="modal-dialog modal-dialog-scrollable modal-lg">
-            <div class="modal-content">
-                <div class="modal-header modal-colored-header bg-danger text-white">
-                    <h4 class="modal-title text-white" id="danger-header-modalLabel">Delete Pair</h4>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" @onclick="() => ToggleDeleteModalPair()"></button>
-                </div>
-                <div class="modal-body">
-                    <h5 class="mt-0">Delete a pair?</h5>
-                    <p>Are you sure you want to delete this pair?</p>
-                </div>
-                <div class="modal-footer">
-                    <div class="d-flex gap-6 m-0">
-                        <button type="submit" class="btn btn-danger  rounded-pill px-4" @onclick="async () => await SubmitModalPairAsync()"> Delete </button>
-                        <button class="btn bg-danger-subtle text-danger rounded-pill" @onclick="() => ToggleDeleteModalPair()"> Discard </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <div class="card w-100 position-relative overflow-hidden">
         <div class="card card-body">
             <div class="row">
@@ -337,7 +129,7 @@
                     <h5 class="card-title fw-semibold mb-0 lh-sm">Pairs</h5>
                 </div>
                 <div class="col-md-8 col-xl-9 text-end d-flex justify-content-md-end justify-content-center mt-3 mt-md-0">
-                    <a class="btn btn-primary d-flex align-items-center" @onclick="() => AddAPairClick()">Add a pair</a>
+                    <a href="javascript:void(0)" class="btn btn-primary d-flex align-items-center" @onclick="() => ClientPairAddClick()">Add a pair</a>
                 </div>
             </div>
         </div>
@@ -416,13 +208,13 @@
                                                 </a>
                                                 <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
                                                     <li>
-                                                        <a class="dropdown-item d-flex align-items-center gap-3" @onclick="() => EditAPairClick(pair.ID)">Edit</a>
+                                                        <a href="javascript:void(0)" class="dropdown-item d-flex align-items-center gap-3" @onclick="() => ClientPairEditClick(pair.ID)">Edit</a>
                                                     </li>
                                                     <li>
-                                                        <a class="dropdown-item d-flex align-items-center gap-3" @onclick="() => DeleteAPairClick(pair.ID)">Delete</a>
-                                                    </li>
+                                                        <a href="javascript:void(0)" class="dropdown-item d-flex align-items-center gap-3" @onclick="() => ClientPairDeleteClick(pair.ID)">Delete</a>
+                                                    </li> 
                                                     <li>
-                                                        <a class="dropdown-item d-flex align-items-center gap-3" @onclick="async () => await CopyAPairClickAsync(pair.ID)">Copy</a>
+                                                        <a href="javascript:void(0)" class="dropdown-item d-flex align-items-center gap-3" @onclick="async () => await ClientPairCopyClick(pair.ID)">Copy</a>
                                                     </li>
                                                 </ul>
                                             </div>
@@ -439,7 +231,7 @@
                 <div class="card-body text-center">
                     <h3 class="fw-semibold">No pairs available for this client</h3>
                     <p class="fw-normal mb-4 fs-4">Without pairs it's impossible to take trades</p>
-                    <a class="btn btn-primary mb-8" @onclick="() => AddAPairClick()">Add a pair</a>
+                    <a href="javascript:void(0)" class="btn btn-primary mb-8" @onclick="() => ClientPairAddClick()">Add a pair</a>
                 </div>
             }
         }
@@ -452,65 +244,6 @@
 
     </div>
 
-    <div class="modal fade @(!_hideModifyModalRisk && risk != null ? "show" : "hide")" tabindex="-1" style="display:@(!_hideModifyModalRisk && risk != null ? "block" : "hidden");">
-        <div class=" modal-dialog modal-dialog-scrollable modal-lg" role="document">
-            <div class="modal-content">
-                <div class="modal-header modal-colored-header bg-primary text-white">
-                    <h4 class="modal-title text-white" id="primary-header-modalLabel"> Risk Definition </h4>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" @onclick="() => ToggleModifyModalRisk()"></button>
-                </div>
-                <EditForm Model="@risk" OnValidSubmit="@SubmitModalRiskAsync">
-                    <div class="modal-body">
-                        <DataAnnotationsValidator />
-                        <ValidationSummary />
-                        <AntiforgeryToken />
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label class="form-label" for="ticker-in-tradingview">Procent</label>
-                                    <InputText class="form-control" @bind-Value="risk.ProcentAsString" />
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label class="form-label" for="ticker-in-metatrader">Multiplier</label>
-                                    <InputText class="form-control" @bind-Value="risk.MultiplierAsString" />
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <div class="d-flex gap-6 m-0">
-                            <button type="submit" class="btn btn-primary  rounded-pill px-4"> Save </button>
-                            <button class="btn bg-danger-subtle text-danger rounded-pill" @onclick="() => ToggleModifyModalRisk()"> Discard </button>
-                        </div>
-                    </div>
-                </EditForm>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal fade  @(!_hideDeleteModalRisk ? "show" : "hide")" tabindex="-1" style="display:@(!_hideDeleteModalRisk ? "block" : "hidden");">
-        <div class="modal-dialog modal-dialog-scrollable modal-lg">
-            <div class="modal-content">
-                <div class="modal-header modal-colored-header bg-danger text-white">
-                    <h4 class="modal-title text-white" id="danger-header-modalLabel">Delete a risk definition</h4>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" @onclick="() => ToggleDeleteModalRisk()"></button>
-                </div>
-                <div class="modal-body">
-                    <h5 class="mt-0">Delete a risk defintion?</h5>
-                    <p>Are you sure you want to delete this risk defintion?</p>
-                </div>
-                <div class="modal-footer">
-                    <div class="d-flex gap-6 m-0">
-                        <button type="submit" class="btn btn-danger  rounded-pill px-4" @onclick="async () => await SubmitModalRiskAsync()"> Delete </button>
-                        <button class="btn bg-danger-subtle text-danger rounded-pill" @onclick="() => ToggleDeleteModalRisk()"> Discard </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <div class="card w-100 position-relative overflow-hidden">
         <div class="card card-body">
             <div class="row">
@@ -518,7 +251,7 @@
                     <h5 class="card-title fw-semibold mb-0 lh-sm">Risks</h5>
                 </div>
                 <div class="col-md-8 col-xl-9 text-end d-flex justify-content-md-end justify-content-center mt-3 mt-md-0">
-                    <a class="btn btn-primary d-flex align-items-center" @onclick="() => AddARiskClick()">Add a risk definition</a>
+                    <a href="javascript:void(0)" class="btn btn-primary d-flex align-items-center" @onclick="() => ClientRiskAddClick()">Add a risk definition</a>
                 </div>
             </div>
         </div>
@@ -557,10 +290,10 @@
                                                 </a>
                                                 <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
                                                     <li>
-                                                        <a class="dropdown-item d-flex align-items-center gap-3" @onclick="() => EditARiskClick(risk.ID)">Edit</a>
+                                                        <a href="javascript:void(0)" class="dropdown-item d-flex align-items-center gap-3" @onclick="() => ClientRiskEditClick(risk.ID)">Edit</a>
                                                     </li>
                                                     <li>
-                                                        <a class="dropdown-item d-flex align-items-center gap-3" @onclick="() => DeleteARiskClick(risk.ID)">Delete</a>
+                                                        <a href="javascript:void(0)" class="dropdown-item d-flex align-items-center gap-3" @onclick="() => ClientRiskDeleteClick(risk.ID)">Delete</a>
                                                     </li>
                                                 </ul>
                                             </div>
@@ -577,7 +310,7 @@
                 <div class="card-body text-center">
                     <h3 class="fw-semibold">No risk is defined for this client</h3>
                     <p class="fw-normal mb-4 fs-4">Without at least 1 risk definition, it's impossible to take trades</p>
-                    <a class="btn btn-primary mb-8" @onclick="async () => await AddARiskTemplateClickAsync()">Add default template</a>
+                    <a href="javascript:void(0)" class="btn btn-primary mb-8" @onclick="async () => await ClientRiskAddTemplateClick()">Add default template</a>
                 </div>
             }
         }
@@ -591,6 +324,13 @@
 </div>
 
 
+<ClientPairAddOrEditModal @ref="@_clientPairAddOrEditModal" OnClose="async () => await ReloadAsync()"></ClientPairAddOrEditModal>
+
+<ClientPairDeleteModal @ref="@_clientPairDeleteModal" OnClose="async () => await ReloadAsync()"></ClientPairDeleteModal>
+
+<ClientRiskAddOrEditModal @ref="@_clientRiskAddOrEditModal" OnClose="async () => await ReloadAsync()"></ClientRiskAddOrEditModal>
+
+<ClientRiskDeleteModal @ref="@_clientRiskDeleteModal" OnClose="async () => await ReloadAsync()"></ClientRiskDeleteModal>
 
 @code {
 
@@ -598,256 +338,104 @@
     public long ClientId { get; set; }
 
     [SupplyParameterFromForm]
-    private ClientPair pair { get; set; } = new();
-
-    [SupplyParameterFromForm]
-    private ClientRisk risk { get; set; } = new();
-
-    [SupplyParameterFromForm]
     private Entity.Client client { get; set; } = new Client() { Name = string.Empty };
 
-    private bool _hideModifyModalPair { get; set; } = true;
-    private bool _hideDeleteModalPair { get; set; } = true;
-    private bool _hideModifyModalRisk { get; set; } = true;
-    private bool _hideDeleteModalRisk { get; set; } = true;
 
-    private CrudState crudPairState { get; set; } = CrudState.None;
-    private CrudState crudRiskState { get; set; } = CrudState.None;
-
-
+    private ClientPairAddOrEditModal? _clientPairAddOrEditModal { get; set; } = null;
+    private ClientPairDeleteModal? _clientPairDeleteModal { get; set; } = null;
+    private ClientRiskAddOrEditModal? _clientRiskAddOrEditModal { get; set; } = null;
+    private ClientRiskDeleteModal? _clientRiskDeleteModal { get; set; } = null;
 
 
     protected async override Task OnInitializedAsync()
     {
+        await ReloadAsync();
+    }
+
+    private async Task ReloadAsync()
+    {
         client = await _clientRepository.GetByIdAsync(692803787, ClientId);
     }
 
-    private void AddAPairClick()
+    private async Task ClientPairAddClick()
     {
-        crudPairState = CrudState.Add;
-        ToggleModifyModalPair();
-        pair = new();
-    }
-
-    private void EditAPairClick(long id)
-    {
-        crudPairState = CrudState.Edit;
-        ToggleModifyModalPair();
-        if (client != null)
+        if (_clientPairAddOrEditModal != null)
         {
-            pair = client.Pairs.First(f => f.ID == id);
-        }
-    }
-    private async Task CopyAPairClickAsync(long id)
-    {
-        if (client != null)
-        {
-            pair = client.Pairs.First(f => f.ID == id);
-            pair = await _clientRepository.CopyPairAsync(pair);
-            ToggleModifyModalPair();
-            client = await _clientRepository.GetByIdAsync(692803787, ClientId);
-            crudPairState = CrudState.Edit;
+            await _clientPairAddOrEditModal.InitAsync(692803787, ClientId);
         }
     }
 
-    private void DeleteAPairClick(long id)
+    private async Task ClientPairEditClick(long id)
     {
-        crudPairState = CrudState.Delete;
-        ToggleDeleteModalPair();
-        if (client != null)
+        if (_clientPairAddOrEditModal != null)
         {
-            pair = client.Pairs.First(f => f.ID == id);
+            await _clientPairAddOrEditModal.InitAsync(692803787, ClientId, id);
         }
     }
 
-    private void ToggleModifyModalPair()
+    private async Task ClientPairCopyClick(long id)
     {
-        _hideModifyModalPair = !_hideModifyModalPair;
-    }
-
-    private void ToggleDeleteModalPair()
-    {
-        _hideDeleteModalPair = !_hideDeleteModalPair;
-    }
-
-    private async Task SubmitModalPairAsync()
-    {
-        if (pair != null)
+        if (_clientPairAddOrEditModal != null)
         {
-            if (crudPairState == CrudState.Add)
-            {
-                pair.ClientID = ClientId;
-                await _clientRepository.AddPairAsync(pair);
-            }
-            else if (crudPairState == CrudState.Edit)
-            {
-                pair.ClientID = ClientId;
-                await _clientRepository.EditPairAsync(pair);
-            }
-            else if (crudPairState == CrudState.Delete)
-            {
-                pair.ClientID = ClientId;
-                await _clientRepository.DeletePairAsync(pair);
-            }
+            await _clientPairAddOrEditModal.CopyAsync(692803787, ClientId, id);
+        }
+    }
 
-            crudPairState = CrudState.None;
-            pair = new();
-            _hideModifyModalPair = true;
-            _hideDeleteModalPair = true;
-            client = await _clientRepository.GetByIdAsync(692803787, ClientId);
+    private async Task ClientPairDeleteClick(long id)
+    {
+        if (_clientPairDeleteModal != null)
+        {
+            await _clientPairDeleteModal.InitAsync(692803787, ClientId, id);
         }
     }
 
 
-    private void AddARiskClick()
+    private async Task ClientRiskAddClick()
     {
-        crudRiskState = CrudState.Add;
-        ToggleModifyModalRisk();
-        risk = new();
-    }
-
-    private async Task AddARiskTemplateClickAsync()
-    {
-        await _clientRepository.AddRiskAsync(new ClientRisk()
-            {
-                ClientID = ClientId,
-                DateCreated = DateTime.UtcNow,
-                Procent = -6,
-                Multiplier = 0.25,
-            });
-        await _clientRepository.AddRiskAsync(new ClientRisk()
-            {
-                ClientID = ClientId,
-                DateCreated = DateTime.UtcNow,
-                Procent = -5,
-                Multiplier = 0.4,
-            });
-        await _clientRepository.AddRiskAsync(new ClientRisk()
-            {
-                ClientID = ClientId,
-                DateCreated = DateTime.UtcNow,
-                Procent = -4,
-                Multiplier = 0.5,
-            });
-        await _clientRepository.AddRiskAsync(new ClientRisk()
-            {
-                ClientID = ClientId,
-                DateCreated = DateTime.UtcNow,
-                Procent = -3,
-                Multiplier = 0.6,
-            });
-        await _clientRepository.AddRiskAsync(new ClientRisk()
-            {
-                ClientID = ClientId,
-                DateCreated = DateTime.UtcNow,
-                Procent = -2,
-                Multiplier = 0.75,
-            });
-        await _clientRepository.AddRiskAsync(new ClientRisk()
-            {
-                ClientID = ClientId,
-                DateCreated = DateTime.UtcNow,
-                Procent = -1,
-                Multiplier = 0.85,
-            });
-        await _clientRepository.AddRiskAsync(new ClientRisk()
-            {
-                ClientID = ClientId,
-                DateCreated = DateTime.UtcNow,
-                Procent = 0,
-                Multiplier = 1,
-            });
-        await _clientRepository.AddRiskAsync(new ClientRisk()
-            {
-                ClientID = ClientId,
-                DateCreated = DateTime.UtcNow,
-                Procent = 1,
-                Multiplier = 1.1,
-            });
-        await _clientRepository.AddRiskAsync(new ClientRisk()
-            {
-                ClientID = ClientId,
-                DateCreated = DateTime.UtcNow,
-                Procent = 2,
-                Multiplier = 1.25,
-            });
-        await _clientRepository.AddRiskAsync(new ClientRisk()
-            {
-                ClientID = ClientId,
-                DateCreated = DateTime.UtcNow,
-                Procent = 3,
-                Multiplier = 1.4,
-            });
-        await _clientRepository.AddRiskAsync(new ClientRisk()
-            {
-                ClientID = ClientId,
-                DateCreated = DateTime.UtcNow,
-                Procent = 4,
-                Multiplier = 1.5,
-            });
-        client = await _clientRepository.GetByIdAsync(692803787, ClientId);
-    }
-
-    private void EditARiskClick(long id)
-    {
-        crudRiskState = CrudState.Edit;
-        ToggleModifyModalRisk();
-        if (client != null)
+        if (_clientRiskAddOrEditModal != null)
         {
-            risk = client.Risks.First(f => f.ID == id);
+            await _clientRiskAddOrEditModal.InitAsync(692803787, ClientId);
         }
     }
 
-    private void DeleteARiskClick(long id)
+    private async Task ClientRiskEditClick(long id)
     {
-        crudRiskState = CrudState.Delete;
-        ToggleDeleteModalRisk();
-        if (client != null)
+        if (_clientRiskAddOrEditModal != null)
         {
-            risk = client.Risks.First(f => f.ID == id);
+            await _clientRiskAddOrEditModal.InitAsync(692803787, ClientId, id);
         }
     }
 
-    private void ToggleModifyModalRisk()
+    private async Task ClientRiskCopyClick(long id)
     {
-        _hideModifyModalRisk = !_hideModifyModalRisk;
-    }
-
-    private void ToggleDeleteModalRisk()
-    {
-        _hideDeleteModalRisk = !_hideDeleteModalRisk;
-    }
-
-    private async Task SubmitModalRiskAsync()
-    {
-        if (risk != null)
+        if (_clientRiskAddOrEditModal != null)
         {
-            if (crudRiskState == CrudState.Add)
-            {
-                risk.ClientID = ClientId;
-                await _clientRepository.AddRiskAsync(risk);
-            }
-            else if (crudRiskState == CrudState.Edit)
-            {
-                risk.ClientID = ClientId;
-                await _clientRepository.EditRiskAsync(risk);
-            }
-            else if (crudRiskState == CrudState.Delete)
-            {
-                risk.ClientID = ClientId;
-                await _clientRepository.DeleteRiskAsync(risk);
-            }
-
-            crudRiskState = CrudState.None;
-            risk = new();
-            _hideModifyModalRisk = true;
-            _hideDeleteModalRisk = true;
-            client = await _clientRepository.GetByIdAsync(692803787, ClientId);
+            await _clientRiskAddOrEditModal.CopyAsync(692803787, ClientId, id);
         }
     }
 
+    private async Task ClientRiskDeleteClick(long id)
+    {
+        if (_clientRiskDeleteModal != null)
+        {
+            await _clientRiskDeleteModal.InitAsync(692803787, ClientId, id);
+        }
+    }
 
-    private async Task SubmitFormClientAsync()
+    private async Task ClientRiskAddTemplateClick()
+    {
+        await _clientRiskRepository.AddTemplateAsync(ClientId);
+        await ReloadAsync();
+    }
+
+
+
+
+
+
+
+
+    private async Task SubmitAsync()
     {
         if (client != null)
         {

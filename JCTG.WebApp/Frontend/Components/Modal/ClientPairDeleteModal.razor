@@ -1,0 +1,80 @@
+﻿@inject ClientPairRepository _clientPairRepository;
+@using JCTG.Models;
+
+<div class="modal fade @_cssClass" tabindex="-1" style="display:@_display">
+    <div class="modal-dialog modal-dialog-scrollable modal-lg">
+        <div class="modal-content">
+            <div class="modal-header modal-colored-header bg-danger text-white">
+                <h4 class="modal-title text-white" id="danger-header-modalLabel">Delete a pair</h4>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" @onclick="async () => await CloseAsync()"></button>
+            </div>
+            <div class="modal-body">
+                <h5 class="mt-0">Delete a pair?</h5>
+                <p>Are you sure you want to delete this pair?</p>
+            </div>
+            <div class="modal-footer">
+                <div class="d-flex gap-6 m-0">
+                    <button type="submit" class="btn btn-danger  rounded-pill px-4" @onclick="async () => await SubmitAsync()"> Delete </button>
+                    <button class="btn bg-danger-subtle text-danger rounded-pill" @onclick="async () => await CloseAsync()"> Discard </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public EventCallback OnClose { get; set; }
+
+    [Parameter]
+    public EventCallback OnOpen { get; set; }
+
+    [SupplyParameterFromForm]
+    private Entity.ClientPair model { get; set; } = new();
+    private CrudState _crudState { get; set; } = CrudState.None;
+
+    private string _display = "none;";
+    private string _cssClass = "hide";
+
+    public async Task OpenAsync()
+    {
+        _display = "block;";
+        _cssClass = "show";
+        await OnOpen.InvokeAsync();
+        StateHasChanged();
+    }
+
+    public async Task CloseAsync()
+    {
+        _display = "none;";
+        _cssClass = "hide";
+        await OnClose.InvokeAsync();
+        StateHasChanged();
+    }
+
+    public async Task InitAsync(int accountId, long clientId, long id)
+    {
+        var dealNew = await _clientPairRepository.GetById(accountId, clientId, id);
+        if (dealNew != null)
+        {
+            model = dealNew;
+            await OpenAsync();
+            _crudState = CrudState.Delete;
+        }
+    }
+
+    public async Task SubmitAsync()
+    {
+        if (model != null)
+        {
+            if (_crudState == CrudState.Delete)
+            {
+                await _clientPairRepository.DeleteAsync(model);
+            }
+
+            _crudState = CrudState.None;
+            model = new();
+            await CloseAsync();
+        }
+    }
+}

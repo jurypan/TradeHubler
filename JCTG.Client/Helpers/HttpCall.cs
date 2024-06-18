@@ -106,5 +106,10 @@ namespace JCTG.Client
         {
             await PostJsonAsync("https://app.tradehubler.com/api/OnMarketAbstentionEvent", JsonConvert.SerializeObject(model));
         }
+
+        public static async Task OnMarketAbstentionEvent(OnMetatraderMarketAbstentionEvent model)
+        {
+            await PostJsonAsync("https://app.tradehubler.com/api/OnMetatraderMarketAbstentionEvent", JsonConvert.SerializeObject(model));
+        }
     }
 }

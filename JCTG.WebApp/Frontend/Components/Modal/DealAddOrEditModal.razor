@@ -1,0 +1,191 @@
+﻿@inject DealRepository _dealRepository;
+@using JCTG.Models;
+
+
+<div class="modal fade @_cssClass" tabindex="-1" style="display:@_display">
+    <EditForm Model="@model" OnValidSubmit="@SubmitAsync">
+        <div class=" modal-dialog modal-dialog-scrollable modal-xl">
+            <div class="modal-content">
+                <div class="modal-header modal-colored-header bg-primary text-white">
+                    <h4 class="modal-title text-white" id="primary-header-modalLabel"> Deal </h4>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" @onclick="async () => await CloseAsync()"></button>
+                </div>
+                <div class="modal-body">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary />
+                    <AntiforgeryToken />
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">MT Deal ID</label>
+                                <InputText class="form-control" @bind-Value="model.MtDealIdAsString" />
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Symbol</label>
+                                <InputText class="form-control" @bind-Value="model.Symbol" />
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Lots</label>
+                                <InputText class="form-control" @bind-Value="model.LotsAsString" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Type</label>
+                                <InputText class="form-control" @bind-Value="model.Type" />
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Entry</label>
+                                <InputText class="form-control" @bind-Value="model.Entry" />
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Price</label>
+                                <InputText class="form-control" @bind-Value="model.PriceAsString" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Pnl</label>
+                                <InputText class="form-control" @bind-Value="model.PnlAsString" />
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Commission</label>
+                                <InputText class="form-control" @bind-Value="model.CommissionAsString" />
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Swap</label>
+                                <InputText class="form-control" @bind-Value="model.SwapAsString" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Magic</label>
+                                <InputText class="form-control" @bind-Value="model.MagicAsString" />
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Account Balance</label>
+                                <InputText class="form-control" @bind-Value="model.AccountBalanceAsString" />
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Account Equity</label>
+                                <InputText class="form-control" @bind-Value="model.AccountEquityAsString" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Spread</label>
+                                <InputText class="form-control" @bind-Value="model.SpreadAsString" />
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Spread Cost</label>
+                                <InputText class="form-control" @bind-Value="model.SpreadCostAsString" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <div class="d-flex gap-6 m-0">
+                        <button type="submit" class="btn btn-primary  rounded-pill px-4"> Save </button>
+                        <button class="btn bg-danger-subtle text-danger rounded-pill" @onclick="async () => await CloseAsync()"> Discard </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </EditForm>
+</div>
+
+@code {
+    [Parameter]
+    public EventCallback OnClose { get; set; }
+
+    [Parameter]
+    public EventCallback OnOpen { get; set; }
+
+    [SupplyParameterFromForm]
+    private Entity.Deal model { get; set; } = new();
+    private CrudState _crudState { get; set; } = CrudState.None;
+
+    private string _display = "none;";
+    private string _cssClass = "hide";
+
+    public async Task OpenAsync()
+    {
+        _display = "block;";
+        _cssClass = "show";
+        await OnOpen.InvokeAsync();
+        StateHasChanged();
+    }
+
+    public async Task CloseAsync()
+    {
+        _display = "none;";
+        _cssClass = "hide";
+        await OnClose.InvokeAsync();
+        StateHasChanged();
+    }
+
+    public async Task InitAsync(int accountId, long orderId, long? id = null)
+    {
+        if (id.HasValue)
+        {
+            var modelNew = await _dealRepository.GetById(accountId, orderId, id.Value);
+            if (modelNew != null)
+            {
+                model = modelNew;
+                await OpenAsync();
+                _crudState = CrudState.Edit;
+            }
+        }
+        else
+        {
+            model = new() { Symbol = "", Type = "" };
+            await OpenAsync();
+            _crudState = CrudState.Add;
+        }
+    }
+
+    public async Task SubmitAsync()
+    {
+        if (model != null)
+        {
+            if (_crudState == CrudState.Add)
+            {
+                await _dealRepository.AddAsync(model);
+            }
+            else if (_crudState == CrudState.Edit)
+            {
+                await _dealRepository.EditAsync(model);
+            }
+
+            _crudState = CrudState.None;
+            model = new() { Symbol = "", Type = "" };
+            await CloseAsync();
+        }
+    }
+}

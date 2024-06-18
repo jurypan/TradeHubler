@@ -25,7 +25,7 @@
                             </li>
                             <li class="breadcrumb-item" aria-current="page">
                                 <a class="text-primary text-decoration-none" href="/Signals">
-                                    Signals
+                                    Signal @SignalId
                                 </a>
                             </li>
                             <li class="breadcrumb-item d-flex justify-content-center align-items-center ps-0">
@@ -88,10 +88,16 @@
                                                 </a>
                                                 <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
                                                     <li>
-                                                        <a class="dropdown-item d-flex align-items-center gap-3" @onclick="async () => await OrderEditClick(order.ID)">Edit</a>
+                                                        <a href="javascript:void(0)" class="dropdown-item d-flex align-items-center gap-3" @onclick="async () => await OrderEditClick(order.ID)">Edit</a>
                                                     </li>
                                                     <li>
-                                                        <a class="dropdown-item d-flex align-items-center gap-3" @onclick="async () => await OrderLogClick(order.ClientID, order.SignalID)">Log</a>
+                                                        <a href="javascript:void(0)" class="dropdown-item d-flex align-items-center gap-3" @onclick="async () => await OrderDeleteClick(order.ID)">Delete</a>
+                                                    </li>
+                                                    <li>
+                                                        <a href="/Signals/@order.SignalID/Order/@order.ID/Deals" class="dropdown-item d-flex align-items-center gap-3">Deals</a>
+                                                    </li>
+                                                    <li>
+                                                        <a href="javascript:void(0)" class="dropdown-item d-flex align-items-center gap-3" @onclick="async () => await OrderLogClick(order.ClientID, order.SignalID)">Log</a>
                                                     </li>
                                                 </ul>
                                             </div>
@@ -160,13 +166,13 @@
                                                 </a>
                                                 <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
                                                     <li>
-                                                        <a class="dropdown-item d-flex align-items-center gap-3" @onclick="async () => await MarketAbstentionEditClick(marketAbstention.ID)">Edit</a>
+                                                        <a href="javascript:void(0)" class="dropdown-item d-flex align-items-center gap-3" @onclick="async () => await MarketAbstentionEditClick(marketAbstention.ID)">Edit</a>
                                                     </li>
                                                     <li>
-                                                        <a class="dropdown-item d-flex align-items-center gap-3" @onclick="async () => await MarketAbstentionDeleteClick(marketAbstention.ID)">Delete</a>
+                                                        <a href="javascript:void(0)" class="dropdown-item d-flex align-items-center gap-3" @onclick="async () => await MarketAbstentionDeleteClick(marketAbstention.ID)">Delete</a>
                                                     </li>
                                                     <li>
-                                                        <a class="dropdown-item d-flex align-items-center gap-3" @onclick="async () => await OrderLogClick(marketAbstention.ClientID, marketAbstention.SignalID)">Log</a>
+                                                        <a href="javascript:void(0)" class="dropdown-item d-flex align-items-center gap-3" @onclick="async () => await OrderLogClick(marketAbstention.ClientID, marketAbstention.SignalID)">Log</a>
                                                     </li>
                                                 </ul>
                                             </div>
@@ -193,6 +199,8 @@
 
 <OrderAddOrEditModal @ref="@_orderAddOrEditModal" OnClose="async () => await ReloadAsync()"></OrderAddOrEditModal>
 
+<OrderDeleteModal @ref="@_orderDeleteModal" OnClose="async () => await ReloadAsync()"></OrderDeleteModal>
+
 <MarketAbstentionAddOrEditModal @ref="@_marketAbstentionAddOrEditModal" OnClose="async () => await ReloadAsync()"></MarketAbstentionAddOrEditModal>
 
 <MarketAbstentionDeleteModal @ref="@_marketAbstentionDeleteModal" OnClose="async () => await ReloadAsync()"></MarketAbstentionDeleteModal>
@@ -205,6 +213,7 @@
     public long SignalId { get; set; }
 
     private OrderAddOrEditModal? _orderAddOrEditModal { get; set; } = null;
+    private OrderDeleteModal? _orderDeleteModal { get; set; } = null;
     private MarketAbstentionAddOrEditModal? _marketAbstentionAddOrEditModal { get; set; } = null;
     private MarketAbstentionDeleteModal? _marketAbstentionDeleteModal { get; set; } = null;
     private OrderLogModal? _orderLogModal { get; set; } = null;
@@ -246,6 +255,14 @@
         if (_orderAddOrEditModal != null)
         {
             await _orderAddOrEditModal.InitAsync(692803787, orderId);
+        }
+    }
+
+    private async Task OrderDeleteClick(long orderId)
+    {
+        if (_orderDeleteModal != null)
+        {
+            await _orderDeleteModal.InitAsync(692803787, orderId);
         }
     }
 

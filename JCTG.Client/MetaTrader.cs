@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.Text.RegularExpressions;
 using static JCTG.Client.Helpers;
 
 namespace JCTG.Client
@@ -166,7 +167,7 @@ namespace JCTG.Client
                                                     // Do correlation check
                                                     if (CorrelatedPairs.IsNotCorrelated(pair.TickerInMetatrader, "BUY", pair.CorrelatedPairs, api.OpenOrders))
                                                     {
-                                                        // Do do not open a trade x minutes before close
+                                                        // Do do not open a deal x minutes before close
                                                         if (DailyTaskScheduler.CanOpenTrade(pair.CloseAllTradesAt, pair.DoNotOpenTradeXMinutesBeforeClose))
                                                         {
                                                             // Get the Stop Loss price
@@ -284,7 +285,7 @@ namespace JCTG.Client
                                                         {
                                                             // Raise market abstention or error
                                                             var message = string.Format($"CanNotOpenTradeDueClosingTime || Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},Magic={cmd.Magic},StrategyType={cmd.StrategyType}");
-                                                            var log = new Log() { Time = DateTime.UtcNow, Type = "WARNING", Message = message, ErrorType = $"Can't open trade {pair.TickerInMetatrader} because market will be closed within {pair.DoNotOpenTradeXMinutesBeforeClose} minutes. It's now {DateTime.UtcNow} UTC time." };
+                                                            var log = new Log() { Time = DateTime.UtcNow, Type = "WARNING", Message = message, ErrorType = $"Can't open deal {pair.TickerInMetatrader} because market will be closed within {pair.DoNotOpenTradeXMinutesBeforeClose} minutes. It's now {DateTime.UtcNow} UTC time." };
                                                             await RaiseMarketAbstentionAsync(api.ClientId, cmd.SignalID, cmd.Instrument, cmd.OrderType, MarketAbstentionType.MarketWillBeClosedWithinXMinutes, cmd.Magic, log);
                                                         }
                                                     }
@@ -309,7 +310,7 @@ namespace JCTG.Client
                                                     // Do correlation check
                                                     if (CorrelatedPairs.IsNotCorrelated(pair.TickerInMetatrader, "BUY", pair.CorrelatedPairs, api.OpenOrders))
                                                     {
-                                                        // Do do not open a trade x minutes before close
+                                                        // Do do not open a deal x minutes before close
                                                         if (DailyTaskScheduler.CanOpenTrade(pair.CloseAllTradesAt, pair.DoNotOpenTradeXMinutesBeforeClose))
                                                         {
                                                             // Get the entry price
@@ -489,7 +490,7 @@ namespace JCTG.Client
                                                         else
                                                         {
                                                             var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},Magic={cmd.Magic},StrategyType={cmd.StrategyType},EntryExpr={cmd.PassiveOrder.EntryExpression},Risk={cmd.PassiveOrder.Risk},RR={cmd.PassiveOrder.RiskRewardRatio}");
-                                                            var log = new Log() { Time = DateTime.UtcNow, Type = "WARNING", Message = message, ErrorType = $"Can't open trade {pair.TickerInMetatrader} because market will be closed within {pair.DoNotOpenTradeXMinutesBeforeClose} minutes. It's now {DateTime.UtcNow} UTC time." };
+                                                            var log = new Log() { Time = DateTime.UtcNow, Type = "WARNING", Message = message, ErrorType = $"Can't open deal {pair.TickerInMetatrader} because market will be closed within {pair.DoNotOpenTradeXMinutesBeforeClose} minutes. It's now {DateTime.UtcNow} UTC time." };
                                                             await RaiseMarketAbstentionAsync(api.ClientId, cmd.SignalID, cmd.Instrument, cmd.OrderType, MarketAbstentionType.MarketWillBeClosedWithinXMinutes, cmd.Magic, log);
                                                         }
                                                     }
@@ -512,7 +513,7 @@ namespace JCTG.Client
                                                     // Do correlation check
                                                     if (CorrelatedPairs.IsNotCorrelated(pair.TickerInMetatrader, "SELL", pair.CorrelatedPairs, api.OpenOrders))
                                                     {
-                                                        // Do do not open a trade x minutes before close
+                                                        // Do do not open a deal x minutes before close
                                                         if (DailyTaskScheduler.CanOpenTrade(pair.CloseAllTradesAt, pair.DoNotOpenTradeXMinutesBeforeClose))
                                                         {
                                                             var price = metadataTick.Bid;
@@ -633,7 +634,7 @@ namespace JCTG.Client
                                                         else
                                                         {
                                                             var message = string.Format($"CanNotOpenTradeDueClosingTime || Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},Magic={cmd.Magic},StrategyType={cmd.StrategyType}");
-                                                            var log = new Log() { Time = DateTime.UtcNow, Type = "WARNING", Message = message, ErrorType = $"Can't open trade {pair.TickerInMetatrader} because market will be closed within {pair.DoNotOpenTradeXMinutesBeforeClose} minutes. It's now {DateTime.UtcNow} UTC time." };
+                                                            var log = new Log() { Time = DateTime.UtcNow, Type = "WARNING", Message = message, ErrorType = $"Can't open deal {pair.TickerInMetatrader} because market will be closed within {pair.DoNotOpenTradeXMinutesBeforeClose} minutes. It's now {DateTime.UtcNow} UTC time." };
                                                             await RaiseMarketAbstentionAsync(api.ClientId, cmd.SignalID, cmd.Instrument, cmd.OrderType, MarketAbstentionType.MarketWillBeClosedWithinXMinutes, cmd.Magic, log);
                                                         }
                                                     }
@@ -657,7 +658,7 @@ namespace JCTG.Client
                                                     // Do correlation check
                                                     if (CorrelatedPairs.IsNotCorrelated(pair.TickerInMetatrader, "SELL", pair.CorrelatedPairs, api.OpenOrders))
                                                     {
-                                                        // Do do not open a trade x minutes before close
+                                                        // Do do not open a deal x minutes before close
                                                         if (DailyTaskScheduler.CanOpenTrade(pair.CloseAllTradesAt, pair.DoNotOpenTradeXMinutesBeforeClose))
                                                         {
                                                             // Get the entry price
@@ -833,7 +834,7 @@ namespace JCTG.Client
                                                         else
                                                         {
                                                             var message = string.Format($"CanNotOpenTradeDueClosingTime || Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},Magic={cmd.Magic},StrategyType={cmd.StrategyType},EntryExpr={cmd.PassiveOrder.EntryExpression},Risk={cmd.PassiveOrder.Risk},RR={cmd.PassiveOrder.RiskRewardRatio}");
-                                                            var log = new Log() { Time = DateTime.UtcNow, Type = "WARNING", Message = message, ErrorType = $"Can't open trade {pair.TickerInMetatrader} because market will be closed within {pair.DoNotOpenTradeXMinutesBeforeClose} minutes. It's now {DateTime.UtcNow} UTC time." };
+                                                            var log = new Log() { Time = DateTime.UtcNow, Type = "WARNING", Message = message, ErrorType = $"Can't open deal {pair.TickerInMetatrader} because market will be closed within {pair.DoNotOpenTradeXMinutesBeforeClose} minutes. It's now {DateTime.UtcNow} UTC time." };
                                                             await RaiseMarketAbstentionAsync(api.ClientId, cmd.SignalID, cmd.Instrument, cmd.OrderType, MarketAbstentionType.RiskShouldBeAtLeastXTimesTheSpread, cmd.Magic, log);
                                                         }
                                                     }
@@ -930,11 +931,11 @@ namespace JCTG.Client
 
 
                                                         var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},Magic={cmd.Magic},StrategyType={cmd.StrategyType}");
-                                                        await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = "Unable to find trade" }, cmd.SignalID);
+                                                        await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = "Unable to find deal" }, cmd.SignalID);
                                                     }
                                                 }
 
-                                                // Close trade
+                                                // Close deal
                                                 else if (cmd.OrderType == "CLOSE" && cmd.Magic > 0)
                                                 {
                                                     // Check if the ticket still exist as open order
@@ -963,11 +964,11 @@ namespace JCTG.Client
                                                         Print($"ERROR : {DateTime.UtcNow} / {_appConfig.Brokers.First(f => f.ClientId == api.ClientId).Name} / {pair.TickerInMetatrader} / CLOSE COMMAND / {cmd.Magic} / UNABLE TO FIND TRADE / {cmd.StrategyType}");
 
                                                         var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},Magic={cmd.Magic},StrategyType={cmd.StrategyType}");
-                                                        await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = "Unable to find trade" }, cmd.SignalID);
+                                                        await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = "Unable to find deal" }, cmd.SignalID);
                                                     }
                                                 }
 
-                                                // Close trade
+                                                // Close deal
                                                 else if (cmd.OrderType == "CLOSEALL")
                                                 {
                                                     // Null reference check
@@ -1314,13 +1315,36 @@ namespace JCTG.Client
                 else
                     Print($"INFO : {DateTime.UtcNow} / {_appConfig.Brokers.First(f => f.ClientId == clientId).Name} / LOG EVENT / {log.Message}");
 
+                // When log have an error and have a magic id => market abstention
+                if(log.Type?.ToUpper() == "ERROR" && log.ErrorType != null && log.ErrorType.Equals("OPEN_ORDER") && log.Magic.HasValue && log.Magic.Value > 0 && log.Description != null)
+                {
+                    // Symbol
+                    string pattern = @"order:\s(\w+),";
+                    Match match = Regex.Match(log.Description, pattern);
+                    var symbol = match.Success ? match.Groups[1].Value : "unknown";
 
-                // Send log to files
-                Task.Run(async () =>
+                    // Order type
+                    string[] orderTypes = { "buy", "sell", "buylimit", "selllimit", "buystop", "sellstop" };
+                    pattern = $@"order:\s\w+,({string.Join("|", orderTypes)}),";
+                    match = Regex.Match(log.Description, pattern);
+                    var orderType = match.Success ? match.Groups[1].Value : "unknown";
+
+                    // Send log to files
+                    Task.Run(async () =>
+                    {
+                        // Send log to files
+                        await RaiseMarketAbstentionAsync(clientId, log.Magic.Value, symbol, orderType, MarketAbstentionType.MetatraderOpenOrderError, log);
+                    });
+                }
+                else
                 {
                     // Send log to files
-                    await LogAsync(clientId, log, log.Magic);
-                });
+                    Task.Run(async () =>
+                    {
+                        // Send log to files
+                        await LogAsync(clientId, log, log.Magic);
+                    });
+                }
             }
         }
 
@@ -1449,14 +1473,14 @@ namespace JCTG.Client
             }
         }
 
-        private void OnDealCreateEvent(long clientId, long tradeId, Deal trade)
+        private void OnDealCreateEvent(long clientId, long tradeId, Deal deal)
         {
             // Do null reference check
             if (_appConfig != null && _apis.Count(f => f.ClientId == clientId) == 1)
             {
                 // Send log to files
-                var message = string.Format($"DealCreated || Symbol={trade.Symbol},TradeId={tradeId},Lots={trade.Lots},Type={trade.Type},Magic={trade.Magic},Entry={trade.Entry}");
-                var log = new Log() { Time = DateTime.UtcNow, Type = "INFO", Description = "Deal created", Message = message };
+                var message = string.Format($"DealCreated || Symbol={deal.Symbol},TradeId={tradeId},Lots={deal.Lots},Type={deal.Type},Magic={deal.Magic},Entry={deal.Entry}");
+                var log = new Log() { Time = DateTime.UtcNow, Type = "INFO", Description = "Deal created", Message = message, Magic = deal.Magic };
 
                 // Get api
                 var api = _apis.First(f => f.ClientId == clientId);
@@ -1465,7 +1489,7 @@ namespace JCTG.Client
                 if (api.MarketData != null)
                 {
                     // Get the metadata tick
-                    var metadataTick = api.MarketData.FirstOrDefault(f => f.Key == trade.Symbol).Value;
+                    var metadataTick = api.MarketData.FirstOrDefault(f => f.Key == deal.Symbol).Value;
 
                     // Do null reference chekc on metadatatick
                     if (metadataTick != null)
@@ -1480,13 +1504,13 @@ namespace JCTG.Client
                             {
                                 ClientID = clientId,
                                 MtDealID = tradeId,
-                                Deal = trade,
+                                Deal = deal,
                                 Log = log,
                                 AccountBalance = api.AccountInfo?.Balance,
                                 AccountEquity = api.AccountInfo?.Equity,
                                 Price = decimal.ToDouble(metadataTick.Ask),
                                 Spread = spread,
-                                SpreadCost = RiskCalculator.CostSpread(spread, trade.Lots, metadataTick.PointSize, metadataTick.ContractSize),
+                                SpreadCost = RiskCalculator.CostSpread(spread, deal.Lots, metadataTick.PointSize, metadataTick.ContractSize),
                             });
                         });
                     }
@@ -1554,13 +1578,31 @@ namespace JCTG.Client
         private async Task RaiseMarketAbstentionAsync(long clientId, long signalId, string symbol, string orderType, MarketAbstentionType type, long magic, Log log)
         {
             // Do null reference check
-            if (_appConfig != null && _apis != null && (_apis.Count(f => f.ClientId == clientId) == 1 || clientId == 0) && _appConfig.DropLogsInFile)
+            if (_appConfig != null && _apis != null && (_apis.Count(f => f.ClientId == clientId) == 1 || clientId == 0))
             {
                 // Send the tradejournal to Azure PubSub server
                 await HttpCall.OnMarketAbstentionEvent(new OnMarketAbstentionEvent()
                 {
                     ClientID = clientId,
                     SignalID = signalId,
+                    Symbol = symbol,
+                    OrderType = orderType,
+                    Type = type,
+                    Magic = magic,
+                    Log = log
+                });
+            }
+        }
+
+        private async Task RaiseMarketAbstentionAsync(long clientId, long magic, string symbol, string orderType, MarketAbstentionType type, Log log)
+        {
+            // Do null reference check
+            if (_appConfig != null && _apis != null && (_apis.Count(f => f.ClientId == clientId) == 1 || clientId == 0))
+            {
+                // Send the tradejournal to Azure PubSub server
+                await HttpCall.OnMarketAbstentionEvent(new OnMetatraderMarketAbstentionEvent()
+                {
+                    ClientID = clientId,
                     Symbol = symbol,
                     OrderType = orderType,
                     Type = type,

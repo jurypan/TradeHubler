@@ -1,7 +1,6 @@
 ﻿using JCTG.Entity;
 using JCTG.Models;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Identity.Client;
 
 namespace JCTG.WebApp.Backend.Repository;
 
