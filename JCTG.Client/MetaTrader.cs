@@ -203,7 +203,7 @@ namespace JCTG.Client
                                                             }
 
                                                             // Calculate the lot size
-                                                            var lotSize = RiskCalculator.LotSize2(startbalance, api.AccountInfo.Balance, pair.Risk, metadataTick.Ask, sl, metadataTick.TickValue, metadataTick.TickSize, metadataTick.PointSize, metadataTick.LotStep, metadataTick.MinLotSize, metadataTick.MaxLotSize, dynRisk);
+                                                            var lotSize = RiskCalculator.LotSize(startbalance, api.AccountInfo.Balance, pair.Risk, metadataTick.Ask, sl, metadataTick.TickValue, metadataTick.TickSize, metadataTick.LotStep, metadataTick.MinLotSize, metadataTick.MaxLotSize, dynRisk);
 
                                                             // Send to logs
                                                             if (_appConfig.Debug)
@@ -369,7 +369,7 @@ namespace JCTG.Client
                                                                 }
 
                                                                 // Calculate the lot size
-                                                                var lotSize = RiskCalculator.LotSize2(startbalance, api.AccountInfo.Balance, pair.Risk, price.Value, sl, metadataTick.TickValue, metadataTick.TickSize, metadataTick.PointSize, metadataTick.LotStep, metadataTick.MinLotSize, metadataTick.MaxLotSize, dynRisk); ;
+                                                                var lotSize = RiskCalculator.LotSize(startbalance, api.AccountInfo.Balance, pair.Risk, price.Value, sl, metadataTick.TickValue, metadataTick.TickSize, metadataTick.LotStep, metadataTick.MinLotSize, metadataTick.MaxLotSize, dynRisk); ;
 
                                                                 // Send to logs
                                                                 if (_appConfig.Debug)
@@ -549,7 +549,7 @@ namespace JCTG.Client
                                                             }
 
                                                             // Calculate the lot size
-                                                            var lotSize = RiskCalculator.LotSize2(startbalance, api.AccountInfo.Balance, pair.Risk, price, sl, metadataTick.TickValue, metadataTick.TickSize, metadataTick.PointSize, metadataTick.LotStep, metadataTick.MinLotSize, metadataTick.MaxLotSize, dynRisk);
+                                                            var lotSize = RiskCalculator.LotSize(startbalance, api.AccountInfo.Balance, pair.Risk, price, sl, metadataTick.TickValue, metadataTick.TickSize,  metadataTick.LotStep, metadataTick.MinLotSize, metadataTick.MaxLotSize, dynRisk);
 
                                                             // Send to logs
                                                             if (_appConfig.Debug)
@@ -713,7 +713,7 @@ namespace JCTG.Client
                                                                 }
 
                                                                 // Calculate the lot size
-                                                                var lotSize = RiskCalculator.LotSize2(startbalance, api.AccountInfo.Balance, pair.Risk, price.Value, sl, metadataTick.TickValue, metadataTick.TickSize, metadataTick.PointSize, metadataTick.LotStep, metadataTick.MinLotSize, metadataTick.MaxLotSize, dynRisk); ;
+                                                                var lotSize = RiskCalculator.LotSize(startbalance, api.AccountInfo.Balance, pair.Risk, price.Value, sl, metadataTick.TickValue, metadataTick.TickSize, metadataTick.LotStep, metadataTick.MinLotSize, metadataTick.MaxLotSize, dynRisk); ;
 
                                                                 // Send to logs
                                                                 if (_appConfig.Debug)

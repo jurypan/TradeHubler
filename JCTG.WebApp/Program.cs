@@ -22,14 +22,19 @@ var baseAddress = builder.Environment.IsDevelopment()
 // Authentication
 builder.Services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
     .AddMicrosoftIdentityWebApp(builder.Configuration.GetSection("AzureAd"))
-        .EnableTokenAcquisitionToCallDownstreamApi(builder.Configuration["Graph:Scopes"]?.Split(' '))
-            .AddMicrosoftGraph(builder.Configuration.GetSection("Graph"))
-            .AddInMemoryTokenCaches();
+    .EnableTokenAcquisitionToCallDownstreamApi(["https://graph.windows.net/user.read"])
+    .AddMicrosoftGraph(options =>
+    {
+        options.Scopes = "'https://graph.windows.net/user.read";
+    })
+    .AddInMemoryTokenCaches();
+
 builder.Services.AddControllersWithViews().AddMicrosoftIdentityUI();
 builder.Services.AddAuthorization(options =>
 {
     options.FallbackPolicy = options.DefaultPolicy;
 });
+
 
 // Add services to the container.
 builder.Services.AddRazorPages();
@@ -70,6 +75,7 @@ builder.Services.AddTransient<ClientRiskRepository>();
 builder.Services.AddTransient<DealRepository>();
 builder.Services.AddTransient<TradingviewAlertRepository>();
 builder.Services.AddTransient<MarketAbstentionRepository>();
+builder.Services.AddTransient<StrategyRepository>();
 
 // Init the frontend pages
 builder.Services.Configure<RazorPagesOptions>(options =>
@@ -103,7 +109,6 @@ app.UseStaticFiles();
 app.UseRouting();
 
 app.UseAuthentication();
-
 app.UseAuthorization();
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();

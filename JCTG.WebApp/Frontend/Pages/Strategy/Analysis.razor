@@ -1,0 +1,519 @@
+﻿@page "/Strategy/{id:int}/Analysis";
+@inject SignalRepository _signalRepository;
+@inject ClientRepository _clientRepository;
+@inject OrderRepository _orderRepository;
+@inject MarketAbstentionRepository _marketAbstentionRepository;
+@inject NavigationManager NavManager
+@using JCTG.Models;
+@using JCTG.WebApp.Frontend.Components.Apex;
+@using JCTG.WebApp.Frontend.Components.Modal;
+@using JCTG.WebApp.Frontend.Components.Widget;
+@implements IDisposable
+
+<div class="container-fluid mw-100">
+
+    <div class="font-weight-medium shadow-none position-relative overflow-hidden mb-4">
+        <div class="card-body px-0">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h4 class="font-weight-medium ">Strategy</h4>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item">
+                                <a class="text-primary text-decoration-none" href="/">
+                                    Home
+                                </a>
+                            </li>
+                            <li class="breadcrumb-item d-flex justify-content-center align-items-center ps-0">
+                                <iconify-icon icon="tabler:chevron-right"></iconify-icon>
+                            </li>
+                            <li class="breadcrumb-item" aria-current="page">
+                                <a class="text-primary text-decoration-none" href="/Strategy">
+                                    Strategies
+                                </a>
+                            <li class="breadcrumb-item d-flex justify-content-center align-items-center ps-0">
+                                <iconify-icon icon="tabler:chevron-right"></iconify-icon>
+                            </li>
+                            </li>
+                            <li class="breadcrumb-item" aria-current="page">
+                                    Strategy @Id
+                            </li>
+                        </ol>
+                    </nav>
+                </div>
+                <div>
+                     <LastMonthWidget></LastMonthWidget>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div>
+                            <h4 class="card-title">Risk to reward</h4>
+                            <h5 class="card-subtitle">Overview of Latest Tradingview alerts</h5>
+                        </div>
+                        <div class="ms-auto d-flex align-items-center">
+                            <ul class="list-inline fs-2 dl me-2">
+                                <li class="list-inline-item">
+                                    <select class="form-select" @onchange="SubmitFilterClient">
+                                        @foreach (var client in _clients)
+                                        {
+                                            <option value="@client.ID">@client.Name</option>
+                                        }
+                                    </select>
+                                </li>
+                                <li class="list-inline-item">
+                                    <select class="form-select" @onchange="SubmitFilterDateAsync">
+                                        <option value="0">Last Month</option>
+                                        <option value="1">Last Week</option>
+                                        <option value="2">Last 3 Days</option>
+                                        <option value="3" selected="selected">Last 1 Day</option>
+                                    </select>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    @if (_orders.Count == 0)
+                    {
+                        <div class="mt-4">
+                            <div class="alert bg-primary-subtle text-primary alert-dismissible fade show" role="alert">
+                                <div class="d-flex align-items-center text-primary ">
+                                    <i class="ti ti-info-circle me-2 fs-4"></i>
+                                    This filter doesn't have any orders
+                                </div>
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        </div>
+                    }
+
+                    <div class="mt-4">
+                        <LineChart @ref="@_lineChart" />
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (_signals.Count > 0)
+    {
+        <div class="row">
+            <div class="datatables">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="mb-2">
+                                    <h5 class="mb-0">Signals</h5>
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="table border table-striped table-bordered display text-nowrap">
+                                        <thead>
+                                            <tr>
+                                                <th>ID</th>
+                                                <th>Symbol</th>
+                                                <th>Type</th>
+                                                <th>Date Created</th>
+                                                <th>RR</th>
+                                                <th>State</th>
+                                                <th>PNL</th>
+                                                <th>Warning</th>
+                                                <th></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var signal in _signals.OrderByDescending(f => f.DateCreated))
+                                            {
+                                                <tr>
+                                                    <td>@signal.ID</td>
+                                                    <td>@signal.Instrument</td>
+                                                    <td>@signal.OrderType</td>
+                                                    <td>@signal.DateCreated</td>
+                                                    <td>@signal.ExitRiskRewardRatioAsString</td>
+                                                    <td>
+                                                        @if (signal.TradingviewStateType == TradingviewStateType.Init)
+                                                        {
+                                                            <span class="mb-1 badge rounded-pill  bg-primary-subtle text-primary">Init</span>
+                                                        }
+                                                        else if (signal.TradingviewStateType == TradingviewStateType.Entry)
+                                                        {
+                                                            <span class="mb-1 badge rounded-pill  bg-secondary-subtle text-secondary">Entry</span>
+                                                        }
+                                                        else if (signal.TradingviewStateType == TradingviewStateType.BeHit)
+                                                        {
+                                                            <span class="mb-1 badge rounded-pill  bg-warning-subtle text-warning">BE</span>
+                                                        }
+                                                        else if (signal.TradingviewStateType == TradingviewStateType.SlHit)
+                                                        {
+                                                            <span class="mb-1 badge rounded-pill  bg-danger-subtle text-danger">SL</span>
+                                                        }
+                                                        else if (signal.TradingviewStateType == TradingviewStateType.TpHit)
+                                                        {
+                                                            <span class="mb-1 badge rounded-pill  bg-success-subtle text-success">TP</span>
+                                                        }
+                                                        else if (signal.TradingviewStateType == TradingviewStateType.CancelOrder)
+                                                        {
+                                                            <span class="mb-1 badge rounded-pill  bg-info-subtle text-info">Cancelled</span>
+                                                        }
+                                                        else if (signal.TradingviewStateType == TradingviewStateType.CloseAll)
+                                                        {
+                                                            <span class="mb-1 badge rounded-pill  bg-info-subtle text-info">Close</span>
+                                                        }
+                                                    </td>
+                                                    @{
+                                                        var order = _orders.FirstOrDefault(f => f.SignalID == signal.ID);
+                                                        var marketAbstention = _marketAbstentions.FirstOrDefault(f => f.SignalID == signal.ID);
+                                                        if(order != null)
+                                                        {
+                                                            <td>@order.Pnl</td>
+                                                            <td></td>
+                                                        }
+                                                        else if (marketAbstention != null)
+                                                        {
+                                                            <td></td>
+                                                            <td>Error : @marketAbstention.LogMessage</td>
+                                                        }
+                                                        else
+                                                        {
+                                                            <td></td>
+                                                            <td>Error : No MT Data</td>
+                                                        }
+                                                    }
+                                                    <td>
+                                                        <div class="dropdown dropstart">
+                                                            <a href="#" class="text-muted" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+                                                                <i class="ti ti-dots-vertical fs-6"></i>
+                                                            </a>
+                                                            <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                                                                <li>
+                                                                    <a class="dropdown-item d-flex align-items-center gap-3" @onclick="() => EditASignalClick(signal.ID)">Edit signal</a>
+                                                                </li>
+                                                                <li>
+                                                                    <a class="dropdown-item d-flex align-items-center gap-3" @onclick="() => LogSignalClick(signal.ID)">Raw Signal Log</a>
+                                                                </li>
+                                                                @if(order != null)
+                                                                {
+                                                                    <li>
+                                                                        <a class="dropdown-item d-flex align-items-center gap-3" @onclick="() => EditAnOrderClick(order.ID)">Edit order</a>
+                                                                    </li>
+                                                                    <li>
+                                                                        <a class="dropdown-item d-flex align-items-center gap-3" @onclick="() => LogOrderClick(signal.ID)">Raw Order Log</a>
+                                                                    </li>
+                                                                }
+                                                                else if(marketAbstention != null)
+                                                                {
+                                                                    <li>
+                                                                        <a class="dropdown-item d-flex align-items-center gap-3" @onclick="() => EditAMarketAbstentionClick(marketAbstention.ID)">Edit market abstention</a>
+                                                                    </li>
+                                                                }
+                                                            </ul>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                        <tfoot>
+                                            <tr>
+                                                <th>ID</th>
+                                                <th>Symbol</th>
+                                                <th>Type</th>
+                                                <th>Date Created</th>
+                                                <th>RR</th>
+                                                <th>State</th>
+                                                <th>PNL</th>
+                                                <th>Warning</th>
+                                                <th></th>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <SignalAddOrEditModal @ref="@_signalAddOrEditModal" OnClose="async () => await ReloadAsync()"></SignalAddOrEditModal>
+
+    <MarketAbstentionAddOrEditModal @ref="@_marketAbstentionAddOrEditModal" OnClose="async () => await ReloadAsync()"></MarketAbstentionAddOrEditModal>
+
+    <OrderAddOrEditModal @ref="@_orderAddOrEditModal" OnClose="async () => await ReloadAsync()"></OrderAddOrEditModal>
+
+    <SignalLogModal @ref="@_signalLogModal"></SignalLogModal>
+
+    <OrderLogModal @ref="@_orderLogModal"></OrderLogModal>
+
+    <StrategyAddOrEditModal @ref="@_strategyAddOrEditModal" OnClose="async () => await ReloadAsync()"></StrategyAddOrEditModal>
+</div>
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+    private bool _init { get; set; } = false;
+
+    private LineChart? _lineChart { get; set; } = null;
+    private SignalAddOrEditModal? _signalAddOrEditModal { get; set; } = null;
+    private SignalLogModal? _signalLogModal { get; set; } = null;
+    private MarketAbstentionAddOrEditModal? _marketAbstentionAddOrEditModal { get; set; } = null;
+    private OrderAddOrEditModal? _orderAddOrEditModal { get; set; } = null;
+    private OrderLogModal? _orderLogModal { get; set; } = null;
+    private StrategyAddOrEditModal? _strategyAddOrEditModal { get; set; } = null;
+
+    private List<Entity.Signal> _signals { get; set; } = new();
+    private List<Entity.Order> _orders { get; set; } = new();
+    private List<Entity.MarketAbstention> _marketAbstentions { get; set; } = new();
+    private List<Entity.Client> _clients { get; set; } = new();
+    private Entity.Client? _filterClient { get; set; } = null;
+    private int _filterDate { get; set; } = 3;
+
+
+
+    protected async override Task OnInitializedAsync()
+    {
+        _clients = await _clientRepository.GetAllAsync(692803787);
+        _clients = _clients.Where(f => f.IsEnable).OrderBy(f => f.Name).ToList();
+
+        NavManager.LocationChanged += HandleLocationChanged;
+    }
+
+    public void Dispose()
+    {
+        NavManager.LocationChanged -= HandleLocationChanged;
+    }
+
+    private void HandleLocationChanged(object? sender, LocationChangedEventArgs e) => Task.Run(async () => await ReloadAsync());
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        // Only on first render
+        if (!firstRender || _lineChart == null)
+            return;
+
+
+        // Inline method
+        _clients = await _clientRepository.GetAllAsync(692803787);
+        _clients = _clients.Where(f => f.IsEnable).OrderBy(f => f.Name).ToList();
+        if (_clients.Count > 0 && _lineChart != null)
+        {
+            // Get First client
+            _filterClient = _clients.First();
+            await ReloadAsync();
+        }
+
+        // Init
+        _init = true;
+    }
+
+    private async Task SubmitFilterClient(ChangeEventArgs? e)
+    {
+        // Get filter
+        long filter = e == null || e.Value == null ? 0 : long.Parse(e.Value.ToString());
+
+        // Get Clients
+        _filterClient = _clients.Where(f => f.ID == filter).FirstOrDefault();
+
+        // Do null reference check
+        if (_filterClient != null)
+        {
+            await ReloadAsync();
+        }
+    }
+
+    private async Task SubmitFilterDateAsync(ChangeEventArgs? e)
+    {
+        // Get data from database
+        var filter = e == null || e.Value == null ? _filterDate : int.Parse(e.Value.ToString());
+        _filterDate = filter;
+
+        // Reload chart
+        await ReloadAsync();
+    }
+
+    private async Task ReloadAsync()
+    {
+        if (_filterClient != null && _lineChart != null)
+        {
+            // Get data from database
+            _signals = await _signalRepository.GetAllLast200ByStrategyType(692803787, (StrategyType)Id);
+            _orders = await _orderRepository.GetAllByStrategType(692803787, _filterClient.ID, (StrategyType)Id);
+            var pairs = await _clientRepository.GetAllPairsByIdAsync(692803787, _filterClient.ID, (StrategyType)Id);
+            _signals = _signals.Where(f => pairs.Select(f => f.TickerInTradingView).ToList().Contains(f.Instrument)).ToList();
+            _marketAbstentions = await _marketAbstentionRepository.GetAllByStrategyType(692803787, _filterClient.ID, (StrategyType)Id);
+
+            // Init filter
+            if (_filterDate == 0)
+            {
+                _signals = _signals.Where(f => f.DateCreated >= DateTime.UtcNow.AddMonths(-1)).OrderBy(f => f.DateCreated).ToList();
+            }
+            else if (_filterDate == 1)
+            {
+                _signals = _signals.Where(f => f.DateCreated >= DateTime.UtcNow.AddDays(-8)).OrderBy(f => f.DateCreated).ToList();
+            }
+            else if (_filterDate == 2)
+            {
+                _signals = _signals.Where(f => f.DateCreated >= DateTime.UtcNow.AddDays(-3)).OrderBy(f => f.DateCreated).ToList();
+            }
+            else if (_filterDate == 3)
+            {
+                _signals = _signals.Where(f => f.DateCreated >= DateTime.UtcNow.AddDays(-1)).OrderBy(f => f.DateCreated).ToList();
+            }
+
+
+            // Inner method
+            Func<double, double, double, decimal> getRrForLong = (openSlPrice, openEntryPrice, closeExitPrice) =>
+            {
+                var rr = Convert.ToDecimal(Math.Round(((closeExitPrice - openEntryPrice) / (openEntryPrice - openSlPrice)), 2));
+                if (rr < -1M)
+                    rr = -1M;
+                return rr;
+            };
+            Func<double, double, double, decimal> getRrForShort = (openSlPrice, openEntryPrice, closeExitPrice) =>
+           {
+               var rr = Convert.ToDecimal(Math.Round(((openEntryPrice - closeExitPrice) / (openSlPrice - openEntryPrice)), 2));
+               if (rr < -1M)
+                   rr = -1M;
+               return rr;
+           };
+
+            // Make the signals readys
+            var signalPoints = new List<LinePoint>();
+            foreach (var signal in _signals.Where(f => f.ExitRiskRewardRatio.HasValue).OrderBy(f => f.DateCreated).ToList())
+            {
+                if (signal.ExitRiskRewardRatio.HasValue)
+                {
+                    signalPoints.Add(new LinePoint()
+                        {
+                            Price = (signalPoints.Count > 0 ? signalPoints.ElementAt(signalPoints.Count - 1).Price : 0.0M) + Convert.ToDecimal(signal.ExitRiskRewardRatio.Value),
+                            Time = signal.DateCreated,
+                            Id = signal.ID,
+                        });
+                }
+            }
+
+            // Make the order points ready
+            var orderPoints = new List<LinePoint>();
+            var annotationPoints = new List<AnnotationPoint>();
+            var annotationXAxis = new List<AnnotationXAxis>();
+            foreach (var signal in signalPoints)
+            {
+                // Check if the order exist
+                if (_orders.Count(f => f.SignalID == signal.Id && f.OpenStopLoss.HasValue && f.ClosePrice.HasValue) > 0)
+                {
+                    var order = _orders.First(f => f.SignalID == signal.Id);
+                    var prevRR = 0.0M;
+                    if (orderPoints.Count > 0)
+                        prevRR = orderPoints.ElementAt(orderPoints.Count - 1).Price;
+                    var newRR = getRrForLong(order.OpenStopLoss.Value, order.OpenPrice, order.ClosePrice.Value);
+                    if (order.Type.Contains("sell"))
+                        newRR = getRrForShort(order.OpenStopLoss.Value, order.OpenPrice, order.ClosePrice.Value);
+                    if (newRR > Convert.ToDecimal(order.Signal.RiskRewardRatio))
+                        newRR = Convert.ToDecimal(order.Signal.RiskRewardRatio);
+                    orderPoints.Add(new LinePoint()
+                        {
+                            Price = prevRR + newRR,
+                            Time = order.DateCreated,
+                            Id = signal.Id,
+                        });
+                }
+                else if (_marketAbstentions.Count(f => f.SignalID == signal.Id) > 0)
+                {
+                    var marketAbstention = _marketAbstentions.First(f => f.SignalID == signal.Id);
+                    var prevRR = 0.0M;
+                    if (orderPoints.Count > 0)
+                        prevRR = orderPoints.ElementAt(orderPoints.Count - 1).Price;
+                    orderPoints.Add(new LinePoint()
+                        {
+                            Price = prevRR + 0,
+                            Time = signal.Time,
+                            Id = signal.Id,
+                        });
+
+                    annotationPoints.Add(new AnnotationPoint()
+                        {
+                            Time = signal.Time,
+                            Price = prevRR + 0,
+                            Text = marketAbstention.MarketAbstentionType.GetDescription(),
+                        });
+                }
+                else
+                {
+                    var prevRR = 0.0M;
+                    if (orderPoints.Count > 0)
+                        prevRR = orderPoints.ElementAt(orderPoints.Count - 1).Price;
+                    orderPoints.Add(new LinePoint()
+                        {
+                            Price = prevRR + 0,
+                            Time = signal.Time,
+                            Id = signal.Id,
+                        });
+
+                    annotationXAxis.Add(new AnnotationXAxis()
+                        {
+                            Time = signal.Time,
+                            Text = "No TR"
+                        });
+                }
+            }
+
+            // Load the chart
+            if (!_init)
+                await _lineChart.InitAsync("RR", signalPoints, "RR", orderPoints);
+            else
+                await _lineChart.UpdateAsync("RR", signalPoints, "RR", orderPoints);
+
+            await _lineChart.ClearAnnotationsAsync();
+            await _lineChart.AddAnnotationsAsync(annotationPoints);
+            await _lineChart.AddAnnotationsAsync(annotationXAxis);
+        }
+    }
+
+
+
+
+    private async Task EditASignalClick(long id)
+    {
+        if (_signalAddOrEditModal != null)
+        {
+            await _signalAddOrEditModal.InitAsync(692803787, id);
+        }
+    }
+
+    private async Task LogSignalClick(long id)
+    {
+        if (_signalLogModal != null)
+        {
+            await _signalLogModal.InitAsync(692803787, id);
+        }
+    }
+
+    private async Task EditAnOrderClick(long id)
+    {
+        if (_orderAddOrEditModal != null)
+        {
+            await _orderAddOrEditModal.InitAsync(692803787, id);
+        }
+    }
+
+    private async Task LogOrderClick(long id)
+    {
+        if (_orderLogModal != null && _filterClient != null)
+        {
+            await _orderLogModal.InitAsync(692803787, _filterClient.ID, id);
+        }
+    }
+
+    private async Task EditAMarketAbstentionClick(long id)
+    {
+        if (_marketAbstentionAddOrEditModal != null)
+        {
+            await _marketAbstentionAddOrEditModal.InitAsync(692803787, id);
+        }
+    }
+}

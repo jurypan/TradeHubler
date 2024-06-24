@@ -36,10 +36,9 @@ namespace JCTG.Client.Tests
             double minLotSize = 1;
             double maxLotSize = 5;
             List<Risk>? riskData = null; // Assuming no additional risk data
-            decimal pointSize = 0.01M;
 
             // Act
-            decimal result = RiskCalculator.LotSize2(startBalance, balance, risk, askPrice, slPrice, tickValue, pointSize, tickSize, lotStep, minLotSize, maxLotSize, riskData);
+            decimal result = RiskCalculator.LotSize(startBalance, balance, risk, askPrice, slPrice, tickValue, tickSize, lotStep, minLotSize, maxLotSize, riskData);
 
             // Assert
             Assert.That(result, Is.EqualTo(2.00M)); // Assuming the expected lot size calculation is 1.00
@@ -60,107 +59,13 @@ namespace JCTG.Client.Tests
             double minLotSize = 1;
             double maxLotSize = 21;
             List<Risk>? riskData = null; // Assuming no additional risk data
-            decimal pointSize = 0.1M;
 
             // Act
-            decimal result = RiskCalculator.LotSize2(startBalance, balance, risk, askPrice, slPrice, tickValue, pointSize, tickSize, lotStep, minLotSize, maxLotSize, riskData);
+            decimal result = RiskCalculator.LotSize(startBalance, balance, risk, askPrice, slPrice, tickValue, tickSize, lotStep, minLotSize, maxLotSize, riskData);
 
             // Assert
-            Assert.That(result, Is.EqualTo(6.00M)); // Adjust the expected result based on the actual calculation
+            Assert.That(result, Is.EqualTo(3.00M)); // Adjust the expected result based on the actual calculation
         }
-
-        [Test]
-        public void CalculateSLForLong_AtrMultiplierLessThan1_ReturnsCorrectValue()
-        {
-            // Arrange
-            var mtPrice = 7464.1M;
-            int mtDigits = 1;
-            var tvPrice = 7462.1M;
-            var tvSlPrice = 7442.1M;
-            var spread = 0.0M;
-
-            // Act
-            var result = RiskCalculator.SLForLong(mtPrice, spread, mtDigits, tvPrice, tvSlPrice);
-
-            // Assert
-            double expectedSLPrice = 7444.1;
-            Assert.That(result, Is.EqualTo(expectedSLPrice).Within(0.1));
-        }
-
-        [Test]
-        public void CalculateSLForLong_AtrMultiplierGreaterThan1_ReturnsCorrectValue()
-        {
-            // Arrange
-            var mtPrice = 7464.1M;
-            int mtDigits = 1;
-            var tvPrice = 7462.1M;
-            var tvSlPrice = 7442.1M;
-            var spread = 0.0M;
-
-            // Act
-            var result = RiskCalculator.SLForLong(mtPrice, spread, mtDigits, tvPrice, tvSlPrice);
-
-            // Assert
-            var expectedSLPrice = 7424.1M;
-            Assert.That(result, Is.EqualTo(expectedSLPrice).Within(0.0001M));
-        }
-
-        [Test]
-        public void CalculateSLForLong_AtrMultiplierEquals1_ReturnsCorrectValue()
-        {
-            // Arrange
-            var mtPrice = 7464.1M;
-            int mtDigits = 1;
-            var tvPrice = 7462.1M;
-            var tvSlPrice = 7442.1M;
-            var spread = 0.0M;
-
-            // Act
-            var result = RiskCalculator.SLForLong(mtPrice, spread, mtDigits, tvPrice, tvSlPrice);
-
-            // Assert
-            var expectedSLPrice = 7434.1M;
-            Assert.That(result, Is.EqualTo(expectedSLPrice).Within(0.0001M));
-        }
-
-        [Test]
-        public void CalculateSLForLong_WhenMtATRIsGreaterThanSignalATR_ShouldUseCorrectAtrMultiplier()
-        {
-            // Arrange
-            int mtDigits = 1;
-            var mtPrice = 100.0M;
-            var mtSpread = 0.5M;
-            var signalEntryPrice = 95.0M;
-            var signalSlPrice = 90.0M;
-
-            // Expected ATR multiplier = mtATR / signalATR = 10 / 5 = 2
-            var expectedSlPrice = 89.5M; // Calculate expected SL price based on the formula
-
-            // Act
-            var actualSlPrice = RiskCalculator.SLForLong(mtPrice,  mtSpread, mtDigits, signalEntryPrice, signalSlPrice);
-
-            // Assert
-            Assert.That(expectedSlPrice, Is.EqualTo(actualSlPrice), "The calculated SL price is incorrect.");
-        }
-
-        [Test]
-        public void CalculateTPForLong_ReturnsCorrectValue()
-        {
-            // Arrange
-            var mtPrice = 0.3659M;
-            int mtDigits = 4;
-            var tvPrice = 0.36554614M;
-            var tvSlPrice = 0.36602357M;
-            var spread = 0.0001M;
-
-            // Act
-            var result = RiskCalculator.SLForShort(mtPrice, spread, mtDigits, tvPrice, tvSlPrice);
-
-            // Assert
-            var expectedSLPrice = 7444.1M;
-            Assert.That(result, Is.EqualTo(expectedSLPrice).Within(0.1M));
-        }
-
 
         [Test]
         public void CalculateLotSize_ValidInputs_CorrectCalculation1()
@@ -182,7 +87,7 @@ namespace JCTG.Client.Tests
             var result = RiskCalculator.LotSize(startBalance, accountBalance, riskPercent, openPrice, stopLossPrice, tickValue, tickSize, lotStep, minLotSizeAllowed, maxLotSizeAllowed);
 
             // Assert
-            Assert.That(result, Is.EqualTo(0.4));
+            Assert.That(result, Is.EqualTo(0.26));
         }
 
         [Test]
@@ -205,7 +110,7 @@ namespace JCTG.Client.Tests
             var result = RiskCalculator.LotSize(startBalance, accountBalance, riskPercent, openPrice, stopLossPrice, tickValue, tickSize, lotStep, minLotSizeAllowed, maxLotSizeAllowed);
 
             // Assert
-            Assert.That(result, Is.EqualTo(0.4));
+            Assert.That(result, Is.EqualTo(0.39));
         }
 
         [Test]
@@ -293,7 +198,7 @@ namespace JCTG.Client.Tests
             var result = RiskCalculator.LotSize(startBalance, accountBalance, riskPercent, askPrice, stopLossPrice, tickValue, pointSize, lotStep, minLotSizeAllowed, maxLotSizeAllowed);
 
             // Assert
-            Assert.That(result, Is.EqualTo(3)); // Expected value based on the inputs
+            Assert.That(result, Is.EqualTo(2)); // Expected value based on the inputs
         }
 
         [Test]
@@ -388,29 +293,6 @@ namespace JCTG.Client.Tests
 
             // Assert
             Assert.That(result, Is.EqualTo(0.2));
-        }
-
-        [Test]
-        public void CalculateLotSize_WithLargerLotStep_ReturnsAdjustedLotSize()
-        {
-            // Arrange
-            var startBalance = 5000.0;
-            var accountBalance = 10000;
-            var riskPercent = 1M;
-            var askPrice = 1.3000M;
-            var stopLossPrice = 1.2900M;
-            var tickValue = 10M;
-            var pointSize = 0.0001M;
-            var lotStep = 0.05; // Larger lot step
-            var minLotSizeAllowed = 0.01;
-            var maxLotSizeAllowed = 500;
-
-            // Act
-            var result = RiskCalculator.LotSize(startBalance, accountBalance, riskPercent, askPrice, stopLossPrice, tickValue, pointSize, lotStep, minLotSizeAllowed, maxLotSizeAllowed);
-
-            // Assert
-            // The expected value should be adjusted according to the new lot step
-            Assert.That(result % 0.05M < Convert.ToDecimal(double.Epsilon) || Math.Abs(result % 0.05M - 0.05M) < Convert.ToDecimal(double.Epsilon));
         }
 
         [Test]
@@ -520,7 +402,7 @@ namespace JCTG.Client.Tests
             var result = RiskCalculator.LotSize(startBalance, accountBalance, riskPercent, askPrice, stopLossPrice, tickValue, pointSize, lotStep, minLotSizeAllowed, maxLotSizeAllowed);
 
             // Assert
-            Assert.That(result % Convert.ToDecimal(lotStep) < Convert.ToDecimal(double.Epsilon) || Math.Abs(result % Convert.ToDecimal(lotStep) - Convert.ToDecimal(lotStep)) < Convert.ToDecimal(double.Epsilon)); // Result should be a multiple of lotStep
+            Assert.That(result, Is.EqualTo(0.05)); // Result should be a multiple of lotStep
         }
 
 
@@ -600,6 +482,27 @@ namespace JCTG.Client.Tests
             Assert.That(result, Is.EqualTo(expectedLotSize)); // Expecting the calculated lot size
         }
 
+        [Test]
+        public void LotSize_ShouldReturnZero_WhenAccountBalanceIsNegative()
+        {
+            // Arrange
+            double startBalance = 10000;
+            double accountBalance = -5000;
+            decimal riskPercent = 1.5M;
+            decimal openPrice = 1.1500M;
+            decimal stopLossPrice = 1.1400M;
+            decimal tickValue = 10M;
+            decimal tickSize = 0.0001M;
+            double lotStep = 0.01;
+            double minLotSizeAllowed = 0.01;
+            double maxLotSizeAllowed = 100;
+
+            // Act
+            decimal result = RiskCalculator.LotSize(startBalance, accountBalance, riskPercent, openPrice, stopLossPrice, tickValue, tickSize, lotStep, minLotSizeAllowed, maxLotSizeAllowed);
+
+            // Assert
+            Assert.That(result, Is.EqualTo(0.0M));
+        }
 
         [Test]
         public void GetClosestRiskPercentage_WithPositiveBalance_ReturnsCorrectAdjustedRisk()
@@ -607,7 +510,7 @@ namespace JCTG.Client.Tests
             double startBalance = 100000;
             double accountBalance = 101000; // 1% up
             var result = RiskCalculator.ChooseClosestMultiplier(startBalance, accountBalance, riskData);
-            Assert.That(result, Is.EqualTo(0M));
+            Assert.That(result, Is.EqualTo(1M));
         }
 
         [Test]

@@ -25,6 +25,8 @@ namespace JCTG
 
         public DbSet<Log> Log { get; set; }
 
+        public DbSet<Strategy> Strategy { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
 
@@ -89,6 +91,11 @@ namespace JCTG
              .HasOne(tj => tj.Client)
              .WithMany(t => t.Risks)
              .HasForeignKey(t => t.ClientID);
+
+            modelBuilder.Entity<Strategy>()
+               .HasOne(tj => tj.Account)
+               .WithMany(t => t.Strategies)
+              .HasForeignKey(t => t.AccountID);
         }
     }
 }

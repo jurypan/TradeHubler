@@ -1,10 +1,7 @@
-﻿@using JCTG.Models;
-@using Microsoft.AspNetCore.Identity
-@using Microsoft.AspNetCore.Authentication;
-@using Microsoft.Identity.Web.UI
-@using Microsoft.AspNetCore.Http
-@inject Membership Membership
-@inject NavigationManager NavManager
+﻿@inject Membership Membership;
+@inject NavigationManager NavManager;
+@using Microsoft.Graph.Models;
+@using JCTG.Models;
 
 <div class="brand-logo d-flex align-items-center justify-content-between">
     <a href="/" class="text-nowrap logo-img">
@@ -29,10 +26,10 @@
                     <a href="#" class="" id="Userdd" role="button" data-bs-toggle="dropdown" aria-haspopup="true"
                        aria-expanded="false">
                         <h5 class="mb-0 user-name fw-medium d-flex ">
-                            Joeri Pansaerts
+                            @_user.DisplayName
                             <iconify-icon icon="solar:alt-arrow-down-outline" class="ms-2"></iconify-icon>
                         </h5>
-                        <span class="op-5 text-muted">info@justcalltheguy.io</span>
+                        <span class="op-5 text-muted">@_user.Mail</span>
                     </a>
                     <div class="dropdown-menu dropdown-menu-right" aria-labelledby="Userdd">
                         <a class="dropdown-item d-flex" href="../dark/page-user-profile.html">
@@ -57,7 +54,7 @@
             </div>
         </li>
         <li class="mt-3 pt-3">
-            <a href="../dark/authentication-register.html" class="btn btn-block bg-primary text-white no-block d-flex align-items-center py-2 px-2 border-0">
+            <a href="" class="btn btn-block bg-primary text-white no-block d-flex align-items-center py-2 px-2 border-0">
                 <iconify-icon icon="solar:add-square-linear" class="fs-5"></iconify-icon>
                 <span class="hide-menu ms-2">Create New Client</span>
             </a>
@@ -108,29 +105,12 @@
             </ul>
         </li>
         <li class="sidebar-item">
-            <a class="sidebar-link has-arrow @(isStrategyCollapsed ? "" : "active")" href="javascript:void(0)" @onclick="() => ToggleStrategyButton()">
-                <span class="d-flex">
-                    <iconify-icon icon="solar:pie-chart-3-line-duotone" class="fs-6"></iconify-icon>
-                </span>
-                <span class="hide-menu">Strategy</span>
+            <a class="sidebar-link sidebar-link" href="/Strategy" aria-expanded="false">
+                <iconify-icon icon="solar:calendar-minimalistic-outline" class="fs-5"></iconify-icon>
+                <span class="hide-menu">Strategies</span>
             </a>
-            <ul class="collapse first-level @(isStrategyCollapsed ? "" : "in")">
-                @foreach (StrategyType item in Enum.GetValues(typeof(StrategyType)))
-                {
-                    if(item != StrategyType.None)
-                    {
-                        <li class="sidebar-item">
-                            <a href="/Strategy/@((int)item)" class="sidebar-link sublink">
-                                <div class="round-16 d-flex align-items-center justify-content-center">
-                                    <i class="sidebar-icon"></i>
-                                </div>
-                                <span class="hide-menu"> Strategy @((int)item) </span>
-                            </a>
-                        </li>
-                    }
-                }
-            </ul>
         </li>
+
         <li class="nav-small-cap">
             <iconify-icon icon="solar:menu-dots-bold" class="nav-small-cap-icon fs-4"></iconify-icon>
             <span class="hide-menu">Research</span>
@@ -143,7 +123,7 @@
             <span class="hide-menu">Admin</span>
         </li>
         <li class="sidebar-item">
-            <a class="sidebar-link sidebar-link" href="/" aria-expanded="false">
+            <a class="sidebar-link sidebar-link" href="/Admin/Users" aria-expanded="false">
                 <iconify-icon icon="solar:calendar-minimalistic-outline" class="fs-5"></iconify-icon>
                 <span class="hide-menu">Users</span>
             </a>
@@ -155,13 +135,15 @@
 
 @code {
 
-    private bool isStrategyCollapsed { get; set; } = true;
     private bool isSignalCollapsed { get; set; } = true;
+    public User _user { get; set; } = new();
 
-    void ToggleStrategyButton()
+    protected async override Task OnInitializedAsync()
     {
-        isStrategyCollapsed = !isStrategyCollapsed;
+        //_user = await Membership.GetAsync();
     }
+
+
 
     void ToggleSignal()
     {

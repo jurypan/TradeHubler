@@ -1,7 +1,8 @@
-﻿@page "/Strategy";
-@inject StrategyRepository _strategyRepository;
+﻿@page "/Admin/Users";
+@inject Membership _membership;
 @using JCTG.WebApp.Frontend.Components.Widget;
 @using JCTG.WebApp.Frontend.Components.Modal;
+@using Microsoft.Graph.Models;
 
 <div class="container-fluid mw-100">
 
@@ -21,8 +22,14 @@
                                 <iconify-icon icon="tabler:chevron-right"></iconify-icon>
                             </li>
                             <li class="breadcrumb-item" aria-current="page">
-                                <a class="text-primary text-decoration-none" href="/Strategy">
-                                    Strategy
+                                Admin
+                            </li>
+                            <li class="breadcrumb-item d-flex justify-content-center align-items-center ps-0">
+                                <iconify-icon icon="tabler:chevron-right"></iconify-icon>
+                            </li>
+                            <li class="breadcrumb-item" aria-current="page">
+                                <a class="text-primary text-decoration-none" href="/Admin/Users">
+                                    Users
                                 </a>
                             </li>
                         </ol>
@@ -39,42 +46,33 @@
         <div class="card card-body">
             <div class="row">
                 <div class="col-md-4 col-xl-3">
-                    <h5 class="card-title fw-semibold mb-0 lh-sm">Strategies</h5>
+                    <h5 class="card-title fw-semibold mb-0 lh-sm">Users</h5>
                 </div>
                 <div class="col-md-8 col-xl-9 text-end d-flex justify-content-md-end justify-content-center mt-3 mt-md-0">
-                    <a href="javascript:void(0)" class="btn btn-primary d-flex align-items-center" @onclick="() => StrategyAddClick()">Add a strategy</a>
+                    <a href="javascript:void(0)" class="btn btn-primary d-flex align-items-center" @onclick="() => UserAddClick()">Add a user</a>
                 </div>
             </div>
         </div>
-        @if (_strategies.Count() > 0)
+        @if (_users.Count() > 0)
         {
             <div class="card-body p-4">
                 <div class="table-responsive rounded-2 mb-4">
                     <table class="table border text-nowrap customize-table mb-0 align-middle">
                         <thead class="text-dark fs-4">
                             <tr>
-                                <th>ID</th>
+                                <th>Id</th>
+                                <th>Email</th>
                                 <th>Name</th>
-                                <th>Description</th>
-                                <th>Strategy</th>
                                 <th></th>
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach (var strategy in _strategies)
+                            @foreach (var user in _users)
                             {
                                 <tr>
-                                    <td>@strategy.ID</td>
-                                    <td>@strategy.Name</td>
-                                    <td>@strategy.Description</td>
-                                    <td>
-                                        <div class="d-flex align-items-left gap-2">
-                                            @if (strategy.Type == 1)
-                                            {
-                                                <span class="badge text-bg-primary rounded-3 fw-semibold fs-2">Tradingview</span>
-                                            }
-                                        </div>
-                                    </td>
+                                    <td>@user.Id</td>
+                                    <td>@user.UserPrincipalName</td>
+                                    <td>@user.DisplayName</td>
                                     <td>
                                         <div class="dropdown dropstart">
                                             <a href="#" class="text-muted" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
@@ -82,13 +80,10 @@
                                             </a>
                                             <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
                                                 <li>
-                                                    <a href="/Strategy/@strategy.ID/Analysis" class="dropdown-item d-flex align-items-center gap-3">Analysis</a>
+                                                    <a href="javascript:void(0)" class="dropdown-item d-flex align-items-center gap-3" @onclick="async () => await UserEditClick(user.Mail)">Edit</a>
                                                 </li>
                                                 <li>
-                                                    <a href="javascript:void(0)" class="dropdown-item d-flex align-items-center gap-3" @onclick="async () => await StrategyEditClick(strategy.ID)">Edit</a>
-                                                </li>
-                                                <li>
-                                                    <a href="javascript:void(0)" class="dropdown-item d-flex align-items-center gap-3" @onclick="async () => await StrategyDeleteClick(strategy.ID)">Delete</a>
+                                                    <a href="javascript:void(0)" class="dropdown-item d-flex align-items-center gap-3" @onclick="async () => await UserDeleteClick(user.Mail)">Delete</a>
                                                 </li>
                                             </ul>
                                         </div>
@@ -103,25 +98,20 @@
         else
         {
             <div class="card-body text-center">
-                <h3 class="fw-semibold">No strategy available for this account</h3>
+                <h3 class="fw-semibold">No users available for this account</h3>
                 <p class="fw-normal mb-4 fs-4">Is this correct?</p>
-                <a href="javascript:void(0)" class="btn btn-primary mb-8" @onclick="() => StrategyAddClick()">Add a strategy</a>
+                <a href="javascript:void(0)" class="btn btn-primary mb-8" @onclick="() => UserAddClick()">Add a user</a>
             </div>
         }
     </div>
 </div>
 
 
-<StrategyAddOrEditModal @ref="@_strategyAddOrEditModal" OnClose="async () => await ReloadAsync()"></StrategyAddOrEditModal>
-
-<StrategyDeleteModal @ref="@_strategyDeleteModal" OnClose="async () => await ReloadAsync()"></StrategyDeleteModal>
-
 @code {
 
-    private List<Entity.Strategy> _strategies = new List<Entity.Strategy>();
+    private List<User> _users = new List<User>();
 
-    private StrategyAddOrEditModal? _strategyAddOrEditModal { get; set; } = null;
-    private StrategyDeleteModal? _strategyDeleteModal { get; set; } = null;
+
 
     protected async override Task OnInitializedAsync()
     {
@@ -130,30 +120,21 @@
 
     private async Task ReloadAsync()
     {
-        _strategies = await _strategyRepository.GetAllAsync(692803787);
+        _users = await _membership.GetAllUsers();
     }
 
-    private async Task StrategyAddClick()
+    private async Task UserAddClick()
     {
-        if (_strategyAddOrEditModal != null)
-        {
-            await _strategyAddOrEditModal.InitAsync(692803787);
-        }
+
     }
 
-    private async Task StrategyEditClick(long id)
+    private async Task UserEditClick(string id)
     {
-        if (_strategyAddOrEditModal != null)
-        {
-            await _strategyAddOrEditModal.InitAsync(692803787, id);
-        }
+
     }
 
-    private async Task StrategyDeleteClick(long id)
+    private async Task UserDeleteClick(string id)
     {
-        if (_strategyDeleteModal != null)
-        {
-            await _strategyDeleteModal.InitAsync(692803787, id);
-        }
+
     }
 }

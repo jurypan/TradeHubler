@@ -131,9 +131,9 @@
                         <li class="list-inline-item">
                             <select class="form-select" @onchange="SubmitFilterDateAsync">
                                 <option value="0">Last Month</option>
-                                <option value="1">Last Week</option>
+                                <option value="1" selected="selected">Last Week</option>
                                 <option value="2">Last 3 Days</option>
-                                <option value="3" selected="selected">Last 1 Day</option>
+                                <option value="3">Last 1 Day</option>
                             </select>
                         </li>
                     </ul>
@@ -369,7 +369,7 @@
 
     private StrategyType _filterStrategyType { get; set; } = StrategyType.None;
     private string? _filterInstrument { get; set; } = null;
-    private DateTime _filterDate { get; set; } = DateTime.UtcNow.Date.AddDays(-1);
+    private DateTime _filterDate { get; set; } = DateTime.UtcNow.Date.AddDays(-8);
 
     private SignalAddOrEditModal? _signalAddOrEditModal { get; set; } = null;
     private SignalDeleteModal? _signalDeleteModal { get; set; } = null;
