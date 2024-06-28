@@ -1,11 +1,6 @@
-﻿using Azure.Core;
-using Azure.Identity;
-using Microsoft.Extensions.Configuration;
+﻿using Azure.Identity;
 using Microsoft.Graph;
 using Microsoft.Graph.Models;
-using Microsoft.Identity.Client;
-using System.Linq;
-using System.Security.Cryptography;
 
 
 namespace JCTG.WebApp.Backend.Security
@@ -98,12 +93,40 @@ namespace JCTG.WebApp.Backend.Security
             if(response == null || response.Id == null)
                 throw new Exception("Current user is null");
 
-            var response2 = await _graphClientSecret.Users[response.Id].GetAsync();
+            return await GetAsync(response.Id);
+        }
 
-            if (response2 == null || response2.Id == null)
+        public async Task<User> GetAsync(string Id)
+        {
+            // https://learn.microsoft.com/en-us/graph/api/user-get?view=graph-rest-1.0&tabs=http
+            var response = await _graphClientSecret.Users[Id].GetAsync();
+
+            if (response == null || response.Id == null)
                 throw new Exception("Current user is null");
 
-            return response2;
+            return response;
+        }
+
+        public async Task<User> CreateAsync(User user)
+        {
+            // https://learn.microsoft.com/en-us/graph/api/user-post-users?view=graph-rest-1.0&tabs=csharp
+            var response = await _graphClientSecret.Users.PostAsync(user);
+
+            if (response == null || response.Id == null)
+                throw new Exception("User is null");
+
+            return response;
+        }
+
+        public async Task<User> UpdateAsync(string Id, User user)
+        {
+            // https://learn.microsoft.com/en-us/graph/api/user-post-users?view=graph-rest-1.0&tabs=csharp
+            var response = await _graphClientSecret.Users[Id].PatchAsync(user);
+
+            if (response == null || response.Id == null)
+                throw new Exception("User is null");
+
+            return response;
         }
     }
 }

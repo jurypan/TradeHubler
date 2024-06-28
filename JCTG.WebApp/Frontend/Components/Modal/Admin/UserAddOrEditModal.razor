@@ -1,0 +1,122 @@
+﻿@inject Membership Membership;
+@using Microsoft.Graph.Models;
+
+
+<div class="modal fade @_cssClass" tabindex="-1" style="display:@_display">
+    <EditForm Model="@model" OnValidSubmit="@SubmitAsync">
+        <div class=" modal-dialog modal-dialog-scrollable modal-xl">
+            <div class="modal-content">
+                <div class="modal-header modal-colored-header bg-primary text-white">
+                    <h4 class="modal-title text-white" id="primary-header-modalLabel"> Strategy </h4>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" @onclick="async () => await CloseAsync()"></button>
+                </div>
+                <div class="modal-body">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary />
+                    <AntiforgeryToken />
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label" for="ticker-in-tradingview">Name</label>
+                                <InputText class="form-control" @bind-Value="model.DisplayName" />
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label" for="ticker-in-metatrader">Email</label>
+                                <InputText class="form-control" @bind-Value="model.UserPrincipalName" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="mb-3">
+                                <label class="form-label" for="ticker-in-tradingview">Password</label>
+                                <InputText class="form-control" @bind-Value="model.PasswordProfile.Password" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <div class="d-flex gap-6 m-0">
+                        <button type="submit" class="btn btn-primary  rounded-pill px-4"> Save </button>
+                        <button class="btn bg-danger-subtle text-danger rounded-pill" @onclick="async () => await CloseAsync()"> Discard </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </EditForm>
+</div>
+
+@code {
+    [Parameter]
+    public EventCallback OnClose { get; set; }
+
+    [Parameter]
+    public EventCallback OnOpen { get; set; }
+
+    [SupplyParameterFromForm]
+    private User model { get; set; } = new() { AccountEnabled = true, PasswordProfile = new PasswordProfile() { ForceChangePasswordNextSignIn = true } };
+    private CrudState _crudState { get; set; } = CrudState.None;
+
+    private string _display = "none;";
+    private string _cssClass = "hide";
+
+    public async Task OpenAsync()
+    {
+        _display = "block;";
+        _cssClass = "show";
+        await OnOpen.InvokeAsync();
+        StateHasChanged();
+    }
+
+    public async Task CloseAsync()
+    {
+        _display = "none;";
+        _cssClass = "hide";
+        await OnClose.InvokeAsync();
+        StateHasChanged();
+    }
+
+    public async Task InitAsync(int accountId, string? id = null)
+    {
+        if (id != null)
+        {
+            var modelNew = await Membership.GetAsync(id);
+            if (modelNew != null)
+            {
+                model = modelNew;
+                if (model.PasswordProfile == null)
+                    model.PasswordProfile = new PasswordProfile();
+                await OpenAsync();
+                _crudState = CrudState.Edit;
+            }
+        }
+        else
+        {
+            model = new() { AccountEnabled = true, PasswordProfile = new PasswordProfile() { ForceChangePasswordNextSignIn = true } };
+            await OpenAsync();
+            _crudState = CrudState.Add;
+        }
+    }
+
+
+    public async Task SubmitAsync()
+    {
+        if (model != null)
+        {
+            if (_crudState == CrudState.Add)
+            {
+                await Membership.CreateAsync(model);
+            }
+            else if (_crudState == CrudState.Edit && model.Id != null)
+            {
+                await Membership.UpdateAsync(model.Id, model);
+            }
+
+            _crudState = CrudState.None;
+            model = new() { AccountEnabled = true, PasswordProfile = new PasswordProfile() { ForceChangePasswordNextSignIn = true } };
+            await CloseAsync();
+        }
+    }
+}

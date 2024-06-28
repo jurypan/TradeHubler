@@ -1,7 +1,7 @@
 ﻿@page "/Admin/Users";
 @inject Membership _membership;
 @using JCTG.WebApp.Frontend.Components.Widget;
-@using JCTG.WebApp.Frontend.Components.Modal;
+@using JCTG.WebApp.Frontend.Components.Modal.Admin;
 @using Microsoft.Graph.Models;
 
 <div class="container-fluid mw-100">
@@ -80,10 +80,10 @@
                                             </a>
                                             <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
                                                 <li>
-                                                    <a href="javascript:void(0)" class="dropdown-item d-flex align-items-center gap-3" @onclick="async () => await UserEditClick(user.Mail)">Edit</a>
+                                                    <a href="javascript:void(0)" class="dropdown-item d-flex align-items-center gap-3" @onclick="async () => await UserEditClick(user.Id)">Edit</a>
                                                 </li>
                                                 <li>
-                                                    <a href="javascript:void(0)" class="dropdown-item d-flex align-items-center gap-3" @onclick="async () => await UserDeleteClick(user.Mail)">Delete</a>
+                                                    <a href="javascript:void(0)" class="dropdown-item d-flex align-items-center gap-3" @onclick="async () => await UserDeleteClick(user.Id)">Delete</a>
                                                 </li>
                                             </ul>
                                         </div>
@@ -107,10 +107,12 @@
 </div>
 
 
+<UserAddOrEditModal @ref="@_userAddOrEditModal" OnClose="async () => await ReloadAsync()"></UserAddOrEditModal>
+
 @code {
 
     private List<User> _users = new List<User>();
-
+    private UserAddOrEditModal? _userAddOrEditModal { get; set; } = null;
 
 
     protected async override Task OnInitializedAsync()
@@ -125,12 +127,18 @@
 
     private async Task UserAddClick()
     {
-
+        if (_userAddOrEditModal != null)
+        {
+            await _userAddOrEditModal.InitAsync(692803787);
+        }
     }
 
     private async Task UserEditClick(string id)
     {
-
+        if (_userAddOrEditModal != null)
+        {
+            await _userAddOrEditModal.InitAsync(692803787, id);
+        }
     }
 
     private async Task UserDeleteClick(string id)

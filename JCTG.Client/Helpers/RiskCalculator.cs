@@ -4,6 +4,9 @@ namespace JCTG.Client
 {
     public class RiskCalculator
     {
+        private static void LogCalculation(Dictionary<string, string> logMessages, string key, object value) => logMessages[key] = value.ToString();
+
+
 
         /// <summary>
         /// 
@@ -20,36 +23,62 @@ namespace JCTG.Client
         /// <param name="maxLotSizeAllowed"></param>
         /// <param name="spread"></param>
         /// <returns></returns>
-        public static decimal LotSize(double startBalance, double accountBalance, decimal riskPercent, decimal openPrice, decimal stopLossPrice, decimal tickValue, decimal tickSize, double lotStep, double minLotSizeAllowed, double maxLotSizeAllowed, List<Risk>? riskData = null)
+        public static decimal LotSize(double startBalance, double accountBalance, decimal riskPercent, decimal openPrice, decimal stopLossPrice, decimal tickValue, decimal tickSize, double lotStep, double minLotSizeAllowed, double maxLotSizeAllowed, out Dictionary<string, string> logMessages, List<Risk>? riskData = null)
         {
+            logMessages = [];
+
+            // Log the initial input parameters
+            LogCalculation(logMessages, "StartBalance", startBalance);
+            LogCalculation(logMessages, "AccountBalance", accountBalance);
+            LogCalculation(logMessages, "RiskPercent", riskPercent);
+            LogCalculation(logMessages, "OpenPrice", openPrice);
+            LogCalculation(logMessages, "StopLossPrice", stopLossPrice);
+            LogCalculation(logMessages, "TickValue", tickValue);
+            LogCalculation(logMessages, "TickSize", tickSize);
+            LogCalculation(logMessages, "LotStep", lotStep);
+            LogCalculation(logMessages, "MinLotSizeAllowed", minLotSizeAllowed);
+            LogCalculation(logMessages, "MaxLotSizeAllowed", maxLotSizeAllowed);
+
             // Throw exception when negative balance
             if (accountBalance <= 0)
                 return 0.0M;
 
             // Calculate risk percentage
             var dynamicRisk = ChooseClosestMultiplier(startBalance, accountBalance, riskData);
+            LogCalculation(logMessages, "DynamicRisk", dynamicRisk);
 
             // Calculate the Risk Amount
             var riskAmount = Convert.ToDecimal(accountBalance) * ((riskPercent * dynamicRisk) / 100.0M);
+            LogCalculation(logMessages, "RiskAmount", riskAmount);
 
             // Calculate the Stop Loss in Points
             var stopLossDistance = Math.Abs(openPrice - stopLossPrice);
+            LogCalculation(logMessages, "StopLossDistance", stopLossDistance);
 
             // Convert Stop Loss to Ticks
             var stopLossDistanceInTicks = stopLossDistance / tickSize;
+            LogCalculation(logMessages, "StopLossDistanceInTicks", stopLossDistanceInTicks);
 
             // Calculate the Loss per Lot
             var lossPerLot = stopLossDistanceInTicks * tickValue;
+            LogCalculation(logMessages, "LossPerLot", lossPerLot);
 
             // Calculate the Lot Size
             var lotSize = riskAmount / lossPerLot;
+            LogCalculation(logMessages, "InitialLotSize", lotSize);
 
             // Adjusting for lot step
             lotSize = RoundToNearestTickSize(lotSize, Convert.ToDecimal(lotStep));
+            LogCalculation(logMessages, "RoundedLotSize", lotSize);
 
             // Bounds checking
-            return Math.Clamp(lotSize, Convert.ToDecimal(minLotSizeAllowed), Convert.ToDecimal(maxLotSizeAllowed));
+            var finalLotSize = Math.Clamp(lotSize, Convert.ToDecimal(minLotSizeAllowed), Convert.ToDecimal(maxLotSizeAllowed));
+            LogCalculation(logMessages, "FinalLotSize", finalLotSize);
+
+            return finalLotSize;
         }
+
+        
 
         public static decimal RoundToNearestTickSize(decimal value, decimal step)
         {
