@@ -158,16 +158,10 @@
                                 <h6 class="fs-4 fw-semibold mb-0">Signal</h6>
                             </th>
                             <th>
-                                <h6 class="fs-4 fw-semibold mb-0">Date Created</h6>
-                            </th>
-                            <th>
                                 <h6 class="fs-4 fw-semibold mb-0">Last Updated</h6>
                             </th>
                             <th>
                                 <h6 class="fs-4 fw-semibold mb-0">TV Status</h6>
-                            </th>
-                            <th>
-                                <h6 class="fs-4 fw-semibold mb-0">TV Exit RR</h6>
                             </th>
                             <th>
                                 <h6 class="fs-4 fw-semibold mb-0">PNL</h6>
@@ -221,9 +215,6 @@
                                     <p class="mb-0 fw-normal">@signal.OrderType</p>
                                 </td>
                                 <td>
-                                    <p class="mb-0 fw-normal">@signal.DateCreated.ToString("dd/MM/yy HH:mm:ss")</p>
-                                </td>
-                                <td>
                                     <p class="mb-0 fw-normal">@signal.DateLastUpdated.ToString("dd/MM/yy HH:mm:ss")</p>
                                 </td>
                                 <td>
@@ -254,22 +245,6 @@
                                     else if (signal.TradingviewStateType == TradingviewStateType.CloseAll)
                                     {
                                         <span class="mb-1 badge rounded-pill  bg-info-subtle text-info">Close</span>
-                                    }
-                                </td>
-                                <td>
-                                    @signal.ExitRiskRewardRatio
-
-                                    @if (signal.TradingviewStateType == TradingviewStateType.CancelOrder)
-                                    {
-                                       <text>-</text>
-                                    }
-                                    else if (signal.TradingviewStateType == TradingviewStateType.Init)
-                                    {
-                                        <text>?</text>
-                                    }
-                                    else if (signal.TradingviewStateType == TradingviewStateType.Entry)
-                                    {
-                                        <text>?</text>
                                     }
                                 </td>
                                 <td>@Math.Round(signal.Orders.Sum(f => f.Pnl), 2)</td>

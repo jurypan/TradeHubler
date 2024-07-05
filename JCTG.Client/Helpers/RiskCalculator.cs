@@ -23,7 +23,19 @@ namespace JCTG.Client
         /// <param name="maxLotSizeAllowed"></param>
         /// <param name="spread"></param>
         /// <returns></returns>
-        public static decimal LotSize(double startBalance, double accountBalance, decimal riskPercent, decimal openPrice, decimal stopLossPrice, decimal tickValue, decimal tickSize, double lotStep, double minLotSizeAllowed, double maxLotSizeAllowed, out Dictionary<string, string> logMessages, List<Risk>? riskData = null)
+        public static decimal LotSize(
+            double startBalance,
+            double accountBalance,
+            decimal riskPercent,
+            decimal openPrice,
+            decimal stopLossPrice,
+            decimal tickValue,
+            decimal tickSize,
+            double lotStep,
+            double minLotSizeAllowed,
+            double maxLotSizeAllowed,
+            out Dictionary<string, string> logMessages,
+            List<Risk>? riskData = null)
         {
             logMessages = [];
 
@@ -78,7 +90,7 @@ namespace JCTG.Client
             return finalLotSize;
         }
 
-        
+
 
         public static decimal RoundToNearestTickSize(decimal value, decimal step)
         {

@@ -288,7 +288,7 @@ namespace JCTG.WebApp.Backend.Api
                                     {
                                         foreach(var marketAbstention in existingSignal.MarketAbstentions)
                                         {
-                                            if(marketAbstention.MarketAbstentionType == Models.MarketAbstentionType.ExceptionCalculatingEntryPrice)
+                                            if(marketAbstention.MarketAbstentionType == Models.MarketAbstentionType.ExceptionCalculatingEntryPrice || marketAbstention.MarketAbstentionType == Models.MarketAbstentionType.MetatraderOpenOrderError)
                                             {
                                                 // Create model and send to the client
                                                 id = await _server.SendOnTradingviewSignalCommandAsync(signal.AccountID, new OnSendTradingviewSignalCommand()
@@ -318,7 +318,7 @@ namespace JCTG.WebApp.Backend.Api
                                     {
                                         foreach (var marketAbstention in existingSignal.MarketAbstentions)
                                         {
-                                            if (marketAbstention.MarketAbstentionType == Models.MarketAbstentionType.ExceptionCalculatingEntryPrice)
+                                            if (marketAbstention.MarketAbstentionType == Models.MarketAbstentionType.ExceptionCalculatingEntryPrice || marketAbstention.MarketAbstentionType == Models.MarketAbstentionType.MetatraderOpenOrderError)
                                             {
                                                 // Create model and send to the client
                                                 id = await _server.SendOnTradingviewSignalCommandAsync(signal.AccountID, new OnSendTradingviewSignalCommand()

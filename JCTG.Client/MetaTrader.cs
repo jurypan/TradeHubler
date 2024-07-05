@@ -424,9 +424,9 @@ namespace JCTG.Client
                                                                                     // Open order
                                                                                     var comment = string.Format($"{cmd.SignalID}/{price}/{sl}/{(int)pair.StrategyNr}/{spread}");
                                                                                     var orderType = OrderType.BuyStop;
-                                                                                    if (pair.OrderExecType == OrderExecType.Passive && metadataTick.Ask <= price)
+                                                                                    if (pair.OrderExecType == OrderExecType.Passive && metadataTick.Bid <= price)
                                                                                         orderType = OrderType.BuyLimit;
-                                                                                    else if (pair.OrderExecType == OrderExecType.Active && metadataTick.Ask >= price)
+                                                                                    else if (pair.OrderExecType == OrderExecType.Active && metadataTick.Bid >= price)
                                                                                         orderType = OrderType.Buy;
 
                                                                                     // Round
@@ -768,9 +768,9 @@ namespace JCTG.Client
                                                                                     // Setup the order
                                                                                     var comment = string.Format($"{cmd.SignalID}/{price}/{sl}/{(int)pair.StrategyNr}/{spread}");
                                                                                     var orderType = OrderType.SellStop;
-                                                                                    if (pair.OrderExecType == OrderExecType.Passive && metadataTick.Bid < price.Value)
+                                                                                    if (pair.OrderExecType == OrderExecType.Passive && metadataTick.Ask < price.Value)
                                                                                         orderType = OrderType.SellLimit;
-                                                                                    else if (pair.OrderExecType == OrderExecType.Active && metadataTick.Bid <= price.Value)
+                                                                                    else if (pair.OrderExecType == OrderExecType.Active && metadataTick.Ask <= price.Value)
                                                                                         orderType = OrderType.Sell;
 
                                                                                     // Round
