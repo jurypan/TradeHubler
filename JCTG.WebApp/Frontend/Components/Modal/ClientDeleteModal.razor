@@ -6,7 +6,7 @@
         <div class="modal-content">
             <div class="modal-header modal-colored-header bg-danger text-white">
                 <h4 class="modal-title text-white" id="danger-header-modalLabel">Delete a client</h4>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" @onclick="async () => await CloseAsync()"></button>
+                <span type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" @onclick="async () => await CloseAsync()"></span>
             </div>
             <div class="modal-body">
                 <h5 class="mt-0">Delete a client?</h5>
@@ -14,8 +14,8 @@
             </div>
             <div class="modal-footer">
                 <div class="d-flex gap-6 m-0">
-                    <button type="submit" class="btn btn-danger  rounded-pill px-4" @onclick="async () => await SubmitAsync()"> Delete </button>
-                    <button class="btn bg-danger-subtle text-danger rounded-pill" @onclick="async () => await CloseAsync()"> Discard </button>
+                    <span type="submit" class="btn btn-danger  rounded-pill px-4" @onclick="async () => await SubmitAsync()"> Delete </span>
+                    <span class="btn bg-danger-subtle text-danger rounded-pill" @onclick="async () => await CloseAsync()"> Discard </span>
                 </div>
             </div>
         </div>

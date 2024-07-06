@@ -10,7 +10,7 @@
             <div class="modal-content">
                 <div class="modal-header modal-colored-header bg-warning text-white">
                     <h4 class="modal-title text-white" id="danger-header-modalLabel">Retry a signal</h4>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" @onclick="async () => await CloseAsync()"></button>
+                    <span class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" @onclick="async () => await CloseAsync()"></span>
                 </div>
                 <div class="modal-body">
                     <h5 class="mt-0">Retry a signal?</h5>
@@ -35,7 +35,7 @@
                     <div class="modal-footer">
                         <div class="d-flex gap-6 m-0">
                             <button type="submit" class="btn btn-warning rounded-pill px-4"> Retry </button>
-                            <button class="btn bg-danger-subtle text-danger rounded-pill" @onclick="async () => await CloseAsync()"> Discard </button>
+                            <span class="btn bg-danger-subtle text-danger rounded-pill" @onclick="async () => await CloseAsync()"> Discard </span>
                         </div>
                     </div>
                 </div>

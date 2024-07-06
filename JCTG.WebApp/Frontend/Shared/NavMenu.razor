@@ -2,6 +2,7 @@
 @inject NavigationManager NavManager;
 @using Microsoft.Graph.Models;
 @using JCTG.Models;
+@using JCTG.WebApp.Frontend.Components.Modal;
 
 <div class="brand-logo d-flex align-items-center justify-content-between">
     <a href="/" class="text-nowrap logo-img">
@@ -23,8 +24,7 @@
                     <img src="/images/profile/user-6.jpg" alt="users" class="rounded-circle" width="40" />
                 </div>
                 <div class="user-content hide-menu ms-2">
-                    <a href="#" class="" id="Userdd" role="button" data-bs-toggle="dropdown" aria-haspopup="true"
-                       aria-expanded="false">
+                    <a href="javascript:void(0)" class="" id="Userdd" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                         <h5 class="mb-0 user-name fw-medium d-flex ">
                             @_user.DisplayName
                             <iconify-icon icon="solar:alt-arrow-down-outline" class="ms-2"></iconify-icon>
@@ -54,7 +54,7 @@
             </div>
         </li>
         <li class="mt-3 pt-3">
-            <a href="" class="btn btn-block bg-primary text-white no-block d-flex align-items-center py-2 px-2 border-0">
+            <a href="javascript:void(0)" @onclick="() => AddAClientClick()" class="btn btn-block bg-primary text-white no-block d-flex align-items-center py-2 px-2 border-0">
                 <iconify-icon icon="solar:add-square-linear" class="fs-5"></iconify-icon>
                 <span class="hide-menu ms-2">Create New Client</span>
             </a>
@@ -132,14 +132,17 @@
     </ul>
 </nav>
 
+<ClientAddModal @ref="@_clientAddModal" OnClose="async () => await ReloadAsync()"></ClientAddModal>
 
 @code {
 
     private bool isSignalCollapsed { get; set; } = true;
     public User _user { get; set; } = new();
+    private ClientAddModal? _clientAddModal { get; set; } = null;
 
     protected async override Task OnInitializedAsync()
     {
+        await ReloadAsync();
         //_user = await Membership.GetAsync();
     }
 
@@ -156,5 +159,19 @@
         {
             NavManager.NavigateTo(Membership.SignoutURL());
         }
+    }
+
+    private async Task AddAClientClick()
+    {
+        if (_clientAddModal != null)
+        {
+            await _clientAddModal.InitAsync(692803787);
+        }
+    }
+
+    private async Task ReloadAsync()
+    {
+        await Task.Run(() => 1 + 1);
+        StateHasChanged();
     }
 }
