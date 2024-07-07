@@ -3,6 +3,7 @@
 @using JCTG.WebApp.Frontend.Components.Widget;
 @using JCTG.WebApp.Frontend.Components.Modal.Admin;
 @using Microsoft.Graph.Models;
+@attribute [Authorize]
 
 <div class="container-fluid mw-100">
 
@@ -53,7 +54,7 @@
                 </div>
             </div>
         </div>
-        @if (_users.Count() > 0)
+        @if (_members.Count() > 0)
         {
             <div class="card-body p-4">
                 <div class="table-responsive rounded-2 mb-4">
@@ -67,11 +68,11 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach (var user in _users)
+                            @foreach (var user in _members)
                             {
                                 <tr>
                                     <td>@user.Id</td>
-                                    <td>@user.UserPrincipalName</td>
+                                    <td>@(user.Mail == null ? user.UserPrincipalName : user.Mail)</td>
                                     <td>@user.DisplayName</td>
                                     <td>
                                         <div class="dropdown dropstart">
@@ -80,15 +81,12 @@
                                             </a>
                                             <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
                                                 <li>
-                                                    <a href="javascript:void(0)" class="dropdown-item d-flex align-items-center gap-3" @onclick="async () => await UserEditClick(user.Id)">Edit</a>
-                                                </li>
-                                                <li>
                                                     <a href="javascript:void(0)" class="dropdown-item d-flex align-items-center gap-3" @onclick="async () => await UserDeleteClick(user.Id)">Delete</a>
                                                 </li>
                                             </ul>
                                         </div>
                                     </td>
-                                </tr>
+                                </tr> 
                             }
                         </tbody>
                     </table>
@@ -109,10 +107,13 @@
 
 <UserAddOrEditModal @ref="@_userAddOrEditModal" OnClose="async () => await ReloadAsync()"></UserAddOrEditModal>
 
+<UserDeleteModal @ref="@_userDeleteModal" OnClose="async () => await ReloadAsync()"></UserDeleteModal>
+
 @code {
 
-    private List<User> _users = new List<User>();
+    private List<User> _members = new List<User>();
     private UserAddOrEditModal? _userAddOrEditModal { get; set; } = null;
+    private UserDeleteModal? _userDeleteModal { get; set; } = null;
 
 
     protected async override Task OnInitializedAsync()
@@ -122,7 +123,7 @@
 
     private async Task ReloadAsync()
     {
-        _users = await _membership.GetAllUsers();
+        _members = await _membership.GetAllUsers(Guid.Parse("d0d4c576-8aa4-4f12-b42c-bc05b18349f4"));
     }
 
     private async Task UserAddClick()
@@ -133,16 +134,12 @@
         }
     }
 
-    private async Task UserEditClick(string id)
-    {
-        if (_userAddOrEditModal != null)
-        {
-            await _userAddOrEditModal.InitAsync(692803787, id);
-        }
-    }
 
     private async Task UserDeleteClick(string id)
     {
-
+        if (_userDeleteModal != null)
+        {
+            await _userDeleteModal.InitAsync(692803787, id);
+        }
     }
 }

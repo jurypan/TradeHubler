@@ -576,9 +576,8 @@
                                 <div class="d-flex align-items-center py-9 mx-7 border-bottom">
                                     <img src="/images/profile/user-6.jpg" class="rounded-circle" width="80" height="80" alt="" />
                                     <div class="ms-3">
-                                        <h5 class="mb-1 fs-4 text-secondary">Steve Jobs</h5>
-                                        <span class="mb-1 d-block text-secondary">Designer</span>
-                                        <p class="mb-0 d-flex align-items-center gap-2"><i class="ti ti-mail fs-4"></i> info@xtreme.com</p>
+                                        <h5 class="mb-1 fs-4 text-secondary">@name</h5>
+                                        <p class="mb-0 d-flex align-items-center gap-2"><i class="ti ti-mail fs-4"></i> @email</p>
                                     </div>
                                 </div>
                                 <div class="message-body">
@@ -844,6 +843,15 @@
 @code {
     [Inject]
     protected IJSRuntime JsRuntime { get; set; }
+
+    private string email { get; set; } = string.Empty;
+    private string name { get; set; } = string.Empty;
+
+    protected async override Task OnInitializedAsync()
+    {
+        email = await Membership.GetEmailAsync();
+        name = await Membership.GetNameAsync();
+    }
 
     protected override void OnAfterRender(bool firstRender)
     {

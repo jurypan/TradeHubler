@@ -20,13 +20,12 @@ var baseAddress = builder.Environment.IsDevelopment()
     : "https://app.tradehubler.com/"; // Production base URL
 
 // Authentication
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
     .AddMicrosoftIdentityWebApp(builder.Configuration.GetSection("AzureAd"))
     .EnableTokenAcquisitionToCallDownstreamApi(["https://graph.windows.net/user.read"])
-    .AddMicrosoftGraph(options =>
-    {
-        options.Scopes = "'https://graph.windows.net/user.read";
-    })
+    .AddMicrosoftGraph()
     .AddInMemoryTokenCaches();
 
 builder.Services.AddControllersWithViews().AddMicrosoftIdentityUI();

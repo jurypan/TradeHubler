@@ -1,4 +1,4 @@
-﻿@inject Membership Membership;
+﻿@inject Membership membership;
 @using Microsoft.Graph.Models;
 
 
@@ -7,8 +7,8 @@
         <div class=" modal-dialog modal-dialog-scrollable modal-xl">
             <div class="modal-content">
                 <div class="modal-header modal-colored-header bg-primary text-white">
-                    <h4 class="modal-title text-white" id="primary-header-modalLabel"> Strategy </h4>
-                    <span type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" @onclick="async () => await CloseAsync()"></span>
+                    <h4 class="modal-title text-white" id="primary-header-modalLabel"> User </h4>
+                    <span class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" @onclick="async () => await CloseAsync()"></span>
                 </div>
                 <div class="modal-body">
                     <DataAnnotationsValidator />
@@ -17,25 +17,66 @@
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label class="form-label" for="ticker-in-tradingview">Name</label>
+                                <label class="form-label" for="ticker-in-tradingview">Display Name</label>
                                 <InputText class="form-control" @bind-Value="model.DisplayName" />
                             </div>
                         </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label" for="ticker-in-metatrader">Email</label>
-                                <InputText class="form-control" @bind-Value="model.UserPrincipalName" />
+                        @if(model.PasswordProfile != null)
+                        {
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label" for="ticker-in-tradingview">Password</label>
+                                    <InputText class="form-control" @bind-Value="model.PasswordProfile.Password" />
+                                </div>
                             </div>
-                        </div>
+                        }
                     </div>
                     <div class="row">
                         <div class="col-md-12">
                             <div class="mb-3">
-                                <label class="form-label" for="ticker-in-tradingview">Password</label>
-                                <InputText class="form-control" @bind-Value="model.PasswordProfile.Password" />
+                                <span @onclick="() => AddIdentity()" class="btn btn-success font-weight-medium waves-effect waves-light">
+                                    <i class="ti ti-circle-plus fs-5"></i>
+                                </span>
+                                <span @onclick="() => RemoveIdentity()" class="btn btn-danger">
+                                    <i class="ti ti-minus"></i>
+                                </span>
                             </div>
                         </div>
                     </div>
+
+                    @if(model.Identities != null)
+                    {
+                        foreach (var identity in model.Identities)
+                        {
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <label class="form-label">Sign in type</label>
+                                        <InputSelect class="form-select col-12" @bind-Value="identity.SignInType">
+                                            <option value="emailAddress">Email</option>
+                                            <option value="federated">Federated</option>
+                                        </InputSelect>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <label class="form-label">Issuer</label>
+                                        <InputSelect class="form-select col-12" @bind-Value="identity.Issuer">
+                                            <option value="justcalltheguy.onmicrosoft.com">justcalltheguy.onmicrosoft.com</option>
+                                            <option value="google.com">google.com</option>
+                                            <option value="facebook.com">facebook.com</option>s
+                                        </InputSelect>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <label class="form-label">Issuer Assigned Id</label>
+                                        <InputText class="form-control" @bind-Value="identity.IssuerAssignedId" />
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    }
                 </div>
                 <div class="modal-footer">
                     <div class="d-flex gap-6 m-0">
@@ -56,7 +97,8 @@
     public EventCallback OnOpen { get; set; }
 
     [SupplyParameterFromForm]
-    private User model { get; set; } = new() { AccountEnabled = true, PasswordProfile = new PasswordProfile() { ForceChangePasswordNextSignIn = true } };
+    private User model { get; set; } = Membership.Empty();
+
     private CrudState _crudState { get; set; } = CrudState.None;
 
     private string _display = "none;";
@@ -78,11 +120,26 @@
         StateHasChanged();
     }
 
+    public void RemoveIdentity()
+    {
+        if (model.Identities == null)
+            model.Identities = new List<ObjectIdentity>();
+        if(model.Identities.Count > 0)
+            this.model.Identities.Remove(this.model.Identities.Last());
+    }
+
+    public void AddIdentity()
+    {
+        if (model.Identities == null)
+            model.Identities = new List<ObjectIdentity>();
+        this.model.Identities.Add(new() { Issuer = "justcalltheguy.onmicrosoft.com" });
+    }
+
     public async Task InitAsync(int accountId, string? id = null)
     {
         if (id != null)
         {
-            var modelNew = await Membership.GetAsync(id);
+            var modelNew = await membership.GetAsync(id);
             if (modelNew != null)
             {
                 model = modelNew;
@@ -94,7 +151,7 @@
         }
         else
         {
-            model = new() { AccountEnabled = true, PasswordProfile = new PasswordProfile() { ForceChangePasswordNextSignIn = true } };
+            model = Membership.Empty();
             await OpenAsync();
             _crudState = CrudState.Add;
         }
@@ -103,19 +160,21 @@
 
     public async Task SubmitAsync()
     {
-        if (model != null)
+        if (model != null && model.Identities != null && model.Identities.Count() >= 1)
         {
             if (_crudState == CrudState.Add)
             {
-                await Membership.CreateAsync(model);
+                if (model.Identities.Count(f => f.SignInType == "emailAddress") == 1)
+                    model.Mail = model.Identities.First(f => f.SignInType == "emailAddress").IssuerAssignedId;
+                await membership.CreateAsync(Guid.Parse("d0d4c576-8aa4-4f12-b42c-bc05b18349f4"), model);
             }
             else if (_crudState == CrudState.Edit && model.Id != null)
             {
-                await Membership.UpdateAsync(model.Id, model);
+                await membership.UpdateAsync(model.Id, model);
             }
 
             _crudState = CrudState.None;
-            model = new() { AccountEnabled = true, PasswordProfile = new PasswordProfile() { ForceChangePasswordNextSignIn = true } };
+            model = Membership.Empty();
             await CloseAsync();
         }
     }
