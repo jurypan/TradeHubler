@@ -5,36 +5,37 @@
 
 <!DOCTYPE html>
 <html lang="en" dir="ltr" data-bs-theme="light" data-color-theme="Blue_Theme" data-layout="vertical" data-boxed-layout="full" data-card="border">
-<head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <base href="~/" />
-    <link rel="stylesheet" href="/css/styles.css" />
-    <link rel="icon" type="image/png" href="/favicon.png"/>
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <base href="~/" />
+        <link rel="stylesheet" href="/css/styles.css" />
+        <link rel="icon" type="image/png" href="/favicon.png"/>
 
 
 
-    <component type="typeof(HeadOutlet)" render-mode="ServerPrerendered" />
-</head>
-<body data-sidebartype="mini-sidebar">
-    <component type="typeof(App)" render-mode="ServerPrerendered" />
+        <component type="typeof(HeadOutlet)" render-mode="ServerPrerendered" />
+    </head>
+    <body data-sidebartype="mini-sidebar">
+        <component type="typeof(App)" render-mode="ServerPrerendered" />
 
-    <div id="blazor-error-ui">
-        <environment include="Staging,Production">
-            An error has occurred. This application may no longer respond until reloaded.
-        </environment>
-        <environment include="Development">
-            An unhandled exception has occurred. See browser dev tools for details.
-        </environment>
-    </div>
+        <div id="blazor-error-ui">
+            <environment include="Staging,Production">
+                An error has occurred. This application may no longer respond until reloaded.
+            </environment>
+            <environment include="Development">
+                An unhandled exception has occurred. See browser dev tools for details.
+            </environment>
+        </div>
 
-    <!-- Import Js Files -->
-    <script src="/libs/jquery/dist/jquery.min.js"></script>
-    <script src="/libs/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="/libs/simplebar/dist/simplebar.min.js"></script>
-    <script src="/libs/iconify-icon/dist/iconify-icon.min.js"></script>
-    <script src="/libs/jquery-sparkline/jquery.sparkline.min.js"></script>
-    <script src="/libs/apexcharts/dist/apexcharts.min.js"></script>
-   <script src="_framework/blazor.server.js"></script>
-</body>
+        <!-- Import Js Files -->
+        <script src="/libs/jquery/dist/jquery.min.js"></script>
+        <script src="/libs/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+        <script src="/libs/simplebar/dist/simplebar.min.js"></script>
+        <script src="/libs/iconify-icon/dist/iconify-icon.min.js"></script>
+        <script src="/libs/jquery-sparkline/jquery.sparkline.min.js"></script>
+        <script src="/libs/apexcharts/dist/apexcharts.min.js"></script>
+       <script src="_framework/blazor.server.js"></script>
+
+    </body>
 </html>

@@ -1,7 +1,6 @@
 ﻿using Azure.Identity;
 using Microsoft.Graph;
 using Microsoft.Graph.Models;
-using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages.Manage;
 
 
 namespace JCTG.WebApp.Backend.Security
@@ -69,6 +68,19 @@ namespace JCTG.WebApp.Backend.Security
             return string.Empty;
         }
 
+        public string SigninURL()
+        {
+            if (_authManager != null && _authManager.HttpContext != null)
+            {
+                var url = _configuration.GetSection("AzureAd:Instance").Value;
+                if (url != null)
+                    return url;
+                else
+                    return string.Empty;
+            }
+            return string.Empty;
+        }
+
         public async Task<List<User>> GetAllUsers(Guid accountId)
         {
             // https://learn.microsoft.com/en-us/graph/api/group-list-members?view=graph-rest-1.0&tabs=csharp
@@ -106,6 +118,13 @@ namespace JCTG.WebApp.Backend.Security
         {
             var id = _userService.GetUserId();
             return id == null ? throw new Exception("User is null") : await GetAsync(id);
+        }
+
+        public async Task<string> GetIdAsync()
+        {
+            await Task.Yield();
+            var id = _userService.GetUserId();
+            return id ?? throw new Exception("User is null");
         }
 
         public async Task<string> GetEmailAsync()

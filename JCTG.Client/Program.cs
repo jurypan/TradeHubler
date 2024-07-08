@@ -10,31 +10,41 @@ namespace JCTG.Client
 
         static async Task Main(string[] args)
         {
+            ArgumentNullException.ThrowIfNull(args);
+
             Console.WriteLine("Starting the application ... ");
-            AppDomain.CurrentDomain.UnhandledException += UnhandledExceptionTrapper;
+            AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(GlobalExceptionHandler);
 
-            Service = await ConfigureServicesAsync();
-
-            // Use ServiceProvider to get services as needed
-            if (Service != null)
+            try
             {
-                var metatrader = Service.GetService<Metatrader>();
-                if (metatrader != null)
+                Service = await ConfigureServicesAsync();
+
+                // Use ServiceProvider to get services as needed
+                if (Service != null)
                 {
-                    try
+                    var metatrader = Service.GetService<Metatrader>();
+                    if (metatrader != null)
                     {
-                        await metatrader.ListenToTheClientsAsync();
-                        await metatrader.ListenToTheServerAsync();
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine($"Caught exception: {ex.Message}");
-                        Console.WriteLine($"Stack trace: {ex.StackTrace}");
+                        try
+                        {
+                            await metatrader.ListenToTheClientsAsync();
+                            await metatrader.ListenToTheServerAsync();
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"Caught exception: {ex.Message}");
+                            Console.WriteLine($"Stack trace: {ex.StackTrace}");
+                        }
                     }
                 }
-            }
 
-            Console.ReadLine();
+                Console.ReadLine();
+            }
+            catch (Exception ex)
+            {
+                LogException(ex);
+                ShowException(ex);
+            }
         }
 
         private static async Task<IServiceProvider> ConfigureServicesAsync()
@@ -59,12 +69,32 @@ namespace JCTG.Client
             return services.BuildServiceProvider();
         }
 
-        static void UnhandledExceptionTrapper(object sender, UnhandledExceptionEventArgs e)
+        static void GlobalExceptionHandler(object sender, UnhandledExceptionEventArgs args)
         {
-            Exception ex = (Exception)e.ExceptionObject;
-            Console.WriteLine($"Unhandled exception caught: {ex.Message}");
-            Console.WriteLine($"Stack trace: {ex.StackTrace}");
-            Environment.Exit(1);
+            Exception ex = (Exception)args.ExceptionObject;
+            LogException(ex);
+            ShowException(ex);
+        }
+
+        static void LogException(Exception ex)
+        {
+            string logFilePath = "crash.log";
+            using StreamWriter writer = new(logFilePath, true);
+            writer.WriteLine($"[{DateTime.Now}] Exception: {ex.Message}");
+            if (ex.InnerException != null)
+            {
+                writer.WriteLine($"[{DateTime.Now}] Inner Exception: {ex.Message}");
+            }
+            writer.WriteLine($"Stack Trace: {ex.StackTrace}");
+            writer.WriteLine();
+        }
+
+        static void ShowException(Exception ex)
+        {
+            Console.WriteLine("An unexpected error occurred:");
+            Console.WriteLine(ex.Message);
+            Console.WriteLine("Press any key to exit.");
+            Console.ReadKey();
         }
     }
 }

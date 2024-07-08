@@ -75,16 +75,19 @@
                                     <td>@(user.Mail == null ? user.UserPrincipalName : user.Mail)</td>
                                     <td>@user.DisplayName</td>
                                     <td>
-                                        <div class="dropdown dropstart">
-                                            <a href="#" class="text-muted" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
-                                                <i class="ti ti-dots-vertical fs-6"></i>
-                                            </a>
-                                            <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                                                <li>
-                                                    <a href="javascript:void(0)" class="dropdown-item d-flex align-items-center gap-3" @onclick="async () => await UserDeleteClick(user.Id)">Delete</a>
-                                                </li>
-                                            </ul>
-                                        </div>
+                                        @if (_currentUser != null && _currentUser.Id != null && _currentUser.Id != user.Id)
+                                        {
+                                            <div class="dropdown dropstart">
+                                                <a href="#" class="text-muted" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+                                                    <i class="ti ti-dots-vertical fs-6"></i>
+                                                </a>
+                                                <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                                                    <li>
+                                                        <a href="javascript:void(0)" class="dropdown-item d-flex align-items-center gap-3" @onclick="async () => await UserDeleteClick(user.Id)">Delete</a>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        }
                                     </td>
                                 </tr> 
                             }
@@ -112,12 +115,14 @@
 @code {
 
     private List<User> _members = new List<User>();
+    private User _currentUser = new();
     private UserAddOrEditModal? _userAddOrEditModal { get; set; } = null;
     private UserDeleteModal? _userDeleteModal { get; set; } = null;
 
 
     protected async override Task OnInitializedAsync()
     {
+        _currentUser = await _membership.GetAsync();
         await ReloadAsync();
     }
 
