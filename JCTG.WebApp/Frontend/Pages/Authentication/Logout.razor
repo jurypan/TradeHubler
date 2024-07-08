@@ -1,0 +1,23 @@
+﻿@page "/logout"
+@inject NavigationManager Navigation
+@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
+@using Microsoft.AspNetCore.Authentication.OpenIdConnect
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+@using Microsoft.AspNetCore.Authentication
+
+<h3>Logging out...</h3>
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        await SignOut();
+    }
+
+    private async Task SignOut()
+    {
+        if(HttpContextAccessor != null && HttpContextAccessor.HttpContext != null) 
+            await HttpContextAccessor.HttpContext.SignOutAsync(OpenIdConnectDefaults.AuthenticationScheme);
+        Navigation.NavigateTo("/");
+    }
+}

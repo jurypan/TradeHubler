@@ -610,7 +610,7 @@
                                     </a>
                                 </div>
                                 <div class="d-grid py-4 px-7 pt-8">
-                                    <a class="btn btn-primary" href="/Authentication/Logout">Log Out</a>
+                                    <a class="btn btn-primary" href="/Logout">Log Out</a>
                                 </div>
                             </div>
                         </div>
@@ -860,14 +860,6 @@
             JsRuntime.InvokeVoidAsync("handleTheme");
             JsRuntime.InvokeVoidAsync("handlesidebartoggle");
             JsRuntime.InvokeVoidAsync("handlesidebar");
-        }
-    }
-
-    public void Logout()
-    {
-        if (Membership.IsAuthenticated())
-        {
-            NavManager.NavigateTo(Membership.SignoutURL());
         }
     }
 }

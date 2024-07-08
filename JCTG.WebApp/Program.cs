@@ -93,6 +93,14 @@ builder.Host.UseSerilog((context, configuration) =>
 // Redirect
 builder.Services.AddScoped<CircuitHandler, CustomCircuitHandler>();
 
+// Session
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(20);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
+
 // Build
 var app = builder.Build();
 
@@ -114,6 +122,8 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();
+
+app.UseSession();
 
 app.MapBlazorHub();
 app.MapFallbackToPage("/_Host");
