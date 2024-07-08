@@ -1,0 +1,219 @@
+﻿@inject LogRepository _logRepository;
+
+<div class="modal fade @_cssClass" tabindex="-1" style="display:@_display">
+    <div class=" modal-dialog modal-dialog-scrollable modal-xl">
+        <div class="modal-content">
+            <div class="modal-header modal-colored-header bg-primary text-white">
+                <h4 class="modal-title text-white" id="primary-header-modalLabel"> Lot size calculation </h4>
+                <span class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" @onclick="async () => await CloseAsync()"></span>
+            </div>
+            <div class="modal-body">
+                <div class="table-responsive">
+                    <table class="table border table-striped table-bordered display text-nowrap">
+                        <thead>
+                            <tr>
+                                <th>Variable</th>
+                                <th>Formula</th>
+                                <th>Result</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>RiskAmount</td>
+                                <td>AccountBalance * ((RiskPercent * DynamicRisk) / 100)</td>
+                                <td>@AccountBalance * ((@RiskPercent * @DynamicRisk) / 100) = <strong>@RiskAmount</strong></td>
+                            </tr>
+                            <tr>
+                                <td>StopLossDistance</td>
+                                <td>OpenPrice - StopLossPrice</td>
+                                <td>@OpenPrice - @StopLossPrice = <strong>@StopLossDistance</strong></td>
+                            </tr>
+                            <tr>
+                                <td>StopLossDistanceInTicks</td>
+                                <td>StopLossDistance / TickSize</td>
+                                <td>@StopLossDistance / @TickSize = <strong>@StopLossDistanceInTicks</strong></td>
+                            </tr>
+                            <tr>
+                                <td>LossPerLot</td>
+                                <td>StopLossDistanceInTicks / TickValue</td>
+                                <td>@StopLossDistanceInTicks / @TickValue = <strong>@LossPerLot</strong></td>
+                            </tr>
+                            <tr>
+                                <td>InitialLotSize</td>
+                                <td>RiskAmount / lossPerLot</td>
+                                <td>@RiskAmount / @LossPerLot = <strong>@InitialLotSize</strong></td>
+                            </tr>
+                            <tr>
+                                <td>Round To Nearest Lot Size</td>
+                                <td></td>
+                                <td>@RoundedLotSize</td>
+                            </tr>
+                            <tr>
+                                <td>Lot Size between min en max</td>
+                                <td></td>
+                                <td>@FinalLotSize</td>
+                            </tr>
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <th>Variable</th>
+                                <th>Formula</th>
+                                <th>Result</th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <div class="d-flex gap-6 m-0">
+                    <span class="btn bg-danger-subtle text-danger rounded-pill" @onclick="async () => await CloseAsync()"> Close </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@code {
+    [Parameter]
+    public EventCallback OnClose { get; set; }
+
+    [Parameter]
+    public EventCallback OnOpen { get; set; }
+
+    private string _display = "none;";
+    private string _cssClass = "hide";
+
+    private decimal DynamicRisk { get; set; } = 0.0M;
+    private decimal AccountBalance { get; set; } = 0.0M;
+    private decimal RiskPercent { get; set; } = 0.0M;
+    private decimal RiskAmount { get; set; } = 0.0M;
+    private decimal OpenPrice { get; set; } = 0.0M;
+    private decimal StopLossPrice { get; set; } = 0.0M;
+    private decimal StopLossDistance { get; set; } = 0.0M;
+    private decimal TickSize { get; set; } = 0.0M;
+    private decimal StopLossDistanceInTicks { get; set; } = 0.0M;
+    private decimal TickValue { get; set; } = 0.0M;
+    private decimal LossPerLot { get; set; } = 0.0M;
+    private decimal InitialLotSize { get; set; } = 0.0M;
+    private decimal RoundedLotSize { get; set; } = 0.0M;
+    private decimal FinalLotSize { get; set; } = 0.0M;
+
+    public async Task OpenAsync()
+    {
+        _display = "block;";
+        _cssClass = "show";
+        await OnOpen.InvokeAsync();
+        StateHasChanged();
+    }
+
+    public async Task CloseAsync()
+    {
+        _display = "none;";
+        _cssClass = "hide";
+        await OnClose.InvokeAsync();
+        StateHasChanged();
+    }
+
+    public async Task InitAsync(int accountId, long clientId, long signalId)
+    {
+        // Get logs
+        var _logs = await _logRepository.GetAll(accountId, signalId, clientId);
+
+        // Search for the Lot Size item
+        var lotSizelog = _logs.FirstOrDefault(f => f.Message != null && f.Message.Contains("LotSizeCalculated"));
+
+        // Null reference check
+        if(lotSizelog != null && lotSizelog.Description != null)
+        {
+            // Split the input string by new lines
+            string[] lines = lotSizelog.Description.Replace("LotSize || ", string.Empty).Replace(" ", string.Empty).Split(new[] { '\r', '\n', ',' }, StringSplitOptions.RemoveEmptyEntries);
+
+            // Dictionary to store the extracted values
+            var values = new Dictionary<string, string>();
+
+            // Extract the values
+            foreach (var line in lines)
+            {
+                var parts = line.Split('=');
+                if (parts.Length == 2)
+                {
+                    values[parts[0]] = parts[1];
+                }
+            }
+
+            // Add the values to the properties
+            if (values.TryGetValue("DynamicRisk", out string? prop1))
+            {
+                DynamicRisk = decimal.Parse(prop1);
+            }
+
+            if (values.TryGetValue("AccountBalance", out string? prop2))
+            {
+                AccountBalance = decimal.Parse(prop2);
+            }
+
+            if (values.TryGetValue("RiskPercent", out string? prop3))
+            {
+                RiskPercent = decimal.Parse(prop3);
+            }
+
+            if (values.TryGetValue("RiskAmount", out string? prop4))
+            {
+                RiskAmount = decimal.Parse(prop4);
+            }
+
+            if (values.TryGetValue("OpenPrice", out string? prop5))
+            {
+                OpenPrice = decimal.Parse(prop5);
+            }
+
+            if (values.TryGetValue("StopLossPrice", out string? prop6))
+            {
+                StopLossPrice = decimal.Parse(prop6);
+            }
+
+            if (values.TryGetValue("StopLossDistance", out string? prop7))
+            {
+                StopLossDistance = decimal.Parse(prop7);
+            }
+
+            if (values.TryGetValue("TickSize", out string? prop8))
+            {
+                TickSize = decimal.Parse(prop8);
+            }
+
+            if (values.TryGetValue("StopLossDistanceInTicks", out string? prop9))
+            {
+                StopLossDistanceInTicks = decimal.Parse(prop9);
+            }
+
+            if (values.TryGetValue("TickValue", out string? prop10))
+            {
+                TickValue = decimal.Parse(prop10);
+            }
+
+            if (values.TryGetValue("LossPerLot", out string? prop11))
+            {
+                LossPerLot = decimal.Parse(prop11);
+            }
+
+            if (values.TryGetValue("InitialLotSize", out string? prop12))
+            {
+                InitialLotSize = decimal.Parse(prop12);
+            }
+
+            if (values.TryGetValue("RoundedLotSize", out string? prop13))
+            {
+                RoundedLotSize = decimal.Parse(prop13);
+            }
+
+            if (values.TryGetValue("FinalLotSize", out string? prop14))
+            {
+                FinalLotSize = decimal.Parse(prop14);
+            }
+        }
+
+        await OpenAsync();
+    }
+}

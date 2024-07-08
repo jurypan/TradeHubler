@@ -97,6 +97,9 @@
                                                         <a href="/Signals/@order.SignalID/Order/@order.ID/Deals" class="dropdown-item d-flex align-items-center gap-3">Deals</a>
                                                     </li>
                                                     <li>
+                                                        <a href="javascript:void(0)" class="dropdown-item d-flex align-items-center gap-3" @onclick="async () => await OrderLotSizeClick(order.ClientID, order.SignalID)">Lot Calculation</a>
+                                                    </li>
+                                                    <li>
                                                         <a href="javascript:void(0)" class="dropdown-item d-flex align-items-center gap-3" @onclick="async () => await OrderLogClick(order.ClientID, order.SignalID)">Log</a>
                                                     </li>
                                                 </ul>
@@ -207,6 +210,8 @@
 
 <OrderLogModal @ref="@_orderLogModal"></OrderLogModal>
 
+<OrderLotSizeModal @ref="@_orderLotSizeModal"></OrderLotSizeModal>
+
 @code {
 
     [Parameter]
@@ -217,6 +222,7 @@
     private MarketAbstentionAddOrEditModal? _marketAbstentionAddOrEditModal { get; set; } = null;
     private MarketAbstentionDeleteModal? _marketAbstentionDeleteModal { get; set; } = null;
     private OrderLogModal? _orderLogModal { get; set; } = null;
+    private OrderLotSizeModal? _orderLotSizeModal { get; set; } = null;
 
 
     private List<Entity.Order> _orders = new List<Entity.Order>();
@@ -239,6 +245,14 @@
         if (_orderLogModal != null && clientId.HasValue)
         {
             await _orderLogModal.InitAsync(692803787, clientId.Value, signalId);
+        }
+    }
+
+    private async Task OrderLotSizeClick(long? clientId, long signalId)
+    {
+        if (_orderLotSizeModal != null && clientId.HasValue)
+        {
+            await _orderLotSizeModal.InitAsync(692803787, clientId.Value, signalId);
         }
     }
 

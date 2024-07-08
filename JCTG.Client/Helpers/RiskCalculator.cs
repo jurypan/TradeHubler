@@ -80,7 +80,7 @@ namespace JCTG.Client
             LogCalculation(logMessages, "InitialLotSize", lotSize);
 
             // Adjusting for lot step
-            lotSize = RoundToNearestTickSize(lotSize, Convert.ToDecimal(lotStep));
+            lotSize = RoundToNearestLotSize(lotSize, Convert.ToDecimal(lotStep));
             LogCalculation(logMessages, "RoundedLotSize", lotSize);
 
             // Bounds checking
@@ -92,7 +92,7 @@ namespace JCTG.Client
 
 
 
-        public static decimal RoundToNearestTickSize(decimal value, decimal step)
+        public static decimal RoundToNearestLotSize(decimal value, decimal step)
         {
             int digits = BitConverter.GetBytes(decimal.GetBits(step)[3])[2];
             var roundedValue = Math.Round(value / step) * step;
