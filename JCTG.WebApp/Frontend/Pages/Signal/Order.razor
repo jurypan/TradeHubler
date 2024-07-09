@@ -67,6 +67,7 @@
                                     <th>Type</th>
                                     <th>Magic</th>
                                     <th>Pnl</th>
+                                    <th>Lot Size</th>
                                     <th>TV State Type</th>
                                 </tr>
                             </thead>
@@ -80,6 +81,7 @@
                                         <td>@order.Type</td>
                                         <td>@order.Magic</td>
                                         <td>@order.Pnl</td>
+                                        <td><a href="javascript:void(0)" @onclick="async () => await OrderLotSizeClick(order.ClientID, order.SignalID)">@order.OpenLots</a></td>
                                         <td>@order.Signal.TradingviewStateType</td>
                                         <td>
                                             <div class="dropdown dropstart">
