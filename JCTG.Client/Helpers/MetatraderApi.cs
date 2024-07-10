@@ -211,7 +211,7 @@ namespace JCTG.Client
                 if (this.AccountInfo != null && ordersData != null)
                 {
                     // Next, handle removal of orders not in ordersData
-                    List<long> ordersToRemove = new List<long>();
+                    List<long> ordersToRemove = [];
                     foreach (var openOrder in OpenOrders)
                     {
                         long orderId = openOrder.Key;

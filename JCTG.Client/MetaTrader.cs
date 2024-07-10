@@ -1555,7 +1555,7 @@ namespace JCTG.Client
                         var json = await File.ReadAllTextAsync(pair.MetaTraderDirPath + "JCTG\\" + fileName);
                         var logsFromFile = JsonConvert.DeserializeObject<List<Log>>(json) ?? new List<Log>();
 
-                        var logs = _buffers.GetOrAdd(clientId, new List<Log>());
+                        var logs = _buffers.GetOrAdd(clientId, []);
                         lock (logs) // Ensure thread-safety
                         {
                             // Assuming we want to replace the current buffer with the file contents

@@ -90,9 +90,6 @@ builder.Host.UseSerilog((context, configuration) =>
     configuration.ReadFrom.Configuration(context.Configuration));
 
 
-// Redirect
-builder.Services.AddScoped<CircuitHandler, CustomCircuitHandler>();
-
 // Session
 builder.Services.AddSession(options =>
 {

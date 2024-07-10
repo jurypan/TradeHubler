@@ -431,7 +431,7 @@ namespace JCTG.WebApp.Backend.Api
                     for (int attempt = 1; attempt <= maxRetries; attempt++)
                     {
                         // Get the trade order from the database
-                        var order = await dbContext.Order.Where(f => f.Symbol == model.Deal.Symbol && f.ClientID == model.ClientID && f.IsTradeClosed == false).OrderByDescending(f => f.DateCreated).FirstOrDefaultAsync();
+                        var order = await dbContext.Order.Where(f => f.ClientID == model.ClientID && f.Magic == model.Deal.Magic).OrderByDescending(f => f.DateCreated).FirstOrDefaultAsync();
 
                         // Do null reference check
                         if (order != null)

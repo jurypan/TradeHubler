@@ -275,7 +275,7 @@ namespace JCTG.WebApp.Backend.Api
                                 .OrderByDescending(f => f.DateCreated)
                                 .FirstOrDefaultAsync();
 
-                            if(existingSignal != null) 
+                            if (existingSignal != null)
                             {
                                 // If is entry
                                 if (signal.OrderType.Equals("entry", StringComparison.CurrentCultureIgnoreCase))
@@ -283,66 +283,93 @@ namespace JCTG.WebApp.Backend.Api
                                     // Create a list to store the items to be removed
                                     var marketAbstentionsToRemove = new List<MarketAbstention>();
 
+                                    // Set flag that you send a message
+                                    var flag = false;
+
                                     // IF this order is of type BUY STOP/LIMIT or SELL STOP/LIMIT
-                                    if (existingSignal.OrderType.Equals("buystop", StringComparison.CurrentCultureIgnoreCase) || existingSignal.OrderType.Equals("buylimit", StringComparison.CurrentCultureIgnoreCase))
+                                    if (existingSignal.OrderType.Equals("BUYSTOP", StringComparison.CurrentCultureIgnoreCase) || existingSignal.OrderType.Equals("BUYLIMIT", StringComparison.CurrentCultureIgnoreCase))
                                     {
-                                        foreach(var marketAbstention in existingSignal.MarketAbstentions)
-                                        {
-                                            if(marketAbstention.MarketAbstentionType == Models.MarketAbstentionType.ExceptionCalculatingEntryPrice || marketAbstention.MarketAbstentionType == Models.MarketAbstentionType.MetatraderOpenOrderError)
-                                            {
-                                                // Create model and send to the client
-                                                id = await _server.SendOnTradingviewSignalCommandAsync(signal.AccountID, new OnSendTradingviewSignalCommand()
-                                                {
-                                                    SignalID = signal.ID,
-                                                    AccountID = signal.AccountID,
-                                                    ClientIDs = [marketAbstention.ClientID],
-                                                    Instrument = signal.Instrument,
-                                                    Magic = signal.ID,
-                                                    OrderType = "BUY",
-                                                    StrategyType = signal.StrategyType,
-                                                    MarketOrder = new OnReceivingTradingviewSignalEventMarketOrder()
-                                                    {
-                                                        Risk = Convert.ToDecimal(signal.Risk),
-                                                        RiskRewardRatio = Convert.ToDecimal(signal.RiskRewardRatio),
-                                                    },
-                                                });
-
-                                                // Add log
-                                                _logger.Information($"Sent to Azure Queue with response client request id: {id}", id);
-
-                                                marketAbstentionsToRemove.Add(marketAbstention);
-                                            }
-                                        }
-                                    }
-                                    else if (existingSignal.OrderType.Equals("sellstop", StringComparison.CurrentCultureIgnoreCase) || existingSignal.OrderType.Equals("selllimit", StringComparison.CurrentCultureIgnoreCase))
-                                    {
+                                        // Forech market abstention
                                         foreach (var marketAbstention in existingSignal.MarketAbstentions)
                                         {
                                             if (marketAbstention.MarketAbstentionType == Models.MarketAbstentionType.ExceptionCalculatingEntryPrice || marketAbstention.MarketAbstentionType == Models.MarketAbstentionType.MetatraderOpenOrderError)
                                             {
-                                                // Create model and send to the client
-                                                id = await _server.SendOnTradingviewSignalCommandAsync(signal.AccountID, new OnSendTradingviewSignalCommand()
+                                                // Check the flag
+                                                if (flag == false)
                                                 {
-                                                    SignalID = signal.ID,
-                                                    AccountID = signal.AccountID,
-                                                    ClientIDs = [marketAbstention.ClientID],
-                                                    Instrument = signal.Instrument,
-                                                    Magic = signal.ID,
-                                                    OrderType = "SELL",
-                                                    StrategyType = signal.StrategyType,
-                                                    MarketOrder = new OnReceivingTradingviewSignalEventMarketOrder()
+                                                    // Create model and send to the client
+                                                    id = await _server.SendOnTradingviewSignalCommandAsync(signal.AccountID, new OnSendTradingviewSignalCommand()
                                                     {
-                                                        Risk = Convert.ToDecimal(signal.Risk),
-                                                        RiskRewardRatio = Convert.ToDecimal(signal.RiskRewardRatio),
-                                                    },
-                                                });
+                                                        SignalID = signal.ID,
+                                                        AccountID = signal.AccountID,
+                                                        ClientIDs = [marketAbstention.ClientID],
+                                                        Instrument = signal.Instrument,
+                                                        Magic = signal.ID,
+                                                        OrderType = "BUY",
+                                                        StrategyType = signal.StrategyType,
+                                                        MarketOrder = new OnReceivingTradingviewSignalEventMarketOrder()
+                                                        {
+                                                            Risk = Convert.ToDecimal(signal.Risk),
+                                                            RiskRewardRatio = Convert.ToDecimal(signal.RiskRewardRatio),
+                                                        },
+                                                    });
 
-                                                // Add log
-                                                _logger.Information($"Sent to Azure Queue with response client request id: {id}", id);
+                                                    // Add log
+                                                    _logger.Information($"Sent to Azure Queue with response client request id: {id}", id);
 
-                                                marketAbstentionsToRemove.Add(marketAbstention);
+                                                    // Delete abstention
+                                                    marketAbstentionsToRemove.Add(marketAbstention);
+
+                                                    // Set flag to true
+                                                    flag = true;
+                                                }
+
                                             }
                                         }
+
+                                        // If there is no order, and there should be an order and flag is still false
+
+                                    }
+                                    else if (existingSignal.OrderType.Equals("SELLSTOP", StringComparison.CurrentCultureIgnoreCase) || existingSignal.OrderType.Equals("SELLLIMIT", StringComparison.CurrentCultureIgnoreCase))
+                                    {
+                                        // Forech market abstention
+                                        foreach (var marketAbstention in existingSignal.MarketAbstentions)
+                                        {
+                                            if (marketAbstention.MarketAbstentionType == Models.MarketAbstentionType.ExceptionCalculatingEntryPrice || marketAbstention.MarketAbstentionType == Models.MarketAbstentionType.MetatraderOpenOrderError)
+                                            {
+                                                // Check the flag
+                                                if (flag == false)
+                                                {
+                                                    // Create model and send to the client
+                                                    id = await _server.SendOnTradingviewSignalCommandAsync(signal.AccountID, new OnSendTradingviewSignalCommand()
+                                                    {
+                                                        SignalID = signal.ID,
+                                                        AccountID = signal.AccountID,
+                                                        ClientIDs = [marketAbstention.ClientID],
+                                                        Instrument = signal.Instrument,
+                                                        Magic = signal.ID,
+                                                        OrderType = "SELL",
+                                                        StrategyType = signal.StrategyType,
+                                                        MarketOrder = new OnReceivingTradingviewSignalEventMarketOrder()
+                                                        {
+                                                            Risk = Convert.ToDecimal(signal.Risk),
+                                                            RiskRewardRatio = Convert.ToDecimal(signal.RiskRewardRatio),
+                                                        },
+                                                    });
+
+                                                    // Add log
+                                                    _logger.Information($"Sent to Azure Queue with response client request id: {id}", id);
+
+                                                    // Remove abstention
+                                                    marketAbstentionsToRemove.Add(marketAbstention);
+
+                                                    // Set flag
+                                                    flag = true;
+                                                }
+                                            }
+                                        }
+
+                                        // If there is no order, and there should be an order and flag is still false
                                     }
 
                                     // Remove the items from the original collection
@@ -388,7 +415,7 @@ namespace JCTG.WebApp.Backend.Api
                                 // Save to the database
                                 await _dbContext.SaveChangesAsync();
 
-                               
+
                             }
                             else
                             {
@@ -404,10 +431,10 @@ namespace JCTG.WebApp.Backend.Api
                                 .Where(s => s.Instrument == signal.Instrument && s.AccountID == signal.AccountID && s.StrategyType == signal.StrategyType)
                                 .OrderByDescending(f => f.DateCreated)
                                 .FirstOrDefaultAsync();
-                                ;
+                            ;
 
-                            if(existingSignal2 != null) 
-                            { 
+                            if (existingSignal2 != null)
+                            {
                                 if (existingSignal2.TradingviewStateType == TradingviewStateType.Entry)
                                 {
                                     existingSignal2.TradingviewStateType = TradingviewStateType.CloseAll;
