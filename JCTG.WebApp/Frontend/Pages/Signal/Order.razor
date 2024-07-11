@@ -2,8 +2,10 @@
 @inject SignalRepository _signalRepository;
 @inject OrderRepository _orderRepository;
 @inject MarketAbstentionRepository _marketAbstentionRepository;
+@inject LogRepository _logRepository;
 @using JCTG.WebApp.Frontend.Components.Modal;
 @using JCTG.WebApp.Frontend.Components.Widget;
+@using JCTG.WebApp.Backend.Helpers;
 
 
 <div class="container-fluid mw-100">
@@ -68,6 +70,7 @@
                                     <th>Magic</th>
                                     <th>Pnl</th>
                                     <th>Lot Size</th>
+                                    <th>Risk Amount</th>
                                     <th>TV State Type</th>
                                 </tr>
                             </thead>
@@ -82,6 +85,7 @@
                                         <td>@order.Magic</td>
                                         <td>@order.Pnl</td>
                                         <td><a href="javascript:void(0)" @onclick="async () => await OrderLotSizeClick(order.ClientID, order.SignalID)">@order.OpenLots</a></td>
+                                        <td>@(_logs.Count(f => f.ClientID == order.ClientID && f.Description != null && f.Message != null && f.Message.Contains("LotSizeCalculated")) == 1 ? _logs.First(f => f.ClientID == order.ClientID && f.Description != null && f.Message != null && f.Message.Contains("LotSizeCalculated")).Description?.GetRiskAmount().ToString() : "?")</td>
                                         <td>@order.Signal.TradingviewStateType</td>
                                         <td>
                                             <div class="dropdown dropstart">
@@ -229,6 +233,7 @@
 
     private List<Entity.Order> _orders = new List<Entity.Order>();
     private List<Entity.MarketAbstention> _marketAbstentions = new List<Entity.MarketAbstention>();
+    private List<Entity.Log> _logs = new List<Entity.Log>();
 
     protected async override Task OnInitializedAsync()
     {
@@ -239,6 +244,7 @@
     {
         _orders = await _orderRepository.GetAllBySignalId(692803787, SignalId);
         _marketAbstentions = await _marketAbstentionRepository.GetAllBySignalId(692803787, SignalId);
+        _logs = await _logRepository.GetAll(692803787, SignalId);
     }
 
 

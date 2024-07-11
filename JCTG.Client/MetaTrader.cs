@@ -1644,7 +1644,7 @@ namespace JCTG.Client
             {
                 List<Log> logsToWrite = [];
                 bool logsAvailable = false;
-                var pair = _appConfig.Brokers.First(f => f.ClientId == clientId);
+                var pair = _appConfig.Brokers.FirstOrDefault(f => f.ClientId == clientId);
 
                 // Attempt to safely retrieve and clear the buffer for the current clientId
                 if (_buffers.TryGetValue(clientId, out var logs))
@@ -1659,35 +1659,39 @@ namespace JCTG.Client
                     }
                 }
 
-                if (logsAvailable && pair != null)
+                // Do null reference check
+                if (pair != null)
                 {
-                    // Filename
-                    string fileName = "JCTG_Logs.json";
-
-                    // Wait until it's safe to enter
-                    await _semaphore.WaitAsync();
-
-                    try
+                    if (logsAvailable)
                     {
-                        // Perform log processing only if there are logs to write
-                        // Filter logs to keep only the last month's logs
-                        logsToWrite = logsToWrite.Where(log => log.Time >= DateTime.UtcNow.AddMonths(-1)).ToList();
+                        // Filename
+                        string fileName = "JCTG_Logs.json";
 
-                        // Make sure the last item is on top
-                        logsToWrite.Sort((x, y) => y.Time.CompareTo(x.Time));
+                        // Wait until it's safe to enter
+                        await _semaphore.WaitAsync();
 
-                        // Write file back
-                        await TryWriteFileAsync(pair.MetaTraderDirPath + "JCTG\\" + fileName, JsonConvert.SerializeObject(logsToWrite));
-                    }
-                    catch (Exception ex)
-                    {
-                        // Consider logging the exception or handling it as needed
-                        Console.WriteLine($"Error writing logs for clientId {clientId}: {ex.Message}");
-                    }
-                    finally
-                    {
-                        // Always release the semaphore
-                        _semaphore.Release();
+                        try
+                        {
+                            // Perform log processing only if there are logs to write
+                            // Filter logs to keep only the last month's logs
+                            logsToWrite = logsToWrite.Where(log => log.Time >= DateTime.UtcNow.AddMonths(-1)).ToList();
+
+                            // Make sure the last item is on top
+                            logsToWrite.Sort((x, y) => y.Time.CompareTo(x.Time));
+
+                            // Write file back
+                            await TryWriteFileAsync(pair.MetaTraderDirPath + "JCTG\\" + fileName, JsonConvert.SerializeObject(logsToWrite));
+                        }
+                        catch (Exception ex)
+                        {
+                            // Consider logging the exception or handling it as needed
+                            Console.WriteLine($"Error writing logs for clientId {clientId}: {ex.Message}");
+                        }
+                        finally
+                        {
+                            // Always release the semaphore
+                            _semaphore.Release();
+                        }
                     }
                 }
             }
