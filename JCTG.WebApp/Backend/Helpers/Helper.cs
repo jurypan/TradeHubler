@@ -28,5 +28,15 @@
             }
             return Math.Round(riskAmount, 2);
         }
+
+        public static int GenerateRandomNumber(Random random, int digits)
+        {
+            int result = 0;
+            for (int i = 0; i < digits; i++)
+            {
+                result = result * 10 + random.Next(0, 10);
+            }
+            return Math.Abs(result);
+        }
     }
 }

@@ -242,12 +242,12 @@ namespace JCTG.WebApp.Backend.Api
                                 Magic = signal.ID,
                                 OrderType = signal.OrderType,
                                 StrategyType = signal.StrategyType,
-                                MarketOrder = signal.OrderType == "BUY" || signal.OrderType == "SELL" ? new OnReceivingTradingviewSignalEventMarketOrder()
+                                MarketOrder = signal.OrderType == "BUY" || signal.OrderType == "SELL" ? new OnReceivingMarketOrder()
                                 {
                                     Risk = Convert.ToDecimal(signal.Risk),
                                     RiskRewardRatio = Convert.ToDecimal(signal.RiskRewardRatio)
                                 } : null,
-                                PassiveOrder = signal.OrderType == "BUYSTOP" || signal.OrderType == "SELLSTOP" ? new OnReceivingTradingviewSignalEventPassiveOrder()
+                                PassiveOrder = signal.OrderType == "BUYSTOP" || signal.OrderType == "SELLSTOP" ? new OnReceivingPassiveOrder()
                                 {
                                     EntryExpression = signal.EntryExpression,
                                     Risk = Convert.ToDecimal(signal.Risk),
@@ -307,7 +307,7 @@ namespace JCTG.WebApp.Backend.Api
                                                         Magic = signal.ID,
                                                         OrderType = "BUY",
                                                         StrategyType = signal.StrategyType,
-                                                        MarketOrder = new OnReceivingTradingviewSignalEventMarketOrder()
+                                                        MarketOrder = new OnReceivingMarketOrder()
                                                         {
                                                             Risk = Convert.ToDecimal(signal.Risk),
                                                             RiskRewardRatio = Convert.ToDecimal(signal.RiskRewardRatio),
@@ -350,7 +350,7 @@ namespace JCTG.WebApp.Backend.Api
                                                         Magic = signal.ID,
                                                         OrderType = "SELL",
                                                         StrategyType = signal.StrategyType,
-                                                        MarketOrder = new OnReceivingTradingviewSignalEventMarketOrder()
+                                                        MarketOrder = new OnReceivingMarketOrder()
                                                         {
                                                             Risk = Convert.ToDecimal(signal.Risk),
                                                             RiskRewardRatio = Convert.ToDecimal(signal.RiskRewardRatio),

@@ -1,6 +1,4 @@
 ﻿using JCTG.Models;
-using System.Reflection;
-using System.Text;
 
 namespace JCTG.Command
 {
@@ -16,19 +14,19 @@ namespace JCTG.Command
         public required string Instrument { get; set; }
         public long Magic { get; set; }
 
-        public OnReceivingTradingviewSignalEventMarketOrder? MarketOrder { get; set; }
+        public OnReceivingMarketOrder? MarketOrder { get; set; }
 
-        public OnReceivingTradingviewSignalEventPassiveOrder? PassiveOrder { get; set; }
+        public OnReceivingPassiveOrder? PassiveOrder { get; set; }
 
     }
 
-    public class OnReceivingTradingviewSignalEventMarketOrder // BUY or SELL
+    public class OnReceivingMarketOrder // BUY or SELL
     {
         public decimal? Risk { get; set; }
         public decimal? RiskRewardRatio { get; set; }
     }
 
-    public class OnReceivingTradingviewSignalEventPassiveOrder // BUYSTOP or SELLSTOP
+    public class OnReceivingPassiveOrder // BUYSTOP or SELLSTOP
     {
         public string? EntryExpression { get; set; }
         public decimal? Risk { get; set; }

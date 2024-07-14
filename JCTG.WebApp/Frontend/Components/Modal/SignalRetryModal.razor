@@ -24,9 +24,9 @@
                                 <label class="form-label" for="strategy">Client?</label>
                                 <InputSelect class="form-select col-12" @bind-Value="model">
                                     <option value="0">Choose...</option>
-                                    @foreach (var item in _clientids)
+                                    @foreach (var item in _clients)
                                     {
-                                        <option value="@item">@item</option>
+                                        <option value="@item.ID">@item.Name</option>
                                     }
                                 </InputSelect>
                             </div>
@@ -55,7 +55,7 @@
     private long model { get; set; } = 0;
     private Signal signal { get; set; } = new();
     private CrudState _crudState { get; set; } = CrudState.None;
-    private List<long> _clientids { get; set; } = new();
+    private List<Client> _clients { get; set; } = new();
 
     private string _display = "none;";
     private string _cssClass = "hide";
@@ -79,7 +79,7 @@
     public async Task InitAsync(int accountId, long signalId)
     {
         var signalNew = await _signalRepository.GetById(accountId, signalId);
-        _clientids = (await _clientRepository.GetAllAsync(accountId)).Select(f => f.ID).ToList();
+        _clients = await _clientRepository.GetAllAsync(accountId);
         if (signalNew != null)
         {
             signal = signalNew;
@@ -104,12 +104,12 @@
                         ClientIDs = model == 0 ? null : new List<long>() { model },
                         OrderType = signal.OrderType,
                         StrategyType = signal.StrategyType,
-                        MarketOrder = signal.OrderType == "BUY" || signal.OrderType == "SELL" ? new OnReceivingTradingviewSignalEventMarketOrder()
+                        MarketOrder = signal.OrderType == "BUY" || signal.OrderType == "SELL" ? new OnReceivingMarketOrder()
                         {
                             Risk = Convert.ToDecimal(signal.Risk),
                             RiskRewardRatio = Convert.ToDecimal(signal.RiskRewardRatio),
                         } : null,
-                        PassiveOrder = signal.OrderType == "BUYSTOP" || signal.OrderType == "SELLSTOP" ? new OnReceivingTradingviewSignalEventPassiveOrder()
+                        PassiveOrder = signal.OrderType == "BUYSTOP" || signal.OrderType == "SELLSTOP" ? new OnReceivingPassiveOrder()
                         {
                             EntryExpression = signal.EntryExpression,
                             Risk = Convert.ToDecimal(signal.Risk),

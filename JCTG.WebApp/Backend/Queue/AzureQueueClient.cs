@@ -52,5 +52,10 @@ namespace JCTG.WebApp.Backend.Queue
         {
             return await SendMessageAsync(accountId, cmd, Constants.QueueMessageType_OnSendTradingviewSignalCommand, nameof(OnSendTradingviewSignalCommand));
         }
+
+        public async Task<string?> SendOnManualSignalCommandAsync(int accountId, OnSendManualOrderCommand cmd)
+        {
+            return await SendMessageAsync(accountId, cmd, Constants.QueueMessageType_OnSendManualOrderCommand, nameof(OnSendManualOrderCommand));
+        }
     }
 }

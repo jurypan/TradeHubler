@@ -1,0 +1,243 @@
+﻿@page "/Order";
+@inject ClientRepository _clientRepository;
+@inject StrategyRepository _strategyRepository;
+@inject JCTG.WebApp.Backend.Queue.AzureQueueClient _server;
+@inject JCTGDbContext _dbContext;
+@using JCTG.Command;
+@using JCTG.Models
+@using JCTG.WebApp.Frontend.Components.Widget;
+@using JCTG.WebApp.Backend.Helpers;
+
+<div class="container-fluid mw-100">
+
+    <div class="row font-weight-medium shadow-none position-relative overflow-hidden mb-4">
+        <div class="card-body px-0">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h4 class="font-weight-medium ">Signals</h4>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item">
+                                <a class="text-primary text-decoration-none" href="/">
+                                    Home
+                                </a>
+                            </li>
+                            <li class="breadcrumb-item d-flex justify-content-center align-items-center ps-0">
+                                <iconify-icon icon="tabler:chevron-right"></iconify-icon>
+                            </li>
+                            <li class="breadcrumb-item" aria-current="page">
+                                <a class="text-primary text-decoration-none" href="/">
+                                    Order
+                                </a>
+                            </li>
+                        </ol>
+                    </nav>
+                </div>
+                <div>
+                    <LastMonthWidget></LastMonthWidget>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row card">
+        <div class="card-body">
+
+            <div class="d-md-flex align-items-center">
+                <div>
+                    <h4 class="card-title">Place your Order</h4>
+                    <h5 class="card-subtitle">Buy and Sell as you Like</h5>
+                </div>
+            </div>
+
+            <ul class="nav nav-pills custom-pills mt-5" id="pills-tab" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <a class="nav-link btn @(model.OrderType.Contains("BUY") ? "active" : "")" @onclick="() => ChangeOrderTypeBuy()">Buy</a>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <a class="nav-link btn @(model.OrderType.Contains("SELL") ? "active" : "")" @onclick="() => ChangeOrderTypeSell()">Sell</a>
+                </li>
+            </ul>
+            <div class="tab-content mt-3" id="pills-tabContent">
+                <div class="tab-pane fade active show" id="test4" role="tabpanel" aria-labelledby="pills-home-tab">
+                    <EditForm Model="@model" OnValidSubmit="@SubmitAsync">
+                        <DataAnnotationsValidator />
+                        <ValidationSummary />
+                        <AntiforgeryToken />
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Entry Price</label>
+                                    <InputText class="form-control" @bind-Value="model.MarketOrder.EntryPriceAsString" />
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Magic</label>
+                                    <InputText class="form-control" @bind-Value="model.MagicAsString" />
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">% Risk of Balance</label>
+                                    <div class="input-group input-group-lg">
+                                        <span class="input-group-text">%</span>
+                                        <InputText class="form-control" @bind-Value="model.ProcentRiskOfBalanceAsString" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Strategy</label>
+                                    <InputSelect class="form-select col-12" @bind-Value="model.StrategyID">
+                                        <option value="0">Choose...</option>
+                                        @foreach (var item in _strategies)
+                                        {
+                                            <option value="@item.ID">@item.Name</option>
+                                        }
+                                    </InputSelect>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Risk Reward Ratio</label>
+                                    <div class="input-group input-group-lg">
+                                        <span class="input-group-text">RRR #</span>
+                                        <InputText class="form-control" @bind-Value="model.MarketOrder.RiskRewardRatioAsString" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Stop Loss in Ticks from entry</label>
+                                    <div class="input-group input-group-lg">
+                                        <span class="input-group-text">SL $</span>
+                                        <InputText class="form-control" @bind-Value="model.MarketOrder.StopLossPriceAsString" />
+                                    </div>
+                                </div>
+                            </div>
+                           
+                            <div class="col-md-12">
+                                <div class="mb-3">
+                                    <span @onclick="() => AddBroker()" class="btn btn-success font-weight-medium waves-effect waves-light">
+                                        <i class="ti ti-circle-plus fs-5"></i>
+                                    </span>
+                                    <span @onclick="() => RemoveBroker()" class="btn btn-danger">
+                                        <i class="ti ti-minus"></i>
+                                    </span>
+                                </div>
+                            </div>
+                            @foreach (var pairInstrument in model.ClientInstruments)
+                            {
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Pair</label>
+                                        <InputText class="form-control" @bind-Value="pairInstrument.Instrument" />
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Client</label>
+                                        <InputSelect class="form-select col-12" @bind-Value="pairInstrument.ClientIDAsString">
+                                            <option value="0">Choose...</option>
+                                            @foreach (var item in _clients)
+                                            {
+                                                <option value="@item.ID">@item.Name</option>
+                                            }
+                                        </InputSelect>
+                                    </div>
+                                </div>
+                            }
+
+                            <div class="card-body">
+                                <div class="form-group mb-0 text-end">
+                                    @if(model.OrderType.Contains("BUY"))
+                                    {
+                                        <button type="submit" class="btn btn-primary rounded-pill px-4"> Buy </button>
+                                    }
+                                    else
+                                    {
+                                        <button type="submit" class="btn btn-secondary rounded-pill px-4"> Sell </button>
+                                    }
+                                    <a href="/" class="btn bg-danger-subtle text-danger rounded-pill px-4 ms-6"> Cancel </a>
+                                </div>
+                            </div>
+                        </div>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [SupplyParameterFromForm]
+    private OnSendManualOrderCommand model { get; set; } = new OnSendManualOrderCommand() { OrderType = "BUY" };
+    private List<Client> _clients { get; set; } = new();
+    private List<Strategy> _strategies { get; set; } = new();
+
+    protected async override Task OnInitializedAsync()
+    {
+        _clients = await _clientRepository.GetAllAsync(692803787);
+        _strategies = await _strategyRepository.GetAllAsync(692803787);
+        model.ClientInstruments.Add(new OnReceivingPairInstrument());
+        model.Magic = Helper.GenerateRandomNumber(new Random(), 11);
+        model.MarketOrder.RiskRewardRatio = 5;
+        model.AccountID = 692803787;
+    }
+
+    public async Task SubmitAsync()
+    {
+        if (model != null && model.ClientInstruments != null && model.ClientInstruments.Count() >= 1)
+        {
+            // Create signal in database
+            var signal = new Signal()
+            {
+                AccountID = 692803787,
+                DateCreated = DateTime.UtcNow,
+                EntryPrice = model.MarketOrder.EntryPrice,
+                Instrument = model.ClientInstruments.First().Instrument,
+                Magic = model.Magic,
+                OrderType = model.OrderType,
+                Risk = Math.Abs(model.MarketOrder.EntryPrice - model.MarketOrder.StopLossPrice),
+                RiskRewardRatio = model.MarketOrder.RiskRewardRatio,
+                StopLoss = model.MarketOrder.StopLossPrice,
+                TakeProfit = model.OrderType == "BUY" ? model.MarketOrder.EntryPrice + (model.MarketOrder.RiskRewardRatio * Math.Abs(model.MarketOrder.EntryPrice - model.MarketOrder.StopLossPrice)) : model.MarketOrder.EntryPrice - (model.MarketOrder.RiskRewardRatio * Math.Abs(model.MarketOrder.StopLossPrice - model.MarketOrder.EntryPrice)),
+                TradingviewStateType = TradingviewStateType.Entry,
+                StrategyType = (StrategyType)model.StrategyID
+            };
+            await _dbContext.Signal.AddAsync(signal);
+
+            // Save to the database
+            await _dbContext.SaveChangesAsync();
+
+            // Send to the client
+            var id = await _server.SendOnManualSignalCommandAsync(692803787, model);
+        }
+    }
+
+    public void RemoveBroker()
+    {
+        if (model.ClientInstruments == null)
+            model.ClientInstruments = new List<OnReceivingPairInstrument>();
+        if (model.ClientInstruments.Count > 0)
+            this.model.ClientInstruments.Remove(this.model.ClientInstruments.Last());
+    }
+
+    public void AddBroker()
+    {
+        if (model.ClientInstruments == null)
+            model.ClientInstruments = new List<OnReceivingPairInstrument>();
+        this.model.ClientInstruments.Add(new OnReceivingPairInstrument());
+    }
+
+    public void ChangeOrderTypeBuy()
+    {
+        model.OrderType = "BUY";
+    }
+
+    public void ChangeOrderTypeSell()
+    {
+        model.OrderType = "SELL";
+    }
+}
