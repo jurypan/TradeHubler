@@ -27,8 +27,8 @@ namespace JCTG.Client
                     {
                         try
                         {
-                            await metatrader.ListenToTheClientsAsync();
-                            await metatrader.ListenToTheServerAsync();
+                            await metatrader.StartListenToTheClientsAsync();
+                            await metatrader.StartListenToTheServerAsync();
                         }
                         catch (Exception ex)
                         {

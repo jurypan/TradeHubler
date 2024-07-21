@@ -109,7 +109,7 @@ namespace JCTG.WebApp.Backend.Api
                                 return BadRequest("'rrr' is mandatory");
                             }
 
-                            if (signal.ExitRiskRewardRatio == 0)
+                            if (!signal.ExitRiskRewardRatio.HasValue)
                             {
                                 _logger.Error($"'exitrr' is mandatory for {signal.OrderType}");
                                 return BadRequest("'exitrr' is mandatory");
@@ -152,7 +152,7 @@ namespace JCTG.WebApp.Backend.Api
                         case "slhit":
                         case "behit":
                         case "cancelorder":
-                            if (signal.ExitRiskRewardRatio == 0)
+                            if (!signal.ExitRiskRewardRatio.HasValue)
                             {
                                 _logger.Error($"'exitrr' is mandatory for {signal.OrderType}");
                                 return BadRequest("'exitrr' is mandatory");

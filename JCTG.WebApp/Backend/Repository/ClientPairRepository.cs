@@ -5,6 +5,12 @@ namespace JCTG.WebApp.Backend.Repository;
 
 public class ClientPairRepository(IDbContextFactory<JCTGDbContext> dbContextFactory)
 {
+    public async Task<List<ClientPair>> GetAllAsync(int accountId)
+    {
+        using var context = await dbContextFactory.CreateDbContextAsync();
+        return await context.ClientPair.Where(f => f.Client != null && f.Client.AccountID == accountId).ToListAsync();
+    }
+
     public async Task<List<ClientPair>> GetAllAsync(int accountId, long clientId)
     {
         using var context = await dbContextFactory.CreateDbContextAsync();

@@ -39,18 +39,22 @@ namespace JCTG.Client
             }
 
             // Update terminalConfig
-            new AppConfigManager(_appConfig).OnTerminalConfigChange += (config) =>
+            new AppConfigManager(_appConfig).OnTerminalConfigChange += async (config) =>
             {
                 // Print on the screen
                 Print($"WARNING : {DateTime.UtcNow} / UPDATED CONFIGURATION");
 
                 // Update property
                 _appConfig = config;
+
+                // Reboot client
+                await StopListenToTheClientsAsync();
+                await StartListenToTheClientsAsync();
             };
-         }
+        }
 
 
-        public async Task ListenToTheClientsAsync()
+        public async Task StartListenToTheClientsAsync()
         {
             // Check if app config is not null
             if (_appConfig != null)
@@ -103,7 +107,50 @@ namespace JCTG.Client
             await Task.FromResult(0);
         }
 
-        public async Task ListenToTheServerAsync()
+        public async Task StopListenToTheClientsAsync()
+        {
+            // Check if app config is not null
+            if (_appConfig != null)
+            {
+                // Start the system
+                _ = Parallel.ForEach(_apis, async _api =>
+                {
+                    // Get the broker from the local database
+                    var broker = _appConfig?.Brokers.FirstOrDefault(f => f.ClientId == _api.ClientId);
+
+                    // do null reference checks
+                    if (_api != null && broker != null && broker.Pairs.Count != 0)
+                    {
+                        // Load logs into memory
+                        await LoadLogFromFileAsync(_api.ClientId);
+
+                        // Init the events
+                        _api.OnOrderCreateEvent -= OnOrderCreateEvent;
+                        _api.OnOrderUpdateEvent -= OnOrderUpdateEvent;
+                        _api.OnOrderCloseEvent -= OnOrderCloseEvent;
+                        _api.OnLogEvent -= OnLogEvent;
+                        _api.OnCandleCloseEvent -= OnCandleCloseEvent;
+                        _api.OnDealCreatedEvent -= OnDealCreateEvent;
+                        _api.OnTickEvent -= OnTickEvent;
+                        _api.OnAccountInfoChangedEvent -= OnAccountInfoChangedEvent;
+                        _api.OnHistoricDataEvent -= OnHistoricDataEvent;
+
+                        // Start the API
+                        await _api.StopAsync();
+
+                        // Init close trades on a particular time
+                        foreach (var timing in _timing)
+                        {
+                            timing.OnTimeEvent -= OnItsTimeToCloseTradeEvent;
+                        }
+                    }
+                });
+            }
+
+            await Task.FromResult(0);
+        }
+
+        public async Task StartListenToTheServerAsync()
         {
             // Do null reference checks
             if (_appConfig != null && _apis != null)
@@ -352,7 +399,7 @@ namespace JCTG.Client
                                                                         tp -= spread;
                                                                 }
 
-                                                              
+
 
                                                                 // Send to logs
                                                                 if (_appConfig.Debug)
@@ -1047,7 +1094,193 @@ namespace JCTG.Client
                         }
                         else
                         {
-                            await LogAsync(0, new Log() { Time = DateTime.UtcNow, Type = "ERROR", ErrorType = "Error message received from the server. Could not link it to a signal." });
+                            await LogAsync(0, new Log() { Time = DateTime.UtcNow, Type = "ERROR", ErrorType = "Error message received from the server. Could not link it to an account." });
+                        }
+                    };
+
+                    // OnSendManualOrderCommand
+                    azureQueue.OnSendManualOrderCommand += async (cmd) =>
+                    {
+                        if (cmd != null && cmd.AccountID == _appConfig.AccountId && cmd.ClientInstruments != null)
+                        {
+                            // Make the query
+                            var query = _apis.Where(f => f.IsActive);
+                            if (cmd.ClientInstruments != null && cmd.ClientInstruments.Count >= 1)
+                                query = query.Where(f => cmd.ClientInstruments.Select(f => f.ClientID).Contains(f.ClientId));
+
+                            // Iterate through the broker's
+                            Parallel.ForEach(query, async api =>
+                            {
+                                // Print
+                                Print($"INFO : {DateTime.UtcNow} / {_appConfig.Brokers.First(f => f.ClientId == api.ClientId).Name} / MANUAL ORDER / {cmd.Magic}");
+
+                                // Null reference check
+                                if (cmd.ClientInstruments != null && cmd.ClientInstruments.Count != 0)
+                                {
+                                    // Pair
+                                    var pair = cmd.ClientInstruments.First(f => f.ClientID == api.ClientId);
+
+                                    // If this broker is listening to this signal and the account size is greater then zero
+                                    if (api.AccountInfo != null)
+                                    {
+                                        // Get the metadata tick
+                                        var metadataTick = api.MarketData.FirstOrDefault(f => f.Key == pair.Instrument).Value;
+
+                                        // Get start balance
+                                        var startbalance = _appConfig.Brokers.First(f => f.ClientId == api.ClientId).StartBalance;
+
+                                        // Do we have all the data available?
+                                        if (metadataTick != null && metadataTick.Ask > 0 && metadataTick.Bid > 0 && metadataTick.Digits >= 0)
+                                        {
+                                            // Calculate spread
+                                            var spread = Math.Round(Math.Abs(metadataTick.Ask - metadataTick.Bid), metadataTick.Digits, MidpointRounding.AwayFromZero);
+
+                                            // BUY
+                                            if (cmd.OrderType == "BUY" && cmd.MarketOrder != null)
+                                            {
+                                                // Get the Stop Loss price
+                                                var sl = Convert.ToDecimal(cmd.MarketOrder.StopLossPrice);
+
+                                                // Get the Take Profit Price
+                                                var tp = metadataTick.Ask + ((metadataTick.Ask - Convert.ToDecimal(cmd.MarketOrder.StopLossPrice)) * Convert.ToDecimal(cmd.MarketOrder.RiskRewardRatio));
+
+                                                // Calculate the lot size
+                                                var lotSize = RiskCalculator.LotSize(startbalance, api.AccountInfo.Balance, Convert.ToDecimal(cmd.ProcentRiskOfBalance), metadataTick.Ask, sl, metadataTick.TickValue, metadataTick.TickSize, metadataTick.LotStep, metadataTick.MinLotSize, metadataTick.MaxLotSize, out Dictionary<string, string> logMessages);
+
+                                                // Send to logs
+                                                if (_appConfig.Debug)
+                                                {
+                                                    var message = string.Format($"LotSizeCalculated || Symbol={pair.Instrument},Type={cmd.OrderType},Magic={cmd.Magic},StrategyType={cmd.StrategyID},Price={metadataTick.Ask},TP={tp},SL={sl}");
+                                                    var description = string.Format($"LotSize || {string.Join(", ", logMessages.Select(kvp => $"{kvp.Key}={kvp.Value}"))}");
+                                                    await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, cmd.Magic);
+                                                }
+
+                                                // do 0.0 lotsize check
+                                                if (lotSize > 0.0M)
+                                                {
+                                                    // Do 0.0 SL check
+                                                    if (sl > 0.0M && tp > 0.0M)
+                                                    {
+                                                        // Send to logs
+                                                        if (_appConfig.Debug)
+                                                        {
+                                                            var message = string.Format($"TakeProfitCalculated || Symbol={pair.Instrument},Type={cmd.OrderType},Magic={cmd.Magic},StrategyType={cmd.StrategyID},Price={metadataTick.Ask},TP={tp},SL={sl}");
+                                                            var description = string.Format($"TakeProfit || Ask={metadataTick.Ask},Spread={spread},Digits={metadataTick.Digits}");
+                                                            await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, cmd.Magic);
+                                                        }
+
+                                                        // Print on the screen
+                                                        Print($"INFO : {DateTime.UtcNow} / {_appConfig.Brokers.First(f => f.ClientId == api.ClientId).Name} / {pair.Instrument} / BUY COMMAND / {cmd.Magic} / {cmd.StrategyID}");
+
+                                                        // Open order
+                                                        var comment = string.Format($"{cmd.Magic}/{Math.Round(metadataTick.Ask, metadataTick.Digits, MidpointRounding.AwayFromZero)}/{Math.Round(sl, metadataTick.Digits, MidpointRounding.AwayFromZero)}/{cmd.StrategyID}/{spread}");
+                                                        var orderType = OrderType.Buy;
+
+                                                        // Round
+                                                        sl = RiskCalculator.RoundToNearestTickSize(sl, metadataTick.TickSize, metadataTick.Digits);
+                                                        tp = RiskCalculator.RoundToNearestTickSize(tp, metadataTick.TickSize, metadataTick.Digits);
+
+                                                        // Execute order
+                                                        api.ExecuteOrder(pair.Instrument, orderType, lotSize, 0, sl, tp, cmd.Magic, comment);
+
+                                                        // Send to logs
+                                                        if (_appConfig.Debug)
+                                                        {
+                                                            var message = string.Format($"MetatraderOrderExecuted || Symbol={pair.Instrument},Type={cmd.OrderType},Magic={cmd.Magic},StrategyType={cmd.StrategyID},Price={metadataTick.Ask},TP={tp},SL={sl}");
+                                                            var description = string.Format($"ExecuteOrder || Symbol={pair.Instrument},OrderType={orderType},LotSize={lotSize},Price={metadataTick.Ask},SL={sl},TP={tp},Magic={cmd.Magic},Comment={comment}");
+                                                            await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, cmd.Magic);
+                                                        }
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    // Raise market abstention or error
+                                                    var message = string.Format($"LotSizeError || Symbol={pair.Instrument},Type={cmd.OrderType},Magic={cmd.Magic},StrategyType={cmd.StrategyID},Price={metadataTick.Ask},TP={tp},SL={sl}");
+                                                    var log = new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = $"Unexpected error occurred with the calculation the lot size" };
+                                                    await RaiseMarketAbstentionAsync(api.ClientId, cmd.Magic, pair.Instrument, cmd.OrderType, MarketAbstentionType.ExceptionCalculatingLotSize, cmd.Magic, log);
+                                                }
+                                            }
+
+                                            // SELL
+                                            else if (cmd.OrderType == "SELL" && cmd.MarketOrder != null)
+                                            {
+                                                // Get the Stop Loss price
+                                                var sl = Convert.ToDecimal(cmd.MarketOrder.StopLossPrice);
+
+                                                // Get the Take Profit Price
+                                                var tp = metadataTick.Bid - ((Convert.ToDecimal(cmd.MarketOrder.StopLossPrice) - metadataTick.Bid) * Convert.ToDecimal(cmd.MarketOrder.RiskRewardRatio));
+
+                                                // Calculate the lot size
+                                                var lotSize = RiskCalculator.LotSize(startbalance, api.AccountInfo.Balance, Convert.ToDecimal(cmd.ProcentRiskOfBalance), metadataTick.Bid, sl, metadataTick.TickValue, metadataTick.TickSize, metadataTick.LotStep, metadataTick.MinLotSize, metadataTick.MaxLotSize, out Dictionary<string, string> logMessages);
+
+                                                // Send to logs
+                                                if (_appConfig.Debug)
+                                                {
+                                                    var message = string.Format($"LotSizeCalculated || Symbol={pair.Instrument},Type={cmd.OrderType},Magic={cmd.Magic},StrategyType={cmd.StrategyID},Price={metadataTick.Bid},TP={tp},SL={sl}");
+                                                    var description = string.Format($"LotSize || {string.Join(", ", logMessages.Select(kvp => $"{kvp.Key}={kvp.Value}"))}");
+                                                    await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, cmd.Magic);
+                                                }
+
+                                                // do 0.0 lotsize check
+                                                if (lotSize > 0.0M)
+                                                {
+                                                    // Do 0.0 SL check
+                                                    if (sl > 0.0M && tp > 0.0M)
+                                                    {
+                                                        // Send to logs
+                                                        if (_appConfig.Debug)
+                                                        {
+                                                            var message = string.Format($"TakeProfitCalculated || Symbol={pair.Instrument},Type={cmd.OrderType},Magic={cmd.Magic},StrategyType={cmd.StrategyID},Price={metadataTick.Bid},TP={tp},SL={sl}");
+                                                            var description = string.Format($"TakeProfit || Bid={metadataTick.Bid},Spread={spread},Digits={metadataTick.Digits}");
+                                                            await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, cmd.Magic);
+                                                        }
+
+                                                        // Print on the screen
+                                                        Print($"INFO : {DateTime.UtcNow} / {_appConfig.Brokers.First(f => f.ClientId == api.ClientId).Name} / {pair.Instrument} / SELL COMMAND / {cmd.Magic} / {cmd.StrategyID}");
+
+                                                        // Open order
+                                                        var comment = string.Format($"{cmd.Magic}/{Math.Round(metadataTick.Bid, metadataTick.Digits, MidpointRounding.AwayFromZero)}/{Math.Round(sl, metadataTick.Digits, MidpointRounding.AwayFromZero)}/{cmd.StrategyID}/{spread}");
+                                                        var orderType = OrderType.Sell;
+
+                                                        // Round
+                                                        sl = RiskCalculator.RoundToNearestTickSize(sl, metadataTick.TickSize, metadataTick.Digits);
+                                                        tp = RiskCalculator.RoundToNearestTickSize(tp, metadataTick.TickSize, metadataTick.Digits);
+
+                                                        // Execute order
+                                                        api.ExecuteOrder(pair.Instrument, orderType, lotSize, 0, sl, tp, cmd.Magic, comment);
+
+                                                        // Send to logs
+                                                        if (_appConfig.Debug)
+                                                        {
+                                                            var message = string.Format($"MetatraderOrderExecuted || Symbol={pair.Instrument},Type={cmd.OrderType},Magic={cmd.Magic},StrategyType={cmd.StrategyID},Price={metadataTick.Bid},TP={tp},SL={sl}");
+                                                            var description = string.Format($"ExecuteOrder || Symbol={pair.Instrument},OrderType={orderType},LotSize={lotSize},Price={metadataTick.Bid},SL={sl},TP={tp},Magic={cmd.Magic},Comment={comment}");
+                                                            await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, cmd.Magic);
+                                                        }
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    // Raise market abstention or error
+                                                    var message = string.Format($"LotSizeError || Symbol={pair.Instrument},Type={cmd.OrderType},Magic={cmd.Magic},StrategyType={cmd.StrategyID},Price={metadataTick.Ask},TP={tp},SL={sl}");
+                                                    var log = new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = $"Unexpected error occurred with the calculation the lot size" };
+                                                    await RaiseMarketAbstentionAsync(api.ClientId, cmd.Magic, pair.Instrument, cmd.OrderType, MarketAbstentionType.ExceptionCalculatingLotSize, cmd.Magic, log);
+                                                }
+                                            }
+                                        }
+                                    }
+                                    else
+                                    {
+                                        // Raise market abstention or error
+                                        var message = string.Format($"Symbol={cmd.ClientInstruments?.First().Instrument},Type={cmd.OrderType},Magic={cmd.Magic},StrategyType={cmd.StrategyID}");
+                                        var log = new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = "No account info available for this metatrader" };
+                                        await RaiseMarketAbstentionAsync(cmd.ClientInstruments.First().ClientID, cmd.Magic, cmd.ClientInstruments.First().Instrument, cmd.OrderType, MarketAbstentionType.NoAccountInfoAvailable, cmd.Magic, log);
+                                    }
+                                }
+                            });
+                        }
+                        else
+                        {
+                            await LogAsync(0, new Log() { Time = DateTime.UtcNow, Type = "ERROR", ErrorType = "Error message received from the server. Could not link it to an account" });
                         }
                     };
 
@@ -1056,6 +1289,8 @@ namespace JCTG.Client
                 }
             }
         }
+
+
 
 
         private void OnItsTimeToCloseTradeEvent(long clientId, string symbol, StrategyType strategyType)
@@ -1316,7 +1551,7 @@ namespace JCTG.Client
                     Print($"INFO : {DateTime.UtcNow} / {_appConfig.Brokers.First(f => f.ClientId == clientId).Name} / LOG EVENT / {log.Message}");
 
                 // When log have an error and have a magic id => market abstention
-                if(log.Type?.ToUpper() == "ERROR" && log.ErrorType != null && log.ErrorType.Equals("OPEN_ORDER") && log.Magic.HasValue && log.Magic.Value > 0 && log.Description != null)
+                if (log.Type?.ToUpper() == "ERROR" && log.ErrorType != null && log.ErrorType.Equals("OPEN_ORDER") && log.Magic.HasValue && log.Magic.Value > 0 && log.Description != null)
                 {
                     // Symbol
                     string pattern = @"order:\s(\w+),";
@@ -1333,8 +1568,16 @@ namespace JCTG.Client
                     Task.Run(async () =>
                     {
                         // Send log to files
-                        await RaiseMarketAbstentionAsync(clientId, log.Magic.Value, symbol, orderType, MarketAbstentionType.MetatraderOpenOrderError, log);
+                        await RaiseMetatraderMarketAbstentionAsync(clientId, log.Magic.Value, symbol, orderType, log);
                     });
+
+                    // Buffer log
+                    var logs = _buffers.GetOrAdd(clientId, []);
+                    lock (logs) // Ensure thread-safety for list modification
+                    {
+                        // Add log to the list
+                        logs.Add(log);
+                    }
                 }
                 else
                 {
@@ -1594,7 +1837,7 @@ namespace JCTG.Client
             }
         }
 
-        private async Task RaiseMarketAbstentionAsync(long clientId, long magic, string symbol, string orderType, MarketAbstentionType type, Log log)
+        private async Task RaiseMetatraderMarketAbstentionAsync(long clientId, long magic, string symbol, string orderType, Log log)
         {
             // Do null reference check
             if (_appConfig != null && _apis != null && (_apis.Count(f => f.ClientId == clientId) == 1 || clientId == 0))
@@ -1605,14 +1848,14 @@ namespace JCTG.Client
                     ClientID = clientId,
                     Symbol = symbol,
                     OrderType = orderType,
-                    Type = type,
+                    Type = MarketAbstentionType.MetatraderOpenOrderError,
                     Magic = magic,
                     Log = log
                 });
             }
         }
 
-        private async Task LogAsync(long clientId, Log log, long? signalId = null)
+        private async Task LogAsync(long clientId, Log log, long? magic = null)
         {
             // Do null reference check
             if (_appConfig != null && _apis != null && (_apis.Count(f => f.ClientId == clientId) == 1 || clientId == 0) && _appConfig.DropLogsInFile)
@@ -1621,7 +1864,7 @@ namespace JCTG.Client
                 await HttpCall.OnLogEvent(new OnLogEvent()
                 {
                     ClientID = clientId,
-                    SignalID = signalId,
+                    Magic = magic,
                     Log = log
                 });
 

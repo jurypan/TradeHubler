@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Reflection.PortableExecutable;
+using System.Threading;
 using JCTG.Models;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Newtonsoft.Json;
@@ -59,6 +60,8 @@ namespace JCTG.Client
         private Thread? barDataThread;
         private Thread? historicDataThread;
         private Thread? dealsThread;
+        private CancellationTokenSource cancellationTokenSource;
+        private CancellationToken cancellationToken;
 
         // Define the delegate for the event
         public delegate void OnOrderCreateEventHandler(long clientId, long ticketId, Order order);
@@ -90,30 +93,30 @@ namespace JCTG.Client
 
 
 
-        public MetatraderApi(string MetaTraderDirPath, long clientId, int sleepDelay, int maxRetryCommandSeconds, bool loadDataFromFile)
+        public MetatraderApi(string metaTraderDirPath, long clientId, int sleepDelay, int maxRetryCommandSeconds, bool loadDataFromFile)
         {
-            this.MetaTraderDirPath = MetaTraderDirPath;
+            this.MetaTraderDirPath = metaTraderDirPath;
             this.ClientId = clientId;
             this.sleepDelay = sleepDelay;
             this.maxRetryCommandSeconds = maxRetryCommandSeconds;
             this.loadDataFromFile = loadDataFromFile;
 
-            if (!Directory.Exists(MetaTraderDirPath))
+            if (!Directory.Exists(metaTraderDirPath))
             {
-                Print("ERROR: MetaTraderDirPath does not exist! MetaTraderDirPath: " + MetaTraderDirPath);
+                Print("ERROR: metaTraderDirPath does not exist! metaTraderDirPath: " + metaTraderDirPath);
                 Environment.Exit(1);
             }
 
-            this.pathOrders = Path.Join(MetaTraderDirPath, "JCTG", "JCTG_Orders.json");
-            this.pathMessages = Path.Join(MetaTraderDirPath, "JCTG", "JCTG_Messages.json");
-            this.pathMarketData = Path.Join(MetaTraderDirPath, "JCTG", "JCTG_Market_Data.json");
-            this.pathCandleCloseData = Path.Join(MetaTraderDirPath, "JCTG", "JCTG_Bar_Data.json");
-            this.pathHistoricData = Path.Join(MetaTraderDirPath, "JCTG", "JCTG_Historic_Data.json");
-            this.pathDeals = Path.Join(MetaTraderDirPath, "JCTG", "JCTG_Historic_Trades.json");
-            this.pathOrdersStored = Path.Join(MetaTraderDirPath, "JCTG", "JCTG_Orders_Stored.json");
-            this.pathMessagesStored = Path.Join(MetaTraderDirPath, "JCTG", "JCTG_Messages_Stored.json");
-            this.pathDealsStored = Path.Join(MetaTraderDirPath, "JCTG", "JCTG_Trades_Stored.json");
-            this.pathCommandsPrefix = Path.Join(MetaTraderDirPath, "JCTG", "JCTG_Commands_");
+            this.pathOrders = Path.Join(metaTraderDirPath, "JCTG", "JCTG_Orders.json");
+            this.pathMessages = Path.Join(metaTraderDirPath, "JCTG", "JCTG_Messages.json");
+            this.pathMarketData = Path.Join(metaTraderDirPath, "JCTG", "JCTG_Market_Data.json");
+            this.pathCandleCloseData = Path.Join(metaTraderDirPath, "JCTG", "JCTG_Bar_Data.json");
+            this.pathHistoricData = Path.Join(metaTraderDirPath, "JCTG", "JCTG_Historic_Data.json");
+            this.pathDeals = Path.Join(metaTraderDirPath, "JCTG", "JCTG_Historic_Trades.json");
+            this.pathOrdersStored = Path.Join(metaTraderDirPath, "JCTG", "JCTG_Orders_Stored.json");
+            this.pathMessagesStored = Path.Join(metaTraderDirPath, "JCTG", "JCTG_Messages_Stored.json");
+            this.pathDealsStored = Path.Join(metaTraderDirPath, "JCTG", "JCTG_Trades_Stored.json");
+            this.pathCommandsPrefix = Path.Join(metaTraderDirPath, "JCTG", "JCTG_Commands_");
         }
 
 
@@ -122,6 +125,7 @@ namespace JCTG.Client
         /// </summary>
         public async Task StartAsync()
         {
+            IsActive = true;
             await LoadLogsAsync();
 
             if (loadDataFromFile)
@@ -149,6 +153,22 @@ namespace JCTG.Client
             await ResetCommandIDsAsync();
 
             START = true;
+        }
+
+        /// <summary>
+        /// can be used to check if the _client has been initialized.  
+        /// </summary>
+        public async Task StopAsync()
+        {
+            IsActive = false;
+            START = false;
+            openOrdersThread?.Join();
+            messageThread?.Join();
+            marketDataThread?.Join();
+            barDataThread?.Join();
+            historicDataThread?.Join();
+            dealsThread?.Join();
+            await Task.FromResult(0);
         }
 
 

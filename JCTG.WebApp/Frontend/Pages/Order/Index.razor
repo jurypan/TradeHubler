@@ -1,8 +1,10 @@
 ﻿@page "/Order";
 @inject ClientRepository _clientRepository;
+@inject ClientPairRepository _clientPairRepository;
 @inject StrategyRepository _strategyRepository;
 @inject JCTG.WebApp.Backend.Queue.AzureQueueClient _server;
 @inject JCTGDbContext _dbContext;
+@inject NavigationManager NavigationManager
 @using JCTG.Command;
 @using JCTG.Models
 @using JCTG.WebApp.Frontend.Components.Widget;
@@ -109,7 +111,7 @@
                             </div>
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label class="form-label">Stop Loss in Ticks from entry</label>
+                                    <label class="form-label">Stop Loss price</label>
                                     <div class="input-group input-group-lg">
                                         <span class="input-group-text">SL $</span>
                                         <InputText class="form-control" @bind-Value="model.MarketOrder.StopLossPriceAsString" />
@@ -131,18 +133,24 @@
                             {
                                 <div class="col-md-6">
                                     <div class="mb-3">
-                                        <label class="form-label">Pair</label>
-                                        <InputText class="form-control" @bind-Value="pairInstrument.Instrument" />
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="mb-3">
                                         <label class="form-label">Client</label>
                                         <InputSelect class="form-select col-12" @bind-Value="pairInstrument.ClientIDAsString">
                                             <option value="0">Choose...</option>
                                             @foreach (var item in _clients)
                                             {
                                                 <option value="@item.ID">@item.Name</option>
+                                            }
+                                        </InputSelect>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Pair</label>
+                                        <InputSelect class="form-select col-12" @bind-Value="pairInstrument.Instrument">
+                                            <option value="0">Choose...</option>
+                                            @foreach (var item in _pairs.Where(f => f.ClientID == pairInstrument.ClientID))
+                                            {
+                                                <option value="@item.TickerInMetatrader">@item.TickerInMetatrader</option>
                                             }
                                         </InputSelect>
                                     </div>
@@ -174,11 +182,13 @@
     [SupplyParameterFromForm]
     private OnSendManualOrderCommand model { get; set; } = new OnSendManualOrderCommand() { OrderType = "BUY" };
     private List<Client> _clients { get; set; } = new();
+    private List<ClientPair> _pairs { get; set; } = new();
     private List<Strategy> _strategies { get; set; } = new();
 
     protected async override Task OnInitializedAsync()
     {
         _clients = await _clientRepository.GetAllAsync(692803787);
+        _pairs = await _clientPairRepository.GetAllAsync(692803787);
         _strategies = await _strategyRepository.GetAllAsync(692803787);
         model.ClientInstruments.Add(new OnReceivingPairInstrument());
         model.Magic = Helper.GenerateRandomNumber(new Random(), 11);
@@ -210,9 +220,13 @@
 
             // Save to the database
             await _dbContext.SaveChangesAsync();
+            model.Magic = Convert.ToInt32(signal.ID);
 
             // Send to the client
             var id = await _server.SendOnManualSignalCommandAsync(692803787, model);
+
+            // Redirct
+            NavigationManager.NavigateTo($"Signals/{model.Magic}/Orders");
         }
     }
 

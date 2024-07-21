@@ -11,6 +11,7 @@ namespace JCTG.Client
         private readonly int accountId;
 
         public event Action<OnSendTradingviewSignalCommand>? OnSendTradingviewSignalCommand;
+        public event Action<OnSendManualOrderCommand>? OnSendManualOrderCommand;
 
 
         public AzureQueueClient(string connectionString, int accountId)
@@ -71,6 +72,18 @@ namespace JCTG.Client
                                         {
                                             // Throw event
                                             OnSendTradingviewSignalCommand?.Invoke(@event);
+
+                                            // Remove the message from the queue
+                                            await queueClient.DeleteMessageAsync(message.MessageId, message.PopReceipt);
+                                        }
+                                    }
+                                    else if (type == Constants.QueueMessageType_OnSendManualOrderCommand)
+                                    {
+                                        var @event = JsonSerializer.Deserialize<OnSendManualOrderCommand>(data.GetRawText(), jsonSerializerOptions);
+                                        if (@event != null)
+                                        {
+                                            // Throw event
+                                            OnSendManualOrderCommand?.Invoke(@event);
 
                                             // Remove the message from the queue
                                             await queueClient.DeleteMessageAsync(message.MessageId, message.PopReceipt);

@@ -387,7 +387,7 @@ namespace JCTG.WebApp.Backend.Api
                 var log = new Entity.Log()
                 {
                     ClientID = model.ClientID,
-                    SignalID = !model.SignalID.HasValue || model.SignalID.Value == 0 ? null : model.SignalID.Value,
+                    SignalID = !model.Magic.HasValue || model.Magic.Value == 0 ? null : model.Magic.Value,
                     Description = model.Log.Description,
                     ErrorType = model.Log.ErrorType,
                     Message = model.Log.Message,
