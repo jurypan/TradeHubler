@@ -213,8 +213,8 @@
                 RiskRewardRatio = model.MarketOrder.RiskRewardRatio,
                 StopLoss = model.MarketOrder.StopLossPrice,
                 TakeProfit = model.OrderType == "BUY" ? model.MarketOrder.EntryPrice + (model.MarketOrder.RiskRewardRatio * Math.Abs(model.MarketOrder.EntryPrice - model.MarketOrder.StopLossPrice)) : model.MarketOrder.EntryPrice - (model.MarketOrder.RiskRewardRatio * Math.Abs(model.MarketOrder.StopLossPrice - model.MarketOrder.EntryPrice)),
-                TradingviewStateType = TradingviewStateType.Entry,
-                StrategyType = (StrategyType)model.StrategyID
+                SignalStateType = SignalStateType.Entry,
+                StrategyID = model.StrategyID
             };
             await _dbContext.Signal.AddAsync(signal);
 

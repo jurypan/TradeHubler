@@ -13,7 +13,7 @@ public class MarketAbstentionRepository(IDbContextFactory<JCTGDbContext> dbConte
                                                     && f.Client.AccountID == accountId 
                                                     && f.ClientID == clientId
                                                     && f.Signal != null
-                                                    && f.Signal.StrategyType == strategyType
+                                                    && f.Signal.StrategyID == (long)strategyType
                                                     ).OrderBy(f => f.DateLastUpdated).ToListAsync();
     }
 

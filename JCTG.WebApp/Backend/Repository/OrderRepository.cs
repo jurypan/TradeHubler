@@ -68,7 +68,7 @@ public class OrderRepository(IDbContextFactory<JCTGDbContext> dbContextFactory)
             .Where(f => f.Client != null
                         && f.Client.AccountID == accountId
                         && f.ClientID == clientId
-                        && f.Signal.StrategyType == strategyType
+                        && f.Signal.StrategyID == (long)strategyType
                         )
                         .OrderBy(f => f.DateCreated)
                         .ToListAsync();

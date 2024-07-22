@@ -128,31 +128,31 @@
                                                     <td>@signal.DateCreated</td>
                                                     <td>@signal.ExitRiskRewardRatioAsString</td>
                                                     <td>
-                                                        @if (signal.TradingviewStateType == TradingviewStateType.Init)
+                                                        @if (signal.SignalStateType == SignalStateType.Init)
                                                         {
                                                             <span class="mb-1 badge rounded-pill  bg-primary-subtle text-primary">Init</span>
                                                         }
-                                                        else if (signal.TradingviewStateType == TradingviewStateType.Entry)
+                                                        else if (signal.SignalStateType == SignalStateType.Entry)
                                                         {
                                                             <span class="mb-1 badge rounded-pill  bg-secondary-subtle text-secondary">Entry</span>
                                                         }
-                                                        else if (signal.TradingviewStateType == TradingviewStateType.BeHit)
+                                                        else if (signal.SignalStateType == SignalStateType.BeHit)
                                                         {
                                                             <span class="mb-1 badge rounded-pill  bg-warning-subtle text-warning">BE</span>
                                                         }
-                                                        else if (signal.TradingviewStateType == TradingviewStateType.SlHit)
+                                                        else if (signal.SignalStateType == SignalStateType.SlHit)
                                                         {
                                                             <span class="mb-1 badge rounded-pill  bg-danger-subtle text-danger">SL</span>
                                                         }
-                                                        else if (signal.TradingviewStateType == TradingviewStateType.TpHit)
+                                                        else if (signal.SignalStateType == SignalStateType.TpHit)
                                                         {
                                                             <span class="mb-1 badge rounded-pill  bg-success-subtle text-success">TP</span>
                                                         }
-                                                        else if (signal.TradingviewStateType == TradingviewStateType.CancelOrder)
+                                                        else if (signal.SignalStateType == SignalStateType.CancelOrder)
                                                         {
                                                             <span class="mb-1 badge rounded-pill  bg-info-subtle text-info">Cancelled</span>
                                                         }
-                                                        else if (signal.TradingviewStateType == TradingviewStateType.CloseAll)
+                                                        else if (signal.SignalStateType == SignalStateType.CloseAll)
                                                         {
                                                             <span class="mb-1 badge rounded-pill  bg-info-subtle text-info">Close</span>
                                                         }

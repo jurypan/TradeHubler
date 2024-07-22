@@ -73,25 +73,29 @@
                                                 <td>@alert.Type</td>
                                                 <td>
                                                     <div class="d-flex align-items-center gap-2">
-                                                        @if (alert.Signal.StrategyType == StrategyType.Strategy1)
+                                                        @if (alert.Signal.StrategyID == 1)
                                                         {
                                                             <span class="badge text-bg-primary rounded-3 fw-semibold fs-2">Strategy 1</span>
                                                         }
-                                                        else if (alert.Signal.StrategyType == StrategyType.Strategy2)
+                                                        else if (alert.Signal.StrategyID == 2)
                                                         {
                                                             <span class="badge text-bg-success rounded-3 fw-semibold fs-2">Strategy 2</span>
                                                         }
-                                                        else if (alert.Signal.StrategyType == StrategyType.Strategy3)
+                                                        else if (alert.Signal.StrategyID == 3)
                                                         {
                                                             <span class="badge text-bg-secondary rounded-3 fw-semibold fs-2">Strategy 3</span>
                                                         }
-                                                        else if (alert.Signal.StrategyType == StrategyType.Strategy4)
+                                                        else if (alert.Signal.StrategyID == 4)
                                                         {
                                                             <span class="badge text-bg-danger rounded-3 fw-semibold fs-2">Strategy 4</span>
                                                         }
-                                                        else if (alert.Signal.StrategyType == StrategyType.Strategy5)
+                                                        else if (alert.Signal.StrategyID == 5)
                                                         {
                                                             <span class="badge text-bg-indigo rounded-3 fw-semibold fs-2">Strategy 5</span>
+                                                        }
+                                                        else if (alert.Signal.StrategyID == 6)
+                                                        {
+                                                            <span class="badge text-bg-indigo rounded-3 fw-semibold fs-2">Strategy 6</span>
                                                         }
                                                     </div>
                                                 </td>

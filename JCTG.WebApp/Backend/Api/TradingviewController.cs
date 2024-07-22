@@ -76,10 +76,10 @@ namespace JCTG.WebApp.Backend.Api
                         return BadRequest("'order_type' is mandatory");
                     }
 
-                    if (signal.StrategyType == StrategyType.None)
+                    if (signal.StrategyID == 0)
                     {
-                        _logger.Error($"'strategytype' is mandatory for {signal.OrderType}");
-                        return BadRequest("'strategytype' is mandatory");
+                        _logger.Error($"'strategy' is mandatory for {signal.OrderType}");
+                        return BadRequest("'strategy' is mandatory");
                     }
 
                     if (signal.Magic == 0)
@@ -179,14 +179,14 @@ namespace JCTG.WebApp.Backend.Api
                                 )
                             {
                                 // Cancel potential previous  trades
-                                var prevSignal = await _dbContext.Signal.Where(s => s.Instrument == signal.Instrument && s.AccountID == signal.AccountID && s.OrderType == signal.OrderType && s.StrategyType == signal.StrategyType).OrderByDescending(f => f.DateCreated).FirstOrDefaultAsync();
+                                var prevSignal = await _dbContext.Signal.Where(s => s.Instrument == signal.Instrument && s.AccountID == signal.AccountID && s.OrderType == signal.OrderType && s.StrategyID == signal.StrategyID).OrderByDescending(f => f.DateCreated).FirstOrDefaultAsync();
 
                                 // do null reference check
                                 if (prevSignal != null)
                                 {
-                                    if (prevSignal.TradingviewStateType == TradingviewStateType.Init)
+                                    if (prevSignal.SignalStateType == SignalStateType.Init)
                                     {
-                                        prevSignal.TradingviewStateType = TradingviewStateType.CancelOrder;
+                                        prevSignal.SignalStateType = SignalStateType.CancelOrder;
                                         prevSignal.ExitRiskRewardRatio = 0;
                                     }
                                 }
@@ -194,17 +194,17 @@ namespace JCTG.WebApp.Backend.Api
 
 
                             if (signal.OrderType.Equals("buy", StringComparison.CurrentCultureIgnoreCase))
-                                signal.TradingviewStateType = TradingviewStateType.Entry;
+                                signal.SignalStateType = SignalStateType.Entry;
                             else if (signal.OrderType.Equals("buystop", StringComparison.CurrentCultureIgnoreCase))
-                                signal.TradingviewStateType = TradingviewStateType.Init;
+                                signal.SignalStateType = SignalStateType.Init;
                             else if (signal.OrderType.Equals("buylimit", StringComparison.CurrentCultureIgnoreCase))
-                                signal.TradingviewStateType = TradingviewStateType.Init;
+                                signal.SignalStateType = SignalStateType.Init;
                             else if (signal.OrderType.Equals("sell", StringComparison.CurrentCultureIgnoreCase))
-                                signal.TradingviewStateType = TradingviewStateType.Entry;
+                                signal.SignalStateType = SignalStateType.Entry;
                             else if (signal.OrderType.Equals("selllimit", StringComparison.CurrentCultureIgnoreCase))
-                                signal.TradingviewStateType = TradingviewStateType.Init;
+                                signal.SignalStateType = SignalStateType.Init;
                             else if (signal.OrderType.Equals("sellstop", StringComparison.CurrentCultureIgnoreCase))
-                                signal.TradingviewStateType = TradingviewStateType.Init;
+                                signal.SignalStateType = SignalStateType.Init;
 
                             // If the order type is one of the order types, add the signal to the database
                             await _dbContext.Signal.AddAsync(signal);
@@ -235,7 +235,7 @@ namespace JCTG.WebApp.Backend.Api
                                 Instrument = signal.Instrument,
                                 Magic = signal.ID,
                                 OrderType = signal.OrderType,
-                                StrategyType = signal.StrategyType,
+                                StrategyType = (StrategyType)signal.StrategyID,
                                 MarketOrder = signal.OrderType == "BUY" || signal.OrderType == "SELL" ? new OnReceivingMarketOrder()
                                 {
                                     Risk = Convert.ToDecimal(signal.Risk),
@@ -264,7 +264,7 @@ namespace JCTG.WebApp.Backend.Api
                                 .Where(s => s.Instrument == signal.Instrument
                                             && s.AccountID == signal.AccountID
                                             && s.Magic == signal.Magic
-                                            && s.StrategyType == signal.StrategyType
+                                            && s.StrategyID == signal.StrategyID
                                 )
                                 .OrderByDescending(f => f.DateCreated)
                                 .FirstOrDefaultAsync();
@@ -300,7 +300,7 @@ namespace JCTG.WebApp.Backend.Api
                                                         Instrument = signal.Instrument,
                                                         Magic = signal.ID,
                                                         OrderType = "BUY",
-                                                        StrategyType = signal.StrategyType,
+                                                        StrategyType = (StrategyType)signal.StrategyID,
                                                         MarketOrder = new OnReceivingMarketOrder()
                                                         {
                                                             Risk = Convert.ToDecimal(signal.Risk),
@@ -343,7 +343,7 @@ namespace JCTG.WebApp.Backend.Api
                                                         Instrument = signal.Instrument,
                                                         Magic = signal.ID,
                                                         OrderType = "SELL",
-                                                        StrategyType = signal.StrategyType,
+                                                        StrategyType = (StrategyType)signal.StrategyID,
                                                         MarketOrder = new OnReceivingMarketOrder()
                                                         {
                                                             Risk = Convert.ToDecimal(signal.Risk),
@@ -379,13 +379,13 @@ namespace JCTG.WebApp.Backend.Api
                                 // Update properties based on your logic
                                 // For example: existingSignal.Status = "Updated";
                                 if (signal.OrderType.Equals("tphit", StringComparison.CurrentCultureIgnoreCase))
-                                    existingSignal.TradingviewStateType = TradingviewStateType.TpHit;
+                                    existingSignal.SignalStateType = SignalStateType.TpHit;
                                 else if (signal.OrderType.Equals("slhit", StringComparison.CurrentCultureIgnoreCase))
-                                    existingSignal.TradingviewStateType = TradingviewStateType.SlHit;
+                                    existingSignal.SignalStateType = SignalStateType.SlHit;
                                 else if (signal.OrderType.Equals("behit", StringComparison.CurrentCultureIgnoreCase))
-                                    existingSignal.TradingviewStateType = TradingviewStateType.BeHit;
+                                    existingSignal.SignalStateType = SignalStateType.BeHit;
                                 else if (signal.OrderType.Equals("entry", StringComparison.CurrentCultureIgnoreCase))
-                                    existingSignal.TradingviewStateType = TradingviewStateType.Entry;
+                                    existingSignal.SignalStateType = SignalStateType.Entry;
 
                                 // Update
                                 existingSignal.DateLastUpdated = DateTime.UtcNow;
@@ -422,16 +422,16 @@ namespace JCTG.WebApp.Backend.Api
                             // Implement the logic to update the database based on instrument, client, and magic number.
                             // This is a placeholder for your actual update logic.
                             var existingSignal2 = await _dbContext.Signal
-                                .Where(s => s.Instrument == signal.Instrument && s.AccountID == signal.AccountID && s.StrategyType == signal.StrategyType)
+                                .Where(s => s.Instrument == signal.Instrument && s.AccountID == signal.AccountID && s.StrategyID == signal.StrategyID)
                                 .OrderByDescending(f => f.DateCreated)
                                 .FirstOrDefaultAsync();
                             ;
 
                             if (existingSignal2 != null)
                             {
-                                if (existingSignal2.TradingviewStateType == TradingviewStateType.Entry)
+                                if (existingSignal2.SignalStateType == SignalStateType.Entry)
                                 {
-                                    existingSignal2.TradingviewStateType = TradingviewStateType.CloseAll;
+                                    existingSignal2.SignalStateType = SignalStateType.CloseAll;
                                     existingSignal2.DateLastUpdated = DateTime.UtcNow;
                                     existingSignal2.ExitRiskRewardRatio = signal.ExitRiskRewardRatio;
 
@@ -451,9 +451,9 @@ namespace JCTG.WebApp.Backend.Api
                                     // Update database
                                     _logger.Information($"Updated database in table Signal with ID: {existingSignal2.ID}", existingSignal2);
                                 }
-                                else if (existingSignal2.TradingviewStateType == TradingviewStateType.Init)
+                                else if (existingSignal2.SignalStateType == SignalStateType.Init)
                                 {
-                                    existingSignal2.TradingviewStateType = TradingviewStateType.CancelOrder;
+                                    existingSignal2.SignalStateType = SignalStateType.CancelOrder;
                                     existingSignal2.DateLastUpdated = DateTime.UtcNow;
                                     existingSignal2.ExitRiskRewardRatio = signal.ExitRiskRewardRatio;
 
@@ -475,7 +475,7 @@ namespace JCTG.WebApp.Backend.Api
                                 }
 
                                 // Update
-                                existingSignal2.TradingviewStateType = TradingviewStateType.CloseAll;
+                                existingSignal2.SignalStateType = SignalStateType.CloseAll;
 
                                 // Save to the database
                                 await _dbContext.SaveChangesAsync();

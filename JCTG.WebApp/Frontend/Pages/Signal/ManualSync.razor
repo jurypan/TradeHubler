@@ -168,31 +168,31 @@
                                                         @{
                                                             if (log.Signal != null)
                                                             {
-                                                                @if (log.Signal.TradingviewStateType == TradingviewStateType.Init)
+                                                                @if (log.Signal.SignalStateType == SignalStateType.Init)
                                                                 {
                                                                     <span class="mb-1 badge rounded-pill  bg-primary-subtle text-primary">Init</span>
                                                                 }
-                                                                else if (log.Signal.TradingviewStateType == TradingviewStateType.Entry)
+                                                                else if (log.Signal.SignalStateType == SignalStateType.Entry)
                                                                 {
                                                                     <span class="mb-1 badge rounded-pill  bg-secondary-subtle text-secondary">Entry</span>
                                                                 }
-                                                                else if (log.Signal.TradingviewStateType == TradingviewStateType.BeHit)
+                                                                else if (log.Signal.SignalStateType == SignalStateType.BeHit)
                                                                 {
                                                                     <span class="mb-1 badge rounded-pill  bg-warning-subtle text-warning">BE</span>
                                                                 }
-                                                                else if (log.Signal.TradingviewStateType == TradingviewStateType.SlHit)
+                                                                else if (log.Signal.SignalStateType == SignalStateType.SlHit)
                                                                 {
                                                                     <span class="mb-1 badge rounded-pill  bg-danger-subtle text-danger">SL</span>
                                                                 }
-                                                                else if (log.Signal.TradingviewStateType == TradingviewStateType.TpHit)
+                                                                else if (log.Signal.SignalStateType == SignalStateType.TpHit)
                                                                 {
                                                                     <span class="mb-1 badge rounded-pill  bg-success-subtle text-success">TP</span>
                                                                 }
-                                                                else if (log.Signal.TradingviewStateType == TradingviewStateType.CancelOrder)
+                                                                else if (log.Signal.SignalStateType == SignalStateType.CancelOrder)
                                                                 {
                                                                     <span class="mb-1 badge rounded-pill  bg-info-subtle text-info">Cancelled</span>
                                                                 }
-                                                                else if (log.Signal.TradingviewStateType == TradingviewStateType.CloseAll)
+                                                                else if (log.Signal.SignalStateType == SignalStateType.CloseAll)
                                                                 {
                                                                     <span class="mb-1 badge rounded-pill  bg-info-subtle text-info">Close</span>
                                                                 }
@@ -318,13 +318,13 @@
                 // Update properties
                 signal.ExitRiskRewardRatio = item.ExitRR;
                 if (item.ExitRR.Value == -1)
-                    signal.TradingviewStateType = TradingviewStateType.SlHit;
+                    signal.SignalStateType = SignalStateType.SlHit;
                 else if (item.ExitRR.Value == 0)
-                    signal.TradingviewStateType = TradingviewStateType.BeHit;
+                    signal.SignalStateType = SignalStateType.BeHit;
                 else if (item.ExitRR.Value == model.TakeProfit)
-                    signal.TradingviewStateType = TradingviewStateType.TpHit;
+                    signal.SignalStateType = SignalStateType.TpHit;
                 else
-                    signal.TradingviewStateType = TradingviewStateType.CloseAll;
+                    signal.SignalStateType = SignalStateType.CloseAll;
 
                 // Update signal
                 await _signalRepository.EditAsync(signal);
@@ -355,9 +355,9 @@
                 // Update properties
                 signal.ExitRiskRewardRatio = item.ExitRR;
                 if (item.ExitRR.Value == -1)
-                    signal.TradingviewStateType = TradingviewStateType.SlHit;
+                    signal.SignalStateType = SignalStateType.SlHit;
                 else if (item.ExitRR.Value == 0)
-                    signal.TradingviewStateType = TradingviewStateType.BeHit;
+                    signal.SignalStateType = SignalStateType.BeHit;
 
                 // Update signal
                 await _signalRepository.AddAsync(signal);
@@ -447,14 +447,14 @@
                 {
                     if (signal.ExitRiskRewardRatio == item.ExitRR)
                     {
-                        if(signal.ExitRiskRewardRatio == -1 && signal.TradingviewStateType != TradingviewStateType.SlHit)
+                        if(signal.ExitRiskRewardRatio == -1 && signal.SignalStateType != SignalStateType.SlHit)
                         {
-                            item.Comment = $"TradingviewStateType in database is {signal.TradingviewStateType} and should be {TradingviewStateType.SlHit}";
+                            item.Comment = $"SignalStateType in database is {signal.SignalStateType} and should be {SignalStateType.SlHit}";
                             item.Action = CrudState.Edit;
                         }
-                        else if (signal.ExitRiskRewardRatio == model.TakeProfit && signal.TradingviewStateType != TradingviewStateType.TpHit)
+                        else if (signal.ExitRiskRewardRatio == model.TakeProfit && signal.SignalStateType != SignalStateType.TpHit)
                         {
-                            item.Comment = $"TradingviewStateType in database should be {TradingviewStateType.TpHit} because ExitRiskRewardRatio is equal to Take Profit";
+                            item.Comment = $"SignalStateType in database should be {SignalStateType.TpHit} because ExitRiskRewardRatio is equal to Take Profit";
                             item.Action = CrudState.Edit;
                         }
                         else

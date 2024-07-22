@@ -185,25 +185,29 @@
                             <tr>
                                 <td>
                                     <div class="d-flex align-items-center gap-2">
-                                        @if (signal.StrategyType == StrategyType.Strategy1)
+                                        @if (signal.StrategyID == 1)
                                         {
                                             <span class="badge text-bg-primary rounded-3 fw-semibold fs-2">Strategy 1</span>
                                         }
-                                        else if (signal.StrategyType == StrategyType.Strategy2)
+                                        else if (signal.StrategyID == 2)
                                         {
                                             <span class="badge text-bg-success rounded-3 fw-semibold fs-2">Strategy 2</span>
                                         }
-                                        else if (signal.StrategyType == StrategyType.Strategy3)
+                                        else if (signal.StrategyID == 3)
                                         {
                                             <span class="badge text-bg-secondary rounded-3 fw-semibold fs-2">Strategy 3</span>
                                         }
-                                        else if (signal.StrategyType == StrategyType.Strategy4)
+                                        else if (signal.StrategyID == 4)
                                         {
                                             <span class="badge text-bg-danger rounded-3 fw-semibold fs-2">Strategy 4</span>
                                         }
-                                        else if (signal.StrategyType == StrategyType.Strategy5)
+                                        else if (signal.StrategyID == 5)
                                         {
                                             <span class="badge text-bg-indigo rounded-3 fw-semibold fs-2">Strategy 5</span>
+                                        }
+                                        else if (signal.StrategyID == 6)
+                                        {
+                                            <span class="badge text-bg-indigo rounded-3 fw-semibold fs-2">Strategy 6</span>
                                         }
                                     </div>
                                 </td>
@@ -221,44 +225,44 @@
                                     <p class="mb-0 fw-normal">@signal.DateLastUpdated.ToString("dd/MM/yy HH:mm:ss")</p>
                                 </td>
                                 <td>
-                                    @if (signal.TradingviewStateType == TradingviewStateType.Init)
+                                    @if (signal.SignalStateType == SignalStateType.Init)
                                     {
                                         <span class="mb-1 badge rounded-pill  bg-primary-subtle text-primary">Init</span>
                                     }
-                                    else if (signal.TradingviewStateType == TradingviewStateType.Entry)
+                                    else if (signal.SignalStateType == SignalStateType.Entry)
                                     {
                                         <span class="mb-1 badge rounded-pill  bg-secondary-subtle text-secondary">Entry</span>
                                     }
-                                    else if (signal.TradingviewStateType == TradingviewStateType.BeHit)
+                                    else if (signal.SignalStateType == SignalStateType.BeHit)
                                     {
                                         <span class="mb-1 badge rounded-pill  bg-warning-subtle text-warning">BE</span>
                                     }
-                                    else if (signal.TradingviewStateType == TradingviewStateType.SlHit)
+                                    else if (signal.SignalStateType == SignalStateType.SlHit)
                                     {
                                         <span class="mb-1 badge rounded-pill  bg-danger-subtle text-danger">SL</span>
                                     }
-                                    else if (signal.TradingviewStateType == TradingviewStateType.TpHit)
+                                    else if (signal.SignalStateType == SignalStateType.TpHit)
                                     {
                                         <span class="mb-1 badge rounded-pill  bg-success-subtle text-success">TP</span>
                                     }
-                                    else if (signal.TradingviewStateType == TradingviewStateType.CancelOrder)
+                                    else if (signal.SignalStateType == SignalStateType.CancelOrder)
                                     {
                                         <span class="mb-1 badge rounded-pill  bg-info-subtle text-info">Cancelled</span>
                                     }
-                                    else if (signal.TradingviewStateType == TradingviewStateType.CloseAll)
+                                    else if (signal.SignalStateType == SignalStateType.CloseAll)
                                     {
                                         <span class="mb-1 badge rounded-pill  bg-info-subtle text-info">Close</span>
                                     }
                                 </td>
                                 <td>@Math.Round(signal.Orders.Sum(f => f.Pnl), 2)</td>
                                 <td>
-                                    @if (signal.TradingviewStateType == TradingviewStateType.Init)
+                                    @if (signal.SignalStateType == SignalStateType.Init)
                                     {
                                         <span class="badge bg-success-subtle text-success fw-semibold fs-2 gap-1 d-inline-flex align-items-center">
                                             <i class="ti ti-circle fs-3"></i>active
                                         </span>
                                     }
-                                    else if (signal.TradingviewStateType == TradingviewStateType.Entry)
+                                    else if (signal.SignalStateType == SignalStateType.Entry)
                                     {
                                         <span class="badge bg-success-subtle text-success fw-semibold fs-2 gap-1 d-inline-flex align-items-center">
                                             <i class="ti ti-circle fs-3"></i>active
@@ -274,7 +278,7 @@
                                 <td>
                                     @{
                                         var orderCount = signal.Orders.Count();
-                                        var clientCount = _clients.Where(f => f.IsEnable).SelectMany(f => f.Pairs).Count(f => f.TickerInTradingView == signal.Instrument && f.StrategyType == signal.StrategyType);
+                                        var clientCount = _clients.Where(f => f.IsEnable).SelectMany(f => f.Pairs).Count(f => f.TickerInTradingView == signal.Instrument && f.StrategyType == (StrategyType)signal.StrategyID);
 
                                         <span>@orderCount / @clientCount</span>
 

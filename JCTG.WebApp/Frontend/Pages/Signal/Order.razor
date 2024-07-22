@@ -86,7 +86,7 @@
                                         <td>@order.Pnl</td>
                                         <td><a href="javascript:void(0)" @onclick="async () => await OrderLotSizeClick(order.ClientID, order.SignalID)">@order.OpenLots</a></td>
                                         <td>@(_logs.Count(f => f.ClientID == order.ClientID && f.Description != null && f.Message != null && f.Message.Contains("LotSizeCalculated")) == 1 ? _logs.First(f => f.ClientID == order.ClientID && f.Description != null && f.Message != null && f.Message.Contains("LotSizeCalculated")).Description?.GetRiskAmount().ToString() : "?")</td>
-                                        <td>@order.Signal.TradingviewStateType</td>
+                                        <td>@order.Signal.SignalStateType</td>
                                         <td>
                                             <div class="dropdown dropstart">
                                                 <a href="#" class="text-muted" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
@@ -167,7 +167,7 @@
                                         <td>@marketAbstention.Type</td>
                                         <td>@marketAbstention.Magic</td>
                                         <td>@marketAbstention.LogMessage</td>
-                                        <td>@marketAbstention.Signal.TradingviewStateType</td>
+                                        <td>@marketAbstention.Signal.SignalStateType</td>
                                         <td>
                                             <div class="dropdown dropstart">
                                                 <a href="#" class="text-muted" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">

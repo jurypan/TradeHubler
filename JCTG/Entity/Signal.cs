@@ -6,23 +6,24 @@ namespace JCTG.Entity
 {
     public class Signal
     {
-        public Signal()
-        {
-            DateCreated = DateTime.UtcNow;
-            DateLastUpdated = DateTime.UtcNow;
-            Logs = new List<Log>();
-            Orders = new List<Order>();
-            TradingviewAlerts = new List<TradingviewAlert>();
-            StrategyType = StrategyType.None;
-            TradingviewStateType = TradingviewStateType.Init;
-        }
-
         [Key]
         public long ID { get; set; }
-        public DateTime DateCreated { get; set; }
-        public DateTime DateLastUpdated { get; set; }
+        public DateTime DateCreated { get; set; } = DateTime.UtcNow;
+        public DateTime DateLastUpdated { get; set; } = DateTime.UtcNow;
         [Required]
-        public StrategyType StrategyType { get; set; }
+        public long StrategyID { get; set; }
+        [NotMapped]
+        public string StrategyIDAsString
+        {
+            get => StrategyID.ToString();
+            set
+            {
+                if (long.TryParse(value, out long newValue))
+                {
+                    StrategyID = newValue;
+                }
+            }
+        }
         public Account Account { get; set; }
         public int AccountID { get; set; }
         [Required]
@@ -120,7 +121,7 @@ namespace JCTG.Entity
 
 
         // Tradingview State
-        public TradingviewStateType TradingviewStateType { get; set; }
+        public SignalStateType SignalStateType { get; set; } = SignalStateType.Init;
         public double? ExitRiskRewardRatio { get; set; }
         [NotMapped]
         public string? ExitRiskRewardRatioAsString
@@ -137,10 +138,10 @@ namespace JCTG.Entity
 
 
         // Links
-        public List<Order> Orders { get; set; }
-        public List<Log> Logs { get; set; }
-        public List<TradingviewAlert> TradingviewAlerts { get; set; }
-        public List<MarketAbstention> MarketAbstentions { get; set; }
+        public List<Order> Orders { get; set; } = [];
+        public List<Log> Logs { get; set; } = [];
+        public List<TradingviewAlert> TradingviewAlerts { get; set; } = [];
+        public List<MarketAbstention> MarketAbstentions { get; set; } = [];
 
 
 
@@ -165,7 +166,8 @@ namespace JCTG.Entity
                 { "sl", value => signal.StopLossAsString = value },
                 { "tp", value => signal.TakeProfitAsString = value },
                 { "magic", value => signal.MagicAsString = value },
-                { "strategytype", value => signal.StrategyType = Enum.Parse<StrategyType>(value) },
+                { "strategytype", value => signal.StrategyIDAsString = value },
+                { "strategy", value => signal.StrategyIDAsString = value },
                 { "entryexpr", value => signal.EntryExpression = value },
                 { "risk", value => signal.RiskAsString = value },
                 { "rr", value => signal.RiskRewardRatioAsString = value  },
@@ -183,7 +185,7 @@ namespace JCTG.Entity
 
             if (signal.OrderType.Equals("buy", StringComparison.CurrentCultureIgnoreCase) || signal.OrderType.Equals("sell", StringComparison.CurrentCultureIgnoreCase))
             {
-                signal.TradingviewStateType = TradingviewStateType.Entry;
+                signal.SignalStateType = SignalStateType.Entry;
             }
 
 
@@ -191,7 +193,7 @@ namespace JCTG.Entity
         }
     }
 
-    public enum TradingviewStateType
+    public enum SignalStateType
     {
         Init = 0,
         TpHit = 1,
