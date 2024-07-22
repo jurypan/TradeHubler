@@ -174,7 +174,7 @@
         }
         else
         {
-            model = new();
+            model = new() { AccountID = accountId };
             await OpenAsync();
             _crudState = CrudState.Add;
         }

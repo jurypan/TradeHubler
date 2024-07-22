@@ -105,14 +105,8 @@ namespace JCTG.WebApp.Backend.Api
 
                             if (signal.RiskRewardRatio == 0)
                             {
-                                _logger.Error($"'rrr' is mandatory for {signal.OrderType}");
-                                return BadRequest("'rrr' is mandatory");
-                            }
-
-                            if (!signal.ExitRiskRewardRatio.HasValue)
-                            {
-                                _logger.Error($"'exitrr' is mandatory for {signal.OrderType}");
-                                return BadRequest("'exitrr' is mandatory");
+                                _logger.Error($"'rr' is mandatory for {signal.OrderType}");
+                                return BadRequest("'rr' is mandatory");
                             }
 
                             if (!signal.EntryPrice.HasValue)
