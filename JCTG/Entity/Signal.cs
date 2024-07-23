@@ -10,6 +10,7 @@ namespace JCTG.Entity
         public long ID { get; set; }
         public DateTime DateCreated { get; set; } = DateTime.UtcNow;
         public DateTime DateLastUpdated { get; set; } = DateTime.UtcNow;
+        public Strategy? Strategy { get; set; }
         [Required]
         public long StrategyID { get; set; }
         [NotMapped]

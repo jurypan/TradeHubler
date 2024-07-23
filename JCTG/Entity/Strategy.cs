@@ -12,5 +12,9 @@ namespace JCTG.Entity
         public required string Name { get; set; } = string.Empty;
         public string? Description { get; set; }
         public int Type { get; set; } = 1;
+
+
+        // Links
+        public List<Signal> Signals { get; set; } = [];
     }
 }

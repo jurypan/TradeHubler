@@ -234,7 +234,7 @@
         }
         else
         {
-            model = new() {  };
+            model = new() { ClientID = clientId, Risk = 0.5, MaxSpread = 2.0, SLMultiplier = 1.02, MaxLotSize = 1000, CancelStopOrLimitOrderWhenNewSignal = true, NumberOfHistoricalBarsRequested = 100, SpreadSL = SpreadExecType.Subtract, RiskMinXTimesTheSpread = 3 };
             await OpenAsync();
             _crudState = CrudState.Add;
         }
