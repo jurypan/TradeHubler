@@ -43,7 +43,7 @@ namespace JCTG.Client
             catch (Exception ex)
             {
                 LogException(ex);
-                ShowException(ex);
+                throw;
             }
         }
 
@@ -73,7 +73,6 @@ namespace JCTG.Client
         {
             Exception ex = (Exception)args.ExceptionObject;
             LogException(ex);
-            ShowException(ex);
         }
 
         static void LogException(Exception ex)
@@ -87,14 +86,6 @@ namespace JCTG.Client
             }
             writer.WriteLine($"Stack Trace: {ex.StackTrace}");
             writer.WriteLine();
-        }
-
-        static void ShowException(Exception ex)
-        {
-            Console.WriteLine("An unexpected error occurred:");
-            Console.WriteLine(ex.Message);
-            Console.WriteLine("Press any key to exit.");
-            Console.ReadKey();
         }
     }
 }

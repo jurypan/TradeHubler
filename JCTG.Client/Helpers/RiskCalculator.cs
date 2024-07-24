@@ -102,7 +102,7 @@ namespace JCTG.Client
         public static decimal ChooseClosestMultiplier(double startBalance, double accountBalance, List<Risk>? riskData = null)
         {
             // Do null reference check
-            if (startBalance <= 0 || accountBalance <= 0 || riskData == null)
+            if (startBalance <= 0 || accountBalance <= 0 || riskData == null || riskData.Count == 0)
                 return 1M;
 
             // Calculate the percentage change

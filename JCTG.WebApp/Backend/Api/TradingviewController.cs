@@ -145,14 +145,13 @@ namespace JCTG.WebApp.Backend.Api
                         case "tphit":
                         case "slhit":
                         case "behit":
+                        case "closeall":
                         case "cancelorder":
                             if (!signal.ExitRiskRewardRatio.HasValue)
                             {
                                 _logger.Error($"'exitrr' is mandatory for {signal.OrderType}");
                                 return BadRequest("'exitrr' is mandatory");
                             }
-                            break;
-                        case "closeall":
                             break;
                         default:
                             break;
@@ -418,6 +417,7 @@ namespace JCTG.WebApp.Backend.Api
                             }
 
                             break;
+
                         case "closeall":
                             // Implement the logic to update the database based on instrument, client, and magic number.
                             // This is a placeholder for your actual update logic.
@@ -476,6 +476,7 @@ namespace JCTG.WebApp.Backend.Api
 
                                 // Update
                                 existingSignal2.SignalStateType = SignalStateType.CloseAll;
+                                existingSignal2.ExitRiskRewardRatio = signal.ExitRiskRewardRatio;
 
                                 // Save to the database
                                 await _dbContext.SaveChangesAsync();

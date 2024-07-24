@@ -35,6 +35,11 @@ namespace JCTG.Entity
             get => Magic.ToString();
             set
             {
+                if(!string.IsNullOrEmpty(value))
+                {
+                    value = value.ToLower().Replace("close entry(s) order ", string.Empty);
+                }
+
                 if (long.TryParse(value, out long newValue))
                 {
                     Magic = newValue;
