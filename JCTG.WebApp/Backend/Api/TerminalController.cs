@@ -424,9 +424,6 @@ namespace JCTG.WebApp.Backend.Api
                 // Check if the deal already exist
                 if (!dbContext.Deal.Any(f => f.MtDealId == model.MtDealID))
                 {
-                    // Log
-                    _logger.Debug($"Deal id {model.MtDealID} is not found in the database ", model);
-
                     int maxRetries = 3; // Maximum number of retries
                     for (int attempt = 1; attempt <= maxRetries; attempt++)
                     {
@@ -440,7 +437,7 @@ namespace JCTG.WebApp.Backend.Api
                             attempt = maxRetries;
 
                             // Log
-                            _logger.Debug($"Order with id {order.ID} is found in the database ", order);
+                            _logger.Debug($"Order with id {order.ID} found in the database ", order);
 
                             // Add deal
                             var deal = new Entity.Deal()

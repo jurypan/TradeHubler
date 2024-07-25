@@ -336,8 +336,7 @@ namespace JCTG.Client
                     lastDealsStr = text;
 
                     // If null -> new instance
-                    if (Deals == null)
-                        Deals = new Dictionary<long, Deal>();
+                    Deals ??= [];
 
                     // Parse it to objects
                     var deals = JsonConvert.DeserializeObject<Dictionary<long, Deal>>(text);

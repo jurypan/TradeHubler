@@ -53,5 +53,6 @@ namespace JCTG.Entity
         SellStop = 25,
 
         CloseAll = 40,
+        Close = 41,
     }
 }

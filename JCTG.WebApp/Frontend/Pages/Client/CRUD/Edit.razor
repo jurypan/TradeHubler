@@ -173,26 +173,7 @@
                                         </td>
                                         <td>
                                             <div class="d-flex align-items-center gap-2">
-                                                @if (pair.StrategyType == StrategyType.Strategy1)
-                                                {
-                                                    <span class="badge text-bg-primary rounded-3 fw-semibold fs-2">Strategy 1</span>
-                                                }
-                                                else if (pair.StrategyType == StrategyType.Strategy2)
-                                                {
-                                                    <span class="badge text-bg-success rounded-3 fw-semibold fs-2">Strategy 2</span>
-                                                }
-                                                else if (pair.StrategyType == StrategyType.Strategy3)
-                                                {
-                                                    <span class="badge text-bg-secondary rounded-3 fw-semibold fs-2">Strategy 3</span>
-                                                }
-                                                else if (pair.StrategyType == StrategyType.Strategy4)
-                                                {
-                                                    <span class="badge text-bg-danger rounded-3 fw-semibold fs-2">Strategy 4</span>
-                                                }
-                                                else if (pair.StrategyType == StrategyType.Strategy5)
-                                                {
-                                                    <span class="badge text-bg-indigo rounded-3 fw-semibold fs-2">Strategy 5</span>
-                                                }
+                                                <span class="badge text-bg-primary rounded-3 fw-semibold fs-2">Strategy @((int)pair.StrategyType)</span>
                                             </div>
                                         </td>
                                         <td>

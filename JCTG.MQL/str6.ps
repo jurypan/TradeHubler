@@ -32,7 +32,6 @@ i_endDate                   = input.time(timestamp("2030-01-01"), title="End Dat
 i_pcLicenseID               = input.string("692803787",title="License ID",group = "Account")
 
 //VARS
-var array<int> id = array.new_int()
 var int magic = 0
 var float TP = na, var float SL = na, var float EP = na
 var float risk = na
@@ -113,15 +112,15 @@ if isSignalCandle() and buyWithTrend() and i_takeLongOrShort == "Long" and barst
         strategy.cancel(idTrade())
         alert(i_pcLicenseID + ',cancelorder,' + syminfo.ticker + ',magic=' + idTrade() + ',exitrr=0,strategytype=6')
     magic := (time("1") / 100) + math.round(close * 100)
-    array.push(id=id, value=magic)
+
     TP := i_rrType == "RR" ?  EP - (i_rewardRatio * risk) : na
     TPstring = i_rrType == "RR" ?  str.tostring(TP) : ''
 
     // Position Size
     positionSize = positionSize(EP, risk)
 
-    // Record entry time
-    TIME := time
+    // reset entry time
+    TIME := na
 
     // Do entry
     if strategy.equity > 0 and positionSize <= 100000000000
@@ -133,9 +132,12 @@ if i_rrType == "RR" and i_takeLongOrShort == "Long" and strategy.position_size >
     SL := EP
     strategy.exit(idTrade(), from_entry = idTrade(), comment = idTrade(), comment_loss= str.tostring("0"), comment_profit = str.tostring(i_rewardRatio), stop = SL, limit=TP, alert_loss = i_pcLicenseID + ',behit,' + syminfo.ticker + ',magic=' + idTrade() + ',exitrr=0,strategytype=6', alert_profit = i_pcLicenseID + ',tphit,' + syminfo.ticker + ',magic=' + idTrade() + ',exitrr=' + str.tostring(i_rewardRatio) + ',strategytype=6')
 
+if i_rrType == "Next candle close"  and i_takeLongOrShort == "Long" and strategy.position_size > 0  and na(TIME) and barstate.isconfirmed
+    TIME := time
+
 if i_rrType == "Next candle close"  and i_takeLongOrShort == "Long" and strategy.position_size > 0  and time > TIME and barstate.isconfirmed
     rr = (close - EP) / risk
-    strategy.close(idTrade(), comment=str.tostring(rr, "#.##"))
+    strategy.close(idTrade(), comment=str.tostring(rr, "#.##"), disable_alert = true)
     alert(i_pcLicenseID + ',close,' + syminfo.ticker + ',magic=' + idTrade() + ',exitrr=' + str.tostring(rr, "#.##") + ',strategytype=6', alert.freq_once_per_bar_close)
 
 // SHORT    
@@ -148,15 +150,15 @@ if isSignalCandle() and sellWithTrend() and i_takeLongOrShort == "Short" and bar
         strategy.cancel(idTrade())
         alert(i_pcLicenseID + ',cancelorder,' + syminfo.ticker + ',magic=' + idTrade() + ',exitrr=0,strategytype=6')
     magic := (time("1") / 100) + math.round(close * 100)
-    array.push(id=id, value=magic)
+
     TP := i_rrType == "RR" ?  EP - (i_rewardRatio * risk) : na
     TPstring = i_rrType == "RR" ?  str.tostring(TP) : ''
 
     // Position Size
     positionSize = positionSize(EP, risk)
 
-    // Record entry time
-    TIME := time
+    // reset entry entry time
+    TIME := na
     
     // Do entry
     if strategy.equity > 0 and positionSize <= 1000000000000
@@ -168,9 +170,12 @@ if i_rrType == "RR" and i_takeLongOrShort == "Short" and strategy.position_size 
     SL := EP
     strategy.exit(idTrade(), from_entry = idTrade(), comment = idTrade(), comment_loss= str.tostring("0"), comment_profit = str.tostring(i_rewardRatio), stop = SL, limit=TP, alert_loss = i_pcLicenseID + ',behit,' + syminfo.ticker + ',magic=' + idTrade() + ',exitrr=0,strategytype=6', alert_profit = i_pcLicenseID + ',tphit,' + syminfo.ticker+ ',magic=' + idTrade() + ',exitrr=' + str.tostring(i_rewardRatio) + ',strategytype=6')
 
+if i_rrType == "Next candle close"  and i_takeLongOrShort == "Short" and strategy.position_size < 0  and na(TIME) and barstate.isconfirmed
+    TIME := time
+
 if i_rrType == "Next candle close"  and i_takeLongOrShort == "Short" and strategy.position_size < 0  and time > TIME and barstate.isconfirmed
     rr = (EP - close) / risk
-    strategy.close(idTrade(), comment=str.tostring(rr, "#.##"))
+    strategy.close(idTrade(), comment=str.tostring(rr, "#.##"), disable_alert = true)
     alert(i_pcLicenseID + ',close,' + syminfo.ticker + ',magic=' + idTrade() + ',exitrr=' + str.tostring(rr, "#.##") + ',strategytype=6', alert.freq_once_per_bar_close)
 
 if isCloseTime() and barstate.isconfirmed

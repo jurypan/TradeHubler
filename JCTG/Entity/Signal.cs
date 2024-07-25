@@ -207,6 +207,7 @@ namespace JCTG.Entity
         BeHit = 3,
         Entry = 10,
         CancelOrder = 20,
-        CloseAll = 21
+        CloseAll = 21,
+        Close = 22
     }
 }

@@ -3,21 +3,9 @@
 //+------------------------------------------------s-----------------+
 #property copyright "Copyright 2024, JP.x BV"
 #property link      "https://www.justcalltheguy.io"
-#property version   "2.011"
+#property version   "2.013"
 #property strict
 
-/*
-
-- IMPORTANT: check if ORDER_TIME_GTC will still use expiration date. or do we need ORDER_TIME_SPECIFIED?
-
-mql:
-- do we need start/endIdentifier? if we use json, it should automatically give an error if not complete. 
-
-python:
-- dont save  TimeGMT() in every file. we can just use time modified in python. 
-- maxTryOpenSeconds  (in python): if the file exists for 10 seconds (cant create a new one), return an error. maybe use multiple files for commands?
-
-*/
 
 #include<Trade\Trade.mqh>
 //--- object for performing trade operations
@@ -131,6 +119,7 @@ protected:
 // can be updated through TRACK_RATES request from client peers.
 Instrument BarDataInstruments[];
 
+
 //+------------------------------------------------------------------+
 //| Expert initialization function                                   |
 //+------------------------------------------------------------------+
@@ -186,6 +175,7 @@ void OnTick() {
    CheckMarketData();
    CheckBarData();
    CheckTrades(14);
+   StoreOrderDetails();
 }
 
 
@@ -352,7 +342,7 @@ void OpenOrder(string orderStr) {
    if (res) {
       SendInfo("Successfully sent order: " + symbol + ", " + OrderTypeToString(orderType) + ", " + DoubleToString(lots, lotSizeDigits) + ", " + DoubleToString(orderPrice, digits), magic);
    } else {
-      SendError("OPEN_ORDER", "Could not open order: " + ErrorDescription(GetLastError()), magic);
+      SendError("OPEN_ORDER", "Could not open order: " + symbol + "," + OrderTypeToString(orderType) + ",orderPrice=" + DoubleToString(orderPrice)  + ",ask=" + DoubleToString(SymbolInfoDouble(symbol, SYMBOL_ASK)) + ",bid=" + DoubleToString(SymbolInfoDouble(symbol, SYMBOL_BID)) + ",freeze=" + IntegerToString(SymbolInfoInteger(symbol, SYMBOL_TRADE_FREEZE_LEVEL)) + ",sl=" + DoubleToString(stopLoss) +",tp=" + DoubleToString(takeProfit) + "," + ErrorDescription(GetLastError()), magic);
    }
 }
 
@@ -805,6 +795,21 @@ void GetHistoricData(string dataStr) {
    }
 }
 
+
+// Functie om de details van actieve orders op te slaan in GlobalVariables
+void StoreOrderDetails() {
+   for (int i = HistoryDealsTotal() - 1; i >= 0; i--) {
+      ulong ticket = HistoryDealGetTicket(i);
+      int orderMagic = HistoryDealGetInteger(ticket, DEAL_MAGIC);
+      string orderComment = HistoryDealGetString(ticket, DEAL_COMMENT);
+
+      // GlobalVariables gebruiken om magic numbers en comments op te slaan
+      GlobalVariableSet("Magic_" + IntegerToString(ticket), orderMagic);
+      GlobalVariableSet("Comment_" + IntegerToString(ticket), StringToInteger(orderComment));
+   }
+}
+
+
 void CheckTrades(int days) {
 
    int lookbackDays = days;
@@ -820,14 +825,29 @@ void CheckTrades(int days) {
    for(int i=HistoryDealsTotal()-1; i>=0; i--) {
       ulong ticket = HistoryDealGetTicket(i);
       if (HistoryDealGetInteger(ticket, DEAL_TIME) < TimeCurrent() - lookbackDays * (24 * 60 * 60)) continue;
-      
-      // long orderTicket = HistoryDealGetInteger(ticket, DEAL_ORDER);  // get order which belongs to the deal. 
-      // if (!HistoryOrderSelect(orderTicket)) continue;
+
+      int dealMagic = HistoryDealGetInteger(ticket, DEAL_MAGIC);
+      string dealComment = HistoryDealGetString(ticket, DEAL_COMMENT);
+
+      // Als dealMagic of dealComment leeg is, haal deze op uit de opgeslagen GlobalVariables
+      if (dealMagic == 0 || dealComment == "") {
+         ulong orderTicket = HistoryDealGetInteger(ticket, DEAL_ORDER);
+         if (GlobalVariableCheck("Magic_" + IntegerToString(orderTicket))) {
+            dealMagic = (int)GlobalVariableGet("Magic_" + IntegerToString(orderTicket));
+         }
+         if (GlobalVariableCheck("Comment_" + IntegerToString(orderTicket))) {
+            dealComment = IntegerToString(GlobalVariableGet("Comment_" + IntegerToString(orderTicket)));
+         }
+      }
+
       if (!first) text += ", ";
       else first = false;
+      
+      
+      
       text += StringFormat("\"%llu\": {\"magic\": %d, \"symbol\": \"%s\", \"lots\": %.2f, \"type\": \"%s\", \"entry\": \"%s\", \"deal_time\": \"%s\", \"deal_price\": %.5f, \"pnl\": %.2f, \"commission\": %.2f, \"swap\": %.2f, \"comment\": \"%s\", \"ismt4\": false}", 
                            ticket, 
-                           HistoryDealGetInteger(ticket, DEAL_MAGIC), 
+                           dealMagic, 
                            HistoryDealGetString(ticket, DEAL_SYMBOL), 
                            HistoryDealGetDouble(ticket, DEAL_VOLUME), 
                            HistoryDealTypeToString((int)HistoryDealGetInteger(ticket, DEAL_TYPE)),
@@ -837,7 +857,7 @@ void CheckTrades(int days) {
                            HistoryDealGetDouble(ticket, DEAL_PROFIT), 
                            HistoryDealGetDouble(ticket, DEAL_COMMISSION), 
                            HistoryDealGetDouble(ticket, DEAL_SWAP), 
-                           HistoryDealGetString(ticket, DEAL_COMMENT));
+                           dealComment);
       
    }
    
