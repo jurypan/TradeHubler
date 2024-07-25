@@ -546,7 +546,7 @@ namespace JCTG.WebApp.Backend.Api
                             _logger.Information($"Order not found in database, wait 1 second");
 
                             // Wait for 1 second before retrying
-                            await Task.Delay(1000);
+                            await Task.Delay(2000);
                         }
                         else
                         {
