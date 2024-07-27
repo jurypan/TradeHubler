@@ -5,7 +5,6 @@ using Newtonsoft.Json;
 using Microsoft.EntityFrameworkCore;
 using JCTG.WebApp.Backend.Queue;
 using Microsoft.AspNetCore.Authorization;
-using System.Data.Entity;
 
 
 namespace JCTG.WebApp.Backend.Api
