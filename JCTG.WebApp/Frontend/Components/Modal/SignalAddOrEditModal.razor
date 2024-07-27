@@ -168,7 +168,7 @@
 
         if (signalId.HasValue)
         {
-            var signalNew = await _signalRepository.GetById(accountId, signalId.Value);
+            var signalNew = await _signalRepository.GetByIdAsync(accountId, signalId.Value);
             if (signalNew != null)
             {
                 model = signalNew;

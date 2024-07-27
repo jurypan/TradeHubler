@@ -54,7 +54,7 @@
 
     public async Task InitAsync(int accountId, long orderId, long dealId)
     {
-        var dealNew = await _dealRepository.GetById(accountId, orderId, dealId);
+        var dealNew = await _dealRepository.GetByIdAsync(accountId, orderId, dealId);
         if (dealNew != null)
         {
             deal = dealNew;

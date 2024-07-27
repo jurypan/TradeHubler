@@ -1,8 +1,11 @@
 ﻿@page "/Signals/{signalid:long}/Order/{orderid:long}/Deals";
 @inject DealRepository _dealRepository;
+@inject SignalRepository _signalRepository;
+@inject JCTG.WebApp.Backend.Queue.AzureQueueClient _server;
 @using JCTG.WebApp.Frontend.Components.Modal;
 @using JCTG.WebApp.Frontend.Components.Widget;
-
+@using JCTG.Command
+@using JCTG.Models;
 
 <div class="container-fluid mw-100">
     <div class="font-weight-medium shadow-none position-relative overflow-hidden mb-4">
@@ -110,7 +113,10 @@
                                                         <a href="javascript:void(0)" class="dropdown-item d-flex align-items-center gap-3" @onclick="async () => await DealEditClick(deal.ID)">Edit</a>
                                                     </li>
                                                     <li>
-                                                        <a href ="javascript:void(0)" class="dropdown-item d-flex align-items-center gap-3" @onclick="async () => await DealDeleteClick(deal.ID)">Delete</a>
+                                                        <a href="javascript:void(0)" class="dropdown-item d-flex align-items-center gap-3" @onclick="async () => await DealDeleteClick(deal.ID)">Delete</a>
+                                                    </li>
+                                                    <li>
+                                                        <a href="javascript:void(0)" class="dropdown-item d-flex align-items-center gap-3" @onclick="async () => await DealCloseClick(deal.ID)">Close trade</a>
                                                     </li>
                                                 </ul>
                                             </div>
@@ -163,7 +169,7 @@
 
     private async Task ReloadAsync()
     {
-        _deals = await _dealRepository.GetAllBySignalId(692803787, SignalId, OrderId);
+        _deals = await _dealRepository.GetAllBySignalIdAsync(692803787, SignalId, OrderId);
     }
 
     private async Task DealAddClick()
@@ -187,6 +193,35 @@
         if (_dealDeleteModal != null)
         {
             await _dealDeleteModal.InitAsync(692803787, OrderId, dealId);
+        }
+    }
+
+    private async Task DealCloseClick(long dealId)
+    {
+        // Get deal from database
+        var deal = await _dealRepository.GetByIdAsync(692803787, dealId);
+
+        // Do null reference check
+        if (deal != null)
+        {
+            // Get signal from database
+            var signal = await _signalRepository.GetByIdAsync(692803787, deal.Order.SignalID);
+
+            // Do null reference check
+            if (signal != null)
+            {
+                // Create model and send to the client
+                var id = await _server.SendOnTradingviewSignalCommandAsync(692803787, new OnSendTradingviewSignalCommand()
+                {
+                    SignalID = signal.ID,
+                    AccountID = signal.AccountID,
+                    Instrument = signal.Instrument,
+                    Magic = signal.ID,
+                    ClientIDs = new List<long>() { deal.Order.ClientID },
+                    OrderType = "CLOSE",
+                    StrategyID = signal.StrategyID
+                });
+            }
         }
     }
 }

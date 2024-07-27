@@ -55,7 +55,7 @@
 
     public async Task InitAsync(int accountId, long signalId)
     {
-        var signalNew = await _signalRepository.GetById(accountId, signalId);
+        var signalNew = await _signalRepository.GetByIdAsync(accountId, signalId);
         if (signalNew != null)
         {
             signal = signalNew;

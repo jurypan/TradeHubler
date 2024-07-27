@@ -154,7 +154,7 @@
     {
         if (id.HasValue)
         {
-            var modelNew = await _dealRepository.GetById(accountId, orderId, id.Value);
+            var modelNew = await _dealRepository.GetByIdAsync(accountId, orderId, id.Value);
             if (modelNew != null)
             {
                 model = modelNew;

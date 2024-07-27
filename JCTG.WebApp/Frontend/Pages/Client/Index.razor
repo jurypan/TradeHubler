@@ -165,7 +165,7 @@
         // Load the chart
         for (int i = 0; i < _clients.Count; i++)
         {
-            _deals = await _dealRepository.GetAllLast25(_clients[i].ID);
+            _deals = await _dealRepository.GetAllLast25Async(_clients[i].ID);
 
             await _areaCharts[i].InitMiniAsync("Balance", _deals
             .Where(f => f.AccountBalance.HasValue && f.AccountBalance.Value > 0)

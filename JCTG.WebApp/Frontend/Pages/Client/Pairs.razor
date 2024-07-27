@@ -216,7 +216,7 @@
         _pairs = await _orderRepository.GetAllPairs(692803787, ClientId);
         _client = await _clientRepository.GetByIdAsync(692803787, ClientId);
         _orders = await _orderRepository.GetAll(692803787, ClientId);
-        _deals = await _dealRepository.GetAll(this.ClientId);
+        _deals = await _dealRepository.GetAllAsync(this.ClientId);
 
         _totalPnl = Math.Round(_deals.Select(f => f.Pnl).Sum(), 2);
         _totalCommission = Math.Round(_deals.Select(f => f.Commission).Sum(), 2);
@@ -232,7 +232,7 @@
         if(_pair == null)
         {
             _orders = await _orderRepository.GetAll(692803787, ClientId);
-            _deals = await _dealRepository.GetAll(this.ClientId);
+            _deals = await _dealRepository.GetAllAsync(this.ClientId);
 
             _totalPnl = Math.Round(_deals.Select(f => f.Pnl).Sum(), 2);
             _totalCommission = Math.Round(_deals.Select(f => f.Commission).Sum(), 2);
@@ -245,7 +245,7 @@
         {
             // Get orders
             _orders = await _orderRepository.GetAll(692803787, ClientId, _pair);
-            _deals = await _dealRepository.GetAll(this.ClientId, _pair);
+            _deals = await _dealRepository.GetAllAsync(this.ClientId, _pair);
 
             _totalPnl = Math.Round(_deals.Select(f => f.Pnl).Sum(), 2);
             _totalCommission = Math.Round(_deals.Select(f => f.Commission).Sum(), 2);

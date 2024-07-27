@@ -317,7 +317,7 @@
         if (item != null && item.Signal != null && item.ExitRR.HasValue)
         {
             // Get signal from database
-            var signal = await _signalRepository.GetById(692803787, item.Signal.ID);
+            var signal = await _signalRepository.GetByIdAsync(692803787, item.Signal.ID);
 
             // Do null reference check
             if (signal != null)

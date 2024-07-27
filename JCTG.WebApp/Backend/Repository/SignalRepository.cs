@@ -104,7 +104,7 @@ public class SignalRepository(IDbContextFactory<JCTGDbContext> dbContextFactory)
 
 
 
-    public async Task<Signal?> GetById(int accountId,  long signalId)
+    public async Task<Signal?> GetByIdAsync(int accountId,  long signalId)
     {
         using var context = await dbContextFactory.CreateDbContextAsync();
         return await context.Signal

@@ -5,25 +5,25 @@ namespace JCTG.WebApp.Backend.Repository;
 
 public class DealRepository(IDbContextFactory<JCTGDbContext> dbContextFactory)
 {
-    public async Task<List<Deal>> GetAll(long clientId)
+    public async Task<List<Deal>> GetAllAsync(long clientId)
     {
         using var context = await dbContextFactory.CreateDbContextAsync();
         return await context.Deal.Where(f => f.Order.ClientID == clientId && f.AccountBalance.HasValue).OrderBy(f => f.DateCreated).ToListAsync();
     }
 
-    public async Task<List<Deal>> GetAllLast25(long clientId)
+    public async Task<List<Deal>> GetAllLast25Async(long clientId)
     {
         using var context = await dbContextFactory.CreateDbContextAsync();
         return await context.Deal.Where(f => f.Order.ClientID == clientId && f.AccountBalance.HasValue).OrderByDescending(f => f.DateCreated).Take(25).OrderBy(f => f.DateCreated).ToListAsync();
     }
 
-    public async Task<List<Deal>> GetAll(long clientId, string symbol)
+    public async Task<List<Deal>> GetAllAsync(long clientId, string symbol)
     {
         using var context = await dbContextFactory.CreateDbContextAsync();
         return await context.Deal.Where(f => f.Order.ClientID == clientId && f.AccountBalance.HasValue && f.Symbol == symbol).OrderBy(f => f.DateCreated).ToListAsync();
     }
 
-    public async Task<List<Deal>> GetAllBySignalId(long accountId, long signalId, long orderId)
+    public async Task<List<Deal>> GetAllBySignalIdAsync(long accountId, long signalId, long orderId)
     {
         using var context = await dbContextFactory.CreateDbContextAsync();
         return await context.Deal
@@ -39,7 +39,15 @@ public class DealRepository(IDbContextFactory<JCTGDbContext> dbContextFactory)
                         .ToListAsync();
     }
 
-    public async Task<Deal?> GetById(long accountId, long orderId, long id)
+    public async Task<Deal?> GetByIdAsync(long accountId, long id)
+    {
+        using var context = await dbContextFactory.CreateDbContextAsync();
+        return await context.Deal
+            .Include(f => f.Order)
+            .FirstOrDefaultAsync(f => f.Order.Client != null && f.Order.Client.AccountID == accountId && f.ID == id);
+    }
+
+    public async Task<Deal?> GetByIdAsync(long accountId, long orderId, long id)
     {
         using var context = await dbContextFactory.CreateDbContextAsync();
         return await context.Deal.FirstOrDefaultAsync(f => f.Order.Client != null && f.Order.Client.AccountID == accountId && f.OrderID == orderId && f.ID == id);
