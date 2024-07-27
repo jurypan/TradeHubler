@@ -1,0 +1,153 @@
+// String Concatenation Library
+//@version=5
+library("Tradehubler")
+
+// Helper functions
+export roundUp(float number, int decimals) =>
+    factor = math.pow(10, decimals)
+    math.ceil(number * factor) / factor
+
+export positionSize(float entryPrice, float stopLossPrice, float riskPercent) =>
+	// Calculate the amount to risk per trade
+	amountToRisk = strategy.initial_capital * (riskPercent / 100)
+
+	// Calculate the stop loss amount per share
+	stopLossAmount = math.abs(entryPrice - stopLossPrice)
+
+	// Calculate the position size
+	positionSize = amountToRisk / stopLossAmount
+
+	// Round
+	math.abs(roundUp(positionSize, 2))
+
+export magic() =>
+	(time("1") / 100) + math.round(close * 100)
+
+export magicAsString(int magic) =>
+	str.tostring(magic)
+
+export magicAsString() =>
+	str.tostring(magic())
+
+
+export isEndOfSession(int timeClose) =>
+    closeHour = timeClose / 100
+    closeMinute = timeClose % 100
+    currentTime = timestamp(year(time), month(time), dayofmonth(time), closeHour, closeMinute, second(0))
+    if time[1] < currentTime and time >= currentTime
+        true
+    else
+        false
+
+export isFridayEndOfSession(int timeClose) =>
+    closeHour = timeClose / 100
+    closeMinute = timeClose % 100
+    currentTime = timestamp(year(time), month(time), dayofmonth(time), closeHour, closeMinute, second(0))
+    if dayofweek(time) == dayofweek.friday and time[1] < currentTime and time >= currentTime
+        true
+    else
+        false
+
+export calculateTakeProfitForLong(float entryPrice, float stopLossPrice, float riskToReward) =>
+    entryPrice + (riskToReward * math.abs(entryPrice - stopLossPrice))
+
+export calculateTakeProfitForShort(float entryPrice, float stopLossPrice, float riskToReward) =>
+    entryPrice - (riskToReward * math.abs(entryPrice + stopLossPrice))
+
+// Function to generate entry alert message
+export entryAlertMessage(string licenseId, string idTrade, int strategyId, string ticker, float risk, float rewardratio, float entryPrice, float stopLossPrice, float takeProfitPrice) =>
+    licenseId + ',entry,' + ticker + ',risk=' + str.tostring(risk) + ',rr=' + str.tostring(rewardratio) + ',magic=' + idTrade + ',entryprice=' + str.tostring(entryPrice) + ',sl=' + str.tostring(stopLossPrice) + ',tp=' + str.tostring(takeProfitPrice) + ',strategy=' + str.tostring(strategyId)
+
+export entryAlertMessage(string licenseId, string idTrade, int strategyId, string ticker, float risk, float rewardratio, float entryPrice, float stopLossPrice) =>
+    licenseId + ',entry,' + ticker + ',risk=' + str.tostring(risk) + ',rr=' + str.tostring(rewardratio) + ',magic=' + idTrade + ',entryprice=' + str.tostring(entryPrice) + ',sl=' + str.tostring(stopLossPrice) + ',strategy=' + str.tostring(strategyId)
+
+export tpHitAlertMessage(string licenseId, string idTrade, int strategyId, string ticker, float exitrr) =>
+    licenseId + ',tphit,' + ticker + ',magic=' + idTrade + ',exitrr=' + str.tostring(exitrr, "#.##") + ',strategy=' + str.tostring(strategyId)
+
+export slHitAlertMessage(string licenseId, string idTrade, int strategyId, string ticker) =>
+    licenseId + ',slhit,' + ticker + ',magic=' + idTrade + ',exitrr=-1,strategy=' + str.tostring(strategyId)
+
+export beHitAlertMessage(string licenseId, string idTrade, int strategyId, string ticker) =>
+    licenseId + ',behit,' + ticker + ',magic=' + idTrade + ',exitrr=0,strategy=' + str.tostring(strategyId)
+
+export closeAlertMessage(string licenseId, string idTrade, int strategyId, string ticker, float exitrr) =>
+    licenseId + ',close,' + ticker + ',magic=' + idTrade + ',exitrr=' + str.tostring(exitrr, "#.##") + ',strategy=' + str.tostring(strategyId)
+	
+export closeAllAlertMessage(string licenseId, string idTrade, int strategyId, string ticker, float exitrr) =>
+    licenseId + ',closeall,' + ticker + ',magic=' + idTrade + ',exitrr=' + str.tostring(exitrr, "#.##") + ',strategy=' + str.tostring(strategyId)
+	
+export cancelAlertMessage(string licenseId, string idTrade, int strategyId, string ticker) =>
+    licenseId + ',cancelorder,' + ticker + ',magic=' + idTrade + ',strategy=' + str.tostring(strategyId)
+
+export moveSlToBeAlertMessage(string licenseId, string idTrade, int strategyId, string ticker) =>
+    licenseId + ',movesltobe,' + ticker + ',magic=' + idTrade + ',strategy=' + str.tostring(strategyId)
+
+export buyStopAlertMessage(string licenseId, string idTrade, int strategyId, string ticker, string entryExpression, float risk, float rrr, float entryPrice, float stopLossPrice, float takeProfitPrice) =>
+	licenseId + ',buystop,' + ticker + ',entryexpr=' + entryExpression + ',risk=' + str.tostring(risk) + ',rr=' + str.tostring(rrr) + ',magic=' + idTrade + ',entryprice=' + str.tostring(entryPrice) + ',sl=' + str.tostring(stopLossPrice) + ',tp=' + str.tostring(takeProfitPrice) + ',strategy=' +  str.tostring(strategyId)
+
+export buyStopAlertMessage(string licenseId, string idTrade, int strategyId, string ticker, string entryExpresssion, float risk, float rrr, float entryPrice, float stopLossPrice) =>
+	licenseId + ',buystop,' + ticker + ',entryexpr=' +entryExpresssion + ',risk=' + str.tostring(risk) + ',rr=' + str.tostring(rrr) + ',magic=' + idTrade + ',entryprice=' + str.tostring(entryPrice) + ',sl=' + str.tostring(stopLossPrice) + ',strategy=' +  str.tostring(strategyId)
+
+export buyAlertMessage(string licenseId, string idTrade, int strategyId, string ticker, float entryPrice, float currentPrice, float stopLossPrice, float takeProfitPrice) =>
+	licenseId + ',buy,' + ticker + ',currentprice=' + str.tostring(currentPrice) + ',magic=' + idTrade + ',entryprice=' + str.tostring(entryPrice) + ',sl=' + str.tostring(stopLossPrice) + ',tp=' + str.tostring(takeProfitPrice) + ',strategy=' +  str.tostring(strategyId)
+
+export sellStopAlertMessage(string licenseId, string idTrade, int strategyId, string ticker, string entryExpresssion, float risk, float rrr, float entryPrice, float stopLossPrice, float takeProfitPrice) =>
+	licenseId + ',sellstop,' + ticker + ',entryexpr=' +entryExpresssion + ',risk=' + str.tostring(risk) + ',rr=' + str.tostring(rrr) + ',magic=' + idTrade + ',entryprice=' + str.tostring(entryPrice) + ',sl=' + str.tostring(stopLossPrice) + ',tp=' + str.tostring(takeProfitPrice) + ',strategy=' +  str.tostring(strategyId)
+
+export sellStopAlertMessage(string licenseId, string idTrade, int strategyId, string ticker, string entryExpresssion, float risk, float rrr, float entryPrice, float stopLossPrice) =>
+	licenseId + ',sellstop,' + ticker + ',entryexpr=' +entryExpresssion + ',risk=' + str.tostring(risk) + ',rr=' + str.tostring(rrr) + ',magic=' + idTrade + ',entryprice=' + str.tostring(entryPrice) + ',sl=' + str.tostring(stopLossPrice) + ',strategy=' +  str.tostring(strategyId)
+
+export sellAlertMessage(string licenseId, string idTrade, int strategyId, string ticker, float entryPrice, float currentPrice, float stopLossPrice, float takeProfitPrice) =>
+	licenseId + ',sell,' + ticker + ',currentprice=' + str.tostring(currentPrice) + ',magic=' + idTrade + ',entryprice=' + str.tostring(entryPrice) + ',sl=' + str.tostring(stopLossPrice) + ',tp=' + str.tostring(takeProfitPrice) + ',strategy=' +  str.tostring(strategyId)
+
+
+
+
+
+
+
+// Execute order
+export buy(string licenseId, string idTrade, int strategyId, float rewardratio, float riskPercentage, float entryPrice, float stopLossPrice, float takeProfitPrice) =>
+    strategy.entry(id = idTrade, direction = strategy.long, comment = idTrade, qty = positionSize(entryPrice, stopLossPrice, riskPercentage), alert_message = entryAlertMessage(licenseId, idTrade, strategyId, syminfo.ticker, math.abs(entryPrice - stopLossPrice), rewardratio, entryPrice, stopLossPrice, takeProfitPrice))
+	strategy.exit(idTrade, from_entry = idTrade, comment= str.tostring(positionSize(entryPrice, stopLossPrice, riskPercentage)), comment_loss=str.tostring("-1"), comment_profit = str.tostring(rewardratio), stop=stopLossPrice, limit=takeProfitPrice, alert_profit = tpHitAlertMessage(licenseId, idTrade, strategyId, syminfo.ticker, rewardratio), alert_loss = slHitAlertMessage(licenseId, idTrade, strategyId, syminfo.ticker))
+	alert(buyAlertMessage(licenseId, idTrade, strategyId, syminfo.ticker, entryPrice, entryPrice, stopLossPrice, takeProfitPrice), freq = alert.freq_once_per_bar_close) 
+
+export buyStop(string licenseId, string idTrade, int strategyId, float rewardratio, float riskPercentage, float entryPrice, string entryExpression, float stopLossPrice, float takeProfitPrice) =>
+    strategy.entry(id = idTrade, direction = strategy.long, comment = idTrade, stop = entryPrice, qty = positionSize(entryPrice, stopLossPrice, riskPercentage), alert_message = entryAlertMessage(licenseId, idTrade, strategyId, syminfo.ticker, math.abs(entryPrice - stopLossPrice), rewardratio, entryPrice, stopLossPrice, takeProfitPrice))
+	strategy.exit(idTrade, from_entry = idTrade, comment= str.tostring(positionSize(entryPrice, stopLossPrice, riskPercentage)), comment_loss=str.tostring("-1"), comment_profit = str.tostring(rewardratio), stop=stopLossPrice, limit=takeProfitPrice, alert_profit = tpHitAlertMessage(licenseId, idTrade, strategyId, syminfo.ticker, rewardratio), alert_loss = slHitAlertMessage(licenseId, idTrade, strategyId, syminfo.ticker))
+	alert(buyStopAlertMessage(licenseId, idTrade, strategyId, syminfo.ticker, entryExpression, math.abs(entryPrice - stopLossPrice), rewardratio, entryPrice, stopLossPrice, takeProfitPrice), freq = alert.freq_once_per_bar_close) 
+
+export buyStop(string licenseId, string idTrade, int strategyId, float rewardratio, float riskPercentage, float entryPrice, string entryExpression, float stopLossPrice) =>
+    strategy.entry(id = idTrade, direction = strategy.long, comment = idTrade, stop = entryPrice, qty = positionSize(entryPrice, stopLossPrice, riskPercentage), alert_message = entryAlertMessage(licenseId, idTrade, strategyId, syminfo.ticker, math.abs(entryPrice - stopLossPrice), rewardratio, entryPrice, stopLossPrice))
+	strategy.exit(idTrade, from_entry = idTrade, comment= str.tostring(positionSize(entryPrice, stopLossPrice, riskPercentage)), comment_loss=str.tostring("-1"), comment_profit = str.tostring(rewardratio), stop=stopLossPrice, alert_profit = tpHitAlertMessage(licenseId, idTrade, strategyId, syminfo.ticker, rewardratio), alert_loss = slHitAlertMessage(licenseId, idTrade, strategyId, syminfo.ticker))
+	alert(buyStopAlertMessage(licenseId, idTrade, strategyId, syminfo.ticker, entryExpression, math.abs(entryPrice - stopLossPrice), rewardratio, entryPrice, stopLossPrice), freq = alert.freq_once_per_bar_close) 
+
+export sell(string licenseId, string idTrade, int strategyId, float rewardratio, float riskPercentage, float entryPrice, float stopLossPrice, float takeProfitPrice) =>
+    strategy.entry(id = idTrade, direction = strategy.short, comment = idTrade, qty = positionSize(entryPrice, stopLossPrice, riskPercentage), alert_message = entryAlertMessage(licenseId, idTrade, strategyId, syminfo.ticker, math.abs(entryPrice - stopLossPrice), rewardratio, entryPrice, stopLossPrice, takeProfitPrice))
+	strategy.exit(idTrade, from_entry = idTrade, comment= str.tostring(positionSize(entryPrice, stopLossPrice, riskPercentage)), comment_loss=str.tostring("-1"), comment_profit = str.tostring(rewardratio), stop=stopLossPrice, limit=takeProfitPrice, alert_profit = tpHitAlertMessage(licenseId, idTrade, strategyId, syminfo.ticker, rewardratio), alert_loss = slHitAlertMessage(licenseId, idTrade, strategyId, syminfo.ticker))
+	alert(sellAlertMessage(licenseId, idTrade, strategyId, syminfo.ticker, entryPrice, entryPrice, stopLossPrice, takeProfitPrice), freq = alert.freq_once_per_bar_close) 
+
+export sellStop(string licenseId, string idTrade, int strategyId, float rewardratio, float riskPercentage, float entryPrice, string entryExpression, float stopLossPrice, float takeProfitPrice) =>
+    strategy.entry(id = idTrade, direction = strategy.short, comment = idTrade, stop = entryPrice, qty = positionSize(entryPrice, stopLossPrice, riskPercentage), alert_message = entryAlertMessage(licenseId, idTrade, strategyId, syminfo.ticker, math.abs(entryPrice - stopLossPrice), rewardratio, entryPrice, stopLossPrice, takeProfitPrice))
+	strategy.exit(idTrade, from_entry = idTrade, comment= str.tostring(positionSize(entryPrice, stopLossPrice, riskPercentage)), comment_loss=str.tostring("-1"), comment_profit = str.tostring(rewardratio), stop=stopLossPrice, limit=takeProfitPrice, alert_profit = tpHitAlertMessage(licenseId, idTrade, strategyId, syminfo.ticker, rewardratio), alert_loss = slHitAlertMessage(licenseId, idTrade, strategyId, syminfo.ticker))
+	alert(sellStopAlertMessage(licenseId, idTrade, strategyId, syminfo.ticker, entryExpression, math.abs(entryPrice - stopLossPrice), rewardratio, entryPrice, stopLossPrice, takeProfitPrice), freq = alert.freq_once_per_bar_close) 
+
+export sellStop(string licenseId, string idTrade, int strategyId, float rewardratio, float riskPercentage, float entryPrice, string entryExpression, float stopLossPrice) =>
+    strategy.entry(id = idTrade, direction = strategy.short, comment = idTrade, stop = entryPrice, qty = positionSize(entryPrice, stopLossPrice, riskPercentage), alert_message = entryAlertMessage(licenseId, idTrade, strategyId, syminfo.ticker, math.abs(entryPrice - stopLossPrice), rewardratio, entryPrice, stopLossPrice))
+	strategy.exit(idTrade, from_entry = idTrade, comment= str.tostring(positionSize(entryPrice, stopLossPrice, riskPercentage)), comment_loss=str.tostring("-1"), comment_profit = str.tostring(rewardratio), stop=stopLossPrice, alert_profit = tpHitAlertMessage(licenseId, idTrade, strategyId, syminfo.ticker, rewardratio), alert_loss = slHitAlertMessage(licenseId, idTrade, strategyId, syminfo.ticker))
+	alert(sellStopAlertMessage(licenseId, idTrade, strategyId, syminfo.ticker, entryExpression, math.abs(entryPrice - stopLossPrice), rewardratio, entryPrice, stopLossPrice), freq = alert.freq_once_per_bar_close) 
+
+export cancelOrder(string licenseId, string idTrade, int strategyId) =>
+    strategy.cancel(idTrade)
+	alert(message = cancelAlertMessage(licenseId, idTrade, strategyId, syminfo.ticker), freq = alert.freq_once_per_bar_close)
+
+export closeOrder(string licenseId, string idTrade, int strategyId, float closeRewardRatio) =>
+    strategy.close(idTrade, comment=str.tostring(closeRewardRatio, "#.##"), disable_alert = true)
+	alert(message = closeAlertMessage(licenseId, idTrade, strategyId, syminfo.ticker, closeRewardRatio), freq = alert.freq_once_per_bar_close)
+
+export closeAllOrders(string licenseId, string idTrade, int strategyId, float closeRewardRatio) =>
+    strategy.close_all(comment = str.tostring(closeRewardRatio), alert_message = closeAllAlertMessage(licenseId, idTrade, strategyId, syminfo.ticker, closeRewardRatio))
+
+export moveSlToBe(string licenseId, string idTrade, int strategyId, float rewardratio, float stopLossPrice, float takeProfitPrice) =>
+    strategy.exit(idTrade, from_entry = idTrade, comment = idTrade, comment_loss= str.tostring("0"), comment_profit = str.tostring(rewardratio), stop = stopLossPrice, limit=takeProfitPrice, alert_loss = beHitAlertMessage(licenseId, idTrade, strategyId, syminfo.ticker))
+

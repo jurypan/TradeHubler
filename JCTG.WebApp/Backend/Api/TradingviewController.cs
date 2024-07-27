@@ -5,7 +5,7 @@ using Newtonsoft.Json;
 using Microsoft.EntityFrameworkCore;
 using JCTG.WebApp.Backend.Queue;
 using Microsoft.AspNetCore.Authorization;
-using JCTG.Models;
+using System.Data.Entity;
 
 
 namespace JCTG.WebApp.Backend.Api
@@ -81,12 +81,21 @@ namespace JCTG.WebApp.Backend.Api
                         _logger.Error($"'strategy' is mandatory for {signal.OrderType}");
                         return BadRequest("'strategy' is mandatory");
                     }
+                    else
+                    {
+                        if(!_dbContext.Strategy.Any(f => f.AccountID == signal.AccountID && f.ID == signal.StrategyID))
+                        {
+                            _logger.Error($"'strategy' with id {signal.StrategyID} doesn't exist for this account");
+                            return BadRequest("'strategy' doesn't exist");
+                        }
+                    }
 
                     if (signal.Magic == 0)
                     {
                         _logger.Error($"'magic' is mandatory for {signal.OrderType}");
                         return BadRequest("'magic' is mandatory");
                     }
+
 
                     // MARKET ORDERS + PASSIVE ORDERS
                     switch (signal.OrderType.ToLower())
