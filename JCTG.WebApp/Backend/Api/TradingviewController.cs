@@ -558,7 +558,7 @@ namespace JCTG.WebApp.Backend.Api
                             }
 
                             break;
-                        case "cancelorder":
+                        case "cancel":
                             break;
                         default:
                             // Optionally, handle unknown order types
