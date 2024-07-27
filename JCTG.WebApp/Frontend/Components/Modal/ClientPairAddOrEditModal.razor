@@ -1,4 +1,5 @@
 ﻿@inject ClientPairRepository _clientPairRepository;
+@inject StrategyRepository _strategyRepository;
 @using JCTG.Models;
 
 
@@ -48,11 +49,11 @@
                         <div class="col-md-4">
                             <div class="mb-3">
                                 <label class="form-label" for="strategy">Strategy</label>
-                                <InputSelect class="form-select col-12" @bind-Value="model.StrategyType">
+                                <InputSelect class="form-select col-12" @bind-Value="model.StrategyID">
                                     <option>Choose...</option>
-                                    @foreach (var item in Enum.GetValues(typeof(StrategyType)))
+                                    @foreach (var item in strategies)
                                     {
-                                        <option value="@item">@item</option>
+                                        <option value="@item.ID">@item.Name</option>
                                     }
                                 </InputSelect>
                             </div>
@@ -199,6 +200,7 @@
 
     [SupplyParameterFromForm]
     private ClientPair model { get; set; } = new();
+    private List<Strategy> strategies { get; set; } = new();
     private CrudState _crudState { get; set; } = CrudState.None;
 
     private string _display = "none;";
@@ -222,6 +224,8 @@
 
     public async Task InitAsync(int accountId, long clientId, long? id = null)
     {
+        strategies = await _strategyRepository.GetAllAsync(accountId);
+
         if (id.HasValue)
         {
             var modelNew = await _clientPairRepository.GetById(accountId, clientId, id.Value);

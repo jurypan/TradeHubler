@@ -60,7 +60,7 @@ public class OrderRepository(IDbContextFactory<JCTGDbContext> dbContextFactory)
                         ;
     }
 
-    public async Task<List<Order>> GetAllByStrategType(long accountId, long clientId, Models.StrategyType strategyType)
+    public async Task<List<Order>> GetAllByStrategType(long accountId, long clientId, long strategyId)
     {
         using var context = await dbContextFactory.CreateDbContextAsync();
         return await context.Order
@@ -68,7 +68,7 @@ public class OrderRepository(IDbContextFactory<JCTGDbContext> dbContextFactory)
             .Where(f => f.Client != null
                         && f.Client.AccountID == accountId
                         && f.ClientID == clientId
-                        && f.Signal.StrategyID == (long)strategyType
+                        && f.Signal.StrategyID == strategyId
                         )
                         .OrderBy(f => f.DateCreated)
                         .ToListAsync();

@@ -1,6 +1,7 @@
 ﻿@page "/Signals";
 @inject SignalRepository _signalRepository;
 @inject ClientRepository _clientRepository;
+@inject StrategyRepository _strategyRepository;
 @using JCTG.WebApp.Frontend.Components.Modal;
 @using JCTG.WebApp.Frontend.Components.Widget;
 @using JCTG.Command;
@@ -113,9 +114,9 @@
                     <ul class="list-inline fs-2 dl me-2">
                         <li class="list-inline-item">
                             <select class="form-select" @onchange="SubmitStrategyTypeFilterAsync">
-                                @foreach (StrategyType strategy in Enum.GetValues(typeof(StrategyType)))
+                                @foreach (var item in strategies)
                                 {
-                                    <option value="@strategy">@strategy</option>
+                                    <option value="@item.ID">@item.Name</option>
                                 }
                             </select>
                         </li>
@@ -185,30 +186,7 @@
                             <tr>
                                 <td>
                                     <div class="d-flex align-items-center gap-2">
-                                        @if (signal.StrategyID == 1)
-                                        {
-                                            <span class="badge text-bg-primary rounded-3 fw-semibold fs-2">Strategy 1</span>
-                                        }
-                                        else if (signal.StrategyID == 2)
-                                        {
-                                            <span class="badge text-bg-success rounded-3 fw-semibold fs-2">Strategy 2</span>
-                                        }
-                                        else if (signal.StrategyID == 3)
-                                        {
-                                            <span class="badge text-bg-secondary rounded-3 fw-semibold fs-2">Strategy 3</span>
-                                        }
-                                        else if (signal.StrategyID == 4)
-                                        {
-                                            <span class="badge text-bg-danger rounded-3 fw-semibold fs-2">Strategy 4</span>
-                                        }
-                                        else if (signal.StrategyID == 5)
-                                        {
-                                            <span class="badge text-bg-indigo rounded-3 fw-semibold fs-2">Strategy 5</span>
-                                        }
-                                        else if (signal.StrategyID == 6)
-                                        {
-                                            <span class="badge text-bg-indigo rounded-3 fw-semibold fs-2">Strategy 6</span>
-                                        }
+                                        <span class="badge text-bg-primary rounded-3 fw-semibold fs-2">@strategies.FirstOrDefault(f => f.ID == signal.StrategyID)?.Name</span>
                                     </div>
                                 </td>
                                 <td>
@@ -282,7 +260,7 @@
                                 <td>
                                     @{
                                         var orderCount = signal.Orders.Count();
-                                        var clientCount = _clients.Where(f => f.IsEnable).SelectMany(f => f.Pairs).Count(f => f.TickerInTradingView == signal.Instrument && f.StrategyType == (StrategyType)signal.StrategyID);
+                                        var clientCount = _clients.Where(f => f.IsEnable).SelectMany(f => f.Pairs).Count(f => f.TickerInTradingView == signal.Instrument && f.StrategyID == signal.StrategyID);
 
                                         <span>@orderCount / @clientCount</span>
 
@@ -352,8 +330,9 @@
     private List<Entity.Signal> _signals { get; set; } = new();
     private List<string> _instruments { get; set; } = new();
     private List<Entity.Client> _clients { get; set; } = new();
+    private List<Strategy> strategies { get; set; } = new();
 
-    private StrategyType _filterStrategyType { get; set; } = StrategyType.None;
+    private long _filterStrategyId { get; set; } = 0;
     private string? _filterInstrument { get; set; } = null;
     private DateTime _filterDate { get; set; } = DateTime.UtcNow.Date.AddDays(-8);
 
@@ -374,6 +353,7 @@
 
     protected override async Task OnInitializedAsync()
     {
+        strategies = await _strategyRepository.GetAllAsync(692803787);
         _clients = await _clientRepository.GetAllAsync(692803787);
         await ReloadAsync();
     }
@@ -381,11 +361,11 @@
     private async Task SubmitStrategyTypeFilterAsync(ChangeEventArgs? e)
     {
         // Get data from database
-        var filter = e == null || e.Value == null ? StrategyType.None : Enum.Parse<StrategyType>(e.Value.ToString());
+        var filter = e == null || e.Value == null ? 0 : long.Parse(e.Value.ToString());
 
-        _filterStrategyType = filter;
+        _filterStrategyId = filter;
         _filterInstrument = null;
-        _instruments = (await _signalRepository.GetAllByStrategyType(692803787, _filterStrategyType, _filterDate)).Select(f => f.Instrument).Distinct().ToList();
+        _instruments = (await _signalRepository.GetAllByStrategyType(692803787, _filterStrategyId, _filterDate)).Select(f => f.Instrument).Distinct().ToList();
         await ReloadAsync();
     }
 
@@ -427,7 +407,7 @@
 
     private async Task ReloadAsync()
     {
-        if (_filterStrategyType == StrategyType.None)
+        if (_filterStrategyId == 0)
         {
             if (_filterInstrument == null)
             {
@@ -442,11 +422,11 @@
         {
             if (_filterInstrument == null)
             {
-                _signals = await _signalRepository.GetAllByStrategyType(692803787, _filterStrategyType, _filterDate);
+                _signals = await _signalRepository.GetAllByStrategyType(692803787, _filterStrategyId, _filterDate);
             }
             else
             {
-                _signals = await _signalRepository.GetAllByStrategyType(692803787, _filterStrategyType, _filterInstrument, _filterDate);
+                _signals = await _signalRepository.GetAllByStrategyType(692803787, _filterStrategyId, _filterInstrument, _filterDate);
             }
         }
         _instruments = _signals.Select(f => f.Instrument).Distinct().ToList();

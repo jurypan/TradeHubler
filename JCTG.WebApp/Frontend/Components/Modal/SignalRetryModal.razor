@@ -103,7 +103,7 @@
                         Magic = signal.ID,
                         ClientIDs = model == 0 ? null : new List<long>() { model },
                         OrderType = signal.OrderType,
-                        StrategyType = (StrategyType)signal.StrategyID,
+                        StrategyID = signal.StrategyID,
                         MarketOrder = signal.OrderType == "BUY" || signal.OrderType == "SELL" ? new OnReceivingMarketOrder()
                         {
                             Risk = Convert.ToDecimal(signal.Risk),

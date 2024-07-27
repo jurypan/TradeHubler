@@ -46,7 +46,7 @@ namespace JCTG.WebApp.Backend.Api
                 requestBody = await reader.ReadToEndAsync();
             }
 
-            _logger.Debug($"Request body: {requestBody}");
+            _logger.Debug($"!! TRADINGVIEW SIGNAL : {requestBody}");
 
 
             if (!string.IsNullOrEmpty(requestBody))
@@ -145,13 +145,13 @@ namespace JCTG.WebApp.Backend.Api
                         case "behit":
                         case "close":
                         case "closeall":
-                        case "cancelorder":
                             if (!signal.ExitRiskRewardRatio.HasValue)
                             {
                                 _logger.Error($"'exitrr' is mandatory for {signal.OrderType}");
                                 return BadRequest("'exitrr' is mandatory");
                             }
                             break;
+                        case "cancelorder":
                         case "entry":
                         case "movesltobe":
                         default:
@@ -235,7 +235,7 @@ namespace JCTG.WebApp.Backend.Api
                                 Instrument = signal.Instrument,
                                 Magic = signal.ID,
                                 OrderType = signal.OrderType,
-                                StrategyType = (StrategyType)signal.StrategyID,
+                                StrategyID = signal.StrategyID,
                                 MarketOrder = signal.OrderType == "BUY" || signal.OrderType == "SELL" ? new OnReceivingMarketOrder()
                                 {
                                     Risk = Convert.ToDecimal(signal.Risk),
@@ -300,7 +300,7 @@ namespace JCTG.WebApp.Backend.Api
                                                         Instrument = signal.Instrument,
                                                         Magic = signal.ID,
                                                         OrderType = "BUY",
-                                                        StrategyType = (StrategyType)signal.StrategyID,
+                                                        StrategyID = signal.StrategyID,
                                                         MarketOrder = new OnReceivingMarketOrder()
                                                         {
                                                             Risk = Convert.ToDecimal(signal.Risk),
@@ -343,7 +343,7 @@ namespace JCTG.WebApp.Backend.Api
                                                         Instrument = signal.Instrument,
                                                         Magic = signal.ID,
                                                         OrderType = "SELL",
-                                                        StrategyType = (StrategyType)signal.StrategyID,
+                                                        StrategyID = signal.StrategyID,
                                                         MarketOrder = new OnReceivingMarketOrder()
                                                         {
                                                             Risk = Convert.ToDecimal(signal.Risk),
@@ -456,7 +456,7 @@ namespace JCTG.WebApp.Backend.Api
                                     Instrument = signal.Instrument,
                                     Magic = existingSignal3.ID,
                                     OrderType = signal.OrderType.ToUpper(),
-                                    StrategyType = (StrategyType)signal.StrategyID
+                                    StrategyID = signal.StrategyID
                                 });
                             }
                             else
@@ -540,7 +540,7 @@ namespace JCTG.WebApp.Backend.Api
                                     Instrument = signal.Instrument,
                                     Magic = existingSignal2.ID,
                                     OrderType = signal.OrderType.ToUpper(),
-                                    StrategyType = (StrategyType)signal.StrategyID
+                                    StrategyID = signal.StrategyID
                                 });
                             }
                             else

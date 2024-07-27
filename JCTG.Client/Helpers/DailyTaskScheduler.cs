@@ -8,18 +8,18 @@ namespace JCTG.Client
         private readonly Timer timer;
         private readonly string symbol;
         private readonly TimeSpan targetTime;
-        private readonly long clientId;
-        private readonly StrategyType strategyType;
+        private readonly long clientID;
+        private readonly long strategyID;
 
-        public delegate void OnTimeEventHandler(long clientId, string symbol, StrategyType strategyType);
+        public delegate void OnTimeEventHandler(long clientID, string symbol, long strategyID);
         public event OnTimeEventHandler? OnTimeEvent;
 
-        public DailyTaskScheduler(long clientId, string symbol, TimeSpan targetTime, StrategyType strategyType) 
+        public DailyTaskScheduler(long clientId, string symbol, TimeSpan targetTime, long strategyID) 
         {
-            this.clientId = clientId;
+            this.clientID = clientId;
             this.symbol = symbol;
             this.targetTime = targetTime;
-            this.strategyType = strategyType;
+            this.strategyID = strategyID;
             this.timer = new(CheckTimeAndExecuteOnceDaily, null, TimeSpan.Zero, TimeSpan.FromSeconds(5));
         }
 
@@ -45,7 +45,7 @@ namespace JCTG.Client
                 lastExecutionDate = now;
 
                 // Throw event
-                OnTimeEvent?.Invoke(this.clientId, this.symbol, this.strategyType);
+                OnTimeEvent?.Invoke(this.clientID, this.symbol, this.strategyID);
             }
         }
 

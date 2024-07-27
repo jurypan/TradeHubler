@@ -7,7 +7,7 @@ namespace JCTG.Command
 
         // Required
         public long SignalID { get; set; }
-        public StrategyType StrategyType { get; set; }
+        public long StrategyID { get; set; }
         public int AccountID { get; set; }
         public List<long>? ClientIDs { get; set; }
         public required string OrderType { get; set; }

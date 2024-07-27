@@ -88,6 +88,10 @@ namespace JCTG.Entity
             get => TakeProfit.HasValue ? TakeProfit.ToString() : null;
             set
             {
+                if (string.IsNullOrEmpty(value))
+                    return;
+                if (!string.IsNullOrEmpty(value) && value == "NaN")
+                    return;
                 if (double.TryParse(value, out double newValue))
                 {
                     TakeProfit = newValue;

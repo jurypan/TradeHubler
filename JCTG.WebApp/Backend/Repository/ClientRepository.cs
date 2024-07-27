@@ -122,13 +122,13 @@ public class ClientRepository(IDbContextFactory<JCTGDbContext> dbContextFactory)
             .FirstOrDefaultAsync(f => f.AccountID == accountId && f.ID == id);
     }
 
-    public async Task<List<ClientPair>> GetAllPairsByIdAsync(int accountId, long id, StrategyType strategyType)
+    public async Task<List<ClientPair>> GetAllPairsByIdAsync(int accountId, long id, long strategyId)
     {
         using var context = await dbContextFactory.CreateDbContextAsync();
         return await context.Client
             .Include(f => f.Pairs)
             .Where(f => f.AccountID == accountId && f.ID == id)
-            .SelectMany(f => f.Pairs.Where(g => g.StrategyType == strategyType)).ToListAsync();
+            .SelectMany(f => f.Pairs.Where(g => g.StrategyID == strategyId)).ToListAsync();
     }
 
     public async Task<List<ClientPair>> GetAllPairsByIdAsync(int accountId, long id)

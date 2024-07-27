@@ -25,7 +25,7 @@ namespace JCTG.Entity
         [Required]
         [StringLength(16, ErrorMessage = "Name is too long.")]
         public string Timeframe { get; set; }
-        public StrategyType StrategyType { get; set; }
+        public long StrategyID { get; set; }
         public double Risk { get; set; }
         [NotMapped]
         public string RiskAsString

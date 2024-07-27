@@ -53,7 +53,7 @@ namespace JCTG.Models
         public required string TickerInTradingView { get; set; }
         public required string TickerInMetatrader { get; set; }
         public required string Timeframe { get; set; }
-        public StrategyType StrategyNr { get; set; }
+        public long StrategyID { get; set; }
         public decimal Risk { get; set; }
         public double SLtoBEafterR { get; set; }
         public decimal MaxSpread { get; set; }

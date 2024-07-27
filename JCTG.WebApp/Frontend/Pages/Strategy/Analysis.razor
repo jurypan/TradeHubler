@@ -341,11 +341,11 @@
         if (_filterClient != null && _lineChart != null)
         {
             // Get data from database
-            _signals = await _signalRepository.GetAllLast200ByStrategyType(692803787, (StrategyType)Id);
-            _orders = await _orderRepository.GetAllByStrategType(692803787, _filterClient.ID, (StrategyType)Id);
-            var pairs = await _clientRepository.GetAllPairsByIdAsync(692803787, _filterClient.ID, (StrategyType)Id);
+            _signals = await _signalRepository.GetAllLast200ByStrategyType(692803787, Id);
+            _orders = await _orderRepository.GetAllByStrategType(692803787, _filterClient.ID, Id);
+            var pairs = await _clientRepository.GetAllPairsByIdAsync(692803787, _filterClient.ID, Id);
             _signals = _signals.Where(f => pairs.Select(f => f.TickerInTradingView).ToList().Contains(f.Instrument)).ToList();
-            _marketAbstentions = await _marketAbstentionRepository.GetAllByStrategyType(692803787, _filterClient.ID, (StrategyType)Id);
+            _marketAbstentions = await _marketAbstentionRepository.GetAllByStrategyId(692803787, _filterClient.ID, Id);
 
             // Init filter
             if (_filterDate == 0)

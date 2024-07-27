@@ -1,6 +1,7 @@
 ﻿@page "/Signals/ManualSync";
 @inject TradingviewAlertRepository _tradingviewAlertRepository;
 @inject SignalRepository _signalRepository;
+@inject StrategyRepository _strategyRepository;
 @using JCTG.WebApp.Frontend.Components.Widget;
 @using JCTG.WebApp.Frontend.Components.Modal;
 @using JCTG.WebApp.Frontend.Pages.Signal.Models;
@@ -58,11 +59,11 @@
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label">Strategy</label>
-                                <InputSelect class="form-select col-12" @bind-Value="model.StrategyType">
+                                <InputSelect class="form-select col-12" @bind-Value="model.StrategyID">
                                     <option>Choose...</option>
-                                    @foreach (var item in Enum.GetValues(typeof(StrategyType)))
+                                    @foreach (var item in strategies)
                                     {
-                                        <option value="@item">@item</option>
+                                        <option value="@item.ID">@item.Name</option>
                                     }
                                 </InputSelect>
                             </div>
@@ -292,6 +293,12 @@
     private TradingviewImport model { get; set; } = new();
     private SignalAddOrEditModal? _signalAddOrEditModal { get; set; } = null;
     private Exception? _exception { get; set; } = null;
+    private List<Strategy> strategies { get; set; } = new();
+
+    protected async override Task OnInitializedAsync()
+    {
+        strategies = await _strategyRepository.GetAllAsync(692803787);
+    }
 
     private async Task AutoUpdateAllSignalsFromFileClickAsync()
     {
@@ -428,7 +435,7 @@
     private async Task ReloadAsync()
     {
         // Get signals out of database
-        var signals = await _signalRepository.GetAllByInstrumentAndStrategyType(692803787, model.Ticker, model.OrderType, model.StrategyType);
+        var signals = await _signalRepository.GetAllByInstrumentAndStrategyType(692803787, model.Ticker, model.OrderType, model.StrategyID);
 
         // Forech signal
         foreach (var item in model.Items)

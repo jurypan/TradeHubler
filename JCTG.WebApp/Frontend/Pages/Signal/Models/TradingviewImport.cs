@@ -5,7 +5,7 @@ namespace JCTG.WebApp.Frontend.Pages.Signal.Models
     public class TradingviewImport
     {
 
-        public StrategyType StrategyType { get; set; }
+        public long StrategyID { get; set; }
         public string Ticker { get; set; } = string.Empty;
         public double TakeProfit { get; set; }
         public string OrderType { get; set; }

@@ -6,14 +6,14 @@ namespace JCTG.WebApp.Backend.Repository;
 
 public class MarketAbstentionRepository(IDbContextFactory<JCTGDbContext> dbContextFactory)
 {
-    public async Task<List<MarketAbstention>> GetAllByStrategyType(int accountId, long clientId, StrategyType strategyType)
+    public async Task<List<MarketAbstention>> GetAllByStrategyId(int accountId, long clientId, long strategyId)
     {
         using var context = await dbContextFactory.CreateDbContextAsync();
         return await context.MarketAbstention.Where(f => f.Client != null 
                                                     && f.Client.AccountID == accountId 
                                                     && f.ClientID == clientId
                                                     && f.Signal != null
-                                                    && f.Signal.StrategyID == (long)strategyType
+                                                    && f.Signal.StrategyID == strategyId
                                                     ).OrderBy(f => f.DateLastUpdated).ToListAsync();
     }
 
