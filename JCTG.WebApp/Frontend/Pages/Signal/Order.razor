@@ -3,10 +3,11 @@
 @inject OrderRepository _orderRepository;
 @inject MarketAbstentionRepository _marketAbstentionRepository;
 @inject LogRepository _logRepository;
+@inject JCTG.WebApp.Backend.Queue.AzureQueueClient _server;
 @using JCTG.WebApp.Frontend.Components.Modal;
 @using JCTG.WebApp.Frontend.Components.Widget;
 @using JCTG.WebApp.Backend.Helpers;
-
+@using JCTG.Command;
 
 <div class="container-fluid mw-100">
 
@@ -98,6 +99,9 @@
                                                     </li>
                                                     <li>
                                                         <a href="javascript:void(0)" class="dropdown-item d-flex align-items-center gap-3" @onclick="async () => await OrderDeleteClick(order.ID)">Delete</a>
+                                                    </li>
+                                                    <li>
+                                                        <a href="javascript:void(0)" class="dropdown-item d-flex align-items-center gap-3" @onclick="async () => await OrderCloseClick(order.ID)">Close order cmd</a>
                                                     </li>
                                                     <li>
                                                         <a href="/Signals/@order.SignalID/Order/@order.ID/Deals" class="dropdown-item d-flex align-items-center gap-3">Deals</a>
@@ -309,6 +313,35 @@
         if (_marketAbstentionDeleteModal != null)
         {
             await _marketAbstentionDeleteModal.InitAsync(692803787, marketAbstentionId);
+        }
+    }
+
+    private async Task OrderCloseClick(long orderId)
+    {
+        // Get deal from database
+        var order = await _orderRepository.GetById(692803787, orderId);
+
+        // Do null reference check
+        if (order != null)
+        {
+            // Get signal from database
+            var signal = await _signalRepository.GetByIdAsync(692803787, order.SignalID);
+
+            // Do null reference check
+            if (signal != null)
+            {
+                // Create model and send to the client
+                var id = await _server.SendOnTradingviewSignalCommandAsync(692803787, new OnSendTradingviewSignalCommand()
+                    {
+                        SignalID = signal.ID,
+                        AccountID = signal.AccountID,
+                        Instrument = signal.Instrument,
+                        Magic = signal.ID,
+                        ClientIDs = new List<long>() { order.ClientID },
+                        OrderType = "CLOSE",
+                        StrategyID = signal.StrategyID
+                    });
+            }
         }
     }
 }
