@@ -13,7 +13,7 @@ namespace JCTG.Client
 
         private TerminalConfig? _appConfig;
         private readonly List<MetatraderApi> _apis;
-        private readonly List<DailyTaskScheduler> _timing;
+        private readonly List<TaskScheduler> _timing;
         private SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1); // Initial count 1, maximum count 1
         private readonly ConcurrentDictionary<long, List<Log>> _buffers = new();
         private readonly Timer _timer;
@@ -23,7 +23,7 @@ namespace JCTG.Client
             // Init APP Config + API
             _appConfig = terminalConfig;
             _apis = [];
-            _timing = new List<DailyTaskScheduler>();
+            _timing = new List<TaskScheduler>();
             _timer = new Timer(async _ => await FlushLogsToFileAsync(), null, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(10));
 
             // Foreach broker, init the API
@@ -93,8 +93,9 @@ namespace JCTG.Client
                         {
                             if (pair.CloseAllTradesAt != null)
                             {
-                                var timing = new DailyTaskScheduler(_api.ClientId, pair.TickerInMetatrader, pair.CloseAllTradesAt.Value, pair.StrategyID);
+                                var timing = new TaskScheduler(_api.ClientId, pair.TickerInMetatrader, pair.StrategyID);
                                 timing.OnTimeEvent += OnItsTimeToCloseTradeEvent;
+                                timing.Start(pair.CloseAllTradesAt.Value);
                                 _timing.Add(timing);
                             }
                         }
@@ -213,7 +214,7 @@ namespace JCTG.Client
                                                     if (CorrelatedPairs.IsNotCorrelated(pair.TickerInMetatrader, "BUY", pair.CorrelatedPairs, api.OpenOrders))
                                                     {
                                                         // Do do not open a deal x minutes before close
-                                                        if (DailyTaskScheduler.CanOpenTrade(pair.CloseAllTradesAt, pair.DoNotOpenTradeXMinutesBeforeClose))
+                                                        if (TaskScheduler.CanOpenTrade(pair.CloseAllTradesAt, pair.DoNotOpenTradeXMinutesBeforeClose))
                                                         {
                                                             // Get the Stop Loss price
                                                             var sl = metadataTick.Ask - (cmd.MarketOrder.Risk.Value * Convert.ToDecimal(pair.SLMultiplier));
@@ -356,7 +357,7 @@ namespace JCTG.Client
                                                     if (CorrelatedPairs.IsNotCorrelated(pair.TickerInMetatrader, "BUY", pair.CorrelatedPairs, api.OpenOrders))
                                                     {
                                                         // Do do not open a deal x minutes before close
-                                                        if (DailyTaskScheduler.CanOpenTrade(pair.CloseAllTradesAt, pair.DoNotOpenTradeXMinutesBeforeClose))
+                                                        if (TaskScheduler.CanOpenTrade(pair.CloseAllTradesAt, pair.DoNotOpenTradeXMinutesBeforeClose))
                                                         {
                                                             // Get the entry price
                                                             var price = await DynamicEvaluator.EvaluateExpressionAsync(cmd.PassiveOrder.EntryExpression, api.HistoricData.Where(f => f.Key == pair.TickerInMetatrader).SelectMany(f => f.Value.BarData).ToList());
@@ -572,7 +573,7 @@ namespace JCTG.Client
                                                     if (CorrelatedPairs.IsNotCorrelated(pair.TickerInMetatrader, "SELL", pair.CorrelatedPairs, api.OpenOrders))
                                                     {
                                                         // Do do not open a deal x minutes before close
-                                                        if (DailyTaskScheduler.CanOpenTrade(pair.CloseAllTradesAt, pair.DoNotOpenTradeXMinutesBeforeClose))
+                                                        if (TaskScheduler.CanOpenTrade(pair.CloseAllTradesAt, pair.DoNotOpenTradeXMinutesBeforeClose))
                                                         {
                                                             var price = metadataTick.Bid;
 
@@ -717,7 +718,7 @@ namespace JCTG.Client
                                                     if (CorrelatedPairs.IsNotCorrelated(pair.TickerInMetatrader, "SELL", pair.CorrelatedPairs, api.OpenOrders))
                                                     {
                                                         // Do do not open a deal x minutes before close
-                                                        if (DailyTaskScheduler.CanOpenTrade(pair.CloseAllTradesAt, pair.DoNotOpenTradeXMinutesBeforeClose))
+                                                        if (TaskScheduler.CanOpenTrade(pair.CloseAllTradesAt, pair.DoNotOpenTradeXMinutesBeforeClose))
                                                         {
                                                             // Get the entry price
                                                             var price = await DynamicEvaluator.EvaluateExpressionAsync(cmd.PassiveOrder.EntryExpression, api.HistoricData.Where(f => f.Key == pair.TickerInMetatrader).SelectMany(f => f.Value.BarData).ToList());
@@ -1008,7 +1009,7 @@ namespace JCTG.Client
                                                 }
 
                                                 // Close deal
-                                                else if (cmd.OrderType == "CLOSE" && cmd.Magic > 0)
+                                                else if ((cmd.OrderType == "CLOSE" || cmd.OrderType == "CANCEL") && cmd.Magic > 0)
                                                 {
                                                     // Check if the ticket still exist as open order
                                                     var ticketId = api.OpenOrders.FirstOrDefault(f => f.Value.Magic == cmd.Magic);
@@ -1017,7 +1018,7 @@ namespace JCTG.Client
                                                     if (ticketId.Key > 0)
                                                     {
                                                         // Print on the screen
-                                                        Print($"INFO : {DateTime.UtcNow} / {_appConfig.Brokers.First(f => f.ClientId == api.ClientId).Name} / {pair.TickerInMetatrader} {pair.TickerInMetatrader} / CLOSE COMMAND / {cmd.Magic}");
+                                                        Print($"INFO : {DateTime.UtcNow} / {_appConfig.Brokers.First(f => f.ClientId == api.ClientId).Name} / {pair.TickerInMetatrader} {pair.TickerInMetatrader} / {cmd.OrderType} COMMAND / {cmd.Magic}");
 
                                                         // Modify order
                                                         api.CloseOrder(ticketId.Key, decimal.ToDouble(ticketId.Value.Lots));
@@ -1963,7 +1964,7 @@ namespace JCTG.Client
             }
         }
 
-        // Ensure to call this method to properly dispose of the timer when the LogManager is no longer needed
+        // Ensure to call this method to properly dispose of the timerCheckTimeAndExecuteOnceDaily when the LogManager is no longer needed
         public void Dispose()
         {
             _timer?.Dispose();

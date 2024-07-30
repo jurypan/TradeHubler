@@ -1,31 +1,22 @@
-﻿using JCTG.Models;
-
-namespace JCTG.Client
+﻿namespace JCTG.Client
 {
-    public class DailyTaskScheduler
+    public class TaskScheduler(long clientId, string symbol, long strategyID)
     {
         private DateTime? lastExecutionDate = null;
-        private readonly Timer timer;
-        private readonly string symbol;
+        private Timer? timerCheckTimeAndExecuteOnceDaily = null;
         private readonly TimeSpan targetTime;
-        private readonly long clientID;
-        private readonly long strategyID;
 
         public delegate void OnTimeEventHandler(long clientID, string symbol, long strategyID);
         public event OnTimeEventHandler? OnTimeEvent;
 
-        public DailyTaskScheduler(long clientId, string symbol, TimeSpan targetTime, long strategyID) 
+        public void Start(TimeSpan targetTime)
         {
-            this.clientID = clientId;
-            this.symbol = symbol;
-            this.targetTime = targetTime;
-            this.strategyID = strategyID;
-            this.timer = new(CheckTimeAndExecuteOnceDaily, null, TimeSpan.Zero, TimeSpan.FromSeconds(5));
+            timerCheckTimeAndExecuteOnceDaily = new(CheckTimeAndExecuteOnceDaily, null, TimeSpan.Zero, TimeSpan.FromSeconds(5));
         }
 
         public void Stop()
         {
-            timer.Change(Timeout.Infinite, Timeout.Infinite);
+            timerCheckTimeAndExecuteOnceDaily?.Change(Timeout.Infinite, Timeout.Infinite);
         }
 
         private void CheckTimeAndExecuteOnceDaily(object? state)
@@ -45,7 +36,7 @@ namespace JCTG.Client
                 lastExecutionDate = now;
 
                 // Throw event
-                OnTimeEvent?.Invoke(this.clientID, this.symbol, this.strategyID);
+                OnTimeEvent?.Invoke(clientId, symbol, strategyID);
             }
         }
 

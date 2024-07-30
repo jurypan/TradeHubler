@@ -558,8 +558,7 @@ namespace JCTG.WebApp.Backend.Api
 
                             break;
                         case "movesltobe":
-                            // Implement the logic to update the database based on instrument, client, and magic number.
-                            // This is a placeholder for your actual update logic.
+
                             var existingSignal4 = await _dbContext.Signal
                                                         .Where(s => s.Instrument == signal.Instrument
                                                                     && s.AccountID == signal.AccountID
@@ -694,6 +693,54 @@ namespace JCTG.WebApp.Backend.Api
 
                             break;
                         case "cancel":
+                            var existingSignal5 = await _dbContext.Signal
+                                                        .Where(s => s.Instrument == signal.Instrument
+                                                                    && s.AccountID == signal.AccountID
+                                                                    && s.Magic == signal.Magic
+                                                                    && s.StrategyID == signal.StrategyID
+                                                        )
+                                                        .OrderByDescending(f => f.DateCreated)
+                                                        .FirstOrDefaultAsync();
+                            ;
+
+                            if (existingSignal5 != null)
+                            {
+                                // Add to the tradingview alert
+                                await _dbContext.TradingviewAlert.AddAsync(new TradingviewAlert()
+                                {
+                                    DateCreated = DateTime.UtcNow,
+                                    RawMessage = requestBody,
+                                    SignalID = existingSignal5.ID,
+                                    Type = TradingviewAlert.ParseTradingviewAlertTypeOrDefault(signal.OrderType.ToLower()),
+                                });
+
+                                // Update
+                                existingSignal5.SignalStateType = SignalStateType.CancelOrder;
+                                existingSignal5.ExitRiskRewardRatio = null;
+
+                                // Save to the database
+                                await _dbContext.SaveChangesAsync();
+
+                                // Update logger
+                                _logger.Information($"Updated database in table Signal with ID: {existingSignal5.ID}", existingSignal5);
+
+                                // Create model and send to the client
+                                var id4 = await _server.SendOnTradingviewSignalCommandAsync(signal.AccountID, new OnSendTradingviewSignalCommand()
+                                {
+                                    SignalID = existingSignal5.ID,
+                                    AccountID = signal.AccountID,
+                                    Instrument = signal.Instrument,
+                                    Magic = existingSignal5.ID,
+                                    OrderType = signal.OrderType.ToUpper(),
+                                    StrategyID = signal.StrategyID
+                                });
+                            }
+                            else
+                            {
+                                // Add error to log
+                                _logger.Error($"Error! Could not find Signal with magic: {signal.Magic} in database", signal);
+                            }
+
                             break;
                         default:
                             // Optionally, handle unknown order types
