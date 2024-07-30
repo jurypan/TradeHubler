@@ -4,26 +4,28 @@ import TradingView/ta/5
 import Jury_P/Tradehubler/1 as th
 
 
+
 //INPUTS
 i_showStrategy              = input.bool(true,title="Show Strategy",group = "General") 
 i_showRiskReward            = input.bool(true,title="Show Risk/Reward Area",group = "General") 
 i_takeLongOrShort           = input.string("Long", title="Direction",group = "General", options = ["Long", "Short"])
 
-i_isCloseTime               = input.string("Friday end of session", title="Close trades",group = "Timing", options = ["Friday end of session", "End of session", "None"])
-i_timeClosePM               = input.int(1455, title="Close Time",group = "Timing")
+i_isCloseTime               = input.string("None", title="Close trades",group = "Timing", options = ["Friday end of session", "End of session", "None"])
+i_timeClosePM               = input.int(0, title="Close Time",group = "Timing")
 
 i_pyramiding                = input.bool(false,title = "Pyramiding?", group = "Risk / Reward")
-i_rrType                    = input.string("Next candle close", title = "RR Type", options = ["RR", "Next candle close"], group = "Risk / Reward")
-i_rewardRatio               = input.float(5.0, title = "Reward Ratio", group = "Risk / Reward") 
-i_moveSLtoBEafterR          = input.float(0.0, title="Move SL to BE after xR",group = "Risk / Reward") 
-i_cancellimitNewSignal      = input.bool(true, title="Cancel stop order when new signal",group = "Risk / Reward") 
+i_moveSLtoBEafterFirstCandle= input.bool(true, title="Move SL to BE after first candle is in profit",group = "Risk / Reward") 
+i_rewardRatio               = input.float(10.0, title = "Reward Ratio", group = "Risk / Reward")
 
-i_checkTrend                = input.bool(false,title = "Only take trades with the trend?", group = "Trend") 
+i_checkTrend                = input.bool(true,title = "Only take trades with the trend?", group = "Trend") 
 i_checkTrendTF              = input.string("Chart", title="Source", group = "Trend", options = ["Chart", "D", "720", "480", "240", "60", "15"])
 i_checkTrendFastMA          = input.int(9, title="Fast MA", group = "Trend")
-i_checkTrendslowMA          = input.int(24, title="Slow MA", group = "Trend")
+i_checkTrendslowMA          = input.int(200, title="Slow MA", group = "Trend")
 
 i_pcLicenseID               = input.string("692803787",title="License ID",group = "Account")
+i_strategyID                = input.int(6,title="Strategy ID",group = "Account")
+
+
 
 //VARS
 var int magic = 0
@@ -90,38 +92,33 @@ isCloseTime() =>
         false
 
 
-
 //LONG
 if isBullishSetup() and barstate.isconfirmed
     EP := high
     SL := low
     risk := EP - SL
 
-    if i_cancellimitNewSignal
-        th.cancelOrder(i_pcLicenseID, th.magicAsString(magic), 6)
+    if i_pyramiding == false
+        th.cancelOrder(i_pcLicenseID, magic, syminfo.ticker, i_strategyID)
     magic := th.magic()
-    TP := i_rrType == "Next candle close" ? na : th.calculateTakeProfitForLong(EP, SL, i_rewardRatio)
+    TP := th.calculateTakeProfitForLong(EP, SL, i_rewardRatio)
 
     // reset entry time
     TIME := na
 
     // Do entry
-    if strategy.equity > 0 and  th.positionSize(EP, SL, 1) <= 100000000000
-        if i_rrType == "Next candle close"
-            th.buyStop(i_pcLicenseID, th.magicAsString(magic), 6, i_rewardRatio, 1, EP, 'Bar[' + str.tostring(time[0]) + '].High', SL)
-        else
-            th.buyStop(i_pcLicenseID, th.magicAsString(magic), 6, i_rewardRatio, 1, EP, 'Bar[' + str.tostring(time[0]) + '].High', SL, TP)
+    th.buyStop(i_pcLicenseID, magic, syminfo.ticker, i_strategyID, i_rewardRatio, 1, EP, 'Bar[' + str.tostring(time[0]) + '].High', risk, 'Bar[' + str.tostring(time[0]) + '].Low')
 
-if i_takeLongOrShort == "Long" and strategy.position_size > 0 and EP != SL and i_moveSLtoBEafterR > 0 and close >= (EP + (i_moveSLtoBEafterR * risk)) and barstate.isconfirmed
-    SL := EP
-    th.moveSlToBe(i_pcLicenseID, th.magicAsString(magic), 6, i_rewardRatio, SL, TP)
 
-if i_rrType == "Next candle close"  and i_takeLongOrShort == "Long" and strategy.position_size > 0  and na(TIME) and barstate.isconfirmed
+if i_takeLongOrShort == "Long" and strategy.position_size > 0  and na(TIME) and barstate.isconfirmed
     TIME := time
+    if i_moveSLtoBEafterFirstCandle and close > EP
+        SL := EP
+        th.moveSlToBe(i_pcLicenseID, magic, syminfo.ticker, i_strategyID, i_rewardRatio, SL, TP)
 
-if i_rrType == "Next candle close"  and i_takeLongOrShort == "Long" and strategy.position_size > 0  and time > TIME and barstate.isconfirmed
+if i_takeLongOrShort == "Long" and strategy.position_size > 0  and time > TIME and barstate.isconfirmed
     rr = (close - EP) / risk
-    th.closeOrder(i_pcLicenseID, th.magicAsString(magic), 6, rr)
+    th.closeOrder(i_pcLicenseID, magic, syminfo.ticker, i_strategyID, rr)
 
 
 // SHORT    
@@ -130,43 +127,43 @@ if isBearishSetup() and barstate.isconfirmed
     SL := high
     risk := SL - EP
 
-    if i_cancellimitNewSignal
-        th.cancelOrder(i_pcLicenseID, th.magicAsString(magic), 6)
+    if i_pyramiding == false
+        th.cancelOrder(i_pcLicenseID, magic, syminfo.ticker, i_strategyID)
+
     magic := th.magic()
-    TP := i_rrType == "Next candle close" ? na : th.calculateTakeProfitForShort(EP, SL, i_rewardRatio)
+    TP := th.calculateTakeProfitForShort(EP, SL, i_rewardRatio)
 
     // reset entry entry time
     TIME := na
-    
+
     // Do entry
-    if strategy.equity > 0 and  th.positionSize(EP, SL, 1) <= 1000000000000
-        if i_rrType == "Next candle close"
-            th.sellStop(i_pcLicenseID, th.magicAsString(magic), 6, i_rewardRatio, 1, EP, 'Bar[' + str.tostring(time[0]) + '].Low', SL)
-        else
-            th.sellStop(i_pcLicenseID, th.magicAsString(magic), 6, i_rewardRatio, 1, EP, 'Bar[' + str.tostring(time[0]) + '].Low', SL, TP)
+    th.sellStop(i_pcLicenseID, magic, syminfo.ticker, i_strategyID, i_rewardRatio, 1, EP, 'Bar[' + str.tostring(time[0]) + '].Low', risk, 'Bar[' + str.tostring(time[0]) + '].High')
 
 
-if i_takeLongOrShort == "Short" and strategy.position_size < 0 and EP != SL and i_moveSLtoBEafterR > 0 and close <= (EP - (i_moveSLtoBEafterR * risk)) and barstate.isconfirmed
-    SL := EP
-    th.moveSlToBe(i_pcLicenseID, th.magicAsString(magic), 6, i_rewardRatio, SL, TP)
-
-if i_rrType == "Next candle close"  and i_takeLongOrShort == "Short" and strategy.position_size < 0  and na(TIME) and barstate.isconfirmed
+if i_takeLongOrShort == "Short" and strategy.position_size < 0  and na(TIME) and barstate.isconfirmed
     TIME := time
+    if i_moveSLtoBEafterFirstCandle and close < EP
+        SL := EP
+        th.moveSlToBe(i_pcLicenseID, magic, syminfo.ticker, i_strategyID, i_rewardRatio, SL, TP)
 
-if i_rrType == "Next candle close"  and i_takeLongOrShort == "Short" and strategy.position_size < 0  and time > TIME and barstate.isconfirmed
+
+if i_takeLongOrShort == "Short" and strategy.position_size < 0  and not na(TIME) and time > TIME and barstate.isconfirmed
     rr = (EP - close) / risk
-    th.closeOrder(i_pcLicenseID, th.magicAsString(magic), 6, rr)
+    th.closeOrder(i_pcLicenseID, magic, syminfo.ticker, i_strategyID, rr)
+
  
 if isCloseTime() and barstate.isconfirmed
-    rr = th.roundUp((EP - close) / risk, 2)
+    rr = (EP - close) / risk
     if i_takeLongOrShort == "Long"
         rr := th.roundUp((close - EP) / risk, 2)
     if rr > i_rewardRatio
         rr := 0
     else if rr < -1
         rr := -1
-    th.closeAllOrders(i_pcLicenseID, th.magicAsString(magic), 6, rr)
+    th.closeAllOrders(i_pcLicenseID, magic, syminfo.ticker, i_strategyID, rr)
     strategy.cancel(id = th.magicAsString(magic))
+
+
 
 
 
@@ -182,15 +179,15 @@ plot(i_checkTrend ? slow_ma : na, color=color.red)
 
 L1 = plot(i_showRiskReward and strategy.position_size > 0 ? EP : na, color=color.black, linewidth=1, style=plot.style_linebr, title="Long Entry Price")
 L2 = plot(i_showRiskReward and strategy.position_size > 0 ? SL : na , color=color.red, linewidth=1, style=plot.style_linebr, title="Long Stop-Loss Price")
-L3 = plot(i_showRiskReward and strategy.position_size > 0 ? TP : na, color=color.green, linewidth=1, style=plot.style_linebr, title="Long Take-Profit Price")
+//L3 = plot(i_showRiskReward and strategy.position_size > 0 ? TP : na, color=color.green, linewidth=1, style=plot.style_linebr, title="Long Take-Profit Price")
 fill(L1,L2,color=color.new(color.red,90))
-fill(L1,L3,color=color.new(color.green,90)) 
+//fill(L1,L3,color=color.new(color.green,90)) 
 
 S1 = plot(i_showRiskReward and strategy.position_size < 0 ? EP : na, color=color.black, linewidth=1, style=plot.style_linebr, title="Short Entry Price")
 S2 = plot(i_showRiskReward and strategy.position_size < 0 ? SL : na , color=color.red, linewidth=1, style=plot.style_linebr, title="Short Stop-Loss Price")
-S3 = plot(i_showRiskReward and strategy.position_size < 0 ? TP : na, color=color.green, linewidth=1, style=plot.style_linebr, title="Short Take-Profit Price")
+//S3 = plot(i_showRiskReward and strategy.position_size < 0 ? TP : na, color=color.green, linewidth=1, style=plot.style_linebr, title="Short Take-Profit Price")
 fill(S1,S2,color=color.new(color.red,90))
-fill(S1,S3,color=color.new(color.green,90)) 
+//fill(S1,S3,color=color.new(color.green,90)) 
 
 var table nameDisplay = table.new(position.middle_center, 1, 1, bgcolor = color.white, frame_width = 0)
 if barstate.islast and math.round(strategy.equity,0) <= 0

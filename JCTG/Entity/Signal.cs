@@ -81,6 +81,7 @@ namespace JCTG.Entity
                 }
             }
         }
+
         public double? TakeProfit { get; set; }
         [NotMapped]
         public string? TakeProfitAsString
@@ -128,6 +129,7 @@ namespace JCTG.Entity
                 }
             }
         }
+        public string? StopLossExpression { get; set; }
 
 
         // Tradingview State
@@ -174,6 +176,7 @@ namespace JCTG.Entity
             {
                 { "entryprice", value => signal.EntryPriceAsString = value },
                 { "sl", value => signal.StopLossAsString = value },
+                { "slexpr", value => signal.StopLossExpression = value },
                 { "tp", value => signal.TakeProfitAsString = value },
                 { "magic", value => signal.MagicAsString = value },
                 { "strategytype", value => signal.StrategyIDAsString = value },
@@ -212,6 +215,7 @@ namespace JCTG.Entity
         Entry = 10,
         CancelOrder = 20,
         CloseAll = 21,
-        Close = 22
+        Close = 22,
+        MoveSlToBe = 30
     }
 }

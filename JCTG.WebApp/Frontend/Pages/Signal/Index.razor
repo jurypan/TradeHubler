@@ -235,6 +235,10 @@
                                     {
                                         <span class="mb-1 badge rounded-pill  bg-info-subtle text-info">Close</span>
                                     }
+                                    else if (signal.SignalStateType == SignalStateType.MoveSlToBe)
+                                    {
+                                        <span class="mb-1 badge rounded-pill  bg-info-subtle text-info">Move SL to BE</span>
+                                    }
                                 </td>
                                 <td>@Math.Round(signal.Orders.Sum(f => f.Pnl), 2)</td>
                                 <td>
@@ -245,6 +249,12 @@
                                         </span>
                                     }
                                     else if (signal.SignalStateType == SignalStateType.Entry)
+                                    {
+                                        <span class="badge bg-success-subtle text-success fw-semibold fs-2 gap-1 d-inline-flex align-items-center">
+                                            <i class="ti ti-circle fs-3"></i>active
+                                        </span>
+                                    }
+                                    else if (signal.SignalStateType == SignalStateType.MoveSlToBe)
                                     {
                                         <span class="badge bg-success-subtle text-success fw-semibold fs-2 gap-1 d-inline-flex align-items-center">
                                             <i class="ti ti-circle fs-3"></i>active

@@ -29,6 +29,7 @@ namespace JCTG.Command
     public class OnReceivingPassiveOrder // BUYSTOP or SELLSTOP
     {
         public string? EntryExpression { get; set; }
+        public string? StopLossExpression { get; set; }
         public decimal? Risk { get; set; }
         public decimal? RiskRewardRatio { get; set; }
     }

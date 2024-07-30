@@ -96,22 +96,28 @@
                         <h5 class="card-title mb-3">Passive</h5>
                     </div>
                     <div class="row">
-                        <div class="col-md-4">
+                        <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label">Entry Expression</label>
                                 <InputText class="form-control" @bind-Value="model.EntryExpression" />
                             </div>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label">Risk</label>
                                 <InputText class="form-control" @bind-Value="model.RiskAsString" />
                             </div>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label">Risk Reward Ratio</label>
                                 <InputText class="form-control" @bind-Value="model.RiskRewardRatioAsString" />
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">StopLoss Expression</label>
+                                <InputText class="form-control" @bind-Value="model.StopLossExpression" />
                             </div>
                         </div>
                     </div>

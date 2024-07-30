@@ -376,6 +376,19 @@ namespace JCTG.Client
                                                                 // Get the Stop Loss price
                                                                 var sl = price.Value - (cmd.PassiveOrder.Risk.Value * Convert.ToDecimal(pair.SLMultiplier));
 
+                                                                // If SL expression is enabled
+                                                                if (!string.IsNullOrEmpty(cmd.PassiveOrder.StopLossExpression))
+                                                                {
+                                                                    // Get the SL price
+                                                                    var slExpr = await DynamicEvaluator.EvaluateExpressionAsync(cmd.PassiveOrder.StopLossExpression, api.HistoricData.Where(f => f.Key == pair.TickerInMetatrader).SelectMany(f => f.Value.BarData).ToList());
+
+                                                                    // Do null reference check
+                                                                    if(slExpr.HasValue)
+                                                                    {
+                                                                        sl = slExpr.Value;
+                                                                    }
+                                                                }
+
                                                                 // Add the spread options
                                                                 if (pair.SpreadSL.HasValue)
                                                                 {
@@ -723,6 +736,20 @@ namespace JCTG.Client
 
                                                                 // Get the Stop Loss price
                                                                 var sl = price.Value + (cmd.PassiveOrder.Risk.Value * Convert.ToDecimal(pair.SLMultiplier));
+
+                                                                // If SL expression is enabled
+                                                                if (!string.IsNullOrEmpty(cmd.PassiveOrder.StopLossExpression))
+                                                                {
+                                                                    // Get the SL price
+                                                                    var slExpr = await DynamicEvaluator.EvaluateExpressionAsync(cmd.PassiveOrder.StopLossExpression, api.HistoricData.Where(f => f.Key == pair.TickerInMetatrader).SelectMany(f => f.Value.BarData).ToList());
+
+                                                                    // Do null reference check
+                                                                    if (slExpr.HasValue)
+                                                                    {
+                                                                        // Overwrite the stop loss price
+                                                                        sl = slExpr.Value;
+                                                                    }
+                                                                }
 
                                                                 // Add the spread options
                                                                 if (pair.SpreadSL.HasValue)
@@ -1307,7 +1334,7 @@ namespace JCTG.Client
                         // Get the strategy number from the comment field
                         string[] components = order.Value.Comment != null ? order.Value.Comment.Split('/') : [];
                         long signalID = 0;
-                        long strategyID  =0;
+                        long strategyID = 0;
                         if (components != null && components.Length == 5)
                         {
                             _ = long.TryParse(components[0], out signalID);
@@ -1601,7 +1628,7 @@ namespace JCTG.Client
                 // Get the signal id from the comment field
                 string[] components = order.Comment != null ? order.Comment.Split('/') : [];
                 long signalID = 0;
-                long strategyID =0;
+                long strategyID = 0;
                 if (components != null && components.Length == 5)
                 {
                     _ = long.TryParse(components[0], out signalID);
