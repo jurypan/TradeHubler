@@ -197,6 +197,7 @@ namespace JCTG.Client
                                             // Get the metadata tick
                                             var metadataTick = api.MarketData.FirstOrDefault(f => f.Key == pair.TickerInMetatrader).Value;
 
+                                            // Do null reference checks
                                             if (metadataTick != null && metadataTick.Ask > 0 && metadataTick.Bid > 0 && metadataTick.Digits >= 0)
                                             {
                                                 // Calculate spread
@@ -219,7 +220,7 @@ namespace JCTG.Client
                                                             // Get the Stop Loss price
                                                             var sl = metadataTick.Ask - (cmd.MarketOrder.Risk.Value * Convert.ToDecimal(pair.SLMultiplier));
 
-                                                            // Add the spread options
+                                                            // Add the spread options to the SL
                                                             if (pair.SpreadSL.HasValue)
                                                             {
                                                                 if (pair.SpreadSL.Value == SpreadExecType.Add)
@@ -231,7 +232,7 @@ namespace JCTG.Client
                                                             // Get the Take Profit Price
                                                             var tp = metadataTick.Ask + (cmd.MarketOrder.Risk.Value * cmd.MarketOrder.RiskRewardRatio.Value);
 
-                                                            // Add the spread options
+                                                            // Add the spread options to th TP
                                                             if (pair.SpreadTP.HasValue)
                                                             {
                                                                 if (pair.SpreadTP.Value == SpreadExecType.Add)
@@ -919,8 +920,8 @@ namespace JCTG.Client
                                                     }
                                                 }
 
-                                                // MODIFYSLTOBE
-                                                else if (cmd.OrderType == "MODIFYSLTOBE" && cmd.Magic > 0)
+                                                // MOVESLTOBE
+                                                else if (cmd.OrderType == "MOVESLTOBE" && cmd.Magic > 0)
                                                 {
                                                     // Check if the ticket still exist as open order
                                                     var ticketId = api.OpenOrders.FirstOrDefault(f => f.Value.Magic == cmd.Magic);
@@ -1008,7 +1009,7 @@ namespace JCTG.Client
                                                     }
                                                 }
 
-                                                // Close deal
+                                                // Close or cancel order
                                                 else if ((cmd.OrderType == "CLOSE" || cmd.OrderType == "CANCEL") && cmd.Magic > 0)
                                                 {
                                                     // Check if the ticket still exist as open order
@@ -1392,7 +1393,6 @@ namespace JCTG.Client
                         // Get the strategy number from the comment field
                         string[] components = order.Value.Comment != null ? order.Value.Comment.Split('/') : [];
                         long signalId = 0;
-                        var offset = 0.0M;
                         var signalEntryPrice = 0.0M;
                         var signalStopLoss = 0.0M;
                         var spread = 0.0M;
@@ -1404,11 +1404,6 @@ namespace JCTG.Client
                             _ = decimal.TryParse(components[2], out signalStopLoss);
                             _ = decimal.TryParse(components[4], out spread);
                             _ = long.TryParse(components[3].Replace("[sl]", string.Empty).Replace("[tp]", string.Empty), out strategyID);
-
-                            // LONG
-                            // Signal Price : 1.2
-                            // Open Price : 1.3
-                            offset = signalEntryPrice - order.Value.OpenPrice;
                         }
 
                         // Get the right pair back from the local database
@@ -1433,13 +1428,13 @@ namespace JCTG.Client
                                     if (order.Value.Type?.ToUpper() == "BUY")
                                     {
                                         // If the current ASK signalEntryPrice is greater then x times the risk
-                                        if (close >= (order.Value.OpenPrice + (Convert.ToDecimal(pair.SLtoBEafterR) * risk) + offset))
+                                        if (close >= (order.Value.OpenPrice + (Convert.ToDecimal(pair.SLtoBEafterR) * risk)))
                                         {
                                             // Set SL to BE
-                                            var slPrice = order.Value.OpenPrice - spread + offset;
+                                            var slPrice = order.Value.OpenPrice - spread;
 
                                             // Round
-                                            slPrice = Math.Round(slPrice, marketdata.Value.Digits, MidpointRounding.AwayFromZero);
+                                            slPrice = RiskCalculator.RoundToNearestTickSize(slPrice, marketdata.Value.TickSize, marketdata.Value.Digits);
 
                                             // Check if SL is already set to BE
                                             if (order.Value.StopLoss != slPrice)
@@ -1448,7 +1443,7 @@ namespace JCTG.Client
                                                 if (_appConfig.Debug)
                                                 {
                                                     var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={order.Value.Type},Magic={order.Value.Magic},StrategyID={strategyID},Price={order.Value.OpenPrice},TP={order.Value.TakeProfit},SL={slPrice}");
-                                                    var description = string.Format($"SL: OpenPrice={order.Value.OpenPrice},Spread={spread},Offset={offset},Digits={marketdata.Value.Digits}");
+                                                    var description = string.Format($"SL: OpenPrice={order.Value.OpenPrice},Spread={spread},Digits={marketdata.Value.Digits}");
                                                     Task.Run(async () => await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, signalId));
                                                 }
 
@@ -1482,13 +1477,13 @@ namespace JCTG.Client
                                     else if (order.Value.Type?.ToUpper() == "SELL")
                                     {
                                         // If the current BID signalEntryPrice is smaller then x times the risk
-                                        if (close <= (order.Value.OpenPrice - (Convert.ToDecimal(pair.SLtoBEafterR) * risk)) + offset)
+                                        if (close <= (order.Value.OpenPrice - (Convert.ToDecimal(pair.SLtoBEafterR) * risk)))
                                         {
                                             // Set SL to BE
-                                            var slPrice = order.Value.OpenPrice + spread + offset;
+                                            var slPrice = order.Value.OpenPrice + spread;
 
                                             // Round
-                                            slPrice = Math.Round(slPrice, marketdata.Value.Digits, MidpointRounding.AwayFromZero);
+                                            slPrice = RiskCalculator.RoundToNearestTickSize(slPrice, marketdata.Value.TickSize, marketdata.Value.Digits);
 
                                             // Check if SL is already set to BE
                                             if (order.Value.StopLoss != slPrice)
@@ -1497,7 +1492,7 @@ namespace JCTG.Client
                                                 if (_appConfig.Debug)
                                                 {
                                                     var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={order.Value.Type},Magic={order.Value.Magic},StrategyID={strategyID},Price={order.Value.OpenPrice},TP={order.Value.TakeProfit},SL={slPrice}");
-                                                    var description = string.Format($"SL: OpenPrice={order.Value.OpenPrice},Spread={spread},Offset={offset},Digits={marketdata.Value.Digits}");
+                                                    var description = string.Format($"SL: OpenPrice={order.Value.OpenPrice},Spread={spread},Digits={marketdata.Value.Digits}");
                                                     Task.Run(async () => await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, signalId));
                                                 }
 
