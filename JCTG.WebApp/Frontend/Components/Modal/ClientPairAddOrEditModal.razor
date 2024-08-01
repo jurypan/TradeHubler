@@ -162,6 +162,18 @@
                         </div>
                         <div class="col-md-4">
                             <div class="mb-3">
+                                <label class="form-label" for="sl-multiplier">Spread SL to BE</label>
+                                <InputSelect class="form-select col-12" @bind-Value="model.SpreadSLtoBE">
+                                    <option>Choose...</option>
+                                    @foreach (var Item in Enum.GetValues(typeof(SpreadExecType)))
+                                    {
+                                        <option value="@Item">@Item</option>
+                                    }
+                                </InputSelect>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
                                 <label class="form-label" for="max-spread">Spread TP</label>
                                 <InputSelect class="form-select col-12" @bind-Value="model.SpreadTP">
                                     <option>Choose...</option>
@@ -172,7 +184,9 @@
                                 </InputSelect>
                             </div>
                         </div>
-                        <div class="col-md-4">
+                    </div>
+                    <div class="row">
+                        <div class="col-md-3">
                             <div class="mb-3">
                                 <label class="form-label" for="sl-multiplier">Risk Min X Times The Spread</label>
                                 <InputText class="form-control" @bind-Value="model.RiskMinXTimesTheSpreadAsString" />
@@ -247,7 +261,7 @@
     public async Task CopyAsync(int accountId, long clientId, long id)
     {
         var modelNew = await _clientPairRepository.GetById(accountId, clientId, id);
-        if(modelNew != null)
+        if (modelNew != null)
         {
             modelNew = await _clientPairRepository.CopyAsync(modelNew);
             if (modelNew != null)
@@ -273,7 +287,7 @@
             }
 
             _crudState = CrudState.None;
-            model = new() {  };
+            model = new() { };
             await CloseAsync();
         }
     }

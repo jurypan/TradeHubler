@@ -88,7 +88,7 @@ namespace JCTG.WebApp.Backend.Api
                     }
                     else
                     {
-                        if(!_dbContext.Strategy.Any(f => f.AccountID == signal.AccountID && f.ID == signal.StrategyID))
+                        if (!_dbContext.Strategy.Any(f => f.AccountID == signal.AccountID && f.ID == signal.StrategyID))
                         {
                             _logger.Error($"'strategy' with id {signal.StrategyID} doesn't exist for this account");
                             return BadRequest("'strategy' doesn't exist");
@@ -705,35 +705,48 @@ namespace JCTG.WebApp.Backend.Api
 
                             if (existingSignal5 != null)
                             {
-                                // Add to the tradingview alert
-                                await _dbContext.TradingviewAlert.AddAsync(new TradingviewAlert()
+                                // Only cancel passive orders, don't cancel active orders (else it will close the trade)
+                                if (signal.OrderType.Equals("buystop", StringComparison.CurrentCultureIgnoreCase)
+                                       || signal.OrderType.Equals("buylimit", StringComparison.CurrentCultureIgnoreCase)
+                                       || signal.OrderType.Equals("selllimit", StringComparison.CurrentCultureIgnoreCase)
+                                       || signal.OrderType.Equals("sellstop", StringComparison.CurrentCultureIgnoreCase)
+                                      )
                                 {
-                                    DateCreated = DateTime.UtcNow,
-                                    RawMessage = requestBody,
-                                    SignalID = existingSignal5.ID,
-                                    Type = TradingviewAlert.ParseTradingviewAlertTypeOrDefault(signal.OrderType.ToLower()),
-                                });
 
-                                // Update
-                                existingSignal5.SignalStateType = SignalStateType.CancelOrder;
-                                existingSignal5.ExitRiskRewardRatio = null;
+                                    // Add to the tradingview alert
+                                    await _dbContext.TradingviewAlert.AddAsync(new TradingviewAlert()
+                                    {
+                                        DateCreated = DateTime.UtcNow,
+                                        RawMessage = requestBody,
+                                        SignalID = existingSignal5.ID,
+                                        Type = TradingviewAlert.ParseTradingviewAlertTypeOrDefault(signal.OrderType.ToLower()),
+                                    });
 
-                                // Save to the database
-                                await _dbContext.SaveChangesAsync();
+                                    // Update
+                                    existingSignal5.SignalStateType = SignalStateType.CancelOrder;
+                                    existingSignal5.ExitRiskRewardRatio = null;
 
-                                // Update logger
-                                _logger.Information($"Updated database in table Signal with ID: {existingSignal5.ID}", existingSignal5);
+                                    // Save to the database
+                                    await _dbContext.SaveChangesAsync();
 
-                                // Create model and send to the client
-                                var id4 = await _server.SendOnTradingviewSignalCommandAsync(signal.AccountID, new OnSendTradingviewSignalCommand()
+                                    // Update logger
+                                    _logger.Information($"Updated database in table Signal with ID: {existingSignal5.ID}", existingSignal5);
+
+                                    // Create model and send to the client
+                                    var id4 = await _server.SendOnTradingviewSignalCommandAsync(signal.AccountID, new OnSendTradingviewSignalCommand()
+                                    {
+                                        SignalID = existingSignal5.ID,
+                                        AccountID = signal.AccountID,
+                                        Instrument = signal.Instrument,
+                                        Magic = existingSignal5.ID,
+                                        OrderType = signal.OrderType.ToUpper(),
+                                        StrategyID = signal.StrategyID
+                                    });
+                                }
                                 {
-                                    SignalID = existingSignal5.ID,
-                                    AccountID = signal.AccountID,
-                                    Instrument = signal.Instrument,
-                                    Magic = existingSignal5.ID,
-                                    OrderType = signal.OrderType.ToUpper(),
-                                    StrategyID = signal.StrategyID
-                                });
+                                    // Add error to log
+                                    _logger.Error($"Error! Cancel order without previous passive order in the market: {signal.Magic} in database", signal);
+                                }
                             }
                             else
                             {

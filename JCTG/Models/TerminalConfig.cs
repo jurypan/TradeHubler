@@ -71,6 +71,8 @@ namespace JCTG.Models
         public SpreadExecType? SpreadSL { get; set; }
         [JsonConverter(typeof(StringEnumConverter))]
         public SpreadExecType? SpreadTP { get; set; }
+        [JsonConverter(typeof(StringEnumConverter))]
+        public SpreadExecType? SpreadSLtoBE { get; set; }
         public int RiskMinXTimesTheSpread { get; set; }
         public List<string> CorrelatedPairs { get; set; } = [];
     }
@@ -88,7 +90,9 @@ namespace JCTG.Models
     public enum SpreadExecType
     {
         Add = 0,
-        Subtract = 1
+        Subtract = 1,
+        TwiceAdd = 10,
+        TwiceSubtract = 11
     }
 
     public enum OrderExecType

@@ -135,6 +135,30 @@ namespace JCTG.Client
             return spread * lotSize * Convert.ToDouble(pointSize) * contractSize;
         }
 
+        public static decimal CalculateSpreadExecForShort(decimal price, decimal spread, SpreadExecType spreadExecType)
+        {
+            if (spreadExecType == SpreadExecType.Add)
+                price -= spread;
+            else if (spreadExecType == SpreadExecType.Subtract)
+                price += spread;
+            else if (spreadExecType == SpreadExecType.TwiceAdd)
+                price -= (2 * spread);
+            else if (spreadExecType == SpreadExecType.TwiceSubtract)
+                price += (2 * spread);
+            return price;
+        }
 
+        public static decimal CalculateSpreadExecForLong(decimal price, decimal spread, SpreadExecType spreadExecType)
+        {
+            if (spreadExecType == SpreadExecType.Add)
+                price += spread;
+            else if (spreadExecType == SpreadExecType.Subtract)
+                price -= spread;
+            else if (spreadExecType == SpreadExecType.TwiceAdd)
+                price += (2 * spread);
+            else if (spreadExecType == SpreadExecType.TwiceSubtract)
+                price -= (2 * spread);
+            return price;
+        }
     }
 }

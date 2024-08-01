@@ -1,6 +1,7 @@
 ﻿using JCTG.Events;
 using JCTG.Models;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using System.Collections.Concurrent;
 using System.Text.RegularExpressions;
@@ -223,10 +224,8 @@ namespace JCTG.Client
                                                             // Add the spread options to the SL
                                                             if (pair.SpreadSL.HasValue)
                                                             {
-                                                                if (pair.SpreadSL.Value == SpreadExecType.Add)
-                                                                    sl += spread;
-                                                                else if (pair.SpreadSL.Value == SpreadExecType.Subtract)
-                                                                    sl -= spread;
+                                                                // Calculate SL
+                                                                sl = RiskCalculator.CalculateSpreadExecForLong(sl, spread, pair.SpreadSL.Value);
                                                             }
 
                                                             // Get the Take Profit Price
@@ -235,10 +234,8 @@ namespace JCTG.Client
                                                             // Add the spread options to th TP
                                                             if (pair.SpreadTP.HasValue)
                                                             {
-                                                                if (pair.SpreadTP.Value == SpreadExecType.Add)
-                                                                    tp += spread;
-                                                                else if (pair.SpreadTP.Value == SpreadExecType.Subtract)
-                                                                    tp -= spread;
+                                                                // Calculate TP
+                                                                tp = RiskCalculator.CalculateSpreadExecForLong(tp, spread, pair.SpreadTP.Value);
                                                             }
 
                                                             // Send to logs
@@ -369,10 +366,8 @@ namespace JCTG.Client
                                                                 // Add the spread options
                                                                 if (pair.SpreadEntry.HasValue)
                                                                 {
-                                                                    if (pair.SpreadEntry.Value == SpreadExecType.Add)
-                                                                        price += spread;
-                                                                    else if (pair.SpreadEntry.Value == SpreadExecType.Subtract)
-                                                                        price -= spread;
+                                                                    // Calculate price
+                                                                    price = RiskCalculator.CalculateSpreadExecForLong(price.Value, spread, pair.SpreadEntry.Value);
                                                                 }
 
                                                                 // Get the Stop Loss price
@@ -394,10 +389,8 @@ namespace JCTG.Client
                                                                 // Add the spread options
                                                                 if (pair.SpreadSL.HasValue)
                                                                 {
-                                                                    if (pair.SpreadSL.Value == SpreadExecType.Add)
-                                                                        sl += spread;
-                                                                    else if (pair.SpreadSL.Value == SpreadExecType.Subtract)
-                                                                        sl -= spread;
+                                                                    // Calculate SP
+                                                                    sl = RiskCalculator.CalculateSpreadExecForLong(sl, spread, pair.SpreadSL.Value);
                                                                 }
 
                                                                 // Get the Take Profit Price
@@ -406,10 +399,8 @@ namespace JCTG.Client
                                                                 // Add the spread options
                                                                 if (pair.SpreadTP.HasValue)
                                                                 {
-                                                                    if (pair.SpreadTP.Value == SpreadExecType.Add)
-                                                                        tp += spread;
-                                                                    else if (pair.SpreadTP.Value == SpreadExecType.Subtract)
-                                                                        tp -= spread;
+                                                                    // Calculate TP
+                                                                    tp = RiskCalculator.CalculateSpreadExecForLong(tp, spread, pair.SpreadTP.Value);
                                                                 }
 
 
@@ -584,20 +575,16 @@ namespace JCTG.Client
                                                             // Add the spread options
                                                             if (pair.SpreadSL.HasValue)
                                                             {
-                                                                if (pair.SpreadSL.Value == SpreadExecType.Add)
-                                                                    sl -= spread;
-                                                                else if (pair.SpreadSL.Value == SpreadExecType.Subtract)
-                                                                    sl += spread;
+                                                                // Calculate SL
+                                                                sl = RiskCalculator.CalculateSpreadExecForShort(sl, spread, pair.SpreadSL.Value);
                                                             }
 
                                                             // Get the Take Profit Price
                                                             var tp = price - (cmd.MarketOrder.Risk.Value * cmd.MarketOrder.RiskRewardRatio.Value);
                                                             if (pair.SpreadTP.HasValue)
                                                             {
-                                                                if (pair.SpreadTP.Value == SpreadExecType.Add)
-                                                                    tp -= spread;
-                                                                else if (pair.SpreadTP.Value == SpreadExecType.Subtract)
-                                                                    tp += spread;
+                                                                // Calculate TP
+                                                                tp = RiskCalculator.CalculateSpreadExecForShort(tp, spread, pair.SpreadTP.Value);
                                                             }
 
                                                             // Send to logs
@@ -730,10 +717,8 @@ namespace JCTG.Client
                                                                 // Add the spread options
                                                                 if (pair.SpreadEntry.HasValue)
                                                                 {
-                                                                    if (pair.SpreadEntry.Value == SpreadExecType.Add)
-                                                                        price -= spread;
-                                                                    else if (pair.SpreadEntry.Value == SpreadExecType.Subtract)
-                                                                        price += spread;
+                                                                    // Calculate TP
+                                                                    price = RiskCalculator.CalculateSpreadExecForShort(price.Value, spread, pair.SpreadEntry.Value);
                                                                 }
 
                                                                 // Get the Stop Loss price
@@ -756,20 +741,16 @@ namespace JCTG.Client
                                                                 // Add the spread options
                                                                 if (pair.SpreadSL.HasValue)
                                                                 {
-                                                                    if (pair.SpreadSL.Value == SpreadExecType.Add)
-                                                                        sl -= spread;
-                                                                    else if (pair.SpreadSL.Value == SpreadExecType.Subtract)
-                                                                        sl += spread;
+                                                                    // Calculate SL
+                                                                    sl = RiskCalculator.CalculateSpreadExecForShort(sl, spread, pair.SpreadSL.Value);
                                                                 }
 
                                                                 // Get the Take Profit Price
                                                                 var tp = price.Value - (cmd.PassiveOrder.Risk.Value * cmd.PassiveOrder.RiskRewardRatio.Value);
                                                                 if (pair.SpreadTP.HasValue)
                                                                 {
-                                                                    if (pair.SpreadTP.Value == SpreadExecType.Add)
-                                                                        tp -= spread;
-                                                                    else if (pair.SpreadTP.Value == SpreadExecType.Subtract)
-                                                                        tp += spread;
+                                                                    // Calculate TP
+                                                                    tp = RiskCalculator.CalculateSpreadExecForShort(tp, spread, pair.SpreadTP.Value);
                                                                 }
 
                                                                 // Send to logs
@@ -947,15 +928,14 @@ namespace JCTG.Client
 
                                                         if (ticketId.Value.Type.Equals("SELL", StringComparison.CurrentCultureIgnoreCase))
                                                         {
+                                                            // Calcualte price with offset
                                                             sl = ticketId.Value.OpenPrice + offset;
 
                                                             // Add the spread options
-                                                            if (pair.SpreadSL.HasValue)
+                                                            if (pair.SpreadSLtoBE.HasValue)
                                                             {
-                                                                if (pair.SpreadSL.Value == SpreadExecType.Add)
-                                                                    sl -= spread;
-                                                                else if (pair.SpreadSL.Value == SpreadExecType.Subtract)
-                                                                    sl += spread;
+                                                                // Calculate SL
+                                                                sl = RiskCalculator.CalculateSpreadExecForShort(sl, spread, pair.SpreadSLtoBE.Value);
                                                             }
                                                         }
                                                         else
@@ -964,17 +944,15 @@ namespace JCTG.Client
                                                             sl = ticketId.Value.OpenPrice + offset;
 
                                                             // Add the spread options
-                                                            if (pair.SpreadSL.HasValue)
+                                                            if (pair.SpreadSLtoBE.HasValue)
                                                             {
-                                                                if (pair.SpreadSL.Value == SpreadExecType.Add)
-                                                                    sl += spread;
-                                                                else if (pair.SpreadSL.Value == SpreadExecType.Subtract)
-                                                                    sl -= spread;
+                                                                // Calculate SL
+                                                                sl = RiskCalculator.CalculateSpreadExecForLong(sl, spread, pair.SpreadSLtoBE.Value);
                                                             }
                                                         }
 
                                                         // Round
-                                                        sl = Math.Round(sl / metadataTick.TickSize * metadataTick.TickSize, metadataTick.Digits, MidpointRounding.AwayFromZero);
+                                                        sl = RiskCalculator.RoundToNearestTickSize(sl, metadataTick.TickSize, metadataTick.Digits);
 
                                                         // Send to logs
                                                         if (_appConfig.Debug)
