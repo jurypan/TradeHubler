@@ -79,7 +79,7 @@ namespace JCTG.Client
                         _api.OnDealCreatedEvent += OnDealCreateEvent;
                         _api.OnTickEvent += OnTickEvent;
                         _api.OnAccountInfoChangedEvent += OnAccountInfoChangedEvent;
-                        _api.OnHistoricDataEvent += OnHistoricDataEvent;
+                        _api.OnHistoricBarDataEvent += OnHistoricBarDataEvent;
 
                         // Start the API
                         await _api.StartAsync();
@@ -133,7 +133,7 @@ namespace JCTG.Client
                         _api.OnDealCreatedEvent -= OnDealCreateEvent;
                         _api.OnTickEvent -= OnTickEvent;
                         _api.OnAccountInfoChangedEvent -= OnAccountInfoChangedEvent;
-                        _api.OnHistoricDataEvent -= OnHistoricDataEvent;
+                        _api.OnHistoricBarDataEvent -= OnHistoricBarDataEvent;
 
                         // Start the API
                         await _api.StopAsync();
@@ -202,7 +202,7 @@ namespace JCTG.Client
                                             if (metadataTick != null && metadataTick.Ask > 0 && metadataTick.Bid > 0 && metadataTick.Digits >= 0)
                                             {
                                                 // Calculate spread
-                                                var spread = Math.Round(Math.Abs(metadataTick.Ask - metadataTick.Bid), metadataTick.Digits, MidpointRounding.AwayFromZero);
+                                                var spread = RiskCalculator.CalculateSpread(metadataTick.Ask, metadataTick.Bid, metadataTick.TickSize, metadataTick.Digits);
 
                                                 // BUY
                                                 if ((pair.MaxSpread == 0 || (pair.MaxSpread > 0 && spread < pair.MaxSpread))
@@ -358,7 +358,16 @@ namespace JCTG.Client
                                                         if (TaskScheduler.CanOpenTrade(pair.CloseAllTradesAt, pair.DoNotOpenTradeXMinutesBeforeClose))
                                                         {
                                                             // Get the entry price
-                                                            var price = await DynamicEvaluator.EvaluateExpressionAsync(cmd.PassiveOrder.EntryExpression, api.HistoricData.Where(f => f.Key == pair.TickerInMetatrader).SelectMany(f => f.Value.BarData).ToList());
+                                                            var price = DynamicEvaluator.EvaluateExpression(cmd.PassiveOrder.EntryExpression, api.HistoricBarData.Where(f => f.Key == pair.TickerInMetatrader).SelectMany(f => f.Value.BarData).ToList(), out Dictionary<string, string> logMessages1);
+                                                            var orgPrice = price;
+
+                                                            // Send to logs
+                                                            if (_appConfig.Debug)
+                                                            {
+                                                                var message = string.Format($"EntryExpression || Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},Magic={cmd.Magic},StrategyID={cmd.StrategyID},EntryExpr={cmd.PassiveOrder.EntryExpression},Risk={cmd.PassiveOrder.Risk},RR={cmd.PassiveOrder.RiskRewardRatio}");
+                                                                var description = string.Format($"Entry || {string.Join(", ", logMessages1.Select(kvp => $"{kvp.Key}={kvp.Value}"))}");
+                                                                await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, cmd.SignalID);
+                                                            }
 
                                                             // Do 0.0 check
                                                             if (price.HasValue)
@@ -372,17 +381,31 @@ namespace JCTG.Client
 
                                                                 // Get the Stop Loss price
                                                                 var sl = price.Value - (cmd.PassiveOrder.Risk.Value * Convert.ToDecimal(pair.SLMultiplier));
+                                                                var slOrg = sl;
 
                                                                 // If SL expression is enabled
                                                                 if (!string.IsNullOrEmpty(cmd.PassiveOrder.StopLossExpression))
                                                                 {
                                                                     // Get the SL price
-                                                                    var slExpr = await DynamicEvaluator.EvaluateExpressionAsync(cmd.PassiveOrder.StopLossExpression, api.HistoricData.Where(f => f.Key == pair.TickerInMetatrader).SelectMany(f => f.Value.BarData).ToList());
+                                                                    var slExpr = DynamicEvaluator.EvaluateExpression(cmd.PassiveOrder.StopLossExpression, api.HistoricBarData.Where(f => f.Key == pair.TickerInMetatrader).SelectMany(f => f.Value.BarData).ToList(), out Dictionary<string, string> logMessages2);
+
+                                                                    // Send to logs
+                                                                    if (_appConfig.Debug)
+                                                                    {
+                                                                        var message = string.Format($"StopLossExpression || Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},Magic={cmd.Magic},StrategyID={cmd.StrategyID},EntryExpr={cmd.PassiveOrder.EntryExpression},Risk={cmd.PassiveOrder.Risk},RR={cmd.PassiveOrder.RiskRewardRatio}");
+                                                                        var description = string.Format($"StopLoss || {string.Join(", ", logMessages2.Select(kvp => $"{kvp.Key}={kvp.Value}"))}");
+                                                                        await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, cmd.SignalID);
+                                                                    }
 
                                                                     // Do null reference check
-                                                                    if(slExpr.HasValue)
+                                                                    if (slExpr.HasValue)
                                                                     {
+                                                                        // Get value
                                                                         sl = slExpr.Value;
+                                                                        slOrg = slExpr.Value;
+
+                                                                        // Add SL Multiplier (Price + (risk * SlMultiplier)
+                                                                        sl = price.Value - (Math.Abs(price.Value - sl) * Convert.ToDecimal(pair.SLMultiplier));
                                                                     }
                                                                 }
 
@@ -403,30 +426,28 @@ namespace JCTG.Client
                                                                     tp = RiskCalculator.CalculateSpreadExecForLong(tp, spread, pair.SpreadTP.Value);
                                                                 }
 
-
-
                                                                 // Send to logs
                                                                 if (_appConfig.Debug)
                                                                 {
-                                                                    var message = string.Format($"EntryPriceCalculated || Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},Magic={cmd.Magic},StrategyID={cmd.StrategyID},EntryExpr={cmd.PassiveOrder.EntryExpression},Risk={cmd.PassiveOrder.Risk},RR={cmd.PassiveOrder.RiskRewardRatio}");
-                                                                    var description = string.Format($"EntryPrice || Price={price},Spread={spread},EntryExpression={cmd.PassiveOrder.EntryExpression}");
+                                                                    var message = string.Format($"Order Calculated || Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},Magic={cmd.Magic},StrategyID={cmd.StrategyID},EntryExpr={cmd.PassiveOrder.EntryExpression},SlExpr={cmd.PassiveOrder.StopLossExpression},Risk={cmd.PassiveOrder.Risk},RR={cmd.PassiveOrder.RiskRewardRatio}");
+                                                                    var description = string.Format($"EntryPrice || Price={orgPrice},Spread={spread},EntryPrice={price},EntryExpression={cmd.PassiveOrder.EntryExpression}");
                                                                     await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, cmd.SignalID);
 
-                                                                    description = string.Format($"StopLoss ||  Price={price},Spread={spread},Risk={cmd.PassiveOrder.Risk.Value},SLMultiplier={pair.SLMultiplier}");
+                                                                    description = string.Format($"StopLoss || StopLoss={slOrg},Spread={spread},EntryStopLoss={sl},Risk={cmd.PassiveOrder.Risk.Value},SLMultiplier={pair.SLMultiplier},StopLossExpression={cmd.PassiveOrder.StopLossExpression}");
                                                                     await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, cmd.SignalID);
 
-                                                                    description = string.Format($"TakeProfit ||  Price={price},Spread={spread},Risk={cmd.PassiveOrder.Risk.Value},RiskRewardRatio={cmd.PassiveOrder.RiskRewardRatio.Value}");
+                                                                    description = string.Format($"TakeProfit ||  Spread={spread},EntryTakeProfit={tp},Risk={cmd.PassiveOrder.Risk.Value},RiskRewardRatio={cmd.PassiveOrder.RiskRewardRatio.Value}");
                                                                     await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, cmd.SignalID);
                                                                 }
 
                                                                 // Calculate the lot size
-                                                                var lotSize = RiskCalculator.LotSize(startbalance, api.AccountInfo.Balance, pair.Risk, price.Value, sl, metadataTick.TickValue, metadataTick.TickSize, metadataTick.LotStep, metadataTick.MinLotSize, metadataTick.MaxLotSize, out Dictionary<string, string> logMessages, dynRisk); ;
+                                                                var lotSize = RiskCalculator.LotSize(startbalance, api.AccountInfo.Balance, pair.Risk, price.Value, sl, metadataTick.TickValue, metadataTick.TickSize, metadataTick.LotStep, metadataTick.MinLotSize, metadataTick.MaxLotSize, out Dictionary<string, string> logMessages3, dynRisk); ;
 
                                                                 // Send to logs
                                                                 if (_appConfig.Debug)
                                                                 {
                                                                     var message = string.Format($"LotSizeCalculated || Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},Magic={cmd.Magic},StrategyID={cmd.StrategyID},EntryExpr={cmd.PassiveOrder.EntryExpression},Risk={cmd.PassiveOrder.Risk},RR={cmd.PassiveOrder.RiskRewardRatio}");
-                                                                    var description = string.Format($"LotSize || {string.Join(", ", logMessages.Select(kvp => $"{kvp.Key}={kvp.Value}"))}");
+                                                                    var description = string.Format($"LotSize || {string.Join(", ", logMessages3.Select(kvp => $"{kvp.Key}={kvp.Value}"))}");
                                                                     await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, cmd.SignalID);
                                                                 }
 
@@ -709,7 +730,16 @@ namespace JCTG.Client
                                                         if (TaskScheduler.CanOpenTrade(pair.CloseAllTradesAt, pair.DoNotOpenTradeXMinutesBeforeClose))
                                                         {
                                                             // Get the entry price
-                                                            var price = await DynamicEvaluator.EvaluateExpressionAsync(cmd.PassiveOrder.EntryExpression, api.HistoricData.Where(f => f.Key == pair.TickerInMetatrader).SelectMany(f => f.Value.BarData).ToList());
+                                                            var price = DynamicEvaluator.EvaluateExpression(cmd.PassiveOrder.EntryExpression, api.HistoricBarData.Where(f => f.Key == pair.TickerInMetatrader).SelectMany(f => f.Value.BarData).ToList(), out Dictionary<string, string> logMessages1);
+                                                            var orgPrice = price;
+
+                                                            // Send to logs
+                                                            if (_appConfig.Debug)
+                                                            {
+                                                                var message = string.Format($"EntryExpression || Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},Magic={cmd.Magic},StrategyID={cmd.StrategyID},EntryExpr={cmd.PassiveOrder.EntryExpression},Risk={cmd.PassiveOrder.Risk},RR={cmd.PassiveOrder.RiskRewardRatio}");
+                                                                var description = string.Format($"Entry || {string.Join(", ", logMessages1.Select(kvp => $"{kvp.Key}={kvp.Value}"))}");
+                                                                await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, cmd.SignalID);
+                                                            }
 
                                                             // do 0.0 check
                                                             if (price.HasValue)
@@ -717,24 +747,37 @@ namespace JCTG.Client
                                                                 // Add the spread options
                                                                 if (pair.SpreadEntry.HasValue)
                                                                 {
-                                                                    // Calculate TP
+                                                                    // Calculate EP
                                                                     price = RiskCalculator.CalculateSpreadExecForShort(price.Value, spread, pair.SpreadEntry.Value);
                                                                 }
 
                                                                 // Get the Stop Loss price
                                                                 var sl = price.Value + (cmd.PassiveOrder.Risk.Value * Convert.ToDecimal(pair.SLMultiplier));
+                                                                var slOrg = sl;
 
                                                                 // If SL expression is enabled
                                                                 if (!string.IsNullOrEmpty(cmd.PassiveOrder.StopLossExpression))
                                                                 {
                                                                     // Get the SL price
-                                                                    var slExpr = await DynamicEvaluator.EvaluateExpressionAsync(cmd.PassiveOrder.StopLossExpression, api.HistoricData.Where(f => f.Key == pair.TickerInMetatrader).SelectMany(f => f.Value.BarData).ToList());
+                                                                    var slExpr = DynamicEvaluator.EvaluateExpression(cmd.PassiveOrder.StopLossExpression, api.HistoricBarData.Where(f => f.Key == pair.TickerInMetatrader).SelectMany(f => f.Value.BarData).ToList(), out Dictionary<string, string> logMessages2);
+
+                                                                    // Send to logs
+                                                                    if (_appConfig.Debug)
+                                                                    {
+                                                                        var message = string.Format($"StopLossExpression || Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},Magic={cmd.Magic},StrategyID={cmd.StrategyID},EntryExpr={cmd.PassiveOrder.EntryExpression},Risk={cmd.PassiveOrder.Risk},RR={cmd.PassiveOrder.RiskRewardRatio}");
+                                                                        var description = string.Format($"StopLoss || {string.Join(", ", logMessages2.Select(kvp => $"{kvp.Key}={kvp.Value}"))}");
+                                                                        await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, cmd.SignalID);
+                                                                    }
 
                                                                     // Do null reference check
                                                                     if (slExpr.HasValue)
                                                                     {
                                                                         // Overwrite the stop loss price
                                                                         sl = slExpr.Value;
+                                                                        slOrg = slExpr.Value;
+
+                                                                        // Add SL Multiplier (Price + (risk * SlMultiplier)
+                                                                        sl = price.Value + (Math.Abs(sl - price.Value) * Convert.ToDecimal(pair.SLMultiplier));
                                                                     }
                                                                 }
 
@@ -756,25 +799,25 @@ namespace JCTG.Client
                                                                 // Send to logs
                                                                 if (_appConfig.Debug)
                                                                 {
-                                                                    var message = string.Format($"EntryPriceCalculated || Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},Magic={cmd.Magic},StrategyID={cmd.StrategyID},EntryExpr={cmd.PassiveOrder.EntryExpression},Risk={cmd.PassiveOrder.Risk},RR={cmd.PassiveOrder.RiskRewardRatio}");
-                                                                    var description = string.Format($"Price: Price={price},Spread={spread},EntryExpression={cmd.PassiveOrder.EntryExpression}");
+                                                                    var message = string.Format($"Order Calculated || Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},Magic={cmd.Magic},StrategyID={cmd.StrategyID},EntryExpr={cmd.PassiveOrder.EntryExpression},SlExpr={cmd.PassiveOrder.StopLossExpression},Risk={cmd.PassiveOrder.Risk},RR={cmd.PassiveOrder.RiskRewardRatio}");
+                                                                    var description = string.Format($"EntryPrice || Price={orgPrice},Spread={spread},EntryPrice={price},EntryExpression={cmd.PassiveOrder.EntryExpression}");
                                                                     await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, cmd.SignalID);
 
-                                                                    description = string.Format($"StopLossCalculated ||  Price={price},Spread={spread},Risk={cmd.PassiveOrder.Risk.Value},SLMultiplier={pair.SLMultiplier}");
+                                                                    description = string.Format($"StopLossCalculated || StopLoss={slOrg},Spread={spread},EntryStopLoss={sl},Risk={cmd.PassiveOrder.Risk.Value},SLMultiplier={pair.SLMultiplier},StopLossExpression={cmd.PassiveOrder.StopLossExpression}");
                                                                     await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, cmd.SignalID);
 
-                                                                    description = string.Format($"TakeProfitCalculated ||  Price={price},Spread={spread},Risk={cmd.PassiveOrder.Risk.Value},RiskRewardRatio={cmd.PassiveOrder.RiskRewardRatio.Value}");
+                                                                    description = string.Format($"TakeProfitCalculated ||  Spread={spread},EntryTakeProfit={tp},Risk={cmd.PassiveOrder.Risk.Value},RiskRewardRatio={cmd.PassiveOrder.RiskRewardRatio.Value}");
                                                                     await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, cmd.SignalID);
                                                                 }
 
                                                                 // Calculate the lot size
-                                                                var lotSize = RiskCalculator.LotSize(startbalance, api.AccountInfo.Balance, pair.Risk, price.Value, sl, metadataTick.TickValue, metadataTick.TickSize, metadataTick.LotStep, metadataTick.MinLotSize, metadataTick.MaxLotSize, out Dictionary<string, string> logMessages, dynRisk); ;
+                                                                var lotSize = RiskCalculator.LotSize(startbalance, api.AccountInfo.Balance, pair.Risk, price.Value, sl, metadataTick.TickValue, metadataTick.TickSize, metadataTick.LotStep, metadataTick.MinLotSize, metadataTick.MaxLotSize, out Dictionary<string, string> logMessages3, dynRisk); ;
 
                                                                 // Send to logs
                                                                 if (_appConfig.Debug)
                                                                 {
                                                                     var message = string.Format($"LotSizeCalculated || Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},Magic={cmd.Magic},StrategyID={cmd.StrategyID},EntryExpr={cmd.PassiveOrder.EntryExpression},Risk={cmd.PassiveOrder.Risk},RR={cmd.PassiveOrder.RiskRewardRatio}");
-                                                                    var description = string.Format($"LotSize || {string.Join(", ", logMessages.Select(kvp => $"{kvp.Key}={kvp.Value}"))}");
+                                                                    var description = string.Format($"LotSize || {string.Join(", ", logMessages3.Select(kvp => $"{kvp.Key}={kvp.Value}"))}");
                                                                     await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, cmd.SignalID);
                                                                 }
 
@@ -1306,7 +1349,7 @@ namespace JCTG.Client
                 var api = _apis.FirstOrDefault(f => f.ClientId == clientID);
 
                 // Do null reference check
-                if (api != null && api.IsActive)
+                if (api != null && api.IsActive && api.OpenOrders != null)
                 {
                     // Get the order$
                     foreach (var order in api.OpenOrders.Where(f => f.Value.Symbol != null && f.Value.Symbol.Equals(instrument)))
@@ -1517,22 +1560,19 @@ namespace JCTG.Client
             }
         }
 
-        private void OnHistoricDataEvent(long clientId, string symbol, string timeframe)
+        private void OnHistoricBarDataEvent(long clientId, string symbol, string timeframe)
         {
             // Do null reference check
             if (_appConfig != null && _apis.Count(f => f.ClientId == clientId) == 1)
             {
                 // Send log to files
-                var message = string.Format($"HistoricData || Symbol={symbol},Timeframe={timeframe}");
+                var message = string.Format($"HistoricBarData || Symbol={symbol},Timeframe={timeframe}");
                 var log = new Log() { Time = DateTime.UtcNow, Type = "INFO", Description = "Received historic data", Message = message };
 
-                Task.Run(async () =>
-                {
-                    var historicDataForSymbol = _apis.First(f => f.ClientId == clientId).HistoricData
-                        .Where(pair => pair.Key == symbol) // Filter for the specific instrument
-                        .SelectMany(pair => pair.Value.BarData) // Use SelectMany to flatten the lists into a single list
-                        .ToList(); // Convert to List<BarData>
-                });
+                var historicDataForSymbol = _apis.First(f => f.ClientId == clientId).HistoricBarData
+                    .Where(pair => pair.Key == symbol) // Filter for the specific instrument
+                    .SelectMany(pair => pair.Value.BarData) // Use SelectMany to flatten the lists into a single list
+                    .ToList(); // Convert to List<BarData>
             }
         }
 

@@ -1,6 +1,7 @@
 ﻿using JCTG.Events;
 using JCTG.Models;
 using Newtonsoft.Json;
+using System.Net.Http;
 using System.Text;
 
 namespace JCTG.Client
@@ -53,6 +54,17 @@ namespace JCTG.Client
             }
         }
 
+        public static async Task PushDataAsync(string url, string jsonData)
+        {
+            // Create the content to send in the request
+            var content = new StringContent(jsonData, Encoding.UTF8, "application/json");
+
+            // Start the task of sending the request without awaiting it
+            _ = _httpClient.PostAsync(url, content);
+
+            //await Task.Yield();
+        }
+
         public static async Task<TerminalConfig?> GetTerminalConfigAsync()
         {
             var json = await GetJsonAsync("https://app.tradehubler.com/api/terminalconfig?code=Ocebxtg1excWosFez5rWMtNp3ZsmIzSFQ0XhqtrfHlMuAzFuQ0OGhA==&accountid=692803787");
@@ -89,7 +101,7 @@ namespace JCTG.Client
 
         public static async Task OnLogEvent(OnLogEvent model)
         {
-            await PostJsonAsync("https://app.tradehubler.com/api/OnLogEvent", JsonConvert.SerializeObject(model));
+            await PushDataAsync("https://app.tradehubler.com/api/OnLogEvent", JsonConvert.SerializeObject(model));
         }
 
         public static async Task OnDealCreatedEvent(OnDealCreatedEvent model)

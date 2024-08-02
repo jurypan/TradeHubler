@@ -116,8 +116,16 @@ namespace JCTG.Client
 
         public static decimal RoundToNearestTickSize(decimal value, decimal step, int digits)
         {
+            if (value == 0) return 0.0M;
             var roundedValue = Math.Round(value / step) * step;
             return Math.Round(roundedValue, digits);
+        }
+
+
+        public static decimal CalculateSpread(decimal ask, decimal bid, decimal step, int digits)
+        {
+            decimal spread = ask >= bid ? ask - bid : 0;
+            return RoundToNearestTickSize(spread, step, digits);
         }
 
 
@@ -135,30 +143,61 @@ namespace JCTG.Client
             return spread * lotSize * Convert.ToDouble(pointSize) * contractSize;
         }
 
+
         public static decimal CalculateSpreadExecForShort(decimal price, decimal spread, SpreadExecType spreadExecType)
         {
-            if (spreadExecType == SpreadExecType.Add)
-                price -= spread;
-            else if (spreadExecType == SpreadExecType.Subtract)
-                price += spread;
-            else if (spreadExecType == SpreadExecType.TwiceAdd)
-                price -= (2 * spread);
-            else if (spreadExecType == SpreadExecType.TwiceSubtract)
-                price += (2 * spread);
+            // Ensure spread is non-negative to avoid unexpected behavior
+            if (spread < 0)
+                throw new ArgumentException("Spread cannot be negative");
+
+            switch (spreadExecType)
+            {
+                case SpreadExecType.Add:
+                    price -= spread;
+                    break;
+                case SpreadExecType.Subtract:
+                    price += spread;
+                    break;
+                case SpreadExecType.TwiceAdd:
+                    price -= (2 * spread);
+                    break;
+                case SpreadExecType.TwiceSubtract:
+                    price += (2 * spread);
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(spreadExecType), spreadExecType, null);
+            }
+
             return price;
         }
 
+
         public static decimal CalculateSpreadExecForLong(decimal price, decimal spread, SpreadExecType spreadExecType)
         {
-            if (spreadExecType == SpreadExecType.Add)
-                price += spread;
-            else if (spreadExecType == SpreadExecType.Subtract)
-                price -= spread;
-            else if (spreadExecType == SpreadExecType.TwiceAdd)
-                price += (2 * spread);
-            else if (spreadExecType == SpreadExecType.TwiceSubtract)
-                price -= (2 * spread);
+            // Ensure spread is non-negative to avoid unexpected behavior
+            if (spread < 0)
+                throw new ArgumentException("Spread cannot be negative");
+
+            switch (spreadExecType)
+            {
+                case SpreadExecType.Add:
+                    price += spread;
+                    break;
+                case SpreadExecType.Subtract:
+                    price -= spread;
+                    break;
+                case SpreadExecType.TwiceAdd:
+                    price += (2 * spread);
+                    break;
+                case SpreadExecType.TwiceSubtract:
+                    price -= (2 * spread);
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(spreadExecType), spreadExecType, null);
+            }
+
             return price;
         }
+
     }
 }

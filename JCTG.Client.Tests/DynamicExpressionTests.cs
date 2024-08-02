@@ -11,19 +11,18 @@ namespace JCTG.Client.Tests
         {
             bars = new List<BarData>
             {
-                new() { High = 10m, Low = 5m, Timeframe = "5M" }, // First bar
-                new() { High = 15m, Low = 8m, Timeframe = "5M" }  // Second bar
+                new() { Open = 3316.08000M, High = 3329.17000M, Close = 3315.31000M, Low = 3313.64000M, Timeframe = "5M", Time = Convert.ToDateTime("2024.08.01 12:30:00") }, // First bar
+                new() { Open = 3315.28000M, High = 3332.45000M, Close = 3330.50000M, Low = 3314.20000M, Timeframe = "5M", Time = Convert.ToDateTime("2024.08.01 12:45:00") }  // Second bar
             };
         }
 
         [Test]
         public async Task EvaluateExpression_BasicExpression_ReturnsCorrectResult()
         {
-            string expression = "Bar[1].High + (Bar[1].High - Bar[0].Low)";
+            string expression = "Bar[1722515400000].Low";
 
-            decimal expected = 20m + (20m - 5m);
             decimal? result = await DynamicEvaluator.EvaluateExpressionAsync(expression, bars);
-            Assert.That(result, Is.EqualTo(expected));
+            Assert.That(result, Is.EqualTo(5m));
         }
 
         [Test]

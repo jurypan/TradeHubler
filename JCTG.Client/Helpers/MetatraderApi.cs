@@ -1,8 +1,5 @@
 using System.Globalization;
-using System.Reflection.PortableExecutable;
-using System.Threading;
 using JCTG.Models;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using static JCTG.Client.Helpers;
@@ -23,7 +20,7 @@ namespace JCTG.Client
         private readonly string pathMessages;
         private readonly string pathMarketData;
         private readonly string pathCandleCloseData;
-        private readonly string pathHistoricData;
+        private readonly string pathHistoricBarData;
         private readonly string pathDeals;
         private readonly string pathOrdersStored;
         private readonly string pathMessagesStored;
@@ -37,16 +34,16 @@ namespace JCTG.Client
         private string lastMessagesStr = "";
         private string lastMarketDataStr = "";
         private string lastCandleCloseStr = "";
-        private string lastHistoricDataStr = "";
+        private string lastHistoricBarDataStr = "";
         private string lastDealsStr = "";
 
 
-        public Dictionary<long, Order> OpenOrders { get; private set; }
+        public Dictionary<long, Order> OpenOrders { get; private set; } = [];
         public AccountInfo? AccountInfo { get; private set; }
-        public Dictionary<string, MarketData> MarketData { get; private set; }
-        public Dictionary<string, BarData> LastBarData { get; private set; }
-        public Dictionary<string, HistoricBarData> HistoricData { get; private set; }
-        public Dictionary<long, Deal> Deals { get; private set; }
+        public Dictionary<string, MarketData> MarketData { get; private set; } = [];
+        public Dictionary<string, BarData> LastBarData { get; private set; } = [];
+        public Dictionary<string, HistoricBarData> HistoricBarData { get; private set; } = [];
+        public Dictionary<long, Deal> Deals { get; private set; } = [];
 
         public long ClientId { get; private set; }
 
@@ -58,10 +55,8 @@ namespace JCTG.Client
         private Thread? messageThread;
         private Thread? marketDataThread;
         private Thread? barDataThread;
-        private Thread? historicDataThread;
+        private Thread? historicBarDataThread;
         private Thread? dealsThread;
-        private CancellationTokenSource cancellationTokenSource;
-        private CancellationToken cancellationToken;
 
         // Define the delegate for the event
         public delegate void OnOrderCreateEventHandler(long clientId, long ticketId, Order order);
@@ -82,8 +77,8 @@ namespace JCTG.Client
         public delegate void OnCandleCloseEventHandler(long clientId, string symbol, string timeFrame, DateTime time, decimal open, decimal high, decimal low, decimal close, int tickVolume);
         public event OnCandleCloseEventHandler? OnCandleCloseEvent;
 
-        public delegate void OnHistoricDataEventHandler(long clientId, string symbol, string timeFrame);
-        public event OnHistoricDataEventHandler? OnHistoricDataEvent;
+        public delegate void OnHistoricBarDataEventHandler(long clientId, string symbol, string timeFrame);
+        public event OnHistoricBarDataEventHandler? OnHistoricBarDataEvent;
 
         public delegate void OnDealCreatedEventHandler(long clientId, long dealId, Deal deal);
         public event OnDealCreatedEventHandler? OnDealCreatedEvent;
@@ -111,7 +106,7 @@ namespace JCTG.Client
             this.pathMessages = Path.Join(metaTraderDirPath, "JCTG", "JCTG_Messages.json");
             this.pathMarketData = Path.Join(metaTraderDirPath, "JCTG", "JCTG_Market_Data.json");
             this.pathCandleCloseData = Path.Join(metaTraderDirPath, "JCTG", "JCTG_Bar_Data.json");
-            this.pathHistoricData = Path.Join(metaTraderDirPath, "JCTG", "JCTG_Historic_Data.json");
+            this.pathHistoricBarData = Path.Join(metaTraderDirPath, "JCTG", "JCTG_Historic_Data.json");
             this.pathDeals = Path.Join(metaTraderDirPath, "JCTG", "JCTG_Historic_Trades.json");
             this.pathOrdersStored = Path.Join(metaTraderDirPath, "JCTG", "JCTG_Orders_Stored.json");
             this.pathMessagesStored = Path.Join(metaTraderDirPath, "JCTG", "JCTG_Messages_Stored.json");
@@ -144,8 +139,8 @@ namespace JCTG.Client
             this.barDataThread = new Thread(async () => await CheckCandleCloseAsync());
             this.barDataThread?.Start();
 
-            this.historicDataThread = new Thread(async () => await CheckHistoricDataAsync());
-            this.historicDataThread?.Start();
+            this.historicBarDataThread = new Thread(async () => await CheckHistoricDataAsync());
+            this.historicBarDataThread?.Start();
 
             this.dealsThread = new Thread(async () => await CheckDealsAsync());
             this.dealsThread?.Start();
@@ -166,7 +161,7 @@ namespace JCTG.Client
             messageThread?.Join();
             marketDataThread?.Join();
             barDataThread?.Join();
-            historicDataThread?.Join();
+            historicBarDataThread?.Join();
             dealsThread?.Join();
             await Task.FromResult(0);
         }
@@ -593,24 +588,24 @@ namespace JCTG.Client
                                 }
 
                                 // Update the historic dataOrders
-                                if (HistoricData == null)
-                                    HistoricData = new Dictionary<string, HistoricBarData>();
+                                if (HistoricBarData == null)
+                                    HistoricBarData = new Dictionary<string, HistoricBarData>();
 
                                 // Update historic candles
-                                if (HistoricData.ContainsKey(instrument))
+                                if (HistoricBarData.ContainsKey(instrument))
                                 {
                                     // Update the previous values
-                                    if (!HistoricData[instrument].BarData.Any(f => f.Time == newBarData.Time && f.Timeframe == newBarData.Timeframe))
-                                        HistoricData[instrument].BarData.Add(newBarData);
+                                    if (!HistoricBarData[instrument].BarData.Any(f => f.Time == newBarData.Time && f.Timeframe == newBarData.Timeframe))
+                                        HistoricBarData[instrument].BarData.Add(newBarData);
                                 }
                                 else
                                 {
                                     var hbd = new HistoricBarData();
                                     hbd.BarData.Add(newBarData);
-                                    HistoricData.Add(instrument, hbd);
+                                    HistoricBarData.Add(instrument, hbd);
                                 }
 
-                                foreach (var valueBD in HistoricData.Values)
+                                foreach (var valueBD in HistoricBarData.Values)
                                 {
                                     valueBD.BarData = valueBD.BarData.OrderBy(f => f.Time).ToList();
                                 }
@@ -636,13 +631,13 @@ namespace JCTG.Client
                     continue;
 
                 // Read file
-                string text = await TryReadFileAsync(pathHistoricData);
+                string text = await TryReadFileAsync(pathHistoricBarData);
 
                 // Make sure the import is new
-                if (this.AccountInfo != null && text.Length > 0 && !text.Equals(lastHistoricDataStr))
+                if (this.AccountInfo != null && text.Length > 0 && !text.Equals(lastHistoricBarDataStr))
                 {
                     // Set new ordersStored file to the variable
-                    lastHistoricDataStr = text;
+                    lastHistoricBarDataStr = text;
 
                     JObject data;
 
@@ -662,8 +657,8 @@ namespace JCTG.Client
                         continue;
                     }
 
-                    if (HistoricData == null)
-                        HistoricData = new Dictionary<string, HistoricBarData>();
+                    if (HistoricBarData == null)
+                        HistoricBarData = new Dictionary<string, HistoricBarData>();
 
                     foreach (var property in data.Properties())
                     {
@@ -687,7 +682,7 @@ namespace JCTG.Client
                                 // Foreach bardata
                                 foreach (var item in items)
                                 {
-                                    if (HistoricData.ContainsKey(instrument))
+                                    if (HistoricBarData.ContainsKey(instrument))
                                     {
                                         var obj = new BarData
                                         {
@@ -700,9 +695,9 @@ namespace JCTG.Client
                                             TickVolume = item["tick_volume"].ToObject<int>()
                                         };
                                         // Update the previous values
-                                        if (!HistoricData[instrument].BarData.Any(f => f.Time == obj.Time && f.Timeframe == obj.Timeframe))
+                                        if (!HistoricBarData[instrument].BarData.Any(f => f.Time == obj.Time && f.Timeframe == obj.Timeframe))
                                         {
-                                            HistoricData[instrument].BarData.Add(obj);
+                                            HistoricBarData[instrument].BarData.Add(obj);
                                         }
                                     }
                                     else
@@ -718,23 +713,23 @@ namespace JCTG.Client
                                             Close = item["close"].ToObject<decimal>(),
                                             TickVolume = item["tick_volume"].ToObject<int>()
                                         });
-                                        HistoricData.Add(instrument, hbd);
+                                        HistoricBarData.Add(instrument, hbd);
                                     }
                                 }
 
                                 // Trigger event
-                                OnHistoricDataEvent?.Invoke(ClientId, instrument, timeframe);
+                                OnHistoricBarDataEvent?.Invoke(ClientId, instrument, timeframe);
                             }
                         }
                     }
 
-                    foreach (var valueBD in HistoricData.Values)
+                    foreach (var valueBD in HistoricBarData.Values)
                     {
-                        valueBD.BarData = valueBD.BarData.OrderBy(f => f.Time).ToList();
+                        valueBD.BarData = [.. valueBD.BarData.OrderBy(f => f.Time)];
                     }
 
                     // Delete file
-                    TryDeleteFile(pathHistoricData);
+                    TryDeleteFile(pathHistoricBarData);
 
                     // Signal that the current dataOrders processing is complete
                     _resetHistoricBarDataEvent.Set();
