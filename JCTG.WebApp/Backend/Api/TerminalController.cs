@@ -642,7 +642,6 @@ namespace JCTG.WebApp.Backend.Api
                     SignalID = model.SignalID,
                 });
 
-
                 await dbContext.Log.AddAsync(new Entity.Log()
                 {
                     ClientID = model.ClientID,

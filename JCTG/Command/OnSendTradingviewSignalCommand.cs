@@ -12,7 +12,6 @@ namespace JCTG.Command
         public List<long>? ClientIDs { get; set; }
         public required string OrderType { get; set; }
         public required string Instrument { get; set; }
-        public long Magic { get; set; }
 
         public OnReceivingMarketOrder? MarketOrder { get; set; }
 

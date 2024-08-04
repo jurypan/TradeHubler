@@ -324,7 +324,6 @@ namespace JCTG.WebApp.Backend.Api
                                 SignalID = signal.ID,
                                 AccountID = signal.AccountID,
                                 Instrument = signal.Instrument,
-                                Magic = signal.ID,
                                 OrderType = signal.OrderType,
                                 StrategyID = signal.StrategyID,
                                 MarketOrder = signal.OrderType == "BUY" || signal.OrderType == "SELL" ? new OnReceivingMarketOrder()
@@ -389,7 +388,6 @@ namespace JCTG.WebApp.Backend.Api
                                                         AccountID = signal.AccountID,
                                                         ClientIDs = [marketAbstention.ClientID],
                                                         Instrument = signal.Instrument,
-                                                        Magic = signal.ID,
                                                         OrderType = "BUY",
                                                         StrategyID = signal.StrategyID,
                                                         MarketOrder = new OnReceivingMarketOrder()
@@ -432,7 +430,6 @@ namespace JCTG.WebApp.Backend.Api
                                                         AccountID = signal.AccountID,
                                                         ClientIDs = [marketAbstention.ClientID],
                                                         Instrument = signal.Instrument,
-                                                        Magic = signal.ID,
                                                         OrderType = "SELL",
                                                         StrategyID = signal.StrategyID,
                                                         MarketOrder = new OnReceivingMarketOrder()
@@ -545,7 +542,6 @@ namespace JCTG.WebApp.Backend.Api
                                     SignalID = existingSignal3.ID,
                                     AccountID = signal.AccountID,
                                     Instrument = signal.Instrument,
-                                    Magic = existingSignal3.ID,
                                     OrderType = signal.OrderType.ToUpper(),
                                     StrategyID = signal.StrategyID
                                 });
@@ -596,7 +592,6 @@ namespace JCTG.WebApp.Backend.Api
                                     SignalID = existingSignal4.ID,
                                     AccountID = signal.AccountID,
                                     Instrument = signal.Instrument,
-                                    Magic = existingSignal4.ID,
                                     OrderType = signal.OrderType.ToUpper(),
                                     StrategyID = signal.StrategyID
                                 });
@@ -680,7 +675,6 @@ namespace JCTG.WebApp.Backend.Api
                                     SignalID = existingSignal2.ID,
                                     AccountID = signal.AccountID,
                                     Instrument = signal.Instrument,
-                                    Magic = existingSignal2.ID,
                                     OrderType = signal.OrderType.ToUpper(),
                                     StrategyID = signal.StrategyID
                                 });
@@ -738,7 +732,6 @@ namespace JCTG.WebApp.Backend.Api
                                         SignalID = existingSignal5.ID,
                                         AccountID = signal.AccountID,
                                         Instrument = signal.Instrument,
-                                        Magic = existingSignal5.ID,
                                         OrderType = signal.OrderType.ToUpper(),
                                         StrategyID = signal.StrategyID
                                     });
