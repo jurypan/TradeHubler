@@ -949,7 +949,7 @@ namespace JCTG.Client
         /// <param name="price">Ask of the (pending) order. Can be zero for market orders.</param>
         /// <param name="stopLoss">SL as absoute price. Can be zero if the order should not have an SL. </param>
         /// <param name="takeProfit"> TP as absoute price. Can be zero if the order should not have a TP.  </param>
-        /// <param name="magic">Magic number</param>
+        /// <param name="magic">SignalID number</param>
         /// <param name="comment">Order comment</param>
         /// <param name="expiration"> Expiration time given as timestamp in seconds. Can be zero if the order should not have an expiration time.  </param>
         public void ExecuteOrder(string symbol, OrderType orderType, decimal lots, decimal price, decimal stopLoss, decimal takeProfit, int magic = 0, string? comment = null, long expiration = 0)
@@ -969,7 +969,7 @@ namespace JCTG.Client
         /// <param name="price">Ask of the (pending) order. Non-zero only works for pending orders</param>
         /// <param name="stopLoss">New stop loss price</param>
         /// <param name="takeProfit">New take profit price</param>
-        /// <param name="magic">Magic number</param>
+        /// <param name="magic">SignalID number</param>
         /// <param name="expiration">New expiration time given as timestamp in seconds. Can be zero if the order should not have an expiration time</param>
         public void ModifyOrder(long ticket, decimal lots, decimal price, decimal stopLoss, decimal takeProfit, int magic = -1, long expiration = 0)
         {
@@ -983,7 +983,7 @@ namespace JCTG.Client
         /// </summary>
         /// <param name="ticket">Ticket of the order that should be closed.</param>
         /// <param name="lots"> Volume in lots. If lots=0 it will try to close the complete position</param>
-        /// <param name="magic">Magic number</param>
+        /// <param name="magic">SignalID number</param>
         public void CloseOrder(long ticket, double lots = 0, int magic = -1)
         {
             string content = $"{ticket},{Format(lots)},{magic}";
@@ -1004,7 +1004,7 @@ namespace JCTG.Client
         /// Sends a CLOSE_ORDERS_BY_SYMBOL command to close all orders  with a given symbol.
         /// </summary>
         /// <param name="symbol"> Symbol for which all orders should be closed. </param>
-        /// <param name="magic">Magic number</param>
+        /// <param name="magic">SignalID number</param>
         public void CloseOrdersBySymbol(string symbol, int magic = -1)
         {
             string content = $"{symbol},{magic}";
@@ -1016,7 +1016,7 @@ namespace JCTG.Client
         /// <summary>
         /// Sends a CLOSE_ORDERS_BY_MAGIC command to close all orders with a given magic number.
         /// </summary>
-        /// <param name="magic"> Magic number for which all orders should be closed</param>
+        /// <param name="magic"> SignalID number for which all orders should be closed</param>
         public void CloseOrdersByMagic(int magic)
         {
             SendCommand("CLOSE_ORDERS_BY_MAGIC", magic.ToString());

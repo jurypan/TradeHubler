@@ -626,7 +626,6 @@ namespace JCTG.WebApp.Backend.Api
             if (model != null &&
                     model.ClientID > 0 &&
                     model.SignalID > 0 &&
-                    model.Magic > 0 &&
                     model.Log != null &&
                     model.Log.ErrorType != null
                     )
@@ -637,7 +636,7 @@ namespace JCTG.WebApp.Backend.Api
                     Symbol = model.Symbol,
                     Type = model.OrderType,
                     ClientID = model.ClientID,
-                    Magic = Convert.ToInt32(model.Magic),
+                    Magic = Convert.ToInt32(model.SignalID),
                     MarketAbstentionType = model.Type,
                     SignalID = model.SignalID,
                 });
@@ -675,7 +674,7 @@ namespace JCTG.WebApp.Backend.Api
             // Do null reference check
             if (model != null &&
                     model.ClientID > 0 &&
-                    model.Magic > 0 &&
+                    model.SignalID > 0 &&
                     model.Log != null &&
                     model.Log.Type != null &&
                     model.Log.Type.ToUpper() == "ERROR" &&
@@ -691,16 +690,16 @@ namespace JCTG.WebApp.Backend.Api
                     Symbol = model.Symbol,
                     Type = model.OrderType,
                     ClientID = model.ClientID,
-                    Magic = Convert.ToInt32(model.Magic),
+                    Magic = Convert.ToInt32(model.SignalID),
                     MarketAbstentionType = model.Type,
-                    SignalID = Convert.ToInt64(model.Log.Magic),
+                    SignalID = model.SignalID,
                 });
 
                 // Add as log
                 await dbContext.Log.AddAsync(new Entity.Log()
                 {
                     ClientID = model.ClientID,
-                    SignalID = model.Magic,
+                    SignalID = model.SignalID,
                     Description = model.Log.Description,
                     ErrorType = model.Log.ErrorType,
                     Message = model.Log.Message,

@@ -8,7 +8,7 @@ namespace JCTG.Events
         public string Symbol { get; set; }
         public string OrderType { get; set; }
         public MarketAbstentionType Type { get; set; }
-        public long Magic { get; set; }
+        public long SignalID { get; set; }
         public required Log Log { get; set; }
     }
 }
