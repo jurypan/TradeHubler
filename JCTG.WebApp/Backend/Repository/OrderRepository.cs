@@ -18,6 +18,20 @@ public class OrderRepository(IDbContextFactory<JCTGDbContext> dbContextFactory)
                         .ToListAsync();
     }
 
+    public async Task<List<Order>> GetAllClosedOrders(long accountId, long clientId)
+    {
+        using var context = await dbContextFactory.CreateDbContextAsync();
+        return await context.Order
+            .Include(f => f.Signal)
+            .Where(f => f.Client != null
+                        && f.Client.AccountID == accountId
+                        && f.ClientID == clientId
+                        && f.Pnl != 0
+                        )
+                        .OrderBy(f => f.DateCreated)
+                        .ToListAsync();
+    }
+
     public async Task<List<Order>> GetAllBySignalId(long accountId, long signalId)
     {
         using var context = await dbContextFactory.CreateDbContextAsync();
