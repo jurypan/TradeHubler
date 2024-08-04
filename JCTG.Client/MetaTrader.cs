@@ -280,6 +280,27 @@ namespace JCTG.Client
                                                                             // Print on the screen
                                                                             Print($"INFO : {DateTime.UtcNow} / {_appConfig.Brokers.First(f => f.ClientId == api.ClientId).Name} / {pair.TickerInMetatrader} / BUY COMMAND / {cmd.SignalID} / {cmd.StrategyID}");
 
+                                                                            // Cancel open buy or limit orders
+                                                                            if (pair.CancelStopOrLimitOrderWhenNewSignal)
+                                                                            {
+                                                                                foreach (var order in api.OpenOrders.Where(f => f.Value.Symbol == pair.TickerInMetatrader
+                                                                                                                                && f.Value.Type != null
+                                                                                                                                && (f.Value.Type.Equals("buystop") || f.Value.Type.Equals("buylimit"))
+                                                                                                                                ))
+                                                                                {
+                                                                                    // Close the order
+                                                                                    api.CloseOrder(order.Key, decimal.ToDouble(order.Value.Lots));
+
+                                                                                    // Send to logs
+                                                                                    if (_appConfig.Debug)
+                                                                                    {
+                                                                                        var message = string.Format($"CancelledPassiveOrder || Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},SignalID={cmd.SignalID},StrategyID={cmd.StrategyID},EntryExpr={cmd.PassiveOrder.EntryExpression},Risk={cmd.PassiveOrder.Risk},RR={cmd.PassiveOrder.RiskRewardRatio}");
+                                                                                        var description = string.Format($"CloseOrder || Symbol={pair.TickerInMetatrader}");
+                                                                                        await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, cmd.SignalID);
+                                                                                    }
+                                                                                }
+                                                                            }
+
                                                                             // Open order
                                                                             var comment = string.Format($"{cmd.SignalID}/{Math.Round(metadataTick.Ask, metadataTick.Digits, MidpointRounding.AwayFromZero)}/{Math.Round(sl, metadataTick.Digits, MidpointRounding.AwayFromZero)}/{(int)pair.StrategyID}/{spread}");
                                                                             var orderType = OrderType.Buy;
@@ -649,6 +670,27 @@ namespace JCTG.Client
 
                                                                             // Print on the screen
                                                                             Print($"INFO : {DateTime.UtcNow} / {_appConfig.Brokers.First(f => f.ClientId == api.ClientId).Name} / {pair.TickerInMetatrader} / SELL COMMAND / {cmd.SignalID} / {cmd.StrategyID}");
+
+                                                                            // Cancel open buy or limit orders
+                                                                            if (pair.CancelStopOrLimitOrderWhenNewSignal)
+                                                                            {
+                                                                                foreach (var order in api.OpenOrders.Where(f => f.Value.Symbol == pair.TickerInMetatrader
+                                                                                                                                && f.Value.Type != null
+                                                                                                                                && (f.Value.Type.Equals("sellstop") || f.Value.Type.Equals("selllimit"))
+                                                                                                                                ))
+                                                                                {
+                                                                                    // Close the order
+                                                                                    api.CloseOrder(order.Key, decimal.ToDouble(order.Value.Lots));
+
+                                                                                    // Send to logs
+                                                                                    if (_appConfig.Debug)
+                                                                                    {
+                                                                                        var message = string.Format($"CancelledPassiveOrder || Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},SignalID={cmd.SignalID},StrategyID={cmd.StrategyID},EntryExpr={cmd.PassiveOrder.EntryExpression},Risk={cmd.PassiveOrder.Risk},RR={cmd.PassiveOrder.RiskRewardRatio}");
+                                                                                        var description = string.Format($"CancelStopOrLimitOrderWhenNewSignal: Symbol={pair.TickerInMetatrader}");
+                                                                                        await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, cmd.SignalID);
+                                                                                    }
+                                                                                }
+                                                                            }
 
                                                                             // Open order
                                                                             var comment = string.Format($"{cmd.SignalID}/{Math.Round(price, metadataTick.Digits, MidpointRounding.AwayFromZero)}/{Math.Round(sl, metadataTick.Digits, MidpointRounding.AwayFromZero)}/{(int)pair.StrategyID}/{spread}");

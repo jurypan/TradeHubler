@@ -729,7 +729,7 @@ namespace JCTG.Client
                     }
 
                     // Delete file
-                    TryDeleteFile(pathHistoricBarData);
+                    await TryDeleteFileAsync(pathHistoricBarData);
 
                     // Signal that the current dataOrders processing is complete
                     _resetHistoricBarDataEvent.Set();

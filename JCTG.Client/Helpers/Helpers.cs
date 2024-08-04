@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using System.Globalization;
+using System.IO;
 
 namespace JCTG.Client
 {
@@ -57,14 +58,21 @@ namespace JCTG.Client
             }
         }
 
-        public static void TryDeleteFile(string path)
+        public static async Task TryDeleteFileAsync(string path)
         {
-            try
+            int maxAttempts = 6;
+            for (int attempt = 1; attempt <= maxAttempts; attempt++)
             {
-                File.Delete(path);
-            }
-            catch
-            {
+                try
+                {
+                    File.Delete(path);
+                    break; // Success, exit the loop
+                }
+                catch (IOException)
+                {
+                    if (attempt != maxAttempts)
+                        await Task.Delay(500); // Wait before retrying
+                }
             }
         }
 
