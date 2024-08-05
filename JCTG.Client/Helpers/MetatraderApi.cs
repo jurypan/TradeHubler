@@ -106,7 +106,7 @@ namespace JCTG.Client
             this.pathMessages = Path.Join(metaTraderDirPath, "JCTG", "JCTG_Messages.json");
             this.pathMarketData = Path.Join(metaTraderDirPath, "JCTG", "JCTG_Market_Data.json");
             this.pathCandleCloseData = Path.Join(metaTraderDirPath, "JCTG", "JCTG_Bar_Data.json");
-            this.pathHistoricBarData = Path.Join(metaTraderDirPath, "JCTG", "JCTG_Historic_Data.json");
+            this.pathHistoricBarData = Path.Join(metaTraderDirPath, "JCTG", "JCTG_Historic_BarData.json");
             this.pathDeals = Path.Join(metaTraderDirPath, "JCTG", "JCTG_Historic_Trades.json");
             this.pathOrdersStored = Path.Join(metaTraderDirPath, "JCTG", "JCTG_Orders_Stored.json");
             this.pathMessagesStored = Path.Join(metaTraderDirPath, "JCTG", "JCTG_Messages_Stored.json");
@@ -139,7 +139,7 @@ namespace JCTG.Client
             this.barDataThread = new Thread(async () => await CheckCandleCloseAsync());
             this.barDataThread?.Start();
 
-            this.historicBarDataThread = new Thread(async () => await CheckHistoricDataAsync());
+            this.historicBarDataThread = new Thread(async () => await CheckHistoricBarDataAsync());
             this.historicBarDataThread?.Start();
 
             this.dealsThread = new Thread(async () => await CheckDealsAsync());
@@ -620,8 +620,12 @@ namespace JCTG.Client
         /// <summary>
         /// Regularly checks the file for historic dataOrders and triggers the eventHandler.OnHistoricData() function.
         /// </summary>
-        private async Task CheckHistoricDataAsync()
+        private async Task CheckHistoricBarDataAsync()
         {
+            // Delete file
+            await TryDeleteFileAsync(pathHistoricBarData);
+
+            // Loop
             while (IsActive)
             {
 
