@@ -1,6 +1,4 @@
-﻿using JCTG.Models;
-
-namespace JCTG.Command
+﻿namespace JCTG.Command
 {
     public class OnSendTradingviewSignalCommand
     {
@@ -17,6 +15,18 @@ namespace JCTG.Command
 
         public OnReceivingPassiveOrder? PassiveOrder { get; set; }
 
+        public static OnSendTradingviewSignalCommand Close(int accountId, long signalId, string instrument, long strategyId, List<long>? clientIds = null)
+        {
+            return new OnSendTradingviewSignalCommand()
+            {
+                SignalID = signalId,
+                AccountID = accountId,
+                Instrument = instrument,
+                ClientIDs = clientIds,
+                OrderType = "CLOSE",
+                StrategyID = strategyId,
+            };
+        }
     }
 
     public class OnReceivingMarketOrder // BUY or SELL
@@ -32,4 +42,6 @@ namespace JCTG.Command
         public decimal? Risk { get; set; }
         public decimal? RiskRewardRatio { get; set; }
     }
+
+   
 }

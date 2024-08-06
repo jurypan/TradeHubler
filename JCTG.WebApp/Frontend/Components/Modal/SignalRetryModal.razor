@@ -21,7 +21,7 @@
                     <div class="row">
                         <div class="col-md-4">
                             <div class="mb-3">
-                                <label class="form-label" for="strategy">Client?</label>
+                                <label class="form-label">Client</label>
                                 <InputSelect class="form-select col-12" @bind-Value="model">
                                     <option value="0">Choose...</option>
                                     @foreach (var item in _clients)
@@ -29,6 +29,15 @@
                                         <option value="@item.ID">@item.Name</option>
                                     }
                                 </InputSelect>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label"> </label>
+                                <div class="form-check form-check-inline">
+                                    <InputCheckbox class="form-check-input success" @bind-Value="closeAllOrders" />
+                                    <label class="form-check-label">Close all orders</label>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -56,6 +65,7 @@
     private Signal signal { get; set; } = new();
     private CrudState _crudState { get; set; } = CrudState.None;
     private List<Client> _clients { get; set; } = new();
+    private bool closeAllOrders { get; set; } = false;
 
     private string _display = "none;";
     private string _cssClass = "hide";
@@ -94,8 +104,22 @@
         {
             if (_crudState == CrudState.Custom1)
             {
+                if(closeAllOrders == true)
+                {
+                    // Create model and send to the client
+                    var id1 = await _server.SendOnTradingviewSignalCommandAsync(signal.AccountID, OnSendTradingviewSignalCommand.Close(
+                            signalId: signal.ID,
+                            accountId: signal.AccountID,
+                            instrument: signal.Instrument,
+                            strategyId: signal.StrategyID,
+                            clientIds:  model == 0 ? null : new List<long>() { model }
+                        ));
+
+                    await Task.Delay(2000); // 2000 milliseconds
+                }
+
                 // Create model and send to the client
-                var id = await _server.SendOnTradingviewSignalCommandAsync(signal.AccountID, new OnSendTradingviewSignalCommand()
+                var id2 = await _server.SendOnTradingviewSignalCommandAsync(signal.AccountID, new OnSendTradingviewSignalCommand()
                     {
                         SignalID = signal.ID,
                         AccountID = signal.AccountID,
