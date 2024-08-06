@@ -1022,6 +1022,13 @@ namespace JCTG.Client
                                                                 // Calculate SL
                                                                 sl = RiskCalculator.CalculateSpreadExecForShort(sl, spread, pair.SpreadSLtoBE.Value);
                                                             }
+
+                                                            // Check if the BID price is higher than the SL price
+                                                            if (sl <= metadataTick.Bid)
+                                                            {
+                                                                // Set SL to 1 tick above the current price
+                                                                sl = metadataTick.Bid + metadataTick.TickSize;
+                                                            }
                                                         }
                                                         else
                                                         {
@@ -1033,6 +1040,13 @@ namespace JCTG.Client
                                                             {
                                                                 // Calculate SL
                                                                 sl = RiskCalculator.CalculateSpreadExecForLong(sl, spread, pair.SpreadSLtoBE.Value);
+                                                            }
+
+                                                            // Check if the ASK price is higher than the SL price
+                                                            if (sl >= metadataTick.Ask)
+                                                            {
+                                                                // Set SL to 1 tick above the current price
+                                                                sl = metadataTick.Ask + metadataTick.TickSize;
                                                             }
                                                         }
 

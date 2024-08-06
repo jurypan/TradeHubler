@@ -8,6 +8,9 @@ namespace JCTG.Models
         private decimal _ask;
         private decimal _bid;
 
+        /// <summary>
+        /// BUY price
+        /// </summary>
         [JsonProperty("ask")]
         public decimal Ask
         {
@@ -15,6 +18,9 @@ namespace JCTG.Models
             set { _ask = value; }
         }
 
+        /// <summary>
+        /// SELL price
+        /// </summary>
         [JsonProperty("bid")]
         public decimal Bid
         {

@@ -110,6 +110,7 @@
                         } : null,
                         PassiveOrder = signal.OrderType == "BUYSTOP" || signal.OrderType == "SELLSTOP" ? new OnReceivingPassiveOrder()
                         {
+                            StopLossExpression = signal.StopLossExpression,
                             EntryExpression = signal.EntryExpression,
                             Risk = Convert.ToDecimal(signal.Risk),
                             RiskRewardRatio = Convert.ToDecimal(signal.RiskRewardRatio),
