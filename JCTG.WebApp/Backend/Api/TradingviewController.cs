@@ -319,29 +319,105 @@ namespace JCTG.WebApp.Backend.Api
                             _logger.Information($"Added to database in table Signal with ID: {signal.ID}", signal);
 
                             // Create model and send to the client
-                            var id = await _server.SendOnTradingviewSignalCommandAsync(signal.AccountID, new OnSendTradingviewSignalCommand()
+                            if(signal.OrderType.Equals("BUY", StringComparison.CurrentCultureIgnoreCase))
                             {
-                                SignalID = signal.ID,
-                                AccountID = signal.AccountID,
-                                Instrument = signal.Instrument,
-                                OrderType = signal.OrderType,
-                                StrategyID = signal.StrategyID,
-                                MarketOrder = signal.OrderType == "BUY" || signal.OrderType == "SELL" ? new OnReceivingMarketOrder()
-                                {
-                                    Risk = Convert.ToDecimal(signal.Risk),
-                                    RiskRewardRatio = Convert.ToDecimal(signal.RiskRewardRatio)
-                                } : null,
-                                PassiveOrder = signal.OrderType == "BUYSTOP" || signal.OrderType == "SELLSTOP" ? new OnReceivingPassiveOrder()
-                                {
-                                    EntryExpression = signal.EntryExpression,
-                                    Risk = Convert.ToDecimal(signal.Risk),
-                                    RiskRewardRatio = Convert.ToDecimal(signal.RiskRewardRatio),
-                                    StopLossExpression = signal.StopLossExpression,
-                                } : null,
-                            });
+                                var id = await _server.SendOnTradingviewSignalCommandAsync(signal.AccountID, OnSendTradingviewSignalCommand.Buy
+                                    (
+                                        signalId: signal.ID,
+                                        accountId: signal.AccountID,
+                                        instrument: signal.Instrument,
+                                        strategyId: signal.StrategyID,
+                                        risk: signal.Risk,
+                                        riskToRewardRatio: signal.RiskRewardRatio
+                                    ));
 
-                            // Add log
-                            _logger.Information($"Sent to Azure Queue with response client request id: {id}", id);
+                                // Add log
+                                _logger.Information($"Sent to Azure Queue with response client request id: {id}", id);
+                            }
+                            else if (signal.OrderType.Equals("SELL", StringComparison.CurrentCultureIgnoreCase))
+                            {
+                                var id = await _server.SendOnTradingviewSignalCommandAsync(signal.AccountID, OnSendTradingviewSignalCommand.Sell
+                                    (
+                                        signalId: signal.ID,
+                                        accountId: signal.AccountID,
+                                        instrument: signal.Instrument,
+                                        strategyId: signal.StrategyID,
+                                        risk: signal.Risk,
+                                        riskToRewardRatio: signal.RiskRewardRatio
+                                    ));
+
+                                // Add log
+                                _logger.Information($"Sent to Azure Queue with response client request id: {id}", id);
+                            }
+                            else if (signal.OrderType.Equals("BUYSTOP", StringComparison.CurrentCultureIgnoreCase))
+                            {
+                                var id = await _server.SendOnTradingviewSignalCommandAsync(signal.AccountID, OnSendTradingviewSignalCommand.BuyStop
+                                    (
+                                        signalId: signal.ID,
+                                        accountId: signal.AccountID,
+                                        instrument: signal.Instrument,
+                                        strategyId: signal.StrategyID,
+                                        risk: signal.Risk,
+                                        riskToRewardRatio: signal.RiskRewardRatio,
+                                        entryExpression: signal.EntryExpression,
+                                        stopLossExpression: signal.StopLossExpression
+                                    ));
+
+                                // Add log
+                                _logger.Information($"Sent to Azure Queue with response client request id: {id}", id);
+                            }
+                            else if (signal.OrderType.Equals("BUYLIMIT", StringComparison.CurrentCultureIgnoreCase))
+                            {
+                                var id = await _server.SendOnTradingviewSignalCommandAsync(signal.AccountID, OnSendTradingviewSignalCommand.BuyLimit
+                                    (
+                                        signalId: signal.ID,
+                                        accountId: signal.AccountID,
+                                        instrument: signal.Instrument,
+                                        strategyId: signal.StrategyID,
+                                        risk: signal.Risk,
+                                        riskToRewardRatio: signal.RiskRewardRatio,
+                                        entryExpression: signal.EntryExpression,
+                                        stopLossExpression: signal.StopLossExpression
+                                    ));
+
+                                // Add log
+                                _logger.Information($"Sent to Azure Queue with response client request id: {id}", id);
+                            }
+                            else if (signal.OrderType.Equals("SELLSTOP", StringComparison.CurrentCultureIgnoreCase))
+                            {
+                                var id = await _server.SendOnTradingviewSignalCommandAsync(signal.AccountID, OnSendTradingviewSignalCommand.SellStop
+                                    (
+                                        signalId: signal.ID,
+                                        accountId: signal.AccountID,
+                                        instrument: signal.Instrument,
+                                        strategyId: signal.StrategyID,
+                                        risk: signal.Risk,
+                                        riskToRewardRatio: signal.RiskRewardRatio,
+                                        entryExpression: signal.EntryExpression,
+                                        stopLossExpression: signal.StopLossExpression
+                                    ));
+
+                                // Add log
+                                _logger.Information($"Sent to Azure Queue with response client request id: {id}", id);
+                            }
+                            else if (signal.OrderType.Equals("SELLLIMIT", StringComparison.CurrentCultureIgnoreCase))
+                            {
+                                var id = await _server.SendOnTradingviewSignalCommandAsync(signal.AccountID, OnSendTradingviewSignalCommand.SellLimit
+                                    (
+                                        signalId: signal.ID,
+                                        accountId: signal.AccountID,
+                                        instrument: signal.Instrument,
+                                        strategyId: signal.StrategyID,
+                                        risk: signal.Risk,
+                                        riskToRewardRatio: signal.RiskRewardRatio,
+                                        entryExpression: signal.EntryExpression,
+                                        stopLossExpression: signal.StopLossExpression
+                                    ));
+
+                                // Add log
+                                _logger.Information($"Sent to Azure Queue with response client request id: {id}", id);
+                            }
+
                             break;
                         case "entry":
                         case "tphit":
@@ -382,20 +458,16 @@ namespace JCTG.WebApp.Backend.Api
                                                 if (flag == false)
                                                 {
                                                     // Create model and send to the client
-                                                    id = await _server.SendOnTradingviewSignalCommandAsync(signal.AccountID, new OnSendTradingviewSignalCommand()
-                                                    {
-                                                        SignalID = signal.ID,
-                                                        AccountID = signal.AccountID,
-                                                        ClientIDs = [marketAbstention.ClientID],
-                                                        Instrument = signal.Instrument,
-                                                        OrderType = "BUY",
-                                                        StrategyID = signal.StrategyID,
-                                                        MarketOrder = new OnReceivingMarketOrder()
-                                                        {
-                                                            Risk = Convert.ToDecimal(signal.Risk),
-                                                            RiskRewardRatio = Convert.ToDecimal(signal.RiskRewardRatio),
-                                                        },
-                                                    });
+                                                    var id = await _server.SendOnTradingviewSignalCommandAsync(signal.AccountID, OnSendTradingviewSignalCommand.Buy
+                                                    (
+                                                        signalId: signal.ID,
+                                                        accountId: signal.AccountID,
+                                                        instrument: signal.Instrument,
+                                                        strategyId: signal.StrategyID,
+                                                        risk: signal.Risk,
+                                                        riskToRewardRatio: signal.RiskRewardRatio,
+                                                        clientIds: [marketAbstention.ClientID]
+                                                    ));
 
                                                     // Add log
                                                     _logger.Information($"Sent to Azure Queue with response client request id: {id}", id);
@@ -424,20 +496,16 @@ namespace JCTG.WebApp.Backend.Api
                                                 if (flag == false)
                                                 {
                                                     // Create model and send to the client
-                                                    id = await _server.SendOnTradingviewSignalCommandAsync(signal.AccountID, new OnSendTradingviewSignalCommand()
-                                                    {
-                                                        SignalID = signal.ID,
-                                                        AccountID = signal.AccountID,
-                                                        ClientIDs = [marketAbstention.ClientID],
-                                                        Instrument = signal.Instrument,
-                                                        OrderType = "SELL",
-                                                        StrategyID = signal.StrategyID,
-                                                        MarketOrder = new OnReceivingMarketOrder()
-                                                        {
-                                                            Risk = Convert.ToDecimal(signal.Risk),
-                                                            RiskRewardRatio = Convert.ToDecimal(signal.RiskRewardRatio),
-                                                        },
-                                                    });
+                                                    var id = await _server.SendOnTradingviewSignalCommandAsync(signal.AccountID, OnSendTradingviewSignalCommand.Sell
+                                                    (
+                                                        signalId: signal.ID,
+                                                        accountId: signal.AccountID,
+                                                        instrument: signal.Instrument,
+                                                        strategyId: signal.StrategyID,
+                                                        risk: signal.Risk,
+                                                        riskToRewardRatio: signal.RiskRewardRatio,
+                                                        clientIds: [marketAbstention.ClientID]
+                                                    ));
 
                                                     // Add log
                                                     _logger.Information($"Sent to Azure Queue with response client request id: {id}", id);
@@ -491,6 +559,9 @@ namespace JCTG.WebApp.Backend.Api
                                     Type = TradingviewAlert.ParseTradingviewAlertTypeOrDefault(signal.OrderType.ToLower()),
                                 });
 
+                                // Send close order if is there is an open order
+
+
                                 // Update database
                                 _logger.Information($"Updated database in table Signal with ID: {existingSignal.ID}", existingSignal);
 
@@ -537,14 +608,13 @@ namespace JCTG.WebApp.Backend.Api
                                 _logger.Information($"Updated database in table Signal with ID: {existingSignal3.ID}", existingSignal3);
 
                                 // Create model and send to the client
-                                var id2 = await _server.SendOnTradingviewSignalCommandAsync(signal.AccountID, new OnSendTradingviewSignalCommand()
-                                {
-                                    SignalID = existingSignal3.ID,
-                                    AccountID = signal.AccountID,
-                                    Instrument = signal.Instrument,
-                                    OrderType = signal.OrderType.ToUpper(),
-                                    StrategyID = signal.StrategyID
-                                });
+                                var id2 = await _server.SendOnTradingviewSignalCommandAsync(signal.AccountID, OnSendTradingviewSignalCommand.Close
+                                (
+                                    signalId: existingSignal3.ID,
+                                    accountId: signal.AccountID,
+                                    instrument: signal.Instrument,
+                                    strategyId: signal.StrategyID
+                                ));
                             }
                             else
                             {
@@ -587,14 +657,13 @@ namespace JCTG.WebApp.Backend.Api
                                 _logger.Information($"Updated database in table Signal with ID: {existingSignal4.ID}", existingSignal4);
 
                                 // Create model and send to the client
-                                var id4 = await _server.SendOnTradingviewSignalCommandAsync(signal.AccountID, new OnSendTradingviewSignalCommand()
-                                {
-                                    SignalID = existingSignal4.ID,
-                                    AccountID = signal.AccountID,
-                                    Instrument = signal.Instrument,
-                                    OrderType = signal.OrderType.ToUpper(),
-                                    StrategyID = signal.StrategyID
-                                });
+                                var id4 = await _server.SendOnTradingviewSignalCommandAsync(signal.AccountID, OnSendTradingviewSignalCommand.MoveSLtoBE
+                                (
+                                    signalId: existingSignal4.ID,
+                                    accountId: signal.AccountID,
+                                    instrument: signal.Instrument,
+                                    strategyId: signal.StrategyID
+                                ));
                             }
                             else
                             {
@@ -670,14 +739,13 @@ namespace JCTG.WebApp.Backend.Api
                                 _logger.Information($"Updated database in table Signal with ID: {existingSignal2.ID}", existingSignal2);
 
                                 // Create model and send to the client
-                                var id3 = await _server.SendOnTradingviewSignalCommandAsync(signal.AccountID, new OnSendTradingviewSignalCommand()
-                                {
-                                    SignalID = existingSignal2.ID,
-                                    AccountID = signal.AccountID,
-                                    Instrument = signal.Instrument,
-                                    OrderType = signal.OrderType.ToUpper(),
-                                    StrategyID = signal.StrategyID
-                                });
+                                var id3 = await _server.SendOnTradingviewSignalCommandAsync(signal.AccountID, OnSendTradingviewSignalCommand.CloseAll
+                                (
+                                    signalId: existingSignal2.ID,
+                                    accountId: signal.AccountID,
+                                    instrument: signal.Instrument,
+                                    strategyId: signal.StrategyID
+                                ));
                             }
                             else
                             {
@@ -727,14 +795,13 @@ namespace JCTG.WebApp.Backend.Api
                                     _logger.Information($"Updated database in table Signal with ID: {existingSignal5.ID}", existingSignal5);
 
                                     // Create model and send to the client
-                                    var id4 = await _server.SendOnTradingviewSignalCommandAsync(signal.AccountID, new OnSendTradingviewSignalCommand()
-                                    {
-                                        SignalID = existingSignal5.ID,
-                                        AccountID = signal.AccountID,
-                                        Instrument = signal.Instrument,
-                                        OrderType = signal.OrderType.ToUpper(),
-                                        StrategyID = signal.StrategyID
-                                    });
+                                    var id4 = await _server.SendOnTradingviewSignalCommandAsync(signal.AccountID, OnSendTradingviewSignalCommand.Cancel
+                                    (
+                                        signalId: existingSignal5.ID,
+                                        accountId: signal.AccountID,
+                                        instrument: signal.Instrument,
+                                        strategyId: signal.StrategyID
+                                    ));
                                 }
                                 {
                                     // Add error to log
