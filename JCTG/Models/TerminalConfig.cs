@@ -25,8 +25,6 @@ namespace JCTG.Models
     {
         public Brokers()
         {
-            Pairs = [];
-            Risk = [];
             MetaTraderDirPath = string.Empty;
             Name = string.Empty;
         }
@@ -35,10 +33,10 @@ namespace JCTG.Models
         public string Name { get; set; }
         public string MetaTraderDirPath { get; set; }
         public bool IsEnable { get; set; }
-        public List<Pairs> Pairs { get; set; }
+        public List<Pairs> Pairs { get; set; } = [];
         public double StartBalance { get; set; }
-        public List<Risk> Risk { get; set; }
-        
+        public List<Risk> Risk { get; set; } = [];
+
     }
     public class Pairs
     {

@@ -126,7 +126,7 @@ namespace JCTG.Client
             if (loadDataFromFile)
                 await LoadDataAsync();
 
-            // Start the thread to run the asynchronous method
+            // StartCheckTimeAndExecuteOnceDaily the thread to run the asynchronous method
             this.openOrdersThread = new Thread(async () => await CheckOpenOrdersAsync());
             this.openOrdersThread?.Start();
 
@@ -935,7 +935,7 @@ namespace JCTG.Client
         /// </summary>
         /// <param name="symbol"> Symbol to get historic dataOrders</param>
         /// <param name="timeFrame">Time frame for the requested dataOrders</param>
-        /// <param name="start">Start timestamp (seconds since epoch) of the requested dataOrders</param>
+        /// <param name="start">StartCheckTimeAndExecuteOnceDaily timestamp (seconds since epoch) of the requested dataOrders</param>
         /// <param name="end">End timestamp of the requested dataOrders</param>
         public void GetHistoricData(string symbol, string timeFrame, DateTimeOffset start, DateTimeOffset end)
         {

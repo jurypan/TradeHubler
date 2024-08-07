@@ -331,15 +331,13 @@
             if (signal != null)
             {
                 // Create model and send to the client
-                var id = await _server.SendOnTradingviewSignalCommandAsync(692803787, new OnSendTradingviewSignalCommand()
-                    {
-                        SignalID = signal.ID,
-                        AccountID = signal.AccountID,
-                        Instrument = signal.Instrument,
-                        ClientIDs = new List<long>() { order.ClientID },
-                        OrderType = "CLOSE",
-                        StrategyID = signal.StrategyID
-                    });
+                var id = await _server.SendOnTradingviewSignalCommandAsync(signal.AccountID, OnSendTradingviewSignalCommand.Close(
+                        signalId: signal.ID,
+                        accountId: signal.AccountID,
+                        instrument: signal.Instrument,
+                        strategyId: signal.StrategyID,
+                        clientIds: new List<long>() { order.ClientID }
+                    ));
             }
         }
     }

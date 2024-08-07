@@ -47,6 +47,8 @@ namespace JCTG.WebApp.Backend.Api
 
             _logger.Debug($"!! TRADINGVIEW SIGNAL : {requestBody}");
 
+            // Put message on the bus and read bus from another call because webhook of Tradingview can only take 3 seconds
+
 
             if (!string.IsNullOrEmpty(requestBody))
             {

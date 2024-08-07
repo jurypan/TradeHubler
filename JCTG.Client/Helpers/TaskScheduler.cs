@@ -11,6 +11,7 @@
 
         public void Start(TimeSpan targetTime)
         {
+            lastExecutionDate = DateTime.UtcNow.AddMinutes(-1);
             timerCheckTimeAndExecuteOnceDaily = new(CheckTimeAndExecuteOnceDaily, null, TimeSpan.Zero, TimeSpan.FromSeconds(5));
         }
 

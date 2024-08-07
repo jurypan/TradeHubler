@@ -1,7 +1,6 @@
 ﻿using JCTG.Events;
 using JCTG.Models;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using System.Collections.Concurrent;
 using System.Text.RegularExpressions;
@@ -58,7 +57,7 @@ namespace JCTG.Client
             // Check if app config is not null
             if (_appConfig != null)
             {
-                // Start the system
+                // StartCheckTimeAndExecuteOnceDaily the system
                 _ = Parallel.ForEach(_apis, async _api =>
                 {
                     // Get the broker from the local database
@@ -81,7 +80,7 @@ namespace JCTG.Client
                         _api.OnAccountInfoChangedEvent += OnAccountInfoChangedEvent;
                         _api.OnHistoricBarDataEvent += OnHistoricBarDataEvent;
 
-                        // Start the API
+                        // StartCheckTimeAndExecuteOnceDaily the API
                         await _api.StartAsync();
 
                         // Subscribe foreach pair
@@ -112,7 +111,7 @@ namespace JCTG.Client
             // Check if app config is not null
             if (_appConfig != null)
             {
-                // Start the system
+                // StartCheckTimeAndExecuteOnceDaily the system
                 _ = Parallel.ForEach(_apis, async _api =>
                 {
                     // Get the broker from the local database
@@ -121,9 +120,6 @@ namespace JCTG.Client
                     // do null reference checks
                     if (_api != null && broker != null && broker.Pairs.Count != 0)
                     {
-                        // Load logs into memory
-                        await LoadLogFromFileAsync(_api.ClientId);
-
                         // Init the events
                         _api.OnOrderCreateEvent -= OnOrderCreateEvent;
                         _api.OnOrderUpdateEvent -= OnOrderUpdateEvent;
@@ -135,7 +131,7 @@ namespace JCTG.Client
                         _api.OnAccountInfoChangedEvent -= OnAccountInfoChangedEvent;
                         _api.OnHistoricBarDataEvent -= OnHistoricBarDataEvent;
 
-                        // Start the API
+                        // StartCheckTimeAndExecuteOnceDaily the API
                         await _api.StopAsync();
 
                         // Init close trades on a particular time
@@ -180,7 +176,7 @@ namespace JCTG.Client
                                 // Get the right pair back from the local database
                                 var pair = new List<Pairs>(_appConfig.Brokers.Where(f => f.ClientId == api.ClientId).SelectMany(f => f.Pairs)).FirstOrDefault(f => f.TickerInTradingView.Equals(cmd.Instrument) && f.StrategyID == cmd.StrategyID);
 
-                                // Start balance
+                                // StartCheckTimeAndExecuteOnceDaily balance
                                 var startbalance = _appConfig.Brokers.First(f => f.ClientId == api.ClientId).StartBalance;
 
                                 // Get dynamic risk
@@ -1023,11 +1019,11 @@ namespace JCTG.Client
                                                                 sl = RiskCalculator.CalculateSpreadExecForShort(sl, spread, pair.SpreadSLtoBE.Value);
                                                             }
 
-                                                            // Check if the BID price is higher than the SL price
-                                                            if (sl <= metadataTick.Bid)
+                                                            // Check if the current price + spread is lower than the SL price
+                                                            if (sl <= metadataTick.Ask)
                                                             {
                                                                 // Set SL to 1 tick above the current price
-                                                                sl = metadataTick.Bid + metadataTick.TickSize;
+                                                                sl = metadataTick.Ask + (2 * metadataTick.TickSize);
                                                             }
                                                         }
                                                         else
@@ -1042,11 +1038,11 @@ namespace JCTG.Client
                                                                 sl = RiskCalculator.CalculateSpreadExecForLong(sl, spread, pair.SpreadSLtoBE.Value);
                                                             }
 
-                                                            // Check if the ASK price is higher than the SL price
-                                                            if (sl >= metadataTick.Ask)
+                                                            // Check if the current price + spread is higher than the SL price
+                                                            if (sl >= metadataTick.Bid)
                                                             {
                                                                 // Set SL to 1 tick above the current price
-                                                                sl = metadataTick.Ask + metadataTick.TickSize;
+                                                                sl = metadataTick.Bid + (2 * metadataTick.TickSize);
                                                             }
                                                         }
 
@@ -1098,7 +1094,7 @@ namespace JCTG.Client
                                                         // Print on the screen
                                                         Print($"INFO : {DateTime.UtcNow} / {_appConfig.Brokers.First(f => f.ClientId == api.ClientId).Name} / {pair.TickerInMetatrader} {pair.TickerInMetatrader} / {cmd.OrderType} COMMAND / {cmd.SignalID}");
 
-                                                        // Modify order
+                                                        // Close order
                                                         api.CloseOrder(ticketId.Key, decimal.ToDouble(ticketId.Value.Lots));
 
                                                         // Send to logs
@@ -1388,7 +1384,7 @@ namespace JCTG.Client
                         }
                     };
 
-                    // Start listening to the queue
+                    // StartCheckTimeAndExecuteOnceDaily listening to the queue
                     await azureQueue.ListeningToServerAsync();
                 }
             }
@@ -1460,7 +1456,7 @@ namespace JCTG.Client
             // Check if app config is not null
             if (_appConfig != null && _apis != null)
             {
-                // Start the system
+                // StartCheckTimeAndExecuteOnceDaily the system
                 foreach (var api in _apis.Where(f => f.IsActive && f.ClientId == clientId && f.OpenOrders != null && f.OpenOrders.Count > 0))
                 {
                     // Clone the open order
@@ -1878,39 +1874,6 @@ namespace JCTG.Client
             }
         }
 
-        public async Task LoadLogFromFileAsync(long clientId)
-        {
-            if (_appConfig != null && _appConfig.Brokers.Any(f => f.ClientId == clientId))
-            {
-                var pair = _appConfig.Brokers.First(f => f.ClientId == clientId);
-
-                string fileName = $"JCTG_Logs.json";
-                await _semaphore.WaitAsync();
-                try
-                {
-                    if (File.Exists(fileName))
-                    {
-                        var json = await File.ReadAllTextAsync(pair.MetaTraderDirPath + "JCTG\\" + fileName);
-                        var logsFromFile = JsonConvert.DeserializeObject<List<Log>>(json) ?? [];
-
-                        var logs = _buffers.GetOrAdd(clientId, []);
-                        lock (logs) // Ensure thread-safety
-                        {
-                            // Assuming we want to replace the current buffer with the file contents
-                            logs.Clear();
-                            logs.AddRange(logsFromFile);
-                            logs = logs?.OrderByDescending(f => f.Time).ToList();
-                        }
-                    }
-                }
-                finally
-                {
-                    _semaphore.Release();
-                }
-            }
-
-        }
-
         private async Task RaiseMarketAbstentionAsync(long clientId, long signalId, string symbol, string orderType, MarketAbstentionType type, Log log)
         {
             // Do null reference check
@@ -1947,24 +1910,51 @@ namespace JCTG.Client
             }
         }
 
+        public async Task LoadLogFromFileAsync(long clientId)
+        {
+            if (_appConfig?.Brokers.Any(f => f.ClientId == clientId) == true)
+            {
+                var pair = _appConfig.Brokers.First(f => f.ClientId == clientId);
+                string fileName = "JCTG_Logs.json";
+
+                await _semaphore.WaitAsync();
+                try
+                {
+                    string fullPath = Path.Combine(pair.MetaTraderDirPath, "JCTG", fileName);
+                    if (File.Exists(fullPath))
+                    {
+                        var json = await File.ReadAllTextAsync(fullPath);
+                        var logsFromFile = JsonConvert.DeserializeObject<List<Log>>(json) ?? new List<Log>();
+
+                        var logs = _buffers.GetOrAdd(clientId, _ => []);
+                        lock (logs)
+                        {
+                            logs.Clear();
+                            logs.AddRange(logsFromFile.OrderByDescending(f => f.Time));
+                        }
+                    }
+                }
+                finally
+                {
+                    _semaphore.Release();
+                }
+            }
+        }
+
         private async Task LogAsync(long clientId, Log log, long? magic = null)
         {
-            // Do null reference check
-            if (_appConfig != null && _apis != null && (_apis.Count(f => f.ClientId == clientId) == 1 || clientId == 0) && _appConfig.DropLogsInFile)
+            if (_appConfig?.DropLogsInFile == true && (_apis?.Count(f => f.ClientId == clientId) == 1 || clientId == 0))
             {
-                // Send the tradejournal to Azure PubSub server
-                await HttpCall.OnLogEvent(new OnLogEvent()
+                await HttpCall.OnLogEvent(new OnLogEvent
                 {
                     ClientID = clientId,
                     Magic = magic,
                     Log = log
                 });
 
-                // Buffer log
-                var logs = _buffers.GetOrAdd(clientId, []);
-                lock (logs) // Ensure thread-safety for list modification
+                var logs = _buffers.GetOrAdd(clientId, _ => new List<Log>());
+                lock (logs)
                 {
-                    // Add log to the list
                     logs.Add(log);
                 }
             }
@@ -1972,19 +1962,16 @@ namespace JCTG.Client
 
         private async Task FlushLogsToFileAsync()
         {
-            if (_appConfig == null || _apis == null)
-                return;
+            if (_appConfig == null || _apis == null) return;
 
-            foreach (var clientId in _buffers.Keys.ToList()) // ToList to avoid collection modification issues
+            var tasks = _buffers.Keys.Select(async clientId =>
             {
                 List<Log> logsToWrite = [];
                 bool logsAvailable = false;
-                var pair = _appConfig.Brokers.FirstOrDefault(f => f.ClientId == clientId);
 
-                // Attempt to safely retrieve and clear the buffer for the current clientID
-                if (_buffers.TryGetValue(clientId, out var logs))
+                if (_appConfig.Brokers.FirstOrDefault(f => f.ClientId == clientId) is { } pair && _buffers.TryGetValue(clientId, out var logs))
                 {
-                    lock (logs) // Ensure thread-safety for list modification
+                    lock (logs)
                     {
                         if (logs.Count > 0)
                         {
@@ -1992,44 +1979,30 @@ namespace JCTG.Client
                             logsAvailable = true;
                         }
                     }
-                }
 
-                // Do null reference check
-                if (pair != null)
-                {
                     if (logsAvailable)
                     {
-                        // Filename
                         string fileName = "JCTG_Logs.json";
-
-                        // Wait until it's safe to enter
                         await _semaphore.WaitAsync();
-
                         try
                         {
-                            // Perform log processing only if there are logs to write
-                            // Filter logs to keep only the last month's logs
-                            logsToWrite = logsToWrite.Where(log => log.Time >= DateTime.UtcNow.AddMonths(-1)).ToList();
-
-                            // Make sure the last item is on top
-                            logsToWrite.Sort((x, y) => y.Time.CompareTo(x.Time));
-
-                            // Write file back
-                            await TryWriteFileAsync(pair.MetaTraderDirPath + "JCTG\\" + fileName, JsonConvert.SerializeObject(logsToWrite));
+                            string fullPath = Path.Combine(pair.MetaTraderDirPath, "JCTG", fileName);
+                            logsToWrite = [.. logsToWrite.Where(log => log.Time >= DateTime.UtcNow.AddMonths(-1)).OrderByDescending(log => log.Time)];
+                            await TryWriteFileAsync(fullPath, JsonConvert.SerializeObject(logsToWrite));
                         }
                         catch (Exception ex)
                         {
-                            // Consider logging the exception or handling it as needed
                             Console.WriteLine($"Error writing logs for clientID {clientId}: {ex.Message}");
                         }
                         finally
                         {
-                            // Always release the semaphore
                             _semaphore.Release();
                         }
                     }
                 }
-            }
+            });
+
+            await Task.WhenAll(tasks);
         }
 
         // Ensure to call this method to properly dispose of the timerCheckTimeAndExecuteOnceDaily when the LogManager is no longer needed

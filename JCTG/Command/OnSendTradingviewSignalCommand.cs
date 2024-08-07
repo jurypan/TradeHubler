@@ -167,7 +167,6 @@ namespace JCTG.Command
             };
         }
 
-
         public static OnSendTradingviewSignalCommand Sell(int accountId, long signalId, string instrument, long strategyId, double risk, double riskToRewardRatio, List<long>? clientIds = null)
         {
             return new OnSendTradingviewSignalCommand()

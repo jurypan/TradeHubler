@@ -59,7 +59,7 @@ namespace JCTG.Client
             // Create the content to send in the request
             var content = new StringContent(jsonData, Encoding.UTF8, "application/json");
 
-            // Start the task of sending the request without awaiting it
+            // StartCheckTimeAndExecuteOnceDaily the task of sending the request without awaiting it
             _ = _httpClient.PostAsync(url, content);
 
             //await Task.Yield();
