@@ -5,6 +5,7 @@ using Newtonsoft.Json;
 using Microsoft.EntityFrameworkCore;
 using JCTG.WebApp.Backend.Queue;
 using Microsoft.AspNetCore.Authorization;
+using System.Threading.Tasks;
 
 
 namespace JCTG.WebApp.Backend.Api
@@ -47,9 +48,15 @@ namespace JCTG.WebApp.Backend.Api
 
             _logger.Debug($"!! TRADINGVIEW SIGNAL : {requestBody}");
 
-            // Put message on the bus and read bus from another call because webhook of Tradingview can only take 3 seconds
+            // Start the background task
+            Task.Run(() => ProcessTradingViewSignal(requestBody));
 
+            // Respond immediately
+            return Ok("Received successfully");
+        }
 
+        private async Task ProcessTradingViewSignal(string requestBody)
+        {
             if (!string.IsNullOrEmpty(requestBody))
             {
                 try
@@ -62,38 +69,38 @@ namespace JCTG.WebApp.Backend.Api
                     if (signal.AccountID == 0)
                     {
                         _logger.Error($"'licenseId' is mandatory for {signal.OrderType}");
-                        return BadRequest("'licenseId' is mandatory");
+                        return;
                     }
 
                     if (signal.Magic == 0)
                     {
                         _logger.Error($"'magic' is mandatory for {signal.OrderType}");
-                        return BadRequest("'magic' is mandatory");
+                        return;
                     }
 
                     if (string.IsNullOrEmpty(signal.Instrument))
                     {
                         _logger.Error($"'ticker' is mandatory for {signal.OrderType}");
-                        return BadRequest("'ticker' is mandatory");
+                        return;
                     }
 
                     if (string.IsNullOrEmpty(signal.OrderType))
                     {
                         _logger.Error($"'ordertype' is mandatory for {signal.OrderType}");
-                        return BadRequest("'ordertype' is mandatory");
+                        return;
                     }
 
                     if (signal.StrategyID == 0)
                     {
                         _logger.Error($"'strategy' is mandatory for {signal.OrderType}");
-                        return BadRequest("'strategy' is mandatory");
+                        return;
                     }
                     else
                     {
                         if (!_dbContext.Strategy.Any(f => f.AccountID == signal.AccountID && f.ID == signal.StrategyID))
                         {
                             _logger.Error($"'strategy' with id {signal.StrategyID} doesn't exist for this account");
-                            return BadRequest("'strategy' doesn't exist");
+                            return;
                         }
                     }
 
@@ -107,31 +114,31 @@ namespace JCTG.WebApp.Backend.Api
                             if (signal.Risk == 0)
                             {
                                 _logger.Error($"'risk' is mandatory for {signal.OrderType}");
-                                return BadRequest("'risk' is mandatory");
+                                return;
                             }
 
                             if (signal.RiskRewardRatio == 0)
                             {
                                 _logger.Error($"'rr' is mandatory for {signal.OrderType}");
-                                return BadRequest("'rr' is mandatory");
+                                return;
                             }
 
                             if (!signal.EntryPrice.HasValue)
                             {
                                 _logger.Error($"'entryprice' is mandatory for {signal.OrderType}");
-                                return BadRequest("'entryprice' is mandatory");
+                                return;
                             }
 
                             if (!signal.StopLoss.HasValue)
                             {
                                 _logger.Error($"'sl' is mandatory for {signal.OrderType}");
-                                return BadRequest("'sl' is mandatory");
+                                return;
                             }
 
                             if (!signal.TakeProfit.HasValue)
                             {
                                 _logger.Error($"'tp' is mandatory for {signal.OrderType}");
-                                return BadRequest("'tp' is mandatory");
+                                return;
                             }
 
                             break;
@@ -143,76 +150,77 @@ namespace JCTG.WebApp.Backend.Api
                             if (signal.Risk == 0)
                             {
                                 _logger.Error($"'risk' is mandatory for {signal.OrderType}");
-                                return BadRequest("'risk' is mandatory");
+                                return;
                             }
 
                             if (signal.RiskRewardRatio == 0)
                             {
                                 _logger.Error($"'rr' is mandatory for {signal.OrderType}");
-                                return BadRequest("'rr' is mandatory");
+                                return;
                             }
 
                             if (!signal.EntryPrice.HasValue)
                             {
                                 _logger.Error($"'entryprice' is mandatory for {signal.OrderType}");
-                                return BadRequest("'entryprice' is mandatory");
+                                return;
                             }
 
                             if (string.IsNullOrEmpty(signal.EntryExpression))
                             {
                                 _logger.Error($"'entryexpr' is mandatory for {signal.OrderType}");
-                                return BadRequest("'entryexpr' is mandatory");
+                                return;
                             }
 
                             if (!signal.StopLoss.HasValue)
                             {
                                 _logger.Error($"'sl' is mandatory for {signal.OrderType}");
-                                return BadRequest("'sl' is mandatory");
+                                return;
                             }
 
                             if (string.IsNullOrEmpty(signal.StopLossExpression))
                             {
                                 _logger.Error($"'slexpr' is mandatory for {signal.OrderType}");
-                                return BadRequest("'slexpr' is mandatory");
+                                return;
                             }
 
                             if (!signal.TakeProfit.HasValue)
                             {
                                 _logger.Error($"'tp' is mandatory for {signal.OrderType}");
-                                return BadRequest("'tp' is mandatory");
+                                return;
                             }
 
                             break;
-                        case "entry":
+                        case "entrylong":
+                        case "entryshort":
 
                             if (signal.Risk == 0)
                             {
                                 _logger.Error($"'risk' is mandatory for {signal.OrderType}");
-                                return BadRequest("'risk' is mandatory");
+                                return;
                             }
 
                             if (signal.RiskRewardRatio == 0)
                             {
                                 _logger.Error($"'rr' is mandatory for {signal.OrderType}");
-                                return BadRequest("'rr' is mandatory");
+                                return;
                             }
 
                             if (!signal.EntryPrice.HasValue)
                             {
                                 _logger.Error($"'entryprice' is mandatory for {signal.OrderType}");
-                                return BadRequest("'entryprice' is mandatory");
+                                return;
                             }
 
                             if (!signal.StopLoss.HasValue)
                             {
                                 _logger.Error($"'sl' is mandatory for {signal.OrderType}");
-                                return BadRequest("'sl' is mandatory");
+                                return;
                             }
 
                             if (!signal.TakeProfit.HasValue)
                             {
                                 _logger.Error($"'tp' is mandatory for {signal.OrderType}");
-                                return BadRequest("'tp' is mandatory");
+                                return;
                             }
                             break;
                         case "tphit":
@@ -223,7 +231,7 @@ namespace JCTG.WebApp.Backend.Api
                             if (!signal.ExitRiskRewardRatio.HasValue)
                             {
                                 _logger.Error($"'exitrr' is mandatory for {signal.OrderType}");
-                                return BadRequest("'exitrr' is mandatory");
+                                return;
                             }
 
                             break;
@@ -237,18 +245,18 @@ namespace JCTG.WebApp.Backend.Api
                             if (signal.Risk == 0)
                             {
                                 _logger.Error($"'risk' is mandatory for {signal.OrderType}");
-                                return BadRequest("'risk' is mandatory");
+                                return;
                             }
 
                             if (signal.RiskRewardRatio == 0)
                             {
                                 _logger.Error($"'rr' is mandatory for {signal.OrderType}");
-                                return BadRequest("'rr' is mandatory");
+                                return;
                             }
 
                             break;
                         default:
-                            break;
+                            return;
                     }
 
 
@@ -321,7 +329,7 @@ namespace JCTG.WebApp.Backend.Api
                             _logger.Information($"Added to database in table Signal with ID: {signal.ID}", signal);
 
                             // Create model and send to the client
-                            if(signal.OrderType.Equals("BUY", StringComparison.CurrentCultureIgnoreCase))
+                            if (signal.OrderType.Equals("BUY", StringComparison.CurrentCultureIgnoreCase))
                             {
                                 var id = await _server.SendOnTradingviewSignalCommandAsync(signal.AccountID, OnSendTradingviewSignalCommand.Buy
                                     (
@@ -421,7 +429,8 @@ namespace JCTG.WebApp.Backend.Api
                             }
 
                             break;
-                        case "entry":
+                        case "entrylong":
+                        case "entryshort":
                         case "tphit":
                         case "slhit":
                         case "behit":
@@ -440,7 +449,7 @@ namespace JCTG.WebApp.Backend.Api
                             if (existingSignal != null)
                             {
                                 // If is entry
-                                if (signal.OrderType.Equals("entry", StringComparison.CurrentCultureIgnoreCase))
+                                if (signal.OrderType.Equals("entrylong", StringComparison.CurrentCultureIgnoreCase))
                                 {
                                     // Create a list to store the items to be removed
                                     var marketAbstentionsToRemove = new List<MarketAbstention>();
@@ -487,7 +496,26 @@ namespace JCTG.WebApp.Backend.Api
                                         // If there is no order, and there should be an order and flag is still false
 
                                     }
-                                    else if (existingSignal.OrderType.Equals("SELLSTOP", StringComparison.CurrentCultureIgnoreCase) || existingSignal.OrderType.Equals("SELLLIMIT", StringComparison.CurrentCultureIgnoreCase))
+
+                                    // Remove the items from the original collection
+                                    foreach (var marketAbstention in marketAbstentionsToRemove)
+                                    {
+                                        _dbContext.MarketAbstention.Remove(marketAbstention);
+                                    }
+
+                                    // Save to the database
+                                    await _dbContext.SaveChangesAsync();
+                                }
+                                else if (signal.OrderType.Equals("entryshort", StringComparison.CurrentCultureIgnoreCase))
+                                {
+                                    // Create a list to store the items to be removed
+                                    var marketAbstentionsToRemove = new List<MarketAbstention>();
+
+                                    // Set flag that you send a message
+                                    var flag = false;
+
+                                    // IF this order is of type BUY STOP/LIMIT or SELL STOP/LIMIT
+                                    if (existingSignal.OrderType.Equals("SELLSTOP", StringComparison.CurrentCultureIgnoreCase) || existingSignal.OrderType.Equals("SELLLIMIT", StringComparison.CurrentCultureIgnoreCase))
                                     {
                                         // Forech market abstention
                                         foreach (var marketAbstention in existingSignal.MarketAbstentions)
@@ -824,7 +852,7 @@ namespace JCTG.WebApp.Backend.Api
                             // Return bad request
                             if (string.IsNullOrEmpty(signal.OrderType))
                             {
-                                return BadRequest("wrong 'order_type'");
+                                return;
                             }
 
                             break;
@@ -836,11 +864,9 @@ namespace JCTG.WebApp.Backend.Api
                 catch (Exception ex)
                 {
                     _logger.Error($"Exception: {ex.Message}\nInner exception message: {ex.InnerException?.Message}\n", ex);
-                    return StatusCode(500, "Internal server error");
+                    return;
                 }
             }
-
-            return Ok("Processed successfully");
         }
     }
 }

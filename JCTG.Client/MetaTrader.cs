@@ -1625,6 +1625,7 @@ namespace JCTG.Client
                     .Where(pair => pair.Key == symbol) // Filter for the specific instrument
                     .SelectMany(pair => pair.Value.BarData) // Use SelectMany to flatten the lists into a single list
                     .ToList(); // Convert to List<BarData>
+
             }
         }
 
