@@ -239,7 +239,7 @@ namespace JCTG.Client
                                                             {
                                                                 var message = string.Format($"StopLossPriceCalculated || Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},SignalID={cmd.SignalID},StrategyID={cmd.StrategyID},Price={metadataTick.Ask},TP={tp},SL={sl}");
                                                                 var description = string.Format($"StopLoss || Ask={metadataTick.Ask},Spread={spread},Digits={metadataTick.Digits}");
-                                                                await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, cmd.SignalID);
+                                                                await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description, Magic = Convert.ToInt32(cmd.SignalID) }, cmd.SignalID);
                                                             }
 
                                                             // Calculate the lot size
@@ -250,7 +250,7 @@ namespace JCTG.Client
                                                             {
                                                                 var message = string.Format($"LotSizeCalculated || Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},SignalID={cmd.SignalID},StrategyID={cmd.StrategyID},Price={metadataTick.Ask},TP={tp},SL={sl}");
                                                                 var description = string.Format($"LotSize || {string.Join(", ", logMessages.Select(kvp => $"{kvp.Key}={kvp.Value}"))}");
-                                                                await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, cmd.SignalID);
+                                                                await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description, Magic = Convert.ToInt32(cmd.SignalID) }, cmd.SignalID);
                                                             }
 
                                                             // do 0.0 lotsize check
@@ -270,7 +270,7 @@ namespace JCTG.Client
                                                                             {
                                                                                 var message = string.Format($"TakeProfitCalculated || Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},SignalID={cmd.SignalID},StrategyID={cmd.StrategyID},Price={metadataTick.Ask},TP={tp},SL={sl}");
                                                                                 var description = string.Format($"TakeProfit || Ask={metadataTick.Ask},Spread={spread},Digits={metadataTick.Digits}");
-                                                                                await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, cmd.SignalID);
+                                                                                await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description, Magic = Convert.ToInt32(cmd.SignalID) }, cmd.SignalID);
                                                                             }
 
                                                                             // Print on the screen
@@ -292,7 +292,7 @@ namespace JCTG.Client
                                                                                     {
                                                                                         var message = string.Format($"CancelledPassiveOrder || Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},SignalID={cmd.SignalID},StrategyID={cmd.StrategyID},EntryExpr={cmd.PassiveOrder.EntryExpression},Risk={cmd.PassiveOrder.Risk},RR={cmd.PassiveOrder.RiskRewardRatio}");
                                                                                         var description = string.Format($"CloseOrder || Symbol={pair.TickerInMetatrader}");
-                                                                                        await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, cmd.SignalID);
+                                                                                        await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description, Magic = Convert.ToInt32(cmd.SignalID) }, cmd.SignalID);
                                                                                     }
                                                                                 }
                                                                             }
@@ -313,14 +313,14 @@ namespace JCTG.Client
                                                                             {
                                                                                 var message = string.Format($"MetatraderOrderExecuted || Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},SignalID={cmd.SignalID},StrategyID={cmd.StrategyID},Price={metadataTick.Ask},TP={tp},SL={sl}");
                                                                                 var description = string.Format($"ExecuteOrder || Symbol={pair.TickerInMetatrader},OrderType={orderType},LotSize={lotSize},Price=,SL={sl},TP={tp},SignalID={cmd.SignalID},Comment={comment}");
-                                                                                await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, cmd.SignalID);
+                                                                                await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description, Magic = Convert.ToInt32(cmd.SignalID) }, cmd.SignalID);
                                                                             }
                                                                         }
                                                                         else
                                                                         {
                                                                             // Raise market abstention or error
                                                                             var message = string.Format($"Error || Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},SignalID={cmd.SignalID},StrategyID={cmd.StrategyID},Price={metadataTick.Ask},TP={tp},SL={sl}");
-                                                                            var log = new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = $"The risk {metadataTick.Ask - sl} should be at least {pair.RiskMinXTimesTheSpread} times the spread : {spread}" };
+                                                                            var log = new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = $"The risk {metadataTick.Ask - sl} should be at least {pair.RiskMinXTimesTheSpread} times the spread : {spread}", Magic = Convert.ToInt32(cmd.SignalID) };
                                                                             await RaiseMarketAbstentionAsync(api.ClientId, cmd.SignalID, cmd.Instrument, cmd.OrderType, MarketAbstentionType.RiskShouldBeAtLeastXTimesTheSpread, log);
                                                                         }
                                                                     }
@@ -328,7 +328,7 @@ namespace JCTG.Client
                                                                     {
                                                                         // Raise market abstention or error
                                                                         var message = string.Format($"Error || Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},SignalID={cmd.SignalID},StrategyID={cmd.StrategyID},Price={metadataTick.Ask},TP={tp},SL={sl}");
-                                                                        var log = new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = $"Unexpected error occurred with the calculation of the stop loss price" };
+                                                                        var log = new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = $"Unexpected error occurred with the calculation of the stop loss price", Magic = Convert.ToInt32(cmd.SignalID) };
                                                                         await RaiseMarketAbstentionAsync(api.ClientId, cmd.SignalID, cmd.Instrument, cmd.OrderType, MarketAbstentionType.AmountOfLotSizeShouldBeSmallerThenMaxLotsize, log);
                                                                     }
                                                                 }
@@ -338,7 +338,7 @@ namespace JCTG.Client
                                                             {
                                                                 // Raise market abstention or error
                                                                 var message = string.Format($"LotSizeError || Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},SignalID={cmd.SignalID},StrategyID={cmd.StrategyID},Price={metadataTick.Ask},TP={tp},SL={sl}");
-                                                                var log = new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = $"Unexpected error occurred with the calculation the lot size" };
+                                                                var log = new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = $"Unexpected error occurred with the calculation the lot size", Magic = Convert.ToInt32(cmd.SignalID) };
                                                                 await RaiseMarketAbstentionAsync(api.ClientId, cmd.SignalID, cmd.Instrument, cmd.OrderType, MarketAbstentionType.ExceptionCalculatingLotSize, log);
                                                             }
                                                         }
@@ -346,7 +346,7 @@ namespace JCTG.Client
                                                         {
                                                             // Raise market abstention or error
                                                             var message = string.Format($"CanNotOpenTradeDueClosingTime || Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},SignalID={cmd.SignalID},StrategyID={cmd.StrategyID}");
-                                                            var log = new Log() { Time = DateTime.UtcNow, Type = "WARNING", Message = message, ErrorType = $"Can't open deal {pair.TickerInMetatrader} because market will be closed within {pair.DoNotOpenTradeXMinutesBeforeClose} minutes. It's now {DateTime.UtcNow} UTC time." };
+                                                            var log = new Log() { Time = DateTime.UtcNow, Type = "WARNING", Message = message, ErrorType = $"Can't open deal {pair.TickerInMetatrader} because market will be closed within {pair.DoNotOpenTradeXMinutesBeforeClose} minutes. It's now {DateTime.UtcNow} UTC time.", Magic = Convert.ToInt32(cmd.SignalID) };
                                                             await RaiseMarketAbstentionAsync(api.ClientId, cmd.SignalID, cmd.Instrument, cmd.OrderType, MarketAbstentionType.MarketWillBeClosedWithinXMinutes, log);
                                                         }
                                                     }
@@ -354,7 +354,7 @@ namespace JCTG.Client
                                                     {
                                                         // Raise market abstention or error
                                                         var message = string.Format($"CorrelatedPairsFound || Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},SignalID={cmd.SignalID},StrategyID={cmd.StrategyID}");
-                                                        var log = new Log() { Time = DateTime.UtcNow, Type = "WARNING", Message = message, ErrorType = $"Correlated pair found in the open orders : {CorrelatedPairs.GetCorrelatedPair(pair.TickerInMetatrader, "BUY", pair.CorrelatedPairs, api.OpenOrders)}" };
+                                                        var log = new Log() { Time = DateTime.UtcNow, Type = "WARNING", Message = message, ErrorType = $"Correlated pair found in the open orders : {CorrelatedPairs.GetCorrelatedPair(pair.TickerInMetatrader, "BUY", pair.CorrelatedPairs, api.OpenOrders)}", Magic = Convert.ToInt32(cmd.SignalID) };
                                                         await RaiseMarketAbstentionAsync(api.ClientId, cmd.SignalID, cmd.Instrument, cmd.OrderType, MarketAbstentionType.CorrelatedPairFound, log);
                                                     }
                                                 }
@@ -383,7 +383,7 @@ namespace JCTG.Client
                                                             {
                                                                 var message = string.Format($"EntryExpression || Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},SignalID={cmd.SignalID},StrategyID={cmd.StrategyID},EntryExpr={cmd.PassiveOrder.EntryExpression},Risk={cmd.PassiveOrder.Risk},RR={cmd.PassiveOrder.RiskRewardRatio}");
                                                                 var description = string.Format($"Entry || {string.Join(", ", logMessages1.Select(kvp => $"{kvp.Key}={kvp.Value}"))}");
-                                                                await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, cmd.SignalID);
+                                                                await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description, Magic = Convert.ToInt32(cmd.SignalID) }, cmd.SignalID);
                                                             }
 
                                                             // Do 0.0 check
@@ -411,7 +411,7 @@ namespace JCTG.Client
                                                                     {
                                                                         var message = string.Format($"StopLossExpression || Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},SignalID={cmd.SignalID},StrategyID={cmd.StrategyID},EntryExpr={cmd.PassiveOrder.EntryExpression},Risk={cmd.PassiveOrder.Risk},RR={cmd.PassiveOrder.RiskRewardRatio}");
                                                                         var description = string.Format($"StopLoss || {string.Join(", ", logMessages2.Select(kvp => $"{kvp.Key}={kvp.Value}"))}");
-                                                                        await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, cmd.SignalID);
+                                                                        await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description, Magic = Convert.ToInt32(cmd.SignalID) }, cmd.SignalID);
                                                                     }
 
                                                                     // Do null reference check
@@ -448,13 +448,13 @@ namespace JCTG.Client
                                                                 {
                                                                     var message = string.Format($"Order Calculated || Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},SignalID={cmd.SignalID},StrategyID={cmd.StrategyID},EntryExpr={cmd.PassiveOrder.EntryExpression},SlExpr={cmd.PassiveOrder.StopLossExpression},Risk={cmd.PassiveOrder.Risk},RR={cmd.PassiveOrder.RiskRewardRatio}");
                                                                     var description = string.Format($"EntryPrice || Price={orgPrice},Spread={spread},EntryPrice={price},EntryExpression={cmd.PassiveOrder.EntryExpression}");
-                                                                    await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, cmd.SignalID);
+                                                                    await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description, Magic = Convert.ToInt32(cmd.SignalID) }, cmd.SignalID);
 
                                                                     description = string.Format($"StopLoss || StopLoss={slOrg},Spread={spread},EntryStopLoss={sl},Risk={cmd.PassiveOrder.Risk.Value},SLMultiplier={pair.SLMultiplier},StopLossExpression={cmd.PassiveOrder.StopLossExpression}");
-                                                                    await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, cmd.SignalID);
+                                                                    await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description, Magic = Convert.ToInt32(cmd.SignalID) }, cmd.SignalID);
 
                                                                     description = string.Format($"TakeProfit ||  Spread={spread},EntryTakeProfit={tp},Risk={cmd.PassiveOrder.Risk.Value},RiskRewardRatio={cmd.PassiveOrder.RiskRewardRatio.Value}");
-                                                                    await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, cmd.SignalID);
+                                                                    await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description, Magic = Convert.ToInt32(cmd.SignalID) }, cmd.SignalID);
                                                                 }
 
                                                                 // Calculate the lot size
@@ -465,7 +465,7 @@ namespace JCTG.Client
                                                                 {
                                                                     var message = string.Format($"LotSizeCalculated || Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},SignalID={cmd.SignalID},StrategyID={cmd.StrategyID},EntryExpr={cmd.PassiveOrder.EntryExpression},Risk={cmd.PassiveOrder.Risk},RR={cmd.PassiveOrder.RiskRewardRatio}");
                                                                     var description = string.Format($"LotSize || {string.Join(", ", logMessages3.Select(kvp => $"{kvp.Key}={kvp.Value}"))}");
-                                                                    await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, cmd.SignalID);
+                                                                    await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description, Magic = Convert.ToInt32(cmd.SignalID) }, cmd.SignalID);
                                                                 }
 
                                                                 // do 0.0 check
@@ -505,7 +505,7 @@ namespace JCTG.Client
                                                                                             {
                                                                                                 var message = string.Format($"CancelledPassiveOrder || Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},SignalID={cmd.SignalID},StrategyID={cmd.StrategyID},EntryExpr={cmd.PassiveOrder.EntryExpression},Risk={cmd.PassiveOrder.Risk},RR={cmd.PassiveOrder.RiskRewardRatio}");
                                                                                                 var description = string.Format($"CloseOrder || Symbol={pair.TickerInMetatrader}");
-                                                                                                await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, cmd.SignalID);
+                                                                                                await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description, Magic = Convert.ToInt32(cmd.SignalID) }, cmd.SignalID);
                                                                                             }
                                                                                         }
                                                                                     }
@@ -531,62 +531,62 @@ namespace JCTG.Client
                                                                                     {
                                                                                         var message = string.Format($"MetatraderOrderCreated || Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},SignalID={cmd.SignalID},StrategyID={cmd.StrategyID},EntryExpr={cmd.PassiveOrder.EntryExpression},Risk={cmd.PassiveOrder.Risk},RR={cmd.PassiveOrder.RiskRewardRatio}");
                                                                                         var description = string.Format($"ExecuteOrder || Symbol={pair.TickerInMetatrader},OrderType={orderType},LotSize={lotSize},Price={price},SL={sl},TP={tp},SignalID={cmd.SignalID},Comment={comment}");
-                                                                                        await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, cmd.SignalID);
+                                                                                        await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description, Magic = Convert.ToInt32(cmd.SignalID) }, cmd.SignalID);
                                                                                     }
                                                                                 }
                                                                                 else
                                                                                 {
                                                                                     var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},SignalID={cmd.SignalID},StrategyID={cmd.StrategyID},EntryExpr={cmd.PassiveOrder.EntryExpression},Risk={cmd.PassiveOrder.Risk},RR={cmd.PassiveOrder.RiskRewardRatio}");
-                                                                                    var log = new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = $"The risk {cmd.PassiveOrder.Risk.Value} should be at least {pair.RiskMinXTimesTheSpread} times the spread : {spread}" };
+                                                                                    var log = new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = $"The risk {cmd.PassiveOrder.Risk.Value} should be at least {pair.RiskMinXTimesTheSpread} times the spread : {spread}", Magic = Convert.ToInt32(cmd.SignalID) };
                                                                                     await RaiseMarketAbstentionAsync(api.ClientId, cmd.SignalID, cmd.Instrument, cmd.OrderType, MarketAbstentionType.RiskShouldBeAtLeastXTimesTheSpread, log);
                                                                                 }
                                                                             }
                                                                             else
                                                                             {
                                                                                 var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},SignalID={cmd.SignalID},StrategyID={cmd.StrategyID},EntryExpr={cmd.PassiveOrder.EntryExpression},Risk={cmd.PassiveOrder.Risk},RR={cmd.PassiveOrder.RiskRewardRatio}");
-                                                                                var log = new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = $"Max lot size {lotSize} exceeded : {pair.MaxLotSize}" };
+                                                                                var log = new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = $"Max lot size {lotSize} exceeded : {pair.MaxLotSize}", Magic = Convert.ToInt32(cmd.SignalID) };
                                                                                 await RaiseMarketAbstentionAsync(api.ClientId, cmd.SignalID, cmd.Instrument, cmd.OrderType, MarketAbstentionType.AmountOfLotSizeShouldBeSmallerThenMaxLotsize, log);
                                                                             }
                                                                         }
                                                                         else
                                                                         {
                                                                             var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},SignalID={cmd.SignalID},StrategyID={cmd.StrategyID},EntryExpr={cmd.PassiveOrder.EntryExpression},Risk={cmd.PassiveOrder.Risk},RR={cmd.PassiveOrder.RiskRewardRatio}");
-                                                                            var log = new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = $"Unexpected error occurred with the calculation of the take profit price" };
+                                                                            var log = new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = $"Unexpected error occurred with the calculation of the take profit price", Magic = Convert.ToInt32(cmd.SignalID) };
                                                                             await RaiseMarketAbstentionAsync(api.ClientId, cmd.SignalID, cmd.Instrument, cmd.OrderType, MarketAbstentionType.ExceptionCalculatingTakeProfitPrice, log);
                                                                         }
                                                                     }
                                                                     else
                                                                     {
                                                                         var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},SignalID={cmd.SignalID},StrategyID={cmd.StrategyID},EntryExpr={cmd.PassiveOrder.EntryExpression},Risk={cmd.PassiveOrder.Risk},RR={cmd.PassiveOrder.RiskRewardRatio}");
-                                                                        var log = new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = $"Unexpected error occurred with the calculation of the stop loss price" };
+                                                                        var log = new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = $"Unexpected error occurred with the calculation of the stop loss price", Magic = Convert.ToInt32(cmd.SignalID) };
                                                                         await RaiseMarketAbstentionAsync(api.ClientId, cmd.SignalID, cmd.Instrument, cmd.OrderType, MarketAbstentionType.ExceptionCalculatingStopLossPrice, log);
                                                                     }
                                                                 }
                                                                 else
                                                                 {
                                                                     var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},SignalID={cmd.SignalID},StrategyID={cmd.StrategyID},EntryExpr={cmd.PassiveOrder.EntryExpression},Risk={cmd.PassiveOrder.Risk},RR={cmd.PassiveOrder.RiskRewardRatio}");
-                                                                    var log = new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = $"Unexpected error occurred with the calculation of the lot size" };
+                                                                    var log = new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = $"Unexpected error occurred with the calculation of the lot size", Magic = Convert.ToInt32(cmd.SignalID) };
                                                                     await RaiseMarketAbstentionAsync(api.ClientId, cmd.SignalID, cmd.Instrument, cmd.OrderType, MarketAbstentionType.ExceptionCalculatingLotSize, log);
                                                                 }
                                                             }
                                                             else
                                                             {
                                                                 var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},SignalID={cmd.SignalID},StrategyID={cmd.StrategyID},EntryExpr={cmd.PassiveOrder.EntryExpression},Risk={cmd.PassiveOrder.Risk},RR={cmd.PassiveOrder.RiskRewardRatio}");
-                                                                var log = new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = $"Can't find entry candle {cmd.PassiveOrder.EntryExpression} with date : {DynamicEvaluator.GetDateFromBarString(cmd.PassiveOrder.EntryExpression)}" };
+                                                                var log = new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = $"Can't find entry candle {cmd.PassiveOrder.EntryExpression} with date : {DynamicEvaluator.GetDateFromBarString(cmd.PassiveOrder.EntryExpression)}", Magic = Convert.ToInt32(cmd.SignalID) };
                                                                 await RaiseMarketAbstentionAsync(api.ClientId, cmd.SignalID, cmd.Instrument, cmd.OrderType, MarketAbstentionType.ExceptionCalculatingEntryPrice, log);
                                                             }
                                                         }
                                                         else
                                                         {
                                                             var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},SignalID={cmd.SignalID},StrategyID={cmd.StrategyID},EntryExpr={cmd.PassiveOrder.EntryExpression},Risk={cmd.PassiveOrder.Risk},RR={cmd.PassiveOrder.RiskRewardRatio}");
-                                                            var log = new Log() { Time = DateTime.UtcNow, Type = "WARNING", Message = message, ErrorType = $"Can't open deal {pair.TickerInMetatrader} because market will be closed within {pair.DoNotOpenTradeXMinutesBeforeClose} minutes. It's now {DateTime.UtcNow} UTC time." };
+                                                            var log = new Log() { Time = DateTime.UtcNow, Type = "WARNING", Message = message, ErrorType = $"Can't open deal {pair.TickerInMetatrader} because market will be closed within {pair.DoNotOpenTradeXMinutesBeforeClose} minutes. It's now {DateTime.UtcNow} UTC time.", Magic = Convert.ToInt32(cmd.SignalID) };
                                                             await RaiseMarketAbstentionAsync(api.ClientId, cmd.SignalID, cmd.Instrument, cmd.OrderType, MarketAbstentionType.MarketWillBeClosedWithinXMinutes, log);
                                                         }
                                                     }
                                                     else
                                                     {
                                                         var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},SignalID={cmd.SignalID},StrategyID={cmd.StrategyID},EntryExpr={cmd.PassiveOrder.EntryExpression},Risk={cmd.PassiveOrder.Risk},RR={cmd.PassiveOrder.RiskRewardRatio}");
-                                                        var log = new Log() { Time = DateTime.UtcNow, Type = "WARNING", Message = message, ErrorType = $"Correlated pair found in the open orders : {CorrelatedPairs.GetCorrelatedPair(pair.TickerInMetatrader, "BUY", pair.CorrelatedPairs, api.OpenOrders)}" };
+                                                        var log = new Log() { Time = DateTime.UtcNow, Type = "WARNING", Message = message, ErrorType = $"Correlated pair found in the open orders : {CorrelatedPairs.GetCorrelatedPair(pair.TickerInMetatrader, "BUY", pair.CorrelatedPairs, api.OpenOrders)}", Magic = Convert.ToInt32(cmd.SignalID) };
                                                         await RaiseMarketAbstentionAsync(api.ClientId, cmd.SignalID, cmd.Instrument, cmd.OrderType, MarketAbstentionType.CorrelatedPairFound, log);
                                                     }
                                                 }
@@ -630,7 +630,7 @@ namespace JCTG.Client
                                                             {
                                                                 var message = string.Format($"StopLossCalculated || Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},SignalID={cmd.SignalID},StrategyID={cmd.StrategyID},Price={price},TP={tp},SL={sl}");
                                                                 var description = string.Format($"SLForShort: Bid={metadataTick.Bid},Spread={spread},Digits={metadataTick.Digits}");
-                                                                await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, cmd.SignalID);
+                                                                await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description, Magic = Convert.ToInt32(cmd.SignalID) }, cmd.SignalID);
                                                             }
 
                                                             // Calculate the lot size
@@ -641,7 +641,7 @@ namespace JCTG.Client
                                                             {
                                                                 var message = string.Format($"LotSizeCalculated || Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},SignalID={cmd.SignalID},StrategyID={cmd.StrategyID},Price={price},TP={tp},SL={sl}");
                                                                 var description = string.Format($"LotSize || {string.Join(", ", logMessages.Select(kvp => $"{kvp.Key}={kvp.Value}"))}");
-                                                                await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, cmd.SignalID);
+                                                                await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description, Magic = Convert.ToInt32(cmd.SignalID) }, cmd.SignalID);
                                                             }
 
                                                             // do 0.0 check
@@ -661,7 +661,7 @@ namespace JCTG.Client
                                                                             {
                                                                                 var message = string.Format($"TakeProfitCalculated || Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},SignalID={cmd.SignalID},StrategyID={cmd.StrategyID},Price={price},TP={tp},SL={sl}");
                                                                                 var description = string.Format($"TPForShort: Bid={metadataTick.Bid},Spread={spread},Digits={metadataTick.Digits}");
-                                                                                await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, cmd.SignalID);
+                                                                                await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description, Magic = Convert.ToInt32(cmd.SignalID) }, cmd.SignalID);
                                                                             }
 
                                                                             // Print on the screen
@@ -683,7 +683,7 @@ namespace JCTG.Client
                                                                                     {
                                                                                         var message = string.Format($"CancelledPassiveOrder || Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},SignalID={cmd.SignalID},StrategyID={cmd.StrategyID},EntryExpr={cmd.PassiveOrder.EntryExpression},Risk={cmd.PassiveOrder.Risk},RR={cmd.PassiveOrder.RiskRewardRatio}");
                                                                                         var description = string.Format($"CancelStopOrLimitOrderWhenNewSignal: Symbol={pair.TickerInMetatrader}");
-                                                                                        await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, cmd.SignalID);
+                                                                                        await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description, Magic = Convert.ToInt32(cmd.SignalID) }, cmd.SignalID);
                                                                                     }
                                                                                 }
                                                                             }
@@ -706,13 +706,13 @@ namespace JCTG.Client
                                                                             {
                                                                                 var message = string.Format($"MetatraderOrderCreated || Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},SignalID={cmd.SignalID},StrategyID={cmd.StrategyID},Price={price},TP={tp},SL={sl}");
                                                                                 var description = string.Format($"ExecuteOrder: Symbol={pair.TickerInMetatrader},OrderType={orderType},LotSize={lotSize},Price=,SL={sl},TP={tp},SignalID={cmd.SignalID},Comment={comment}");
-                                                                                await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, cmd.SignalID);
+                                                                                await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description, Magic = Convert.ToInt32(cmd.SignalID) }, cmd.SignalID);
                                                                             }
                                                                         }
                                                                         else
                                                                         {
                                                                             var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},SignalID={cmd.SignalID},StrategyID={cmd.StrategyID},Price={price},TP={tp},SL={sl}");
-                                                                            var log = new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = $"The risk {sl - price} should be at least {pair.RiskMinXTimesTheSpread} times the spread : {spread}" };
+                                                                            var log = new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = $"The risk {sl - price} should be at least {pair.RiskMinXTimesTheSpread} times the spread : {spread}", Magic = Convert.ToInt32(cmd.SignalID) };
                                                                             await RaiseMarketAbstentionAsync(api.ClientId, cmd.SignalID, cmd.Instrument, cmd.OrderType, MarketAbstentionType.RiskShouldBeAtLeastXTimesTheSpread, log);
                                                                         }
                                                                     }
@@ -726,28 +726,28 @@ namespace JCTG.Client
                                                                 else
                                                                 {
                                                                     var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},SignalID={cmd.SignalID},StrategyID={cmd.StrategyID},Price={price},TP={tp},SL={sl}");
-                                                                    var log = new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = $"Unexpected error occurred with the calculation of the stop loss price" };
+                                                                    var log = new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = $"Unexpected error occurred with the calculation of the stop loss price", Magic = Convert.ToInt32(cmd.SignalID) };
                                                                     await RaiseMarketAbstentionAsync(api.ClientId, cmd.SignalID, cmd.Instrument, cmd.OrderType, MarketAbstentionType.ExceptionCalculatingStopLossPrice, log);
                                                                 }
                                                             }
                                                             else
                                                             {
                                                                 var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},SignalID={cmd.SignalID},StrategyID={cmd.StrategyID},Price={price},TP={tp},SL={sl}");
-                                                                var log = new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = $"Unexpected error occurred with the calculation of the stop loss price" };
+                                                                var log = new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = $"Unexpected error occurred with the calculation of the stop loss price", Magic = Convert.ToInt32(cmd.SignalID) };
                                                                 await RaiseMarketAbstentionAsync(api.ClientId, cmd.SignalID, cmd.Instrument, cmd.OrderType, MarketAbstentionType.ExceptionCalculatingLotSize, log);
                                                             }
                                                         }
                                                         else
                                                         {
                                                             var message = string.Format($"CanNotOpenTradeDueClosingTime || Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},SignalID={cmd.SignalID},StrategyID={cmd.StrategyID}");
-                                                            var log = new Log() { Time = DateTime.UtcNow, Type = "WARNING", Message = message, ErrorType = $"Can't open deal {pair.TickerInMetatrader} because market will be closed within {pair.DoNotOpenTradeXMinutesBeforeClose} minutes. It's now {DateTime.UtcNow} UTC time." };
+                                                            var log = new Log() { Time = DateTime.UtcNow, Type = "WARNING", Message = message, ErrorType = $"Can't open deal {pair.TickerInMetatrader} because market will be closed within {pair.DoNotOpenTradeXMinutesBeforeClose} minutes. It's now {DateTime.UtcNow} UTC time.", Magic = Convert.ToInt32(cmd.SignalID) };
                                                             await RaiseMarketAbstentionAsync(api.ClientId, cmd.SignalID, cmd.Instrument, cmd.OrderType, MarketAbstentionType.MarketWillBeClosedWithinXMinutes, log);
                                                         }
                                                     }
                                                     else
                                                     {
                                                         var message = string.Format($"CorrelatedPairsFound || Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},SignalID={cmd.SignalID},StrategyID={cmd.StrategyID}");
-                                                        var log = new Log() { Time = DateTime.UtcNow, Type = "WARNING", Message = message, ErrorType = $"Correlated pair found in the open orders : {CorrelatedPairs.GetCorrelatedPair(pair.TickerInMetatrader, "SELL", pair.CorrelatedPairs, api.OpenOrders)}" };
+                                                        var log = new Log() { Time = DateTime.UtcNow, Type = "WARNING", Message = message, ErrorType = $"Correlated pair found in the open orders : {CorrelatedPairs.GetCorrelatedPair(pair.TickerInMetatrader, "SELL", pair.CorrelatedPairs, api.OpenOrders)}", Magic = Convert.ToInt32(cmd.SignalID) };
                                                         await RaiseMarketAbstentionAsync(api.ClientId, cmd.SignalID, cmd.Instrument, cmd.OrderType, MarketAbstentionType.CorrelatedPairFound, log);
                                                     }
                                                 }
@@ -776,7 +776,7 @@ namespace JCTG.Client
                                                             {
                                                                 var message = string.Format($"EntryExpression || Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},SignalID={cmd.SignalID},StrategyID={cmd.StrategyID},EntryExpr={cmd.PassiveOrder.EntryExpression},Risk={cmd.PassiveOrder.Risk},RR={cmd.PassiveOrder.RiskRewardRatio}");
                                                                 var description = string.Format($"Entry || {string.Join(", ", logMessages1.Select(kvp => $"{kvp.Key}={kvp.Value}"))}");
-                                                                await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, cmd.SignalID);
+                                                                await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description, Magic = Convert.ToInt32(cmd.SignalID) }, cmd.SignalID);
                                                             }
 
                                                             // do 0.0 check
@@ -804,7 +804,7 @@ namespace JCTG.Client
                                                                     {
                                                                         var message = string.Format($"StopLossExpression || Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},SignalID={cmd.SignalID},StrategyID={cmd.StrategyID},EntryExpr={cmd.PassiveOrder.EntryExpression},Risk={cmd.PassiveOrder.Risk},RR={cmd.PassiveOrder.RiskRewardRatio}");
                                                                         var description = string.Format($"StopLoss || {string.Join(", ", logMessages2.Select(kvp => $"{kvp.Key}={kvp.Value}"))}");
-                                                                        await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, cmd.SignalID);
+                                                                        await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description, Magic = Convert.ToInt32(cmd.SignalID) }, cmd.SignalID);
                                                                     }
 
                                                                     // Do null reference check
@@ -839,13 +839,13 @@ namespace JCTG.Client
                                                                 {
                                                                     var message = string.Format($"Order Calculated || Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},SignalID={cmd.SignalID},StrategyID={cmd.StrategyID},EntryExpr={cmd.PassiveOrder.EntryExpression},SlExpr={cmd.PassiveOrder.StopLossExpression},Risk={cmd.PassiveOrder.Risk},RR={cmd.PassiveOrder.RiskRewardRatio}");
                                                                     var description = string.Format($"EntryPrice || Price={orgPrice},Spread={spread},EntryPrice={price},EntryExpression={cmd.PassiveOrder.EntryExpression}");
-                                                                    await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, cmd.SignalID);
+                                                                    await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description, Magic = Convert.ToInt32(cmd.SignalID) }, cmd.SignalID);
 
                                                                     description = string.Format($"StopLossCalculated || StopLoss={slOrg},Spread={spread},EntryStopLoss={sl},Risk={cmd.PassiveOrder.Risk.Value},SLMultiplier={pair.SLMultiplier},StopLossExpression={cmd.PassiveOrder.StopLossExpression}");
-                                                                    await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, cmd.SignalID);
+                                                                    await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description, Magic = Convert.ToInt32(cmd.SignalID) }, cmd.SignalID);
 
                                                                     description = string.Format($"TakeProfitCalculated ||  Spread={spread},EntryTakeProfit={tp},Risk={cmd.PassiveOrder.Risk.Value},RiskRewardRatio={cmd.PassiveOrder.RiskRewardRatio.Value}");
-                                                                    await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, cmd.SignalID);
+                                                                    await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description, Magic = Convert.ToInt32(cmd.SignalID) }, cmd.SignalID);
                                                                 }
 
                                                                 // Calculate the lot size
@@ -856,7 +856,7 @@ namespace JCTG.Client
                                                                 {
                                                                     var message = string.Format($"LotSizeCalculated || Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},SignalID={cmd.SignalID},StrategyID={cmd.StrategyID},EntryExpr={cmd.PassiveOrder.EntryExpression},Risk={cmd.PassiveOrder.Risk},RR={cmd.PassiveOrder.RiskRewardRatio}");
                                                                     var description = string.Format($"LotSize || {string.Join(", ", logMessages3.Select(kvp => $"{kvp.Key}={kvp.Value}"))}");
-                                                                    await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, cmd.SignalID);
+                                                                    await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description, Magic = Convert.ToInt32(cmd.SignalID) }, cmd.SignalID);
                                                                 }
 
                                                                 // do 0.0 check
@@ -896,7 +896,7 @@ namespace JCTG.Client
                                                                                             {
                                                                                                 var message = string.Format($"CancelledPassiveOrder || Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},SignalID={cmd.SignalID},StrategyID={cmd.StrategyID},EntryExpr={cmd.PassiveOrder.EntryExpression},Risk={cmd.PassiveOrder.Risk},RR={cmd.PassiveOrder.RiskRewardRatio}");
                                                                                                 var description = string.Format($"CancelStopOrLimitOrderWhenNewSignal: Symbol={pair.TickerInMetatrader}");
-                                                                                                await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, cmd.SignalID);
+                                                                                                await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description, Magic = Convert.ToInt32(cmd.SignalID) }, cmd.SignalID);
                                                                                             }
                                                                                         }
                                                                                     }
@@ -922,62 +922,62 @@ namespace JCTG.Client
                                                                                     {
                                                                                         var message = string.Format($"MetatraderOrderExecuted || Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},SignalID={cmd.SignalID},StrategyID={cmd.StrategyID},EntryExpr={cmd.PassiveOrder.EntryExpression},Risk={cmd.PassiveOrder.Risk},RR={cmd.PassiveOrder.RiskRewardRatio}");
                                                                                         var description = string.Format($"ExecuteOrder: Symbol={pair.TickerInMetatrader},OrderType={orderType},LotSize={lotSize},Price={price},SL={sl},TP={tp},SignalID={cmd.SignalID},Comment={comment}");
-                                                                                        await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, cmd.SignalID);
+                                                                                        await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description, Magic = Convert.ToInt32(cmd.SignalID) }, cmd.SignalID);
                                                                                     }
                                                                                 }
                                                                                 else
                                                                                 {
                                                                                     var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},SignalID={cmd.SignalID},StrategyID={cmd.StrategyID},EntryExpr={cmd.PassiveOrder.EntryExpression},Risk={cmd.PassiveOrder.Risk},RR={cmd.PassiveOrder.RiskRewardRatio}");
-                                                                                    var log = new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = $"The risk {cmd.PassiveOrder.Risk.Value} should be at least {pair.RiskMinXTimesTheSpread} times the spread : {spread}" };
+                                                                                    var log = new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = $"The risk {cmd.PassiveOrder.Risk.Value} should be at least {pair.RiskMinXTimesTheSpread} times the spread : {spread}", Magic = Convert.ToInt32(cmd.SignalID) };
                                                                                     await RaiseMarketAbstentionAsync(api.ClientId, cmd.SignalID, cmd.Instrument, cmd.OrderType, MarketAbstentionType.RiskShouldBeAtLeastXTimesTheSpread, log);
                                                                                 }
                                                                             }
                                                                             else
                                                                             {
                                                                                 var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},SignalID={cmd.SignalID},StrategyID={cmd.StrategyID},EntryExpr={cmd.PassiveOrder.EntryExpression},Risk={cmd.PassiveOrder.Risk},RR={cmd.PassiveOrder.RiskRewardRatio}");
-                                                                                var log = new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = $"Max lot size {lotSize} exceeded : {pair.MaxLotSize}" };
+                                                                                var log = new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = $"Max lot size {lotSize} exceeded : {pair.MaxLotSize}", Magic = Convert.ToInt32(cmd.SignalID) };
                                                                                 await RaiseMarketAbstentionAsync(api.ClientId, cmd.SignalID, cmd.Instrument, cmd.OrderType, MarketAbstentionType.AmountOfLotSizeShouldBeSmallerThenMaxLotsize, log);
                                                                             }
                                                                         }
                                                                         else
                                                                         {
                                                                             var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},SignalID={cmd.SignalID},StrategyID={cmd.StrategyID},EntryExpr={cmd.PassiveOrder.EntryExpression},Risk={cmd.PassiveOrder.Risk},RR={cmd.PassiveOrder.RiskRewardRatio}");
-                                                                            var log = new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = $"Exception in calculating take profit price {tp}" };
+                                                                            var log = new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = $"Exception in calculating take profit price {tp}", Magic = Convert.ToInt32(cmd.SignalID) };
                                                                             await RaiseMarketAbstentionAsync(api.ClientId, cmd.SignalID, cmd.Instrument, cmd.OrderType, MarketAbstentionType.ExceptionCalculatingTakeProfitPrice, log);
                                                                         }
                                                                     }
                                                                     else
                                                                     {
                                                                         var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},SignalID={cmd.SignalID},StrategyID={cmd.StrategyID},EntryExpr={cmd.PassiveOrder.EntryExpression},Risk={cmd.PassiveOrder.Risk},RR={cmd.PassiveOrder.RiskRewardRatio}");
-                                                                        var log = new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = $"Exception in calculating stop loss price {sl}" };
+                                                                        var log = new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = $"Exception in calculating stop loss price {sl}", Magic = Convert.ToInt32(cmd.SignalID) };
                                                                         await RaiseMarketAbstentionAsync(api.ClientId, cmd.SignalID, cmd.Instrument, cmd.OrderType, MarketAbstentionType.ExceptionCalculatingStopLossPrice, log);
                                                                     }
                                                                 }
                                                                 else
                                                                 {
                                                                     var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},SignalID={cmd.SignalID},StrategyID={cmd.StrategyID},EntryExpr={cmd.PassiveOrder.EntryExpression},Risk={cmd.PassiveOrder.Risk},RR={cmd.PassiveOrder.RiskRewardRatio}");
-                                                                    var log = new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = $"Exception in calculating lot size {lotSize}" };
+                                                                    var log = new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = $"Exception in calculating lot size {lotSize}", Magic = Convert.ToInt32(cmd.SignalID) };
                                                                     await RaiseMarketAbstentionAsync(api.ClientId, cmd.SignalID, cmd.Instrument, cmd.OrderType, MarketAbstentionType.ExceptionCalculatingLotSize, log);
                                                                 }
                                                             }
                                                             else
                                                             {
                                                                 var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},SignalID={cmd.SignalID},StrategyID={cmd.StrategyID},EntryExpr={cmd.PassiveOrder.EntryExpression},Risk={cmd.PassiveOrder.Risk},RR={cmd.PassiveOrder.RiskRewardRatio}");
-                                                                var log = new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = $"Can't find entry candle {cmd.PassiveOrder.EntryExpression} with date : {DynamicEvaluator.GetDateFromBarString(cmd.PassiveOrder.EntryExpression)}" };
+                                                                var log = new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = $"Can't find entry candle {cmd.PassiveOrder.EntryExpression} with date : {DynamicEvaluator.GetDateFromBarString(cmd.PassiveOrder.EntryExpression)}", Magic = Convert.ToInt32(cmd.SignalID) };
                                                                 await RaiseMarketAbstentionAsync(api.ClientId, cmd.SignalID, cmd.Instrument, cmd.OrderType, MarketAbstentionType.ExceptionCalculatingEntryPrice, log);
                                                             }
                                                         }
                                                         else
                                                         {
                                                             var message = string.Format($"CanNotOpenTradeDueClosingTime || Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},SignalID={cmd.SignalID},StrategyID={cmd.StrategyID},EntryExpr={cmd.PassiveOrder.EntryExpression},Risk={cmd.PassiveOrder.Risk},RR={cmd.PassiveOrder.RiskRewardRatio}");
-                                                            var log = new Log() { Time = DateTime.UtcNow, Type = "WARNING", Message = message, ErrorType = $"Can't open deal {pair.TickerInMetatrader} because market will be closed within {pair.DoNotOpenTradeXMinutesBeforeClose} minutes. It's now {DateTime.UtcNow} UTC time." };
+                                                            var log = new Log() { Time = DateTime.UtcNow, Type = "WARNING", Message = message, ErrorType = $"Can't open deal {pair.TickerInMetatrader} because market will be closed within {pair.DoNotOpenTradeXMinutesBeforeClose} minutes. It's now {DateTime.UtcNow} UTC time.", Magic = Convert.ToInt32(cmd.SignalID) };
                                                             await RaiseMarketAbstentionAsync(api.ClientId, cmd.SignalID, cmd.Instrument, cmd.OrderType, MarketAbstentionType.RiskShouldBeAtLeastXTimesTheSpread, log);
                                                         }
                                                     }
                                                     else
                                                     {
                                                         var message = string.Format($"CorrelatedPairsFound || Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},SignalID={cmd.SignalID},StrategyID={cmd.StrategyID},EntryExpr={cmd.PassiveOrder.EntryExpression},Risk={cmd.PassiveOrder.Risk},RR={cmd.PassiveOrder.RiskRewardRatio}");
-                                                        var log = new Log() { Time = DateTime.UtcNow, Type = "WARNING", Message = message, ErrorType = $"Correlated pair found in the open orders : {CorrelatedPairs.GetCorrelatedPair(pair.TickerInMetatrader, "SELL", pair.CorrelatedPairs, api.OpenOrders)}" };
+                                                        var log = new Log() { Time = DateTime.UtcNow, Type = "WARNING", Message = message, ErrorType = $"Correlated pair found in the open orders : {CorrelatedPairs.GetCorrelatedPair(pair.TickerInMetatrader, "SELL", pair.CorrelatedPairs, api.OpenOrders)}", Magic = Convert.ToInt32(cmd.SignalID) };
                                                         await RaiseMarketAbstentionAsync(api.ClientId, cmd.SignalID, cmd.Instrument, cmd.OrderType, MarketAbstentionType.CorrelatedPairFound, log);
                                                     }
                                                 }
@@ -1054,7 +1054,7 @@ namespace JCTG.Client
                                                         {
                                                             var message = string.Format($"StopLossCalculated || Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},SignalID={cmd.SignalID},StrategyID={cmd.StrategyID}");
                                                             var description = string.Format($"SL: OpenPrice={ticketId.Value.OpenPrice},Spread={spread},Offset={offset},Digits={metadataTick.Digits}");
-                                                            await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, cmd.SignalID);
+                                                            await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description, Magic = Convert.ToInt32(cmd.SignalID) }, cmd.SignalID);
                                                         }
 
                                                         // Print on the screen
@@ -1068,7 +1068,7 @@ namespace JCTG.Client
                                                         {
                                                             var message = string.Format($"MetatraderOrderModified || Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},SignalID={cmd.SignalID},StrategyID={cmd.StrategyID}");
                                                             var description = string.Format($"ModifyOrder: TicketId={ticketId.Key},Lots={ticketId.Value.Lots},SL={sl},TP={ticketId.Value.TakeProfit}");
-                                                            await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, cmd.SignalID);
+                                                            await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description, Magic = Convert.ToInt32(cmd.SignalID) }, cmd.SignalID);
                                                         }
                                                     }
                                                     else
@@ -1078,7 +1078,7 @@ namespace JCTG.Client
 
 
                                                         var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},SignalID={cmd.SignalID},StrategyID={cmd.StrategyID}");
-                                                        await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = "Unable to find deal" }, cmd.SignalID);
+                                                        await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = "Unable to find deal", Magic = Convert.ToInt32(cmd.SignalID) }, cmd.SignalID);
                                                     }
                                                 }
 
@@ -1102,7 +1102,7 @@ namespace JCTG.Client
                                                         {
                                                             var message = string.Format($"MetatraderOrderClosed || Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},SignalID={cmd.SignalID},StrategyID={cmd.StrategyID}");
                                                             var description = string.Format($"CloseOrder: TicketId={ticketId.Key},Lots={ticketId.Value.Lots}");
-                                                            await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, cmd.SignalID);
+                                                            await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description, Magic = Convert.ToInt32(cmd.SignalID) }, cmd.SignalID);
                                                         }
                                                     }
                                                     else
@@ -1111,7 +1111,7 @@ namespace JCTG.Client
                                                         Print($"ERROR : {DateTime.UtcNow} / {_appConfig.Brokers.First(f => f.ClientId == api.ClientId).Name} / {pair.TickerInMetatrader} / CLOSE COMMAND / {cmd.SignalID} / UNABLE TO FIND TRADE / {cmd.StrategyID}");
 
                                                         var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},SignalID={cmd.SignalID},StrategyID={cmd.StrategyID}");
-                                                        await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = "Unable to find deal" }, cmd.SignalID);
+                                                        await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = "Unable to find deal", Magic = Convert.ToInt32(cmd.SignalID) }, cmd.SignalID);
                                                     }
                                                 }
 
@@ -1142,7 +1142,7 @@ namespace JCTG.Client
                                                             {
                                                                 var message = string.Format($"MetatraderOrderClosed || Symbol={pair.TickerInMetatrader},Type={cmd.OrderType},SignalID={cmd.SignalID},StrategyID={cmd.StrategyID}");
                                                                 var description = string.Format($"CloseOrder: TicketId={order.Key},Lots={order.Value.Lots}");
-                                                                await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, cmd.SignalID);
+                                                                await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description, Magic = Convert.ToInt32(cmd.SignalID) }, cmd.SignalID);
                                                             }
                                                         }
                                                     }
@@ -1155,7 +1155,7 @@ namespace JCTG.Client
 
                                                     // Raise market abstention or error
                                                     var message = string.Format($"Symbol={cmd.Instrument},Type={cmd.OrderType},SignalID={cmd.SignalID},StrategyID={cmd.StrategyID}");
-                                                    var log = new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = $"Spread is too high. Current spread is {spread} and expect max {pair.MaxSpread}" };
+                                                    var log = new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = $"Spread is too high. Current spread is {spread} and expect max {pair.MaxSpread}", Magic = Convert.ToInt32(cmd.SignalID) };
                                                     await RaiseMarketAbstentionAsync(api.ClientId, cmd.SignalID, cmd.Instrument, cmd.OrderType, MarketAbstentionType.SpreadIsTooHigh, log);
                                                 }
                                             }
@@ -1163,7 +1163,7 @@ namespace JCTG.Client
                                             {
                                                 // Raise market abstention or error
                                                 var message = string.Format($"Symbol={cmd.Instrument},Type={cmd.OrderType},SignalID={cmd.SignalID},StrategyID={cmd.StrategyID}");
-                                                var log = new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = "No market data available for this metatrader. Bid or ask price is 0.0" };
+                                                var log = new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = "No market data available for this metatrader. Bid or ask price is 0.0", Magic = Convert.ToInt32(cmd.SignalID) };
                                                 await RaiseMarketAbstentionAsync(api.ClientId, cmd.SignalID, cmd.Instrument, cmd.OrderType, MarketAbstentionType.NoMarketDataAvailable, log);
                                             }
                                         }
@@ -1171,7 +1171,7 @@ namespace JCTG.Client
                                         {
                                             // Raise market abstention or error
                                             var message = string.Format($"Symbol={cmd.Instrument},Type={cmd.OrderType},SignalID={cmd.SignalID},StrategyID={cmd.StrategyID}");
-                                            var log = new Log() { Time = DateTime.UtcNow, Type = "WARNING", Message = message, ErrorType = "No subscription for this pair and strategy" };
+                                            var log = new Log() { Time = DateTime.UtcNow, Type = "WARNING", Message = message, ErrorType = "No subscription for this pair and strategy", Magic = Convert.ToInt32(cmd.SignalID) };
                                             await RaiseMarketAbstentionAsync(api.ClientId, cmd.SignalID, cmd.Instrument, cmd.OrderType, MarketAbstentionType.NoSubscriptionForThisPairAndStrategy, log);
                                         }
                                     }
@@ -1179,7 +1179,7 @@ namespace JCTG.Client
                                     {
                                         // Raise market abstention or error
                                         var message = string.Format($"Symbol={cmd.Instrument},Type={cmd.OrderType},SignalID={cmd.SignalID},StrategyID={cmd.StrategyID}");
-                                        var log = new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = "No market data available for this metatrader" };
+                                        var log = new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = "No market data available for this metatrader", Magic = Convert.ToInt32(cmd.SignalID) };
                                         await RaiseMarketAbstentionAsync(api.ClientId, cmd.SignalID, cmd.Instrument, cmd.OrderType, MarketAbstentionType.NoMarketDataAvailable, log);
                                     }
                                 }
@@ -1187,7 +1187,7 @@ namespace JCTG.Client
                                 {
                                     // Raise market abstention or error
                                     var message = string.Format($"Symbol={cmd.Instrument},Type={cmd.OrderType},SignalID={cmd.SignalID},StrategyID={cmd.StrategyID}");
-                                    var log = new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = "No account info available for this metatrader" };
+                                    var log = new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = "No account info available for this metatrader", Magic = Convert.ToInt32(cmd.SignalID) };
                                     await RaiseMarketAbstentionAsync(api.ClientId, cmd.SignalID, cmd.Instrument, cmd.OrderType, MarketAbstentionType.NoAccountInfoAvailable,log);
                                 }
                             });
@@ -1252,7 +1252,7 @@ namespace JCTG.Client
                                                 {
                                                     var message = string.Format($"LotSizeCalculated || Symbol={pair.Instrument},Type={cmd.OrderType},SignalID={cmd.Magic},StrategyID={cmd.StrategyID},Price={metadataTick.Ask},TP={tp},SL={sl}");
                                                     var description = string.Format($"LotSize || {string.Join(", ", logMessages.Select(kvp => $"{kvp.Key}={kvp.Value}"))}");
-                                                    await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, cmd.Magic);
+                                                    await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description, Magic = cmd.Magic }, cmd.Magic);
                                                 }
 
                                                 // do 0.0 lotsize check
@@ -1266,7 +1266,7 @@ namespace JCTG.Client
                                                         {
                                                             var message = string.Format($"TakeProfitCalculated || Symbol={pair.Instrument},Type={cmd.OrderType},SignalID={cmd.Magic},StrategyID={cmd.StrategyID},Price={metadataTick.Ask},TP={tp},SL={sl}");
                                                             var description = string.Format($"TakeProfit || Ask={metadataTick.Ask},Spread={spread},Digits={metadataTick.Digits}");
-                                                            await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, cmd.Magic);
+                                                            await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description, Magic = cmd.Magic }, cmd.Magic);
                                                         }
 
                                                         // Print on the screen
@@ -1288,7 +1288,7 @@ namespace JCTG.Client
                                                         {
                                                             var message = string.Format($"MetatraderOrderExecuted || Symbol={pair.Instrument},Type={cmd.OrderType},SignalID={cmd.Magic},StrategyID={cmd.StrategyID},Price={metadataTick.Ask},TP={tp},SL={sl}");
                                                             var description = string.Format($"ExecuteOrder || Symbol={pair.Instrument},OrderType={orderType},LotSize={lotSize},Price={metadataTick.Ask},SL={sl},TP={tp},SignalID={cmd.Magic},Comment={comment}");
-                                                            await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, cmd.Magic);
+                                                            await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description, Magic = cmd.Magic }, cmd.Magic);
                                                         }
                                                     }
                                                 }
@@ -1296,7 +1296,7 @@ namespace JCTG.Client
                                                 {
                                                     // Raise market abstention or error
                                                     var message = string.Format($"LotSizeError || Symbol={pair.Instrument},Type={cmd.OrderType},SignalID={cmd.Magic},StrategyID={cmd.StrategyID},Price={metadataTick.Ask},TP={tp},SL={sl}");
-                                                    var log = new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = $"Unexpected error occurred with the calculation the lot size" };
+                                                    var log = new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = $"Unexpected error occurred with the calculation the lot size", Magic = cmd.Magic };
                                                     await RaiseMarketAbstentionAsync(api.ClientId, cmd.Magic, pair.Instrument, cmd.OrderType, MarketAbstentionType.ExceptionCalculatingLotSize, log);
                                                 }
                                             }
@@ -1318,7 +1318,7 @@ namespace JCTG.Client
                                                 {
                                                     var message = string.Format($"LotSizeCalculated || Symbol={pair.Instrument},Type={cmd.OrderType},SignalID={cmd.Magic},StrategyID={cmd.StrategyID},Price={metadataTick.Bid},TP={tp},SL={sl}");
                                                     var description = string.Format($"LotSize || {string.Join(", ", logMessages.Select(kvp => $"{kvp.Key}={kvp.Value}"))}");
-                                                    await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, cmd.Magic);
+                                                    await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description, Magic = cmd.Magic }, cmd.Magic);
                                                 }
 
                                                 // do 0.0 lotsize check
@@ -1332,7 +1332,7 @@ namespace JCTG.Client
                                                         {
                                                             var message = string.Format($"TakeProfitCalculated || Symbol={pair.Instrument},Type={cmd.OrderType},SignalID={cmd.Magic},StrategyID={cmd.StrategyID},Price={metadataTick.Bid},TP={tp},SL={sl}");
                                                             var description = string.Format($"TakeProfit || Bid={metadataTick.Bid},Spread={spread},Digits={metadataTick.Digits}");
-                                                            await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, cmd.Magic);
+                                                            await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description, Magic = cmd.Magic }, cmd.Magic);
                                                         }
 
                                                         // Print on the screen
@@ -1354,7 +1354,7 @@ namespace JCTG.Client
                                                         {
                                                             var message = string.Format($"MetatraderOrderExecuted || Symbol={pair.Instrument},Type={cmd.OrderType},SignalID={cmd.Magic},StrategyID={cmd.StrategyID},Price={metadataTick.Bid},TP={tp},SL={sl}");
                                                             var description = string.Format($"ExecuteOrder || Symbol={pair.Instrument},OrderType={orderType},LotSize={lotSize},Price={metadataTick.Bid},SL={sl},TP={tp},SignalID={cmd.Magic},Comment={comment}");
-                                                            await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, cmd.Magic);
+                                                            await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description, Magic = cmd.Magic }, cmd.Magic);
                                                         }
                                                     }
                                                 }
@@ -1362,7 +1362,7 @@ namespace JCTG.Client
                                                 {
                                                     // Raise market abstention or error
                                                     var message = string.Format($"LotSizeError || Symbol={pair.Instrument},Type={cmd.OrderType},SignalID={cmd.Magic},StrategyID={cmd.StrategyID},Price={metadataTick.Ask},TP={tp},SL={sl}");
-                                                    var log = new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = $"Unexpected error occurred with the calculation the lot size" };
+                                                    var log = new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = $"Unexpected error occurred with the calculation the lot size", Magic = cmd.Magic };
                                                     await RaiseMarketAbstentionAsync(api.ClientId, cmd.Magic, pair.Instrument, cmd.OrderType, MarketAbstentionType.ExceptionCalculatingLotSize, log);
                                                 }
                                             }
@@ -1372,7 +1372,7 @@ namespace JCTG.Client
                                     {
                                         // Raise market abstention or error
                                         var message = string.Format($"Symbol={cmd.ClientInstruments?.First().Instrument},Type={cmd.OrderType},SignalID={cmd.Magic},StrategyID={cmd.StrategyID}");
-                                        var log = new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = "No account info available for this metatrader" };
+                                        var log = new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = message, ErrorType = "No account info available for this metatrader", Magic = cmd.Magic };
                                         await RaiseMarketAbstentionAsync(cmd.ClientInstruments.First().ClientID, cmd.Magic, cmd.ClientInstruments.First().Instrument, cmd.OrderType, MarketAbstentionType.NoAccountInfoAvailable, log);
                                     }
                                 }
@@ -1517,7 +1517,7 @@ namespace JCTG.Client
                                                 {
                                                     var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={order.Value.Type},SignalID={order.Value.Magic},StrategyID={strategyID},Price={order.Value.OpenPrice},TP={order.Value.TakeProfit},SL={slPrice}");
                                                     var description = string.Format($"SL: OpenPrice={order.Value.OpenPrice},Spread={spread},Digits={marketdata.Value.Digits}");
-                                                    Task.Run(async () => await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, signalId));
+                                                    Task.Run(async () => await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description, Magic = order.Value.Magic }, signalId));
                                                 }
 
                                                 // Print on the screen
@@ -1566,7 +1566,7 @@ namespace JCTG.Client
                                                 {
                                                     var message = string.Format($"Symbol={pair.TickerInMetatrader},Type={order.Value.Type},SignalID={order.Value.Magic},StrategyID={strategyID},Price={order.Value.OpenPrice},TP={order.Value.TakeProfit},SL={slPrice}");
                                                     var description = string.Format($"SL: OpenPrice={order.Value.OpenPrice},Spread={spread},Digits={marketdata.Value.Digits}");
-                                                    Task.Run(async () => await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description }, signalId));
+                                                    Task.Run(async () => await LogAsync(api.ClientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = message, Description = description, Magic = order.Value.Magic }, signalId));
                                                 }
 
                                                 // Print on the screen
@@ -1949,7 +1949,7 @@ namespace JCTG.Client
                 await HttpCall.OnLogEvent(new OnLogEvent
                 {
                     ClientID = clientId,
-                    Magic = magic,
+                    Magic = log.Magic,
                     Log = log
                 });
 
