@@ -167,7 +167,7 @@ public class ClientRepository(IDbContextFactory<JCTGDbContext> dbContextFactory)
         var entitiesClientPairs = await context.ClientPair.Where(f => f.ClientID == id).ToListAsync();
         context.ClientPair.RemoveRange(entitiesClientPairs);
 
-        // Client Risk
+        // Client RiskLong
         var entitiesClientRisks = await context.ClientRisk.Where(f => f.ClientID == id).ToListAsync();
         context.ClientRisk.RemoveRange(entitiesClientRisks);
 

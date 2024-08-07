@@ -46,7 +46,7 @@
                         </div>
                     </div>
                     <div class="row">
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <div class="mb-3">
                                 <label class="form-label" for="strategy">Strategy</label>
                                 <InputSelect class="form-select col-12" @bind-Value="model.StrategyID">
@@ -58,15 +58,21 @@
                                 </InputSelect>
                             </div>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <div class="mb-3">
-                                <label class="form-label" for="risk">Risk</label>
+                                <label class="form-label">Risk</label>
                                 <InputText class="form-control" @bind-Value="model.RiskAsString" />
                             </div>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <div class="mb-3">
-                                <label class="form-label" for="risk">SL to BE after R</label>
+                                <label class="form-label">Risk Short</label>
+                                <InputText class="form-control" @bind-Value="model.RiskShortAsString" />
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label class="form-label">SL to BE after R</label>
                                 <InputText class="form-control" @bind-Value="model.SLtoBEafterRAsString" />
                             </div>
                         </div>
@@ -252,7 +258,7 @@
         }
         else
         {
-            model = new() { ClientID = clientId, Risk = 0.5, MaxSpread = 2.0, SLMultiplier = 1.02, MaxLotSize = 1000, CancelStopOrLimitOrderWhenNewSignal = true, NumberOfHistoricalBarsRequested = 100, SpreadSL = SpreadExecType.Subtract, RiskMinXTimesTheSpread = 3 };
+            model = new() { ClientID = clientId, Risk = 0.5, RiskShort = 0.5, MaxSpread = 2.0, SLMultiplier = 1.02, MaxLotSize = 1000, CancelStopOrLimitOrderWhenNewSignal = true, NumberOfHistoricalBarsRequested = 100, SpreadSL = SpreadExecType.Subtract, RiskMinXTimesTheSpread = 3 };
             await OpenAsync();
             _crudState = CrudState.Add;
         }

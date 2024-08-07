@@ -59,7 +59,7 @@ namespace JCTG.Client
             var dynamicRisk = ChooseClosestMultiplier(startBalance, accountBalance, riskData);
             LogCalculation(logMessages, "DynamicRisk", dynamicRisk);
 
-            // Calculate the Risk Amount
+            // Calculate the RiskLong Amount
             var riskAmount = Convert.ToDecimal(accountBalance) * ((riskPercent * dynamicRisk) / 100.0M);
             LogCalculation(logMessages, "RiskAmount", riskAmount);
 

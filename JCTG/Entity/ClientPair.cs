@@ -39,6 +39,19 @@ namespace JCTG.Entity
                 }
             }
         }
+        public double RiskShort { get; set; }
+        [NotMapped]
+        public string RiskShortAsString
+        {
+            get => RiskShort.ToString();
+            set
+            {
+                if (double.TryParse(value, out double newValue))
+                {
+                    RiskShort = newValue;
+                }
+            }
+        }
         public double SLtoBEafterR { get; set; }
         [NotMapped]
         public string SLtoBEafterRAsString

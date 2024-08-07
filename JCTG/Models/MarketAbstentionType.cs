@@ -27,7 +27,7 @@ namespace JCTG.Models
         [Description("Max lot size exceeded")]
         AmountOfLotSizeShouldBeSmallerThenMaxLotsize = 23,
 
-        [Description("Risk should be at least X times the spread")]
+        [Description("RiskLong should be at least X times the spread")]
         RiskShouldBeAtLeastXTimesTheSpread = 24,
 
         [Description("Exception calculating lot size")]
