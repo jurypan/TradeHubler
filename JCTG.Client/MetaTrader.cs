@@ -13,7 +13,7 @@ namespace JCTG.Client
 
         private TerminalConfig? _appConfig;
         private readonly List<MetatraderApi> _apis;
-        private readonly List<TaskScheduler> _timing;
+        private readonly List<CloseTradeScheduler> _schedulers;
         private SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1); // Initial count 1, maximum count 1
         private readonly ConcurrentDictionary<long, List<Log>> _buffers = new();
         private readonly Timer _timer;
@@ -23,7 +23,7 @@ namespace JCTG.Client
             // Init APP Config + API
             _appConfig = terminalConfig;
             _apis = [];
-            _timing = new List<TaskScheduler>();
+            _schedulers = new List<CloseTradeScheduler>();
             _timer = new Timer(async _ => await FlushLogsToFileAsync(), null, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(10));
 
             // Foreach broker, init the API
@@ -89,15 +89,24 @@ namespace JCTG.Client
                         _api.GetHistoricData(broker.Pairs);
 
                         // Init close trades on a particular time
-                        foreach (var pair in broker.Pairs.Where(f => f.CloseAllTradesAt.HasValue))
+                        foreach (var pair in broker.Pairs)
                         {
+                            var timingCloseAllTradesAt = new CloseTradeScheduler(_api.ClientId, pair.TickerInMetatrader, pair.StrategyID, false);
+                            timingCloseAllTradesAt.OnCloseTradeEvent += OnItsTimeToCloseTradeEvent;
+
+                            // Close the trade at a particular time on the day
                             if (pair.CloseAllTradesAt != null)
                             {
-                                var timing = new TaskScheduler(_api.ClientId, pair.TickerInMetatrader, pair.StrategyID);
-                                timing.OnTimeEvent += OnItsTimeToCloseTradeEvent;
-                                timing.Start(pair.CloseAllTradesAt.Value);
-                                _timing.Add(timing);
+                                timingCloseAllTradesAt.Start(pair.CloseAllTradesAt.Value);
                             }
+
+                            // Close the trade within x time of opening the trade
+                            if (pair.CloseTradeWithinXBars != null)
+                            {
+                                // Don't do anythhing, start the sceduler when opening the trade
+                            }
+
+                            _schedulers.Add(timingCloseAllTradesAt);
                         }
                     }
                 });
@@ -135,9 +144,9 @@ namespace JCTG.Client
                         await _api.StopAsync();
 
                         // Init close trades on a particular time
-                        foreach (var timing in _timing)
+                        foreach (var timing in _schedulers)
                         {
-                            timing.OnTimeEvent -= OnItsTimeToCloseTradeEvent;
+                            timing.OnCloseTradeEvent -= OnItsTimeToCloseTradeEvent;
                         }
                     }
                 });
@@ -212,7 +221,7 @@ namespace JCTG.Client
                                                     if (CorrelatedPairs.IsNotCorrelated(pair.TickerInMetatrader, "BUY", pair.CorrelatedPairs, api.OpenOrders))
                                                     {
                                                         // Do do not open a deal x minutes before close
-                                                        if (TaskScheduler.CanOpenTrade(pair.CloseAllTradesAt, pair.DoNotOpenTradeXMinutesBeforeClose))
+                                                        if (CloseTradeScheduler.CanOpenTrade(pair.CloseAllTradesAt, pair.DoNotOpenTradeXMinutesBeforeClose))
                                                         {
                                                             // Get the Stop Loss price
                                                             var sl = metadataTick.Ask - (cmd.MarketOrder.Risk.Value * Convert.ToDecimal(pair.SLMultiplier));
@@ -372,7 +381,7 @@ namespace JCTG.Client
                                                     if (CorrelatedPairs.IsNotCorrelated(pair.TickerInMetatrader, "BUY", pair.CorrelatedPairs, api.OpenOrders))
                                                     {
                                                         // Do do not open a deal x minutes before close
-                                                        if (TaskScheduler.CanOpenTrade(pair.CloseAllTradesAt, pair.DoNotOpenTradeXMinutesBeforeClose))
+                                                        if (CloseTradeScheduler.CanOpenTrade(pair.CloseAllTradesAt, pair.DoNotOpenTradeXMinutesBeforeClose))
                                                         {
                                                             // Get the entry price
                                                             var price = DynamicEvaluator.EvaluateExpression(cmd.PassiveOrder.EntryExpression, api.HistoricBarData.Where(f => f.Key == pair.TickerInMetatrader).SelectMany(f => f.Value.BarData).ToList(), out Dictionary<string, string> logMessages1);
@@ -603,7 +612,7 @@ namespace JCTG.Client
                                                     if (CorrelatedPairs.IsNotCorrelated(pair.TickerInMetatrader, "SELL", pair.CorrelatedPairs, api.OpenOrders))
                                                     {
                                                         // Do do not open a deal x minutes before close
-                                                        if (TaskScheduler.CanOpenTrade(pair.CloseAllTradesAt, pair.DoNotOpenTradeXMinutesBeforeClose))
+                                                        if (CloseTradeScheduler.CanOpenTrade(pair.CloseAllTradesAt, pair.DoNotOpenTradeXMinutesBeforeClose))
                                                         {
                                                             var price = metadataTick.Bid;
 
@@ -765,7 +774,7 @@ namespace JCTG.Client
                                                     if (CorrelatedPairs.IsNotCorrelated(pair.TickerInMetatrader, "SELL", pair.CorrelatedPairs, api.OpenOrders))
                                                     {
                                                         // Do do not open a deal x minutes before close
-                                                        if (TaskScheduler.CanOpenTrade(pair.CloseAllTradesAt, pair.DoNotOpenTradeXMinutesBeforeClose))
+                                                        if (CloseTradeScheduler.CanOpenTrade(pair.CloseAllTradesAt, pair.DoNotOpenTradeXMinutesBeforeClose))
                                                         {
                                                             // Get the entry price
                                                             var price = DynamicEvaluator.EvaluateExpression(cmd.PassiveOrder.EntryExpression, api.HistoricBarData.Where(f => f.Key == pair.TickerInMetatrader).SelectMany(f => f.Value.BarData).ToList(), out Dictionary<string, string> logMessages1);
@@ -1419,14 +1428,14 @@ namespace JCTG.Client
                         if (strID == strategyID && signalID > 0)
                         {
                             // Print on the screen
-                            Print($"INFO : {DateTime.UtcNow} / {_appConfig.Brokers.First(f => f.ClientId == api.ClientId).Name} / {order.Value.Symbol} / SEND CLOSE ORDER / {order.Value.Magic} / {strategyID}");
+                            Print($"INFO : {DateTime.UtcNow} / {_appConfig.Brokers.First(f => f.ClientId == api.ClientId).Name} / {order.Value.Symbol} / IT'S TIME TO CLOSE THE ORDER EVENT / {order.Value.Magic} / {strategyID}");
 
                             // Modify order
                             api.CloseOrder(order.Key, decimal.ToDouble(order.Value.Lots));
 
                             // Send log to files
                             var message = string.Format($"Symbol={order.Value.Symbol},Ticket={order.Key},Lots={order.Value.Lots},Type={order.Value.Type},SignalID={order.Value.Magic},Price={order.Value.OpenPrice},TP={order.Value.TakeProfit},SL={order.Value.StopLoss},Comment={order.Value.Comment}");
-                            var log = new Log() { Time = DateTime.UtcNow, Type = "INFO", Description = $"Close all trades at {DateTime.UtcNow}", Message = message };
+                            var log = new Log() { Time = DateTime.UtcNow, Type = "INFO", Description = $"Close all trades at {DateTime.UtcNow}", Message = message, Magic = Convert.ToInt32(signalID) };
 
                             // Send log to files
                             Task.Run(async () =>
@@ -1462,7 +1471,6 @@ namespace JCTG.Client
                     // Clone the open order
                     foreach (var order in api.OpenOrders.Where(f => f.Value.Symbol != null && f.Value.Symbol.Equals(instrument)).ToDictionary(entry => entry.Key, entry => entry.Value))
                     {
-
                         // Get the strategy number from the comment field
                         string[] components = order.Value.Comment != null ? order.Value.Comment.Split('/') : [];
                         long signalId = 0;
@@ -1527,7 +1535,7 @@ namespace JCTG.Client
                                                 api.ModifyOrder(order.Key, order.Value.Lots, 0, slPrice, order.Value.TakeProfit, order.Value.Magic);
 
                                                 var message2 = string.Format($"Symbol={order.Value.Symbol},Ticket={order.Key},Lots={order.Value.Lots},Type={order.Value.Type},SignalID={order.Value.Magic},Price={order.Value.OpenPrice},TP={order.Value.TakeProfit},SL={slPrice},Comment={order.Value.Comment}");
-                                                var log = new Log() { Time = DateTime.UtcNow, Type = "INFO", Message = message2, Description = "Auto move SL to BE" };
+                                                var log = new Log() { Time = DateTime.UtcNow, Type = "INFO", Message = message2, Description = "Auto move SL to BE", Magic = Convert.ToInt32(signalId) };
 
                                                 // Send log to BE
                                                 Task.Run(async () =>
@@ -1577,7 +1585,7 @@ namespace JCTG.Client
 
                                                 // Send log to files
                                                 var message2 = string.Format($"Symbol={order.Value.Symbol},Ticket={order.Key},Lots={order.Value.Lots},Type={order.Value.Type},SignalID={order.Value.Magic},Price={order.Value.OpenPrice},TP={order.Value.TakeProfit},SL={slPrice},Comment={order.Value.Comment}");
-                                                var log = new Log() { Time = DateTime.UtcNow, Type = "INFO", Message = message2, Description = "Auto move SL to BE" };
+                                                var log = new Log() { Time = DateTime.UtcNow, Type = "INFO", Message = message2, Description = "Auto move SL to BE", Magic = Convert.ToInt32(signalId) };
 
                                                 // Send log to BE
                                                 Task.Run(async () =>
@@ -1688,10 +1696,6 @@ namespace JCTG.Client
             // Do null reference check
             if (_appConfig != null)
             {
-                // Send log to files
-                var message = string.Format($"OrderCreated || Symbol={order.Symbol},Ticket={ticketId},Lots={order.Lots},Type={order.Type},SignalID={order.Magic},Price={order.OpenPrice},TP={order.TakeProfit},SL={order.StopLoss},Comment={order.Comment}");
-                var log = new Log() { Time = DateTime.UtcNow, Type = "INFO", Description = "Create order", Message = message };
-
                 // Get the signal id from the comment field
                 string[] components = order.Comment != null ? order.Comment.Split('/') : [];
                 long signalID = 0;
@@ -1702,9 +1706,26 @@ namespace JCTG.Client
                     _ = long.TryParse(components[3].Replace("[sl]", string.Empty).Replace("[tp]", string.Empty), out strategyID);
                 }
 
+                // Send log to files
+                var message = string.Format($"OrderCreated || Symbol={order.Symbol},Ticket={ticketId},Lots={order.Lots},Type={order.Type},SignalID={order.Magic},Price={order.OpenPrice},TP={order.TakeProfit},SL={order.StopLoss},Comment={order.Comment}");
+                var log = new Log() { Time = DateTime.UtcNow, Type = "INFO", Description = "Create order", Message = message, Magic = Convert.ToInt32(signalID) };
+
 
                 // Print on the screen
                 Print($"INFO : {DateTime.UtcNow} / {_appConfig.Brokers.First(f => f.ClientId == clientId).Name} / {order.Symbol} / CREATED ORDER EVENT / {order.Magic} / {strategyID}");
+
+                // Check if we need to start the scheduler
+                var pair = _appConfig.Brokers.FirstOrDefault(f => f.ClientId == clientId && f.Pairs.Any(g => g.TickerInMetatrader == order.Symbol && g.CloseTradeWithinXBars.HasValue))?
+                                    .Pairs.FirstOrDefault(g => g.TickerInMetatrader == order.Symbol && g.CloseTradeWithinXBars.HasValue);
+
+                // check if pair is not null
+                if(pair != null && pair.CloseTradeWithinXBars.HasValue)
+                {
+                    var scheduler = new CloseTradeScheduler(clientId, pair.TickerInMetatrader, pair.StrategyID, true);
+                    scheduler.OnCloseTradeEvent += OnItsTimeToCloseTradeEvent;
+                    scheduler.Start(pair.TimeframeAsTimespan * pair.CloseTradeWithinXBars.Value);
+                    _schedulers.Add(scheduler);
+                }
 
 
                 Task.Run(async () =>
@@ -1729,10 +1750,6 @@ namespace JCTG.Client
             // Do null reference check
             if (_appConfig != null)
             {
-                // Send log to files
-                var message = string.Format($"OrderUpdated || Symbol={order.Symbol},Ticket={ticketId},Lots={order.Lots},Type={order.Type},SignalID={order.Magic},Price={order.OpenPrice},TP={order.TakeProfit},SL={order.StopLoss},Comment={order.Comment}");
-                var log = new Log() { Time = DateTime.UtcNow, Type = "INFO", Description = "Update order", Message = message };
-
                 // Get the signal id from the comment field
                 string[] components = order.Comment != null ? order.Comment.Split('/') : [];
                 long signalId = 0;
@@ -1742,6 +1759,10 @@ namespace JCTG.Client
                     _ = long.TryParse(components[0], out signalId);
                     _ = long.TryParse(components[3].Replace("[sl]", string.Empty).Replace("[tp]", string.Empty), out strategyID);
                 }
+
+                // Send log to files
+                var message = string.Format($"OrderUpdated || Symbol={order.Symbol},Ticket={ticketId},Lots={order.Lots},Type={order.Type},SignalID={order.Magic},Price={order.OpenPrice},TP={order.TakeProfit},SL={order.StopLoss},Comment={order.Comment}");
+                var log = new Log() { Time = DateTime.UtcNow, Type = "INFO", Description = "Update order", Message = message, Magic = Convert.ToInt32(signalId) };
 
 
                 // Print on the screen
@@ -1769,10 +1790,6 @@ namespace JCTG.Client
             // Do null reference check
             if (_appConfig != null && _apis.Count(f => f.ClientId == clientId) == 1)
             {
-                // Send log to files
-                var message = string.Format($"OrderCreated || Symbol={order.Symbol},Ticket={ticketId},Lots={order.Lots},Type={order.Type},SignalID={order.Magic},Price={order.OpenPrice},TP={order.TakeProfit},SL={order.StopLoss},Comment={order.Comment}");
-                var log = new Log() { Time = DateTime.UtcNow, Type = "INFO", Description = "Close order", Message = message };
-
                 // Get the signal id from the comment field
                 string[] components = order.Comment != null ? order.Comment.Split('/') : [];
                 long signalID = 0;
@@ -1782,6 +1799,10 @@ namespace JCTG.Client
                     _ = long.TryParse(components[0], out signalID);
                     _ = long.TryParse(components[3].Replace("[sl]", string.Empty).Replace("[tp]", string.Empty), out strategyID);
                 }
+
+                // Send log to files
+                var message = string.Format($"OrderCreated || Symbol={order.Symbol},Ticket={ticketId},Lots={order.Lots},Type={order.Type},SignalID={order.Magic},Price={order.OpenPrice},TP={order.TakeProfit},SL={order.StopLoss},Comment={order.Comment}");
+                var log = new Log() { Time = DateTime.UtcNow, Type = "INFO", Description = "Close order", Message = message, Magic = Convert.ToInt32(signalID) };
 
                 // Print on the screen
                 Print($"INFO : {DateTime.UtcNow} / {_appConfig.Brokers.First(f => f.ClientId == clientId).Name} / {order.Symbol} / CLOSED ORDER EVENT / {order.Magic} / {strategyID}");

@@ -51,6 +51,35 @@ namespace JCTG.Models
         public required string TickerInTradingView { get; set; }
         public required string TickerInMetatrader { get; set; }
         public required string Timeframe { get; set; }
+        public TimeSpan TimeframeAsTimespan
+        { 
+            get 
+            {
+                return Timeframe switch
+                {
+                    "M1" => TimeSpan.FromMinutes(1),
+                    "M2" => TimeSpan.FromMinutes(2),
+                    "M3" => TimeSpan.FromMinutes(3),
+                    "M4" => TimeSpan.FromMinutes(4),
+                    "M5" => TimeSpan.FromMinutes(5),
+                    "M6" => TimeSpan.FromMinutes(6),
+                    "M10" => TimeSpan.FromMinutes(10),
+                    "M12" => TimeSpan.FromMinutes(12),
+                    "M15" => TimeSpan.FromMinutes(15),
+                    "M20" => TimeSpan.FromMinutes(20),
+                    "M30" => TimeSpan.FromMinutes(30),
+                    "H1" => TimeSpan.FromHours(1),
+                    "H2" => TimeSpan.FromHours(2),
+                    "H3" => TimeSpan.FromHours(3),
+                    "H4" => TimeSpan.FromHours(4),
+                    "H6" => TimeSpan.FromHours(6),
+                    "H8" => TimeSpan.FromHours(8),
+                    "H12" => TimeSpan.FromHours(12),
+                    "D" => TimeSpan.FromDays(1),
+                    _ => TimeSpan.Zero
+                };
+            }
+        }
         public long StrategyID { get; set; }
         public decimal RiskLong { get; set; }
         public decimal RiskShort { get; set; }
@@ -63,6 +92,7 @@ namespace JCTG.Models
         public bool CancelStopOrLimitOrderWhenNewSignal { get; set; }
         public int NumberOfHistoricalBarsRequested { get; set; }
         public TimeSpan? CloseAllTradesAt { get; set; }
+        public int? CloseTradeWithinXBars { get; set; }
         public int? DoNotOpenTradeXMinutesBeforeClose { get; set; }
         [JsonConverter(typeof(StringEnumConverter))]
         public SpreadExecType? SpreadEntry { get; set; }

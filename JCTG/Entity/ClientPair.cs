@@ -26,16 +26,16 @@ namespace JCTG.Entity
         [StringLength(16, ErrorMessage = "Name is too long.")]
         public string Timeframe { get; set; }
         public long StrategyID { get; set; }
-        public double Risk { get; set; }
+        public double RiskLong { get; set; }
         [NotMapped]
-        public string RiskAsString
+        public string RiskLongAsString
         {
-            get => Risk.ToString();
+            get => RiskLong.ToString();
             set
             {
                 if (double.TryParse(value, out double newValue))
                 {
-                    Risk = newValue;
+                    RiskLong = newValue;
                 }
             }
         }
@@ -121,6 +121,19 @@ namespace JCTG.Entity
             }
         }
         public string? CloseAllTradesAt { get; set; }
+        public int? CloseTradeWithinXBars { get; set; }
+        [NotMapped]
+        public string? CloseTradeWithinXBarsAsString
+        {
+            get => CloseTradeWithinXBars.HasValue ? CloseTradeWithinXBars.Value.ToString() : null;
+            set
+            {
+                if (int.TryParse(value, out int newValue))
+                {
+                    CloseTradeWithinXBars = newValue;
+                }
+            }
+        }
         public int? DoNotOpenTradeXMinutesBeforeClose { get; set; }
         [NotMapped]
         public string? DoNotOpenTradeXMinutesBeforeCloseAsString

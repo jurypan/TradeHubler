@@ -1,13 +1,13 @@
 ﻿namespace JCTG.Client
 {
-    public class TaskScheduler(long clientId, string symbol, long strategyID)
+    public class CloseTradeScheduler(long ClientId, string Instrument, long StrategyID, bool stopTimerWhenTriggerIsExecuted)
     {
         private DateTime? lastExecutionDate = null;
         private Timer? timerCheckTimeAndExecuteOnceDaily = null;
         private readonly TimeSpan targetTime;
 
-        public delegate void OnTimeEventHandler(long clientID, string symbol, long strategyID);
-        public event OnTimeEventHandler? OnTimeEvent;
+        public delegate void OnCloseTradeEventHandler(long clientID, string symbol, long strategyID);
+        public event OnCloseTradeEventHandler? OnCloseTradeEvent;
 
         public void Start(TimeSpan targetTime)
         {
@@ -37,7 +37,13 @@
                 lastExecutionDate = now;
 
                 // Throw event
-                OnTimeEvent?.Invoke(clientId, symbol, strategyID);
+                OnCloseTradeEvent?.Invoke(ClientId, Instrument, StrategyID);
+
+                // Stop trigger if needed
+                if (stopTimerWhenTriggerIsExecuted)
+                {
+                    Stop(); return;
+                }
             }
         }
 
