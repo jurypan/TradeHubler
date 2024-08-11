@@ -1025,7 +1025,7 @@ namespace JCTG.Client
                                                             if (pair.SpreadSLtoBE.HasValue)
                                                             {
                                                                 // Calculate SL
-                                                                sl = RiskCalculator.CalculateSpreadExecForShort(sl, spread, pair.SpreadSLtoBE.Value);
+                                                                sl += RiskCalculator.CalculateSpreadExecForShort(sl, spread, pair.SpreadSLtoBE.Value);
                                                             }
 
                                                             // Check if the current price + spread is lower than the SL price
@@ -1044,14 +1044,14 @@ namespace JCTG.Client
                                                             if (pair.SpreadSLtoBE.HasValue)
                                                             {
                                                                 // Calculate SL
-                                                                sl = RiskCalculator.CalculateSpreadExecForLong(sl, spread, pair.SpreadSLtoBE.Value);
+                                                                sl -= RiskCalculator.CalculateSpreadExecForLong(sl, spread, pair.SpreadSLtoBE.Value);
                                                             }
 
                                                             // Check if the current price + spread is higher than the SL price
                                                             if (sl >= metadataTick.Bid)
                                                             {
                                                                 // Set SL to 1 tick above the current price
-                                                                sl = metadataTick.Bid + (2 * metadataTick.TickSize);
+                                                                sl = metadataTick.Bid - (2 * metadataTick.TickSize);
                                                             }
                                                         }
 
