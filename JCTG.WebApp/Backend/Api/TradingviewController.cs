@@ -340,7 +340,8 @@ namespace JCTG.WebApp.Backend.Api
                                             instrument: signal.Instrument,
                                             strategyId: signal.StrategyID,
                                             risk: signal.Risk,
-                                            riskToRewardRatio: signal.RiskRewardRatio
+                                            riskToRewardRatio: signal.RiskRewardRatio,
+                                            stopLossExpression: signal.StopLossExpression
                                         ));
 
                                     // Add log
@@ -355,7 +356,8 @@ namespace JCTG.WebApp.Backend.Api
                                             instrument: signal.Instrument,
                                             strategyId: signal.StrategyID,
                                             risk: signal.Risk,
-                                            riskToRewardRatio: signal.RiskRewardRatio
+                                            riskToRewardRatio: signal.RiskRewardRatio,
+                                            stopLossExpression: signal.StopLossExpression
                                         ));
 
                                     // Add log
@@ -448,61 +450,78 @@ namespace JCTG.WebApp.Backend.Api
                                     .OrderByDescending(f => f.DateCreated)
                                     .FirstOrDefaultAsync();
 
+
                                 if (existingSignal == null && (signal.OrderType.Equals("entrylong", StringComparison.CurrentCultureIgnoreCase) || signal.OrderType.Equals("entryshort", StringComparison.CurrentCultureIgnoreCase)))
                                 {
-                                    // Add log
-                                    _logger.Information($"No stop or limit order found for signal with ID: {signal.ID}, generate market order", signal);
+                                    // Get the settings from the database
+                                    var pair = await _dbContext.ClientPair.Include(f => f.Client).FirstOrDefaultAsync(f => f.Client != null && f.Client.AccountID == signal.AccountID && f.TickerInTradingView == signal.Instrument);
 
-                                    // Set signal state
-                                    signal.SignalStateType = SignalStateType.Entry;
-
-                                    // If the order type is one of the order types, add the signal to the database
-                                    await _dbContext.Signal.AddAsync(signal);
-
-                                    // Save to the database
-                                    await _dbContext.SaveChangesAsync();
-
-                                    // Add to the tradingview alert
-                                    await _dbContext.TradingviewAlert.AddAsync(new TradingviewAlert()
+                                    // Do null reference check
+                                    if (pair != null && pair.ExecuteMarketOrderOnEntryIfNoPendingOrders == true)
                                     {
-                                        DateCreated = DateTime.UtcNow,
-                                        RawMessage = requestBody,
-                                        SignalID = signal.ID,
-                                        Type = TradingviewAlert.ParseTradingviewAlertTypeOrDefault(signal.OrderType.ToLower()),
-                                    });
+                                        // Add log
+                                        _logger.Information($"No stop or limit order found for signal with ID: {signal.ID}, generate market order", signal);
 
-                                    // Save to the database
-                                    await _dbContext.SaveChangesAsync();
+                                        // Set signal state
+                                        signal.SignalStateType = SignalStateType.Entry;
+                                        if (signal.OrderType.Equals("entrylong", StringComparison.CurrentCultureIgnoreCase))
+                                            signal.OrderType = "BUY";
+                                        else
+                                            signal.OrderType = "SELL";
 
-                                    // Add log
-                                    _logger.Information($"Added to database in table Signal with ID: {signal.ID}", signal);
+                                        // If the order type is one of the order types, add the signal to the database
+                                        await _dbContext.Signal.AddAsync(signal);
 
-                                    // Generate a BUY order
-                                    if (signal.OrderType.Equals("entrylong", StringComparison.CurrentCultureIgnoreCase))
-                                    {
-                                        var id = await _server.SendOnTradingviewSignalCommandAsync(signal.AccountID, OnSendTradingviewSignalCommand.Buy
-                                        (
-                                            signalId: signal.ID,
-                                            accountId: signal.AccountID,
-                                            instrument: signal.Instrument,
-                                            strategyId: signal.StrategyID,
-                                            risk: signal.Risk,
-                                            riskToRewardRatio: signal.RiskRewardRatio
-                                        ));
-                                    }
+                                        // Save to the database
+                                        await _dbContext.SaveChangesAsync();
 
-                                    // Generate a SELL order
-                                    else if (signal.OrderType.Equals("entryshort", StringComparison.CurrentCultureIgnoreCase))
-                                    {
-                                        var id = await _server.SendOnTradingviewSignalCommandAsync(signal.AccountID, OnSendTradingviewSignalCommand.Sell
-                                        (
-                                            signalId: signal.ID,
-                                            accountId: signal.AccountID,
-                                            instrument: signal.Instrument,
-                                            strategyId: signal.StrategyID,
-                                            risk: signal.Risk,
-                                            riskToRewardRatio: signal.RiskRewardRatio
-                                        ));
+                                        // Add to the tradingview alert
+                                        await _dbContext.TradingviewAlert.AddAsync(new TradingviewAlert()
+                                        {
+                                            DateCreated = DateTime.UtcNow,
+                                            RawMessage = requestBody,
+                                            SignalID = signal.ID,
+                                            Type = TradingviewAlert.ParseTradingviewAlertTypeOrDefault(signal.OrderType.ToLower()),
+                                        });
+
+                                        // Save to the database
+                                        await _dbContext.SaveChangesAsync();
+
+                                        // Add log
+                                        _logger.Information($"Added to database in table Signal with ID: {signal.ID}", signal);
+
+                                        // If the previous order is a init, cancel the order
+
+
+                                        // Generate a BUY order
+                                        if (signal.OrderType.Equals("entrylong", StringComparison.CurrentCultureIgnoreCase))
+                                        {
+                                            var id = await _server.SendOnTradingviewSignalCommandAsync(signal.AccountID, OnSendTradingviewSignalCommand.Buy
+                                            (
+                                                signalId: signal.ID,
+                                                accountId: signal.AccountID,
+                                                instrument: signal.Instrument,
+                                                strategyId: signal.StrategyID,
+                                                risk: signal.Risk,
+                                                riskToRewardRatio: signal.RiskRewardRatio,
+                                                stopLossExpression: signal.StopLossExpression
+                                            ));
+                                        }
+
+                                        // Generate a SELL order
+                                        else if (signal.OrderType.Equals("entryshort", StringComparison.CurrentCultureIgnoreCase))
+                                        {
+                                            var id = await _server.SendOnTradingviewSignalCommandAsync(signal.AccountID, OnSendTradingviewSignalCommand.Sell
+                                            (
+                                                signalId: signal.ID,
+                                                accountId: signal.AccountID,
+                                                instrument: signal.Instrument,
+                                                strategyId: signal.StrategyID,
+                                                risk: signal.Risk,
+                                                riskToRewardRatio: signal.RiskRewardRatio,
+                                                stopLossExpression: signal.StopLossExpression
+                                            ));
+                                        }
                                     }
                                 }
                                 else if (existingSignal == null && (signal.OrderType.Equals("tphit", StringComparison.CurrentCultureIgnoreCase) || signal.OrderType.Equals("slhit", StringComparison.CurrentCultureIgnoreCase) || signal.OrderType.Equals("behit", StringComparison.CurrentCultureIgnoreCase)))
@@ -511,7 +530,7 @@ namespace JCTG.WebApp.Backend.Api
                                     _logger.Information($"No stop or limit order found for signal with ID: {signal.ID}, generate market order", signal);
 
                                     // Set signal state
-                                    if(signal.OrderType.Equals("tphit", StringComparison.CurrentCultureIgnoreCase))
+                                    if (signal.OrderType.Equals("tphit", StringComparison.CurrentCultureIgnoreCase))
                                         signal.SignalStateType = SignalStateType.TpHit;
                                     else if (signal.OrderType.Equals("slhit", StringComparison.CurrentCultureIgnoreCase))
                                         signal.SignalStateType = SignalStateType.SlHit;
@@ -539,7 +558,8 @@ namespace JCTG.WebApp.Backend.Api
                                     // Add log
                                     _logger.Information($"Added to database in table Signal with ID: {signal.ID}", signal);
                                 }
-                                else if (existingSignal != null)
+
+                                if (existingSignal != null)
                                 {
                                     // If is entry
                                     if (signal.OrderType.Equals("entrylong", StringComparison.CurrentCultureIgnoreCase))
@@ -570,6 +590,7 @@ namespace JCTG.WebApp.Backend.Api
                                                             strategyId: signal.StrategyID,
                                                             risk: signal.Risk,
                                                             riskToRewardRatio: signal.RiskRewardRatio,
+                                                            stopLossExpression: signal.StopLossExpression,
                                                             clientIds: [marketAbstention.ClientID]
                                                         ));
 
@@ -627,6 +648,7 @@ namespace JCTG.WebApp.Backend.Api
                                                             strategyId: signal.StrategyID,
                                                             risk: signal.Risk,
                                                             riskToRewardRatio: signal.RiskRewardRatio,
+                                                            stopLossExpression: signal.StopLossExpression,
                                                             clientIds: [marketAbstention.ClientID]
                                                         ));
 
@@ -799,54 +821,18 @@ namespace JCTG.WebApp.Backend.Api
 
                                 if (existingSignal2 != null)
                                 {
-                                    if (existingSignal2.SignalStateType == SignalStateType.Entry)
-                                    {
-                                        existingSignal2.SignalStateType = SignalStateType.CloseAll;
-                                        existingSignal2.DateLastUpdated = DateTime.UtcNow;
-                                        existingSignal2.ExitRiskRewardRatio = signal.ExitRiskRewardRatio;
-
-                                        // Update state
-                                        _dbContext.Signal.Update(existingSignal2);
-
-                                        // Add to the tradingview alert
-                                        await _dbContext.TradingviewAlert.AddAsync(new TradingviewAlert()
-                                        {
-                                            DateCreated = DateTime.UtcNow,
-                                            RawMessage = requestBody,
-                                            SignalID = existingSignal2.ID,
-                                            Type = TradingviewAlert.ParseTradingviewAlertTypeOrDefault(signal.OrderType.ToLower()),
-                                        });
-
-
-                                        // Update database
-                                        _logger.Information($"Updated database in table Signal with ID: {existingSignal2.ID}", existingSignal2);
-                                    }
-                                    else if (existingSignal2.SignalStateType == SignalStateType.Init)
-                                    {
-                                        existingSignal2.SignalStateType = SignalStateType.CancelOrder;
-                                        existingSignal2.DateLastUpdated = DateTime.UtcNow;
-                                        existingSignal2.ExitRiskRewardRatio = signal.ExitRiskRewardRatio;
-
-                                        // Update state
-                                        _dbContext.Signal.Update(existingSignal2);
-
-                                        // Add to the tradingview alert
-                                        await _dbContext.TradingviewAlert.AddAsync(new TradingviewAlert()
-                                        {
-                                            DateCreated = DateTime.UtcNow,
-                                            RawMessage = requestBody,
-                                            SignalID = existingSignal2.ID,
-                                            Type = TradingviewAlert.ParseTradingviewAlertTypeOrDefault(signal.OrderType.ToLower()),
-                                        });
-
-
-                                        // Update database
-                                        _logger.Information($"Updated database in table Signal with ID: {existingSignal2.ID}", existingSignal2);
-                                    }
-
                                     // Update
                                     existingSignal2.SignalStateType = SignalStateType.CloseAll;
                                     existingSignal2.ExitRiskRewardRatio = signal.ExitRiskRewardRatio;
+
+                                    // Add to the tradingview alert
+                                    await _dbContext.TradingviewAlert.AddAsync(new TradingviewAlert()
+                                    {
+                                        DateCreated = DateTime.UtcNow,
+                                        RawMessage = requestBody,
+                                        SignalID = existingSignal2.ID,
+                                        Type = TradingviewAlert.ParseTradingviewAlertTypeOrDefault(signal.OrderType.ToLower()),
+                                    });
 
                                     // Save to the database
                                     await _dbContext.SaveChangesAsync();

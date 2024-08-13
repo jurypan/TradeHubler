@@ -69,7 +69,7 @@ namespace JCTG.Command
             };
         }
 
-        public static OnSendTradingviewSignalCommand Buy(int accountId, long signalId, string instrument, long strategyId, double risk, double riskToRewardRatio, List<long>? clientIds = null)
+        public static OnSendTradingviewSignalCommand Buy(int accountId, long signalId, string instrument, long strategyId, double risk, double riskToRewardRatio, string? stopLossExpression = null, List<long>? clientIds = null)
         {
             return new OnSendTradingviewSignalCommand()
             {
@@ -83,6 +83,7 @@ namespace JCTG.Command
                 {
                     Risk = Convert.ToDecimal(risk),
                     RiskRewardRatio = Convert.ToDecimal(riskToRewardRatio),
+                    StopLossExpression = stopLossExpression,
                 },
             };
         }
@@ -167,7 +168,7 @@ namespace JCTG.Command
             };
         }
 
-        public static OnSendTradingviewSignalCommand Sell(int accountId, long signalId, string instrument, long strategyId, double risk, double riskToRewardRatio, List<long>? clientIds = null)
+        public static OnSendTradingviewSignalCommand Sell(int accountId, long signalId, string instrument, long strategyId, double risk, double riskToRewardRatio, string? stopLossExpression = null, List<long>? clientIds = null)
         {
             return new OnSendTradingviewSignalCommand()
             {
@@ -181,6 +182,7 @@ namespace JCTG.Command
                 {
                     Risk = Convert.ToDecimal(risk),
                     RiskRewardRatio = Convert.ToDecimal(riskToRewardRatio),
+                    StopLossExpression = stopLossExpression,
                 },
             };
         }
@@ -190,6 +192,7 @@ namespace JCTG.Command
     {
         public decimal? Risk { get; set; }
         public decimal? RiskRewardRatio { get; set; }
+        public string? StopLossExpression { get; set; }
     }
 
     public class OnReceivingPassiveOrder // BUYSTOP or SELLSTOP

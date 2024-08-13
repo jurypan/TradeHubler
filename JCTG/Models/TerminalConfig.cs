@@ -90,6 +90,7 @@ namespace JCTG.Models
         [JsonConverter(typeof(StringEnumConverter))]
         public OrderExecType OrderExecType { get; set; }
         public bool CancelStopOrLimitOrderWhenNewSignal { get; set; }
+        public bool ExecuteMarketOrderOnEntryIfNoPendingOrders { get; set; }
         public int NumberOfHistoricalBarsRequested { get; set; }
         public TimeSpan? CloseAllTradesAt { get; set; }
         public int? CloseTradeWithinXBars { get; set; }

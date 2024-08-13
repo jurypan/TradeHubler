@@ -56,6 +56,7 @@ namespace JCTG.WebApp.Backend.Api
                                                 TickerInTradingView = p.TickerInTradingView,
                                                 Timeframe = p.Timeframe,
                                                 CancelStopOrLimitOrderWhenNewSignal = p.CancelStopOrLimitOrderWhenNewSignal,
+                                                ExecuteMarketOrderOnEntryIfNoPendingOrders = p.ExecuteMarketOrderOnEntryIfNoPendingOrders,
                                                 CloseAllTradesAt = string.IsNullOrEmpty(p.CloseAllTradesAt) ? null : TimeSpan.Parse(p.CloseAllTradesAt),
                                                 CloseTradeWithinXBars = p.CloseTradeWithinXBars,
                                                 CorrelatedPairs = new List<string>(),

@@ -127,6 +127,16 @@
                         </div>
                         <div class="col-md-4">
                             <div class="mb-3">
+                                <div class="form-check py-2 form-switch">
+                                    <InputCheckbox class="form-check-input" @bind-Value="model.ExecuteMarketOrderOnEntryIfNoPendingOrders" />
+                                    <label class="form-check-label" for="flexSwitchCheckDefault">
+                                        Execute market order on entry CMD if no pending orders
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
                                 <label class="form-label">Number Of Historical Bars Requested</label>
                                 <InputText class="form-control" @bind-Value="model.NumberOfHistoricalBarsRequestedAsString" />
                             </div>

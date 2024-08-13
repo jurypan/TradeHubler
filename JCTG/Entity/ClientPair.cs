@@ -107,6 +107,7 @@ namespace JCTG.Entity
         }
         public OrderExecType OrderExecType { get; set; }
         public bool CancelStopOrLimitOrderWhenNewSignal { get; set; }
+        public bool ExecuteMarketOrderOnEntryIfNoPendingOrders { get; set; }
         public int NumberOfHistoricalBarsRequested { get; set; }
         [NotMapped]
         public string NumberOfHistoricalBarsRequestedAsString
