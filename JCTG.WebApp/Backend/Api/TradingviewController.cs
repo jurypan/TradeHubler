@@ -74,12 +74,6 @@ namespace JCTG.WebApp.Backend.Api
                             return;
                         }
 
-                        if (signal.Magic == 0)
-                        {
-                            _logger.Error($"'magic' is mandatory for {signal.OrderType}");
-                            return;
-                        }
-
                         if (string.IsNullOrEmpty(signal.Instrument))
                         {
                             _logger.Error($"'ticker' is mandatory for {signal.OrderType}");
@@ -106,12 +100,26 @@ namespace JCTG.WebApp.Backend.Api
                             }
                         }
 
+                        if(!await _dbContext.ClientPair.Include(f => f.Client).AnyAsync(f => f.Client != null && f.Client.AccountID == signal.AccountID && f.TickerInTradingView.Equals(signal.Instrument, StringComparison.CurrentCultureIgnoreCase)))
+                        {
+                            _logger.Error($"'instrument' {signal.Instrument} doesn't exist for this account");
+                            return;
+                        }
+
+
 
                         // MARKET ORDERS
                         switch (signal.OrderType.ToLower())
                         {
                             case "buy":
                             case "sell":
+
+
+                                if (signal.Magic == 0)
+                                {
+                                    _logger.Error($"'magic' is mandatory for {signal.OrderType}");
+                                    return;
+                                }
 
                                 if (signal.Risk == 0)
                                 {
@@ -148,6 +156,12 @@ namespace JCTG.WebApp.Backend.Api
                             case "buylimit":
                             case "selllimit":
                             case "sellstop":
+
+                                if (signal.Magic == 0)
+                                {
+                                    _logger.Error($"'magic' is mandatory for {signal.OrderType}");
+                                    return;
+                                }
 
                                 if (signal.Risk == 0)
                                 {
@@ -195,6 +209,12 @@ namespace JCTG.WebApp.Backend.Api
                             case "entrylong":
                             case "entryshort":
 
+                                if (signal.Magic == 0)
+                                {
+                                    _logger.Error($"'magic' is mandatory for {signal.OrderType}");
+                                    return;
+                                }
+
                                 if (signal.Risk == 0)
                                 {
                                     _logger.Error($"'risk' is mandatory for {signal.OrderType}");
@@ -230,6 +250,13 @@ namespace JCTG.WebApp.Backend.Api
                             case "behit":
                             case "close":
                             case "closeall":
+
+                                if (signal.Magic == 0)
+                                {
+                                    _logger.Error($"'magic' is mandatory for {signal.OrderType}");
+                                    return;
+                                }
+
                                 if (!signal.ExitRiskRewardRatio.HasValue)
                                 {
                                     _logger.Error($"'exitrr' is mandatory for {signal.OrderType}");
@@ -238,24 +265,9 @@ namespace JCTG.WebApp.Backend.Api
 
                                 break;
 
-                            case "cancelorder":
+                            case "cancel":
                             case "movesltobe":
                                 // No extra parameters required
-                                break;
-                            case "movetp":
-
-                                if (signal.Risk == 0)
-                                {
-                                    _logger.Error($"'risk' is mandatory for {signal.OrderType}");
-                                    return;
-                                }
-
-                                if (signal.RiskRewardRatio == 0)
-                                {
-                                    _logger.Error($"'rr' is mandatory for {signal.OrderType}");
-                                    return;
-                                }
-
                                 break;
                             default:
                                 break;
@@ -857,24 +869,24 @@ namespace JCTG.WebApp.Backend.Api
 
                                 break;
                             case "cancel":
+
+
                                 var existingSignal5 = await _dbContext.Signal
-                                                            .Where(s => s.Instrument == signal.Instrument
-                                                                        && s.AccountID == signal.AccountID
-                                                                        && s.Magic == signal.Magic
-                                                                        && s.StrategyID == signal.StrategyID
-                                                            )
-                                                            .OrderByDescending(f => f.DateCreated)
-                                                            .FirstOrDefaultAsync();
-                                ;
+                                                                            .Where(s => s.Instrument == signal.Instrument
+                                                                                        && s.AccountID == signal.AccountID
+                                                                                        && s.StrategyID == signal.StrategyID
+                                                                            )
+                                                                            .OrderByDescending(f => f.DateCreated)
+                                                                            .FirstOrDefaultAsync();
 
                                 if (existingSignal5 != null)
                                 {
                                     // Only cancel passive orders, don't cancel active orders (else it will close the trade)
                                     if (signal.OrderType.Equals("buystop", StringComparison.CurrentCultureIgnoreCase)
-                                           || signal.OrderType.Equals("buylimit", StringComparison.CurrentCultureIgnoreCase)
-                                           || signal.OrderType.Equals("selllimit", StringComparison.CurrentCultureIgnoreCase)
-                                           || signal.OrderType.Equals("sellstop", StringComparison.CurrentCultureIgnoreCase)
-                                          )
+                                            || signal.OrderType.Equals("buylimit", StringComparison.CurrentCultureIgnoreCase)
+                                            || signal.OrderType.Equals("selllimit", StringComparison.CurrentCultureIgnoreCase)
+                                            || signal.OrderType.Equals("sellstop", StringComparison.CurrentCultureIgnoreCase)
+                                            )
                                     {
 
                                         // Add to the tradingview alert
@@ -915,6 +927,8 @@ namespace JCTG.WebApp.Backend.Api
                                     // Add error to log
                                     _logger.Error($"Error! Could not find Signal with magic: {signal.Magic} in database", signal);
                                 }
+
+
 
                                 break;
                             default:

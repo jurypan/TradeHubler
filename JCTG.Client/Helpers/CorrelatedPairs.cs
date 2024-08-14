@@ -4,15 +4,15 @@ namespace JCTG.Client
 {
     public class CorrelatedPairs
     {
-        public static bool IsNotCorrelated(string tickerToOpen, string typeToOpen, List<string> correlatedPairs, Dictionary<long, Order> openOrders)
+        public static bool IsNotCorrelated(string tickerToOpen, string orderTypeToOpen, List<string> correlatedPairs, Dictionary<long, Order> openOrders)
         {
             // Do null reference check
-            if(tickerToOpen != null && typeToOpen != null && correlatedPairs != null && openOrders != null) 
+            if(tickerToOpen != null && orderTypeToOpen != null && correlatedPairs != null && openOrders != null) 
             {
-                // Check if there is any open order whose symbol and type match the corrselatedPairs list and the typeToOpen respectively
+                // Check if there is any open order whose symbol and type match the corrselatedPairs list and the orderTypeToOpen respectively
                 foreach (var order in openOrders.Select(f => f.Value))
                 {
-                    if (order.Symbol != null && order.Type != null && correlatedPairs.Contains(order.Symbol) && order.Type.Equals(typeToOpen.ToLower().Replace("stop", string.Empty).Replace("limit", string.Empty), StringComparison.OrdinalIgnoreCase))
+                    if (order.Symbol != null && order.Type != null && correlatedPairs.Contains(order.Symbol) && order.Type.Equals(orderTypeToOpen.ToLower().Replace("stop", string.Empty).Replace("limit", string.Empty), StringComparison.OrdinalIgnoreCase))
                     {
                         return false; // Found an open order that is in the correlated pairs list and matches the type
                     }
@@ -27,7 +27,7 @@ namespace JCTG.Client
             // Do null reference check
             if (tickerToOpen != null && typeToOpen != null && correlatedPairs != null && openOrders != null)
             {
-                // Check if there is any open order whose symbol and type match the corrselatedPairs list and the typeToOpen respectively
+                // Check if there is any open order whose symbol and type match the corrselatedPairs list and the orderTypeToOpen respectively
                 foreach (var order in openOrders.Select(f => f.Value))
                 {
                     if (order.Symbol != null && order.Type != null && correlatedPairs.Contains(order.Symbol) && order.Type.Equals(typeToOpen.ToLower().Replace("stop", string.Empty).Replace("limit", string.Empty), StringComparison.OrdinalIgnoreCase))
