@@ -63,7 +63,7 @@ namespace JCTG.Client
                         _api.OnOrderCreateEvent += OnOrderCreatedEvent;
                         _api.OnOrderUpdateEvent += OnOrderUpdateEvent;
                         _api.OnOrderCloseEvent += OnOrderCloseEvent;
-                        _api.OnLogEvent += OnLogEvent;
+                        _api.OnLogEvent += OnMetatraderLogEvent;
                         _api.OnCandleCloseEvent += OnCandleCloseEvent;
                         _api.OnDealCreatedEvent += OnDealCreateEvent;
                         _api.OnTickEvent += OnTickEvent;
@@ -123,7 +123,7 @@ namespace JCTG.Client
                         _api.OnOrderCreateEvent -= OnOrderCreatedEvent;
                         _api.OnOrderUpdateEvent -= OnOrderUpdateEvent;
                         _api.OnOrderCloseEvent -= OnOrderCloseEvent;
-                        _api.OnLogEvent -= OnLogEvent;
+                        _api.OnLogEvent -= OnMetatraderLogEvent;
                         _api.OnCandleCloseEvent -= OnCandleCloseEvent;
                         _api.OnDealCreatedEvent -= OnDealCreateEvent;
                         _api.OnTickEvent -= OnTickEvent;
@@ -157,7 +157,7 @@ namespace JCTG.Client
                 if (azureQueue != null)
                 {
                     // OnSendTradingviewSignalCommand
-                    azureQueue.OnSendTradingviewSignalCommand += async (cmd) =>
+                    azureQueue.OnSendTradingviewSignalCommand += (cmd) =>
                     {
                         if (cmd != null && cmd.SignalID > 0 && cmd.AccountID == _appConfig.AccountId)
                         {
@@ -1043,7 +1043,7 @@ namespace JCTG.Client
                     };
 
                     // OnSendManualOrderCommand
-                    azureQueue.OnSendManualOrderCommand += async (cmd) =>
+                    azureQueue.OnSendManualOrderCommand += (cmd) =>
                     {
                         if (cmd != null && cmd.AccountID == _appConfig.AccountId && cmd.ClientInstruments != null)
                         {
@@ -1437,7 +1437,7 @@ namespace JCTG.Client
             }
         }
 
-        private void OnLogEvent(long clientId, long id, Log log)
+        private void OnMetatraderLogEvent(long clientId, long id, Log log)
         {
             // Do null reference check
             if (_appConfig != null)
@@ -1460,6 +1460,10 @@ namespace JCTG.Client
 
                     // Send log to files
                     LogFactory.ErrorExecuteOrderEvent(clientId, _appConfig.Debug, log, symbol, orderType, log.Magic.HasValue ? log.Magic.Value : 0);
+                }
+                else
+                {
+                    Helpers.Print($"INFO : {DateTime.UtcNow} / {_appConfig.Brokers.First(f => f.ClientId == clientId).Name} / MT LOG / {log.Message}");
                 }
             }
         }

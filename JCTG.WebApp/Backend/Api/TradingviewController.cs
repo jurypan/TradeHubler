@@ -46,8 +46,7 @@ namespace JCTG.WebApp.Backend.Api
             // Log signal
             _logger.Debug($"!! TRADINGVIEW SIGNAL : {requestBody}");
 
-            // Put message on the bus and read bus from another call because webhook of Tradingview can only take 3 seconds
-            Task.Run(() => ProcessTradingViewSignal(requestBody));
+            await ProcessTradingViewSignal(requestBody);
 
             return Ok("Processed successfully");
         }
@@ -472,7 +471,7 @@ namespace JCTG.WebApp.Backend.Api
                                     if (pair != null && pair.ExecuteMarketOrderOnEntryIfNoPendingOrders == true)
                                     {
                                         // Add log
-                                        _logger.Information($"No stop or limit order found for signal with ID: {signal.ID}, generate market order", signal);
+                                        _logger.Information($"No stop or limit order found for signal, generate market order", signal);
 
                                         // Set signal state
                                         signal.SignalStateType = SignalStateType.Entry;
@@ -518,6 +517,8 @@ namespace JCTG.WebApp.Backend.Api
                                                 riskToRewardRatio: signal.RiskRewardRatio,
                                                 stopLossExpression: signal.StopLossExpression
                                             ));
+
+                                            _logger.Information($"Send OnSendTradingviewSignalCommand to client with id {id}", id);
                                         }
 
                                         // Generate a SELL order
@@ -533,6 +534,8 @@ namespace JCTG.WebApp.Backend.Api
                                                 riskToRewardRatio: signal.RiskRewardRatio,
                                                 stopLossExpression: signal.StopLossExpression
                                             ));
+
+                                            _logger.Information($"Send OnSendTradingviewSignalCommand to client with id {id}", id);
                                         }
                                     }
                                 }

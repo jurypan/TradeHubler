@@ -96,7 +96,7 @@ namespace JCTG.Client
                 }
 
                 // Wait for a short period before checking for more messages
-                await Task.Delay(1000);
+                await Task.Delay(250);
             }
         }
     }
