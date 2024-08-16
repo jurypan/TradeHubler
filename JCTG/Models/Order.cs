@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using System.Web;
 
 namespace JCTG.Models
 {
@@ -36,5 +37,37 @@ namespace JCTG.Models
         public string? Comment { get; set; }
 
         public int Magic { get; set; }
+
+        public string ToQueryString()
+        {
+            var queryParameters = new List<string>();
+
+            if (!string.IsNullOrEmpty(Symbol))
+                queryParameters.Add($"Symbol={HttpUtility.UrlEncode(Symbol)}");
+
+            queryParameters.Add($"Lots={Lots}");
+
+            if (!string.IsNullOrEmpty(Type))
+                queryParameters.Add($"Type={HttpUtility.UrlEncode(Type)}");
+
+            queryParameters.Add($"open_price={OpenPrice}");
+            queryParameters.Add($"open_time={HttpUtility.UrlEncode(OpenTime.ToString("o"))}");
+
+            if (CloseTime.HasValue)
+                queryParameters.Add($"close_time={HttpUtility.UrlEncode(CloseTime.Value.ToString("o"))}");
+
+            queryParameters.Add($"sl={StopLoss}");
+            queryParameters.Add($"tp={TakeProfit}");
+            queryParameters.Add($"Pnl={Pnl}");
+            queryParameters.Add($"Commission={Commission}");
+            queryParameters.Add($"Swap={Swap}");
+
+            if (!string.IsNullOrEmpty(Comment))
+                queryParameters.Add($"Comment={HttpUtility.UrlEncode(Comment)}");
+
+            queryParameters.Add($"Magic={Magic}");
+
+            return string.Join(",", queryParameters);
+        }
     }
 }

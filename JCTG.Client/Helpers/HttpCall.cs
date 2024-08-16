@@ -91,7 +91,7 @@ namespace JCTG.Client
 
         public static async Task OnOrderAutoMoveSlToBeEvent(OnOrderAutoMoveSlToBeEvent model)
         {
-            await PostJsonAsync("https://app.tradehubler.com/api/OnOrderAutoMoveSlToBeEvent", JsonConvert.SerializeObject(model));
+            await PostJsonAsync("https://app.tradehubler.com/api/ModifyOrderByMoveSLtoBE", JsonConvert.SerializeObject(model));
         }
 
         public static async Task OnItsTimeToCloseTheOrderEvent(OnItsTimeToCloseTheOrderEvent model)

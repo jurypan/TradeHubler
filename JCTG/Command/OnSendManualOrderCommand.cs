@@ -1,4 +1,5 @@
 ﻿using JCTG.Models;
+using System.Web;
 
 namespace JCTG.Command
 {
@@ -37,6 +38,34 @@ namespace JCTG.Command
 
         public OnReceivingManualMarketOrder MarketOrder { get; set; } = new OnReceivingManualMarketOrder();
 
+        public string ToQueryString()
+        {
+            var queryParameters = new List<string>
+            {
+                $"AccountID={AccountID}",
+                $"StrategyID={StrategyID}",
+                $"OrderType={HttpUtility.UrlEncode(OrderType)}",
+                $"Magic={Magic}",
+                $"ProcentRiskOfBalance={ProcentRiskOfBalance}"
+            };
+
+            if (ClientInstruments != null && ClientInstruments.Any())
+            {
+                foreach (var instrument in ClientInstruments)
+                {
+                    queryParameters.Add($"ClientInstruments[]={HttpUtility.UrlEncode(instrument.ToQueryString())}");
+                }
+            }
+
+            if (MarketOrder != null)
+            {
+                queryParameters.Add($"MarketOrder.EntryPrice={MarketOrder.EntryPrice}");
+                queryParameters.Add($"MarketOrder.StopLossPrice={MarketOrder.StopLossPrice}");
+                queryParameters.Add($"MarketOrder.RiskRewardRatio={MarketOrder.RiskRewardRatio}");
+            }
+
+            return string.Join(",", queryParameters);
+        }
 
     }
 
@@ -94,5 +123,10 @@ namespace JCTG.Command
             }
         }
         public string Instrument { get; set; }
+
+        public string ToQueryString()
+        {
+            return $"ClientID={ClientID}&Instrument={HttpUtility.UrlEncode(Instrument)}";
+        }
     }
 }

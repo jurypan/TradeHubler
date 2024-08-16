@@ -1,6 +1,4 @@
-﻿using JCTG.Command;
-using JCTG.Models;
-using System.Diagnostics;
+﻿using JCTG.Models;
 
 namespace JCTG.Client
 {
@@ -91,7 +89,7 @@ namespace JCTG.Client
             var lotSize = riskAmount / lossPerLot;
             LogCalculation(logMessages, "InitialLotSize", lotSize);
 
-            // Adjusting for lot step
+            // Adjusting for lot tickSize
             lotSize = RoundToNearestLotSize(lotSize, Convert.ToDecimal(lotStep));
             LogCalculation(logMessages, "RoundedLotSize", lotSize);
 
@@ -457,10 +455,68 @@ namespace JCTG.Client
             return string.Format($"{signalId}/{price}/{stopLoss}/{Convert.ToInt32(strategyId)}/{spread}");
         }
 
-        public static decimal RoundToNearestLotSize(decimal value, decimal step)
+        public static long? GetSignalIdFromComment(string? comment)
         {
-            int digits = BitConverter.GetBytes(decimal.GetBits(step)[3])[2];
-            var roundedValue = Math.Round(value / step) * step;
+            string[] components = comment != null ? comment.Split('/') : [];
+            long signalID = 0;
+            if (components != null && components.Length == 5)
+            {
+                _ = long.TryParse(components[0], out signalID);
+            }
+            return signalID == 0 ? null : signalID;
+        }
+
+        public static long? GetStrategyIdFromComment(string? comment)
+        {
+            string[] components = comment != null ? comment.Split('/') : [];
+            long strategyID = 0;
+            if (components != null && components.Length == 5)
+            {
+                _ = long.TryParse(components[3].Replace("[sl]", string.Empty).Replace("[tp]", string.Empty), out strategyID);
+            }
+            return strategyID == 0 ? null : strategyID;
+        }
+
+        public static decimal? GetEntryPriceFromComment(string? comment)
+        {
+            string[] components = comment != null ? comment.Split('/') : [];
+            decimal retour = 0M;
+            if (components != null && components.Length == 5)
+            {
+                _ = decimal.TryParse(components[1], out retour);
+            }
+            return retour == 0 ? null : retour;
+        }
+
+        public static decimal? GetStoplossFromComment(string? comment)
+        {
+            string[] components = comment != null ? comment.Split('/') : [];
+            decimal retour = 0M;
+            if (components != null && components.Length == 5)
+            {
+                _ = decimal.TryParse(components[2], out retour);
+            }
+            return retour == 0 ? null : retour;
+        }
+
+        public static decimal? GetSpreadFromComment(string? comment)
+        {
+            string[] components = comment != null ? comment.Split('/') : [];
+            decimal retour = 0M;
+            if (components != null && components.Length == 5)
+            {
+                _ = decimal.TryParse(components[4], out retour);
+            }
+            return retour == 0 ? null : retour;
+        }
+
+
+
+
+        public static decimal RoundToNearestLotSize(decimal value, decimal tickSize)
+        {
+            int digits = BitConverter.GetBytes(decimal.GetBits(tickSize)[3])[2];
+            var roundedValue = Math.Round(value / tickSize) * tickSize;
             return Math.Round(roundedValue, digits);
         }
 
@@ -479,23 +535,22 @@ namespace JCTG.Client
             return Convert.ToDecimal(closestRisk.Multiplier);
         }
 
-        public static decimal RoundToNearestTickSize(decimal value, decimal step, int digits)
+        public static decimal RoundToNearestTickSize(decimal value, decimal tickSize, int digits)
         {
             if (value == 0) return 0.0M;
-            var roundedValue = Math.Round(Math.Abs(value) / step) * step;
+            var roundedValue = Math.Round(Math.Abs(value) / tickSize) * tickSize;
             return Math.Round(roundedValue, digits);
         }
 
-        public static decimal CalculateSpread(decimal ask, decimal bid, decimal step, int digits)
+        public static decimal CalculateSpread(decimal ask, decimal bid, decimal tickSize, int digits)
         {
             decimal spread = ask >= bid ? ask - bid : 0;
-            return RoundToNearestTickSize(spread, step, digits);
+            return RoundToNearestTickSize(Math.Abs(spread), tickSize, digits);
         }
 
-        public static double CalculateCostSpread(double spread, double lotSize, decimal pointSize, double contractSize)
+        public static decimal CalculateCostSpread(decimal spread, double lotSize, decimal tickSize, int digits, decimal tickValue)
         {
-            //  SymbolInfoInteger(_Symbol, SYMBOL_SPREAD) * _Point * Lots * CONTRACT_SIZE;
-            return spread * lotSize * Convert.ToDouble(pointSize) * contractSize;
+            return (spread / tickSize) * tickValue * Convert.ToDecimal(lotSize);
         }
 
         private static decimal CalculateSpreadExecForShort(decimal price, decimal spread, SpreadExecType spreadExecType)
@@ -555,19 +610,6 @@ namespace JCTG.Client
 
 
 
-
-        public static bool IsBUYcommand(OnSendTradingviewSignalCommand command, decimal spread, decimal maxSpread)
-        {
-            if ((maxSpread == 0 || (maxSpread > 0 && spread < maxSpread))
-                                                            && command.OrderType.Equals("BUY", StringComparison.CurrentCultureIgnoreCase)
-                                                            && command.MarketOrder != null
-                                                            && command.MarketOrder.Risk.HasValue
-                                                            && command.MarketOrder.RiskRewardRatio.HasValue)
-            {
-                return true;
-            }
-            return false;
-        }
 
     }
 }

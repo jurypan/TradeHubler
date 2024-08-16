@@ -100,7 +100,7 @@ namespace JCTG.WebApp.Backend.Api
                             }
                         }
 
-                        if(!await _dbContext.ClientPair.Include(f => f.Client).AnyAsync(f => f.Client != null && f.Client.AccountID == signal.AccountID && f.TickerInTradingView.Equals(signal.Instrument, StringComparison.CurrentCultureIgnoreCase)))
+                        if(!await _dbContext.ClientPair.Include(f => f.Client).AnyAsync(f => f.Client != null && f.Client.AccountID == signal.AccountID && f.TickerInTradingView.Equals(signal.Instrument)))
                         {
                             _logger.Error($"'instrument' {signal.Instrument} doesn't exist for this account");
                             return;

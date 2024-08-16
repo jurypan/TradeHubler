@@ -1,4 +1,5 @@
 ﻿using JCTG.Entity;
+using System.Web;
 
 namespace JCTG.Command
 {
@@ -185,6 +186,52 @@ namespace JCTG.Command
                     StopLossExpression = stopLossExpression,
                 },
             };
+        }
+
+        public string ToQueryString()
+        {
+            var queryParameters = new List<string>
+            {
+                $"SignalID={SignalID}",
+                $"StrategyID={StrategyID}",
+                $"AccountID={AccountID}",
+                $"OrderType={HttpUtility.UrlEncode(OrderType)}",
+                $"Instrument={HttpUtility.UrlEncode(Instrument)}"
+            };
+
+            if (ClientIDs != null && ClientIDs.Count != 0)
+            {
+                queryParameters.Add($"ClientIDs={string.Join(",", ClientIDs)}");
+            }
+
+            if (MarketOrder != null)
+            {
+                if (MarketOrder.Risk.HasValue)
+                    queryParameters.Add($"MarketOrder.Risk={MarketOrder.Risk.Value}");
+
+                if (MarketOrder.RiskRewardRatio.HasValue)
+                    queryParameters.Add($"MarketOrder.RiskRewardRatio={MarketOrder.RiskRewardRatio.Value}");
+
+                if (!string.IsNullOrEmpty(MarketOrder.StopLossExpression))
+                    queryParameters.Add($"MarketOrder.StopLossExpression={HttpUtility.UrlEncode(MarketOrder.StopLossExpression)}");
+            }
+
+            if (PassiveOrder != null)
+            {
+                if (!string.IsNullOrEmpty(PassiveOrder.EntryExpression))
+                    queryParameters.Add($"PassiveOrder.EntryExpression={HttpUtility.UrlEncode(PassiveOrder.EntryExpression)}");
+
+                if (PassiveOrder.Risk.HasValue)
+                    queryParameters.Add($"PassiveOrder.Risk={PassiveOrder.Risk.Value}");
+
+                if (PassiveOrder.RiskRewardRatio.HasValue)
+                    queryParameters.Add($"PassiveOrder.RiskRewardRatio={PassiveOrder.RiskRewardRatio.Value}");
+
+                if (!string.IsNullOrEmpty(PassiveOrder.StopLossExpression))
+                    queryParameters.Add($"PassiveOrder.StopLossExpression={HttpUtility.UrlEncode(PassiveOrder.StopLossExpression)}");
+            }
+
+            return string.Join(",", queryParameters);
         }
     }
 

@@ -121,13 +121,13 @@
         var _logs = await _logRepository.GetAll(accountId, signalId, clientId);
 
         // Search for the Lot Size item
-        var lotSizelog = _logs.FirstOrDefault(f => f.Message != null && f.Message.Contains("LotSizeCalculated"));
+        var lotSizelog = _logs.FirstOrDefault(f => f.Message != null && f.Message.Contains("LotSize"));
 
         // Null reference check
         if(lotSizelog != null && lotSizelog.Description != null)
         {
             // Split the input string by new lines
-            string[] lines = lotSizelog.Description.Replace("LotSize || ", string.Empty).Replace(" ", string.Empty).Split(new[] { '\r', '\n', ',' }, StringSplitOptions.RemoveEmptyEntries);
+            string[] lines = lotSizelog.Description.Replace(" ", string.Empty).Split(new[] { '\r', '\n', ',' }, StringSplitOptions.RemoveEmptyEntries);
 
             // Dictionary to store the extracted values
             var values = new Dictionary<string, string>();

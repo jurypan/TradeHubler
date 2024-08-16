@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using System.Web;
 
 namespace JCTG.Models
 {
@@ -31,5 +32,24 @@ namespace JCTG.Models
         public double Pnl { get; set; }
         public double Commission { get; set; }
         public double Swap { get; set; }
+
+        public string ToQueryString()
+        {
+            var queryParameters = new List<string>
+            {
+                $"IsMT4={IsMT4.ToString().ToLower()}",
+                $"Magic={Magic}",
+                $"Symbol={HttpUtility.UrlEncode(Symbol)}",
+                $"Price={Price}",
+                $"Lots={Lots}",
+                $"Type={HttpUtility.UrlEncode(Type)}",
+                $"Entry={HttpUtility.UrlEncode(Entry)}",
+                $"Pnl={Pnl}",
+                $"Commission={Commission}",
+                $"Swap={Swap}"
+            };
+
+            return string.Join(",", queryParameters);
+        }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using System.Web;
 
 namespace JCTG.Models
 {
@@ -14,5 +15,22 @@ namespace JCTG.Models
         public double Equity { get; set; }
         [JsonProperty("tmz")]
         public double TimezoneOffset { get; set; }
+
+        public string ToQueryString()
+        {
+            var queryParameters = new List<string>
+            {
+                $"Name={HttpUtility.UrlEncode(Name)}",
+                $"Number={Number}",
+                $"Currency={HttpUtility.UrlEncode(Currency)}",
+                $"Leverage={Leverage}",
+                $"FreeMargin={FreeMargin}",
+                $"Balance={Balance}",
+                $"Equity={Equity}",
+                $"TimezoneOffset={TimezoneOffset}"
+            };
+
+            return string.Join("&", queryParameters);
+        }
     }
 }

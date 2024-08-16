@@ -1,6 +1,6 @@
 ﻿namespace JCTG.Client
 {
-    public class CloseTradeScheduler(long ClientId, string Instrument, long StrategyID, bool stopTimerWhenTriggerIsExecuted)
+    public class RecurringCloseTradeScheduler(long ClientId, string Instrument, long StrategyID, bool stopTimerWhenTriggerIsExecuted)
     {
         private DateTime? lastExecutionDate = null;
         private Timer? timerCheckTimeAndExecuteOnceDaily = null;
