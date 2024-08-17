@@ -46,9 +46,23 @@ namespace JCTG.WebApp.Backend.Api
             // Log signal
             _logger.Debug($"!! TRADINGVIEW SIGNAL : {requestBody}");
 
-            await ProcessTradingViewSignal(requestBody);
+            var processTask = ProcessTradingViewSignal(requestBody);
 
-            return Ok("Processed successfully");
+            // Wait for either the processing task to complete or a timeout of 3 seconds
+            var completedTask = await Task.WhenAny(processTask, Task.Delay(2900));
+
+            if (completedTask == processTask)
+            {
+                // If the task completed within 3 seconds, return the result
+                await processTask; // This will rethrow any exceptions from the task if it failed
+                return Ok("Processed successfully");
+            }
+            else
+            {
+                // If the task took longer than 3 seconds, return a timeout response
+                _logger.Warning("Processing exceeded the 3-second timeout.");
+                return Ok("Processing in progress, result will be available shortly.");
+            }
         }
 
         private async Task ProcessTradingViewSignal(string requestBody)

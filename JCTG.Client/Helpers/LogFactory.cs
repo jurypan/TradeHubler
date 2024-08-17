@@ -106,6 +106,7 @@ namespace JCTG.Client
                 Log(clientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = cmd.ToQueryString(), Description = GetDescription("ExecuteOrderCommand", logItem), Magic = cmd.Magic }, cmd.Magic);
             }
         }
+        
         public static void ModifyOrderCommand(long clientId, bool isDebug, OnSendTradingviewSignalCommand cmd, long ticketId, decimal lots, decimal price, decimal stopLoss, decimal takeProfit, int magic = -1, long expiration = 0)
         {
             if (isDebug)
@@ -135,7 +136,6 @@ namespace JCTG.Client
                 Log(clientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = cmd.ToQueryString(), Description = GetDescription("UnableToFindOrder", logItem), Magic = Convert.ToInt32(cmd.SignalID) }, cmd.SignalID);
             }
         }
-
 
         public static void UnableToLinkCommandToAccount(long clientId, bool isDebug)
         {
