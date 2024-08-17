@@ -630,12 +630,13 @@ namespace JCTG.WebApp.Backend.Api
                     model.ClientID > 0 &&
                     model.SignalID > 0 &&
                     model.Log != null &&
-                    model.Log.ErrorType != null
+                    model.Log.Description != null
                     )
             {
                 await dbContext.MarketAbstention.AddAsync(new MarketAbstention()
                 {
-                    LogMessage = model.Log.ErrorType,
+                    Description = model.Log.Description,
+                    Command = model.Log.Message,
                     Symbol = model.Symbol,
                     Type = model.OrderType,
                     ClientID = model.ClientID,
@@ -689,7 +690,7 @@ namespace JCTG.WebApp.Backend.Api
                 // Add market abstention to the system
                 await dbContext.MarketAbstention.AddAsync(new MarketAbstention()
                 {
-                    LogMessage = $"{model.Log.ErrorType} {model.Log.Description}",
+                    Description = $"{model.Log.ErrorType} {model.Log.Description}",
                     Symbol = model.Symbol,
                     Type = model.OrderType,
                     ClientID = model.ClientID,

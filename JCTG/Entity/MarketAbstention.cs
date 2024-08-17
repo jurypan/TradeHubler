@@ -39,7 +39,8 @@ namespace JCTG.Entity
                 }
             }
         }
-        public string LogMessage { get; set; }
+        public string? Command { get; set; }
+        public string Description { get; set; }
 
         public MarketAbstentionType MarketAbstentionType { get; set; }
     }
