@@ -24,7 +24,7 @@ namespace JCTG.Client
         /// <param name="clientId"></param>
         /// <param name="accountBalance"></param>
         /// <param name="riskPercent"></param>
-        /// <param name="entryPrice"></param>
+        /// <param name="entryBidPrice"></param>
         /// <param name="stopLossPrice"></param>
         /// <param name="tickValue"></param>
         /// <param name="tickSize"></param>
@@ -37,7 +37,7 @@ namespace JCTG.Client
             double startBalance,
             double accountBalance,
             decimal riskPercent,
-            decimal entryPrice,
+            decimal entryBidPrice,
             decimal stopLossPrice,
             decimal tickValue,
             decimal tickSize,
@@ -49,17 +49,17 @@ namespace JCTG.Client
         {
             logMessages = [];
 
-            // Log the initial input parameters
-            LogCalculation(logMessages, "StartBalance", startBalance);
-            LogCalculation(logMessages, "AccountBalance", accountBalance);
-            LogCalculation(logMessages, "RiskPercent", riskPercent);
-            LogCalculation(logMessages, "OpenPrice", entryPrice);
-            LogCalculation(logMessages, "StopLossPrice", stopLossPrice);
-            LogCalculation(logMessages, "TickValue", tickValue);
-            LogCalculation(logMessages, "TickSize", tickSize);
-            LogCalculation(logMessages, "LotStep", lotStep);
-            LogCalculation(logMessages, "MinLotSizeAllowed", minLotSizeAllowed);
-            LogCalculation(logMessages, "MaxLotSizeAllowed", maxLotSizeAllowed);
+            // HttpCallOnLogEvent the initial input parameters
+            LogCalculation(logMessages, "startBalance", startBalance);
+            LogCalculation(logMessages, "accountBalance", accountBalance);
+            LogCalculation(logMessages, "riskPercent", riskPercent);
+            LogCalculation(logMessages, "entryBidPrice", entryBidPrice);
+            LogCalculation(logMessages, "stopLossPrice", stopLossPrice);
+            LogCalculation(logMessages, "tickValue", tickValue);
+            LogCalculation(logMessages, "tickSize", tickSize);
+            LogCalculation(logMessages, "lotStep", lotStep);
+            LogCalculation(logMessages, "minLotSizeAllowed", minLotSizeAllowed);
+            LogCalculation(logMessages, "maxLotSizeAllowed", maxLotSizeAllowed);
 
             // Throw exception when negative balance
             if (accountBalance <= 0)
@@ -67,161 +67,130 @@ namespace JCTG.Client
 
             // Calculate risk percentage
             var dynamicRisk = ChooseClosestMultiplier(startBalance, accountBalance, riskData);
-            LogCalculation(logMessages, "DynamicRisk", dynamicRisk);
+            LogCalculation(logMessages, "dynamicRisk", dynamicRisk);
 
             // Calculate the RiskLong Amount
             var riskAmount = Convert.ToDecimal(accountBalance) * ((riskPercent * dynamicRisk) / 100.0M);
-            LogCalculation(logMessages, "RiskAmount", riskAmount);
+            LogCalculation(logMessages, "riskAmount", riskAmount);
 
             // Calculate the Stop Loss in Points
-            var stopLossDistance = Math.Abs(entryPrice - stopLossPrice);
-            LogCalculation(logMessages, "StopLossDistance", stopLossDistance);
+            var stopLossDistance = Math.Abs(entryBidPrice - stopLossPrice);
+            LogCalculation(logMessages, "stopLossDistance", stopLossDistance);
 
             // Convert Stop Loss to Ticks
             var stopLossDistanceInTicks = stopLossDistance / tickSize;
-            LogCalculation(logMessages, "StopLossDistanceInTicks", stopLossDistanceInTicks);
+            LogCalculation(logMessages, "stopLossDistanceInTicks", stopLossDistanceInTicks);
 
             // Calculate the Loss per Lot
             var lossPerLot = stopLossDistanceInTicks * tickValue;
-            LogCalculation(logMessages, "LossPerLot", lossPerLot);
+            LogCalculation(logMessages, "lossPerLot", lossPerLot);
 
             // Calculate the Lot Size
             var lotSize = riskAmount / lossPerLot;
-            LogCalculation(logMessages, "InitialLotSize", lotSize);
+            LogCalculation(logMessages, "initialLotSize", lotSize);
 
             // Adjusting for lot tickSize
             lotSize = RoundToNearestLotSize(lotSize, Convert.ToDecimal(lotStep));
-            LogCalculation(logMessages, "RoundedLotSize", lotSize);
+            LogCalculation(logMessages, "roundedLotSize", lotSize);
 
             // Bounds checking
             var finalLotSize = Math.Clamp(lotSize, Convert.ToDecimal(minLotSizeAllowed), Convert.ToDecimal(maxLotSizeAllowed));
-            LogCalculation(logMessages, "FinalLotSize", finalLotSize);
+            LogCalculation(logMessages, "finalLotSize", finalLotSize);
 
             return finalLotSize;
         }
 
-        public static decimal? EntryPriceForShort(decimal risk, string entryExpression, List<BarData> bars, decimal spread, SpreadExecType? spreadExecType, out Dictionary<string, string> logMessages)
+        public static decimal? EntryBidPriceForShort(string entryExpression, List<BarData> bars, decimal spread, out Dictionary<string, string> logMessages)
         {
             logMessages = [];
 
-            // Log the initial input parameters
-            LogCalculation(logMessages, "risk", risk);
+            // HttpCallOnLogEvent the initial input parameters
             LogCalculation(logMessages, "entryExpression", entryExpression);
             LogCalculation(logMessages, "spread", spread);
-            LogCalculation(logMessages, "spreadExecType", spreadExecType);
 
 
-            // Get the entry entryPrice
-            var price = DynamicEvaluator.EvaluateExpression(entryExpression, bars, out Dictionary<string, string> logMessages1);
+            // Get the entry entryBidPrice
+            var bidPrice = DynamicEvaluator.EvaluateExpression(entryExpression, bars, out Dictionary<string, string> logMessages1);
             foreach (var log in logMessages1)
                 LogCalculation(logMessages, log.Key, log.Value);
-            LogCalculation(logMessages, "entryPrice", price);
+            LogCalculation(logMessages, "entryBidPrice", bidPrice);
 
             // do 0.0 check
-            if (price.HasValue)
+            if (bidPrice.HasValue)
             {
-                LogCalculation(logMessages, "entryPrice.HasValue", true);
-                LogCalculation(logMessages, "entryPrice.Value", price);
-
-                // Add the spread options
-                if (spreadExecType.HasValue)
-                {
-                    LogCalculation(logMessages, "spreadExecType.HasValue", true);
-                    LogCalculation(logMessages, "spreadExecType.Value", spreadExecType);
-
-                    // Calculate EP
-                    price = CalculateSpreadExecForShort(price.Value, spread, spreadExecType.Value);
-                    LogCalculation(logMessages, "entryPrice", price);
-                }
+                // A sell order is triggered when the bid price (the price at which you buy) reaches or exceeds the set (stop) price.
+                // No extra code needed
             }
 
-            return price;
+            return bidPrice;
         }
 
-        public static decimal? EntryPriceForLong(decimal risk, string entryExpression, List<BarData> bars, decimal spread, SpreadExecType? spreadExecType, out Dictionary<string, string> logMessages)
+        public static decimal? EntryBidPriceForLong(string entryExpression, List<BarData> bars, decimal spread, out Dictionary<string, string> logMessages)
         {
             logMessages = [];
 
-            // Log the initial input parameters
-            LogCalculation(logMessages, "risk", risk);
+            // HttpCallOnLogEvent the initial input parameters
             LogCalculation(logMessages, "entryExpression", entryExpression);
             LogCalculation(logMessages, "spread", spread);
-            LogCalculation(logMessages, "spreadExecType", spreadExecType);
 
 
-            // Get the entry entryPrice
-            var price = DynamicEvaluator.EvaluateExpression(entryExpression, bars, out Dictionary<string, string> logMessages1);
+            // Get the entry entryBidPrice
+            var entryBidPrice = DynamicEvaluator.EvaluateExpression(entryExpression, bars, out Dictionary<string, string> logMessages1);
             foreach (var log in logMessages1)
                 LogCalculation(logMessages, log.Key, log.Value);
-            LogCalculation(logMessages, "entryPrice", price);
+            LogCalculation(logMessages, "initialEntryBidPrice", entryBidPrice);
 
             // do 0.0 check
-            if (price.HasValue)
+            if (entryBidPrice.HasValue)
             {
-                LogCalculation(logMessages, "entryPrice.HasValue", true);
-                LogCalculation(logMessages, "entryPrice.Value", price);
-
-                // Add the spread options
-                if (spreadExecType.HasValue)
-                {
-                    LogCalculation(logMessages, "spreadExecType.HasValue", true);
-                    LogCalculation(logMessages, "spreadExecType.Value", spreadExecType);
-
-                    // Calculate EP
-                    price = CalculateSpreadExecForLong(price.Value, spread, spreadExecType.Value);
-                    LogCalculation(logMessages, "entryPrice", price);
-                }
+                // A buy order is triggered when the ask price (the price at which you buy) reaches or exceeds the set (stop) price.
+                entryBidPrice = CalculateSpreadExecForLong(entryBidPrice.Value, spread, SpreadExecType.Add);
+                LogCalculation(logMessages, "entryBidPrice", entryBidPrice);
             }
 
-            return price;
+            return entryBidPrice;
         }
 
-        public static decimal StoplossToBreakEvenForShort(decimal entryPrice, decimal bidPrice, decimal spread, SpreadExecType? spreadExecType, decimal tickSize, out Dictionary<string, string> logMessages)
+        public static decimal StoplossToBreakEvenForShort(decimal entryBidPrice, decimal spread, decimal tickSize, out Dictionary<string, string> logMessages)
         {
+
             return StoplossForShort(
-                        entryPrice: entryPrice,
-                        bidPrice: bidPrice,
+                        entryBidPrice: entryBidPrice,
                         risk: 0.0M,
                         slMultiplier: 1,
                         stopLossExpression: null,
                         bars: [],
                         spread: spread,
-                        spreadExecType: spreadExecType,
                         tickSize: tickSize,
                         out logMessages);
         }
 
-        public static decimal StoplossToBreakEvenForLong(decimal entryPrice, decimal askPrice, decimal spread, SpreadExecType? spreadExecType, decimal tickSize, out Dictionary<string, string> logMessages)
+        public static decimal StoplossToBreakEvenForLong(decimal entryBidPrice, decimal spread, decimal tickSize, out Dictionary<string, string> logMessages)
         {
             return StoplossForLong(
-                        entryPrice: entryPrice,
-                        askPrice: askPrice,
+                        entryBidPrice: entryBidPrice,
                         risk: 0.0M,
                         slMultiplier: 1,
                         stopLossExpression: null,
                         bars: [],
                         spread: spread,
-                        spreadExecType: spreadExecType,
                         tickSize: tickSize,
                         out logMessages);
         }
 
-        public static decimal StoplossForShort(decimal entryPrice, decimal bidPrice, decimal risk, double slMultiplier, string? stopLossExpression, List<BarData> bars, decimal spread, SpreadExecType? spreadExecType, decimal tickSize, out Dictionary<string, string> logMessages)
+        public static decimal StoplossForShort(decimal entryBidPrice, decimal risk, double slMultiplier, string? stopLossExpression, List<BarData> bars, decimal spread, decimal tickSize, out Dictionary<string, string> logMessages)
         {
             logMessages = [];
 
-            // Log the initial input parameters
-            LogCalculation(logMessages, "entryPrice", entryPrice);
-            LogCalculation(logMessages, "askPrice", bidPrice);
+            LogCalculation(logMessages, "entryBidPrice", entryBidPrice);
             LogCalculation(logMessages, "risk", risk);
             LogCalculation(logMessages, "slMultiplier", slMultiplier);
             LogCalculation(logMessages, "stopLossExpression", stopLossExpression);
             LogCalculation(logMessages, "spread", spread);
-            LogCalculation(logMessages, "spreadExecType", spreadExecType);
             LogCalculation(logMessages, "tickSize", tickSize);
 
-            // Get the Stop Loss entryPrice
-            var stoploss = entryPrice + (risk * Convert.ToDecimal(slMultiplier));
+            // Get the Stop Loss entryBidPrice
+            var stoploss = entryBidPrice + (risk * Convert.ToDecimal(slMultiplier));
             LogCalculation(logMessages, "stoploss", stoploss);
 
             // If SL expression is enabled
@@ -229,7 +198,7 @@ namespace JCTG.Client
             {
                 LogCalculation(logMessages, "stopLossExpression.HasValue", true);
 
-                // Get the SL entryPrice
+                // Get the SL entryBidPrice
                 var slExpr = DynamicEvaluator.EvaluateExpression(stopLossExpression, bars, out Dictionary<string, string> logMessages2);
                 foreach (var log in logMessages2)
                     LogCalculation(logMessages, log.Key, log.Value);
@@ -239,59 +208,51 @@ namespace JCTG.Client
                 {
                     LogCalculation(logMessages, "bar found", true);
 
-                    // Overwrite the stop loss entryPrice
+                    // Overwrite the stop loss entryBidPrice
                     stoploss = slExpr.Value;
                     LogCalculation(logMessages, "stoploss", stoploss);
 
                     // Override thr isk
-                    risk = Math.Abs(stoploss - entryPrice);
+                    risk = Math.Abs(stoploss - entryBidPrice);
                     LogCalculation(logMessages, "risk", risk);
 
                     // Add SL Multiplier (Price + (risk * SlMultiplier)
-                    stoploss = entryPrice + (risk * Convert.ToDecimal(slMultiplier));
+                    stoploss = entryBidPrice + (risk * Convert.ToDecimal(slMultiplier));
                     LogCalculation(logMessages, "stoploss", stoploss);
                 }
             }
 
-            // Add the spread options
-            if (spreadExecType.HasValue)
-            {
-                LogCalculation(logMessages, "spreadExecType.HasValue", true);
-
-                // Calculate SL
-                stoploss = CalculateSpreadExecForShort(stoploss, spread, spreadExecType.Value);
-                LogCalculation(logMessages, "stoploss", stoploss);
-            }
+            // In a short position, the stop loss order is triggered when the ask price (the price at which you need to buy to close your position) reaches or exceeds the stop loss level. 
+            stoploss = CalculateSpreadExecForShort(stoploss, spread, SpreadExecType.Subtract);
+            LogCalculation(logMessages, "stoploss", stoploss);
 
             // Extra check
-            if (stoploss <= bidPrice)
+            if (stoploss <= entryBidPrice)
             {
-                LogCalculation(logMessages, "stoploss <= askPrice", true);
+                LogCalculation(logMessages, "stoploss <= entryBidPrice", true);
 
-                // Set SL to 1 tick above the current entryPrice
-                stoploss = bidPrice + (2 * tickSize);
+                // Set SL to 1 tick above the current entryBidPrice
+                stoploss = entryBidPrice + (2 * tickSize);
                 LogCalculation(logMessages, "stoploss", stoploss);
             }
 
             return stoploss;
         }
 
-        public static decimal StoplossForLong(decimal entryPrice, decimal askPrice, decimal risk, double slMultiplier, string? stopLossExpression, List<BarData> bars, decimal spread, SpreadExecType? spreadExecType, decimal tickSize, out Dictionary<string, string> logMessages)
+        public static decimal StoplossForLong(decimal entryBidPrice, decimal risk, double slMultiplier, string? stopLossExpression, List<BarData> bars, decimal spread, decimal tickSize, out Dictionary<string, string> logMessages)
         {
             logMessages = [];
 
-            // Log the initial input parameters
-            LogCalculation(logMessages, "entryPrice", entryPrice);
-            LogCalculation(logMessages, "askPrice", askPrice);
+            // HttpCallOnLogEvent the initial input parameters
+            LogCalculation(logMessages, "entryBidPrice", entryBidPrice);
             LogCalculation(logMessages, "risk", risk);
             LogCalculation(logMessages, "slMultiplier", slMultiplier);
             LogCalculation(logMessages, "stopLossExpression", stopLossExpression);
             LogCalculation(logMessages, "spread", spread);
-            LogCalculation(logMessages, "spreadExecType", spreadExecType);
             LogCalculation(logMessages, "tickSize", tickSize);
 
-            // Get the Stop Loss entryPrice
-            var stoploss = entryPrice - (risk * Convert.ToDecimal(slMultiplier));
+            // Get the Stop Loss entryBidPrice
+            var stoploss = entryBidPrice - (risk * Convert.ToDecimal(slMultiplier));
             LogCalculation(logMessages, "stoploss", stoploss);
 
             // If SL expression is enabled
@@ -299,151 +260,130 @@ namespace JCTG.Client
             {
                 LogCalculation(logMessages, "stopLossExpression.HasValue", true);
 
-                // Get the SL entryPrice
-                var slExpr = DynamicEvaluator.EvaluateExpression(stopLossExpression, bars, out Dictionary<string, string> logMessages2);
+                // Get the SL entryBidPrice
+                var slBidPrice = DynamicEvaluator.EvaluateExpression(stopLossExpression, bars, out Dictionary<string, string> logMessages2);
                 foreach (var log in logMessages2)
                     LogCalculation(logMessages, log.Key, log.Value);
 
                 // Do null reference check
-                if (slExpr.HasValue)
+                if (slBidPrice.HasValue)
                 {
                     LogCalculation(logMessages, "bar found", true);
 
-                    // Overwrite the stop loss entryPrice
-                    stoploss = slExpr.Value;
+                    // Overwrite the stop loss entryBidPrice
+                    stoploss = slBidPrice.Value;
                     LogCalculation(logMessages, "stoploss", stoploss);
 
                     // Override thr isk
-                    risk = Math.Abs(entryPrice - stoploss);
+                    risk = Math.Abs(entryBidPrice - stoploss);
                     LogCalculation(logMessages, "risk", risk);
 
                     // Add SL Multiplier (Price - (risk * SlMultiplier)
-                    stoploss = entryPrice - (risk * Convert.ToDecimal(slMultiplier));
+                    stoploss = entryBidPrice - (risk * Convert.ToDecimal(slMultiplier));
                     LogCalculation(logMessages, "stoploss", stoploss);
                 }
             }
 
-            // Add the spread options
-            if (spreadExecType.HasValue)
-            {
-                LogCalculation(logMessages, "spreadExecType.HasValue", true);
-
-                // Calculate SL
-                stoploss = CalculateSpreadExecForLong(stoploss, spread, spreadExecType.Value);
-                LogCalculation(logMessages, "stoploss", stoploss);
-            }
+            // In a long position, the stop loss order is triggered when the bid price (the price at which you need to sell to close your position) reaches or exceeds the stop loss level. 
+            // No extra code needed
+            LogCalculation(logMessages, "stoploss", stoploss);
 
             // Extra check
-            if (stoploss >= askPrice)
+            if (stoploss >= entryBidPrice)
             {
-                LogCalculation(logMessages, "stoploss >= askPrice", true);
+                LogCalculation(logMessages, "stoploss >= entryBidPrice", true);
 
-                // Set SL to 1 tick above the current entryPrice
-                stoploss = askPrice - (2 * tickSize);
+                // Set SL to 1 tick above the current entryBidPrice
+                stoploss = entryBidPrice - (2 * tickSize);
                 LogCalculation(logMessages, "stoploss", stoploss);
             }
 
             return stoploss;
         }
 
-        public static decimal TakeProfitForShort(decimal entryPrice, decimal risk, double slMultiplier, string? stopLossExpression, List<BarData> bars, decimal spread, SpreadExecType? spreadExecType, decimal riskRewardRatio, out Dictionary<string, string> logMessages)
+        public static decimal TakeProfitForShort(decimal entryBidPrice, decimal risk, double slMultiplier, string? stopLossExpression, List<BarData> bars, decimal spread, decimal riskRewardRatio, out Dictionary<string, string> logMessages)
         {
             logMessages = [];
 
-            // Log the initial input parameters
-            LogCalculation(logMessages, "entryPrice", entryPrice);
+            // HttpCallOnLogEvent the initial input parameters
+            LogCalculation(logMessages, "entryBidPrice", entryBidPrice);
             LogCalculation(logMessages, "risk", risk);
             LogCalculation(logMessages, "slMultiplier", slMultiplier);
             LogCalculation(logMessages, "stopLossExpression", stopLossExpression);
             LogCalculation(logMessages, "spread", spread);
-            LogCalculation(logMessages, "spreadExecType", spreadExecType);
             LogCalculation(logMessages, "riskRewardRatio", riskRewardRatio);
 
-            // Get the Stop Loss entryPrice
-            var stoploss = entryPrice + (risk * Convert.ToDecimal(slMultiplier));
+            // Get the Stop Loss entryBidPrice
+            var stoploss = entryBidPrice + (risk * Convert.ToDecimal(slMultiplier));
 
             // If SL expression is enabled
             if (!string.IsNullOrEmpty(stopLossExpression))
             {
-                // Get the SL entryPrice
+                // Get the SL entryBidPrice
                 var slExpr = DynamicEvaluator.EvaluateExpression(stopLossExpression, bars, out Dictionary<string, string> logMessages2);
 
                 // Do null reference check
                 if (slExpr.HasValue)
                 {
-                    // Overwrite the stop loss entryPrice
+                    // Overwrite the stop loss entryBidPrice
                     stoploss = slExpr.Value;
 
                     // Override the risk
-                    risk = Math.Abs(stoploss - entryPrice);
+                    risk = Math.Abs(stoploss - entryBidPrice);
                     LogCalculation(logMessages, "risk", risk);
                 }
             }
 
             // Get the Take Profit Price
-            var takeprofit = entryPrice - (risk * riskRewardRatio);
+            var takeprofit = entryBidPrice - (risk * riskRewardRatio);
             LogCalculation(logMessages, "takeprofit", takeprofit);
 
-            // Spread exec type
-            if (spreadExecType.HasValue)
-            {
-                LogCalculation(logMessages, "spreadExecType.HasValue", true);
-
-                // Calculate TP
-                takeprofit = CalculateSpreadExecForShort(takeprofit, spread, spreadExecType.Value);
-                LogCalculation(logMessages, "takeprofit", takeprofit);
-            }
+            // In a short position, the take profit order is triggered when the ask price (the price at which you need to buy to close your position) reaches or exceeds the take profit level. 
+            takeprofit = CalculateSpreadExecForShort(takeprofit, spread, SpreadExecType.Subtract);
+            LogCalculation(logMessages, "takeprofit", takeprofit);
 
             return takeprofit;
         }
 
-        public static decimal TakeProfitForLong(decimal entryPrice, decimal risk, double slMultiplier, string? stopLossExpression, List<BarData> bars, decimal spread, SpreadExecType? spreadExecType, decimal riskRewardRatio, out Dictionary<string, string> logMessages)
+        public static decimal TakeProfitForLong(decimal entryBidPrice, decimal risk, double slMultiplier, string? stopLossExpression, List<BarData> bars, decimal spread, decimal riskRewardRatio, out Dictionary<string, string> logMessages)
         {
             logMessages = [];
 
-            // Log the initial input parameters
-            LogCalculation(logMessages, "entryPrice", entryPrice);
+            // HttpCallOnLogEvent the initial input parameters
+            LogCalculation(logMessages, "entryBidPrice", entryBidPrice);
             LogCalculation(logMessages, "risk", risk);
             LogCalculation(logMessages, "slMultiplier", slMultiplier);
             LogCalculation(logMessages, "stopLossExpression", stopLossExpression);
             LogCalculation(logMessages, "spread", spread);
-            LogCalculation(logMessages, "spreadExecType", spreadExecType);
             LogCalculation(logMessages, "riskRewardRatio", riskRewardRatio);
 
-            // Get the Stop Loss entryPrice
-            var stoploss = entryPrice - (risk * Convert.ToDecimal(slMultiplier));
+            // Get the Stop Loss entryBidPrice
+            var stoploss = entryBidPrice - (risk * Convert.ToDecimal(slMultiplier));
 
             // If SL expression is enabled
             if (!string.IsNullOrEmpty(stopLossExpression))
             {
-                // Get the SL entryPrice
+                // Get the SL entryBidPrice
                 var slExpr = DynamicEvaluator.EvaluateExpression(stopLossExpression, bars, out Dictionary<string, string> logMessages2);
 
                 // Do null reference check
                 if (slExpr.HasValue)
                 {
-                    // Overwrite the stop loss entryPrice
+                    // Overwrite the stop loss entryBidPrice
                     stoploss = slExpr.Value;
 
                     // Override the risk
-                    risk = Math.Abs(entryPrice - stoploss);
+                    risk = Math.Abs(entryBidPrice - stoploss);
                     LogCalculation(logMessages, "risk", risk);
                 }
             }
 
             // Get the Take Profit Price
-            var takeprofit = entryPrice + (risk * riskRewardRatio);
+            var takeprofit = entryBidPrice + (risk * riskRewardRatio);
             LogCalculation(logMessages, "takeprofit", takeprofit);
 
-            // Spread exec type
-            if (spreadExecType.HasValue)
-            {
-                LogCalculation(logMessages, "spreadExecType.HasValue", true);
-
-                // Calculate TP
-                takeprofit = CalculateSpreadExecForLong(takeprofit, spread, spreadExecType.Value);
-                LogCalculation(logMessages, "takeprofit", takeprofit);
-            }
+            // In a long position, the take profit order is triggered when the bid price (the price at which you need to sell to close your position) reaches or exceeds the take profit level. 
+            // No extra code needed
 
             return takeprofit;
         }
@@ -472,7 +412,7 @@ namespace JCTG.Client
             long strategyID = 0;
             if (components != null && components.Length == 5)
             {
-                _ = long.TryParse(components[3].Replace("[sl]", string.Empty).Replace("[tp]", string.Empty), out strategyID);
+                _ = long.TryParse(components[3].Replace("[stopLossBidPrice]", string.Empty).Replace("[tp]", string.Empty), out strategyID);
             }
             return strategyID == 0 ? null : strategyID;
         }

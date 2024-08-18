@@ -95,14 +95,6 @@ namespace JCTG.Models
         public TimeSpan? CloseAllTradesAt { get; set; }
         public int? CloseTradeWithinXBars { get; set; }
         public int? DoNotOpenTradeXMinutesBeforeClose { get; set; }
-        [JsonConverter(typeof(StringEnumConverter))]
-        public SpreadExecType? SpreadEntry { get; set; }
-        [JsonConverter(typeof(StringEnumConverter))]
-        public SpreadExecType? SpreadSL { get; set; }
-        [JsonConverter(typeof(StringEnumConverter))]
-        public SpreadExecType? SpreadTP { get; set; }
-        [JsonConverter(typeof(StringEnumConverter))]
-        public SpreadExecType? SpreadSLtoBE { get; set; }
         public int RiskMinXTimesTheSpread { get; set; }
         public List<string> CorrelatedPairs { get; set; } = [];
     }

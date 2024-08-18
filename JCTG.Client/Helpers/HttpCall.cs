@@ -101,7 +101,8 @@ namespace JCTG.Client
 
         public static async Task OnLogEvent(OnLogEvent model)
         {
-            await PushDataAsync("https://app.tradehubler.com/api/OnLogEvent", JsonConvert.SerializeObject(model));
+            // await PushDataAsync("https://app.tradehubler.com/api/OnLogEvent", JsonConvert.SerializeObject(model));
+            await PostJsonAsync("https://app.tradehubler.com/api/OnLogEvent", JsonConvert.SerializeObject(model));
         }
 
         public static async Task OnDealCreatedEvent(OnDealCreatedEvent model)

@@ -14,9 +14,9 @@
                             <tr>
                                 <th>Date Created</th>
                                 <th>Type</th>
-                                <th>Error Type</th>
+                                <th>Event</th>
                                 <th>Message</th>
-                                <th>Description</th>
+                               
                             </tr>
                         </thead>
                         <tbody>
@@ -25,9 +25,8 @@
                                 <tr>
                                     <td>@log.DateCreated</td>
                                     <td>@log.Type</td>
-                                    <td>@log.ErrorType</td>
-                                    <td>@((MarkupString)log.Message?.Replace("||", "<br />").Replace(",", "<br />"))</td>
                                     <td>@((MarkupString)log.Description?.Replace("||", "<br />").Replace(",", "<br />"))</td>
+                                    <td>@((MarkupString)log.Message?.Replace("||", "<br />").Replace(",", "<br />"))</td>
                                 </tr>
                             }
                         </tbody>
@@ -35,9 +34,8 @@
                             <tr>
                                 <th>Date Created</th>
                                 <th>Type</th>
-                                <th>Error Type</th>
+                                <th>Event</th>
                                 <th>Message</th>
-                                <th>Description</th>
                             </tr>
                         </tfoot>
                     </table>

@@ -51,7 +51,7 @@ namespace JCTG.Client
             // Init log messages
             logMessages = [];
 
-            // Log the initial input parameters
+            // HttpCallOnLogEvent the initial input parameters
             LogCalculation(logMessages, "Expression", expression);
             LogCalculation(logMessages, "Bars.Count", bars.Count);
 
@@ -80,7 +80,7 @@ namespace JCTG.Client
                 // Retrieve the result
                 var result = task.Result;
 
-                // Log
+                // HttpCallOnLogEvent
                 LogCalculation(logMessages, "Result", result.ReturnValue);
 
                 // Retun value
@@ -88,7 +88,7 @@ namespace JCTG.Client
             }
             catch (CompilationErrorException ex)
             {
-                // Log
+                // HttpCallOnLogEvent
                 LogCalculation(logMessages, "CompilationErrorException", ex.Message);
                 if(ex.InnerException != null) 
                     LogCalculation(logMessages, "CompilationErrorException", ex.InnerException.Message);
@@ -96,7 +96,7 @@ namespace JCTG.Client
             }
             catch (Exception ex)
             {
-                // Log
+                // HttpCallOnLogEvent
                 LogCalculation(logMessages, "Exception", ex.Message);
                 if (ex.InnerException != null)
                     LogCalculation(logMessages, "Exception", ex.InnerException.Message);

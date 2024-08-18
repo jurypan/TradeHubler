@@ -159,54 +159,6 @@
                                 <InputText class="form-control" @bind-Value="model.DoNotOpenTradeXMinutesBeforeCloseAsString" />
                             </div>
                         </div>
-                        <div class="col-md-4">
-                            <div class="mb-3">
-                                <label class="form-label">Spread Entry</label>
-                                <InputSelect class="form-select col-12" @bind-Value="model.SpreadEntry">
-                                    <option>N.A.</option>
-                                    @foreach (var Item in Enum.GetValues(typeof(SpreadExecType)))
-                                    {
-                                        <option value="@Item">@Item</option>
-                                    }
-                                </InputSelect>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="mb-3">
-                                <label class="form-label" for="sl-multiplier">Spread SL</label>
-                                <InputSelect class="form-select col-12" @bind-Value="model.SpreadSL">
-                                    <option>N.A.</option>
-                                    @foreach (var Item in Enum.GetValues(typeof(SpreadExecType)))
-                                    {
-                                        <option value="@Item">@Item</option>
-                                    }
-                                </InputSelect>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="mb-3">
-                                <label class="form-label" for="sl-multiplier">Spread SL to BE</label>
-                                <InputSelect class="form-select col-12" @bind-Value="model.SpreadSLtoBE">
-                                    <option>N.A.</option>
-                                    @foreach (var Item in Enum.GetValues(typeof(SpreadExecType)))
-                                    {
-                                        <option value="@Item">@Item</option>
-                                    }
-                                </InputSelect>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="mb-3">
-                                <label class="form-label" for="max-spread">Spread TP</label>
-                                <InputSelect class="form-select col-12" @bind-Value="model.SpreadTP">
-                                    <option>N.A.</option>
-                                    @foreach (var Item in Enum.GetValues(typeof(SpreadExecType)))
-                                    {
-                                        <option value="@Item">@Item</option>
-                                    }
-                                </InputSelect>
-                            </div>
-                        </div>
                         <div class="col-md-3">
                             <div class="mb-3">
                                 <label class="form-label" for="sl-multiplier">Risk Min X Times The Spread</label>
@@ -273,7 +225,7 @@
         }
         else
         {
-            model = new() { ClientID = clientId, RiskLong = 0.5, RiskShort = 0.5, MaxSpread = 2.0, SLMultiplier = 1.02, MaxLotSize = 1000, CancelStopOrLimitOrderWhenNewSignal = true, NumberOfHistoricalBarsRequested = 100, SpreadSL = SpreadExecType.Subtract, RiskMinXTimesTheSpread = 3 };
+            model = new() { ClientID = clientId, RiskLong = 0.5, RiskShort = 0.5, MaxSpread = 2.0, SLMultiplier = 1.02, MaxLotSize = 1000, CancelStopOrLimitOrderWhenNewSignal = true, NumberOfHistoricalBarsRequested = 100, RiskMinXTimesTheSpread = 3 };
             await OpenAsync();
             _crudState = CrudState.Add;
         }

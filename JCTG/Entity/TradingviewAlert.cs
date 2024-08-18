@@ -4,20 +4,14 @@ namespace JCTG.Entity
 {
     public class TradingviewAlert
     {
-        public TradingviewAlert()
-        {
-            DateCreated = DateTime.UtcNow;
-            Type = TradingviewAlertType.Entry;
-            RawMessage = string.Empty;
-        }
-
         [Key]
         public long ID { get; set; }
         public Signal Signal { get; set; }
         public long SignalID { get; set; }
-        public DateTime DateCreated { get; set; }
-        public TradingviewAlertType Type { get; set; }
-        public required string RawMessage { get; set; }
+        public DateTime DateCreated { get; set; } = DateTime.UtcNow;
+        public TradingviewAlertType Type { get; set; } = TradingviewAlertType.Entry;
+        public required string RawMessage { get; set; } = string.Empty;
+        public TradingviewMethod Method { get; set; }
 
 
         public static TradingviewAlertType ParseTradingviewAlertTypeOrDefault(string value)
@@ -38,7 +32,7 @@ namespace JCTG.Entity
 
         Entry = 0,
         MoveSlToBe = 1,
-        CancelOrder = 2,
+        Cancel = 2,
 
         TpHit = 10,
         SlHit = 11,
@@ -54,5 +48,11 @@ namespace JCTG.Entity
 
         CloseAll = 40,
         Close = 41,
+    }
+
+    public enum TradingviewMethod
+    {
+        Webhook = 1,
+        Email = 2,
     }
 }

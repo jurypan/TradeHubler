@@ -8,46 +8,46 @@ namespace JCTG.Client
 {
     public class LogFactory
     {
-        public static void CalculateEntry(long clientId, bool isDebug, OnSendTradingviewSignalCommand cmd, Dictionary<string, string> logMessages)
+        public static void CalculateEntryBidPrice(long clientId, bool isDebug, OnSendTradingviewSignalCommand cmd, Dictionary<string, string> logMessages)
         {
             if (isDebug)
-                Log(clientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = cmd.ToQueryString(), Description = GetDescription("CalculateEntry", logMessages), Magic = Convert.ToInt32(cmd.SignalID) }, cmd.SignalID);
+                HttpCallOnLogEvent(clientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = cmd.ToQueryString(), Description = GetDescription("CalculateEntryBidPrice", logMessages), Magic = Convert.ToInt32(cmd.SignalID) }, cmd.SignalID);
         }
 
         public static void CalculateStoploss(long clientId, bool isDebug, OnSendTradingviewSignalCommand cmd, Dictionary<string, string> logMessages)
         {
             if (isDebug)
-                Log(clientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = cmd.ToQueryString(), Description = GetDescription("CalculateStoploss", logMessages), Magic = Convert.ToInt32(cmd.SignalID) }, cmd.SignalID);
+                HttpCallOnLogEvent(clientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = cmd.ToQueryString(), Description = GetDescription("CalculateStoploss", logMessages), Magic = Convert.ToInt32(cmd.SignalID) }, cmd.SignalID);
         }
 
         public static void CalculateStoploss(long clientId, bool isDebug, Order cmd, Dictionary<string, string> logMessages)
         {
             if (isDebug)
-                Log(clientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = cmd.ToQueryString(), Description = GetDescription("CalculateStoploss", logMessages), Magic = cmd.Magic }, cmd.Magic);
+                HttpCallOnLogEvent(clientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = cmd.ToQueryString(), Description = GetDescription("CalculateStoploss", logMessages), Magic = cmd.Magic }, cmd.Magic);
         }
 
         public static void CalculateTakeProfit(long clientId, bool isDebug, OnSendTradingviewSignalCommand cmd, Dictionary<string, string> logMessages)
         {
             if (isDebug)
-                Log(clientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = cmd.ToQueryString(), Description = GetDescription("CalculateTakeProfit", logMessages), Magic = Convert.ToInt32(cmd.SignalID) }, cmd.SignalID);
+                HttpCallOnLogEvent(clientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = cmd.ToQueryString(), Description = GetDescription("CalculateTakeProfit", logMessages), Magic = Convert.ToInt32(cmd.SignalID) }, cmd.SignalID);
         }
 
         public static void CalculateTakeProfit(long clientId, bool isDebug, OnSendManualOrderCommand cmd, Dictionary<string, string> logMessages)
         {
             if (isDebug)
-                Log(clientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = cmd.ToQueryString(), Description = GetDescription("CalculateTakeProfit", logMessages), Magic = cmd.Magic }, cmd.Magic);
+                HttpCallOnLogEvent(clientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = cmd.ToQueryString(), Description = GetDescription("CalculateTakeProfit", logMessages), Magic = cmd.Magic }, cmd.Magic);
         }
 
         public static void CalculateLotSize(long clientId, bool isDebug, OnSendTradingviewSignalCommand cmd, Dictionary<string, string> logMessages)
         {
             if (isDebug)
-                Log(clientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = cmd.ToQueryString(), Description = GetDescription("CalculateTakeProfit", logMessages), Magic = Convert.ToInt32(cmd.SignalID) }, cmd.SignalID);
+                HttpCallOnLogEvent(clientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = cmd.ToQueryString(), Description = GetDescription("CalculateTakeProfit", logMessages), Magic = Convert.ToInt32(cmd.SignalID) }, cmd.SignalID);
         }
 
         public static void CalculateLotSize(long clientId, bool isDebug, OnSendManualOrderCommand cmd, Dictionary<string, string> logMessages)
         {
             if (isDebug)
-                Log(clientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = cmd.ToQueryString(), Description = GetDescription("CalculateTakeProfit", logMessages), Magic = cmd.Magic }, cmd.Magic);
+                HttpCallOnLogEvent(clientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = cmd.ToQueryString(), Description = GetDescription("CalculateTakeProfit", logMessages), Magic = cmd.Magic }, cmd.Magic);
         }
 
         public static void CloseOrderCommand(long clientId, bool isDebug, OnSendTradingviewSignalCommand cmd, long ticketId, double lots = 0, int magic = -1)
@@ -60,7 +60,7 @@ namespace JCTG.Client
                         { "lots", lots.ToString() },
                         { "magic", magic.ToString() },
                     };
-                Log(clientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = cmd.ToQueryString(), Description = GetDescription("CloseOrderCommand", logItem), Magic = Convert.ToInt32(cmd.SignalID) }, cmd.SignalID);
+                HttpCallOnLogEvent(clientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = cmd.ToQueryString(), Description = GetDescription("CloseOrderCommand", logItem), Magic = Convert.ToInt32(cmd.SignalID) }, cmd.SignalID);
             }
         }
 
@@ -83,7 +83,7 @@ namespace JCTG.Client
                         { "comment", comment == null ? string.Empty : comment.ToString() },
                         { "expiration", expiration.ToString() }
                     };
-                Log(clientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = cmd.ToQueryString(), Description = GetDescription("ExecuteOrderCommand", logItem), Magic = Convert.ToInt32(cmd.SignalID) }, cmd.SignalID);
+                HttpCallOnLogEvent(clientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = cmd.ToQueryString(), Description = GetDescription("ExecuteOrderCommand", logItem), Magic = Convert.ToInt32(cmd.SignalID) }, cmd.SignalID);
             }
         }
 
@@ -103,10 +103,10 @@ namespace JCTG.Client
                         { "comment", comment == null ? string.Empty : comment.ToString() },
                         { "expiration", expiration.ToString() }
                     };
-                Log(clientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = cmd.ToQueryString(), Description = GetDescription("ExecuteOrderCommand", logItem), Magic = cmd.Magic }, cmd.Magic);
+                HttpCallOnLogEvent(clientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = cmd.ToQueryString(), Description = GetDescription("ExecuteOrderCommand", logItem), Magic = cmd.Magic }, cmd.Magic);
             }
         }
-        
+
         public static void ModifyOrderCommand(long clientId, bool isDebug, OnSendTradingviewSignalCommand cmd, long ticketId, decimal lots, decimal price, decimal stopLoss, decimal takeProfit, int magic = -1, long expiration = 0)
         {
             if (isDebug)
@@ -121,7 +121,7 @@ namespace JCTG.Client
                         { "magic", magic.ToString() },
                         { "expiration", expiration.ToString() }
                     };
-                Log(clientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = cmd.ToQueryString(), Description = GetDescription("ModifyOrderCommand", logItem), Magic = Convert.ToInt32(cmd.SignalID) }, cmd.SignalID);
+                HttpCallOnLogEvent(clientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = cmd.ToQueryString(), Description = GetDescription("ModifyOrderCommand", logItem), Magic = Convert.ToInt32(cmd.SignalID) }, cmd.SignalID);
             }
         }
 
@@ -133,7 +133,7 @@ namespace JCTG.Client
                     {
                         { "magic", magic.ToString() },
                     };
-                Log(clientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = cmd.ToQueryString(), Description = GetDescription("UnableToFindOrder", logItem), Magic = Convert.ToInt32(cmd.SignalID) }, cmd.SignalID);
+                HttpCallOnLogEvent(clientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = cmd.ToQueryString(), Description = GetDescription("UnableToFindOrder", logItem), Magic = Convert.ToInt32(cmd.SignalID) }, cmd.SignalID);
             }
         }
 
@@ -141,7 +141,7 @@ namespace JCTG.Client
         {
             if (isDebug)
             {
-                Log(clientId, new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = string.Empty, Description = string.Empty, Magic = 0 }, 0);
+                HttpCallOnLogEvent(clientId, new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = string.Empty, Description = string.Empty, Magic = 0 }, 0);
             }
         }
 
@@ -344,9 +344,9 @@ namespace JCTG.Client
         {
 
             var logItem = new Dictionary<string, string>
-                {
+            {
 
-                };
+            };
 
             var log = new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = cmd.ToQueryString(), Description = GetDescription("AccountInfoChangedEvent", logItem) };
 
@@ -371,19 +371,24 @@ namespace JCTG.Client
 
 
 
+
+
         private static string GetDescription(string name, Dictionary<string, string> logMessages)
         {
             return string.Format($"{name} || {string.Join(",", logMessages.Select(kvp => $"{kvp.Key}={kvp.Value}"))}"); ;
         }
 
-        private static void Log(long clientId, Log log, long magic)
+        private static void HttpCallOnLogEvent(long clientId, Log log, long magic)
         {
-            Task.Run(async () => await HttpCall.OnLogEvent(new OnLogEvent
+            Task.Run(async () =>
                 {
-                    ClientID = clientId,
-                    Magic = magic,
-                    Log = log
-                })
+                    await HttpCall.OnLogEvent(new OnLogEvent
+                    {
+                        ClientID = clientId,
+                        Magic = magic,
+                        Log = log
+                    });
+                }
             );
         }
     }

@@ -70,10 +70,6 @@ namespace JCTG.WebApp.Backend.Api
                                                 RiskMinXTimesTheSpread = p.RiskMinXTimesTheSpread,
                                                 SLMultiplier = p.SLMultiplier,
                                                 SLtoBEafterR = p.SLtoBEafterR,
-                                                SpreadEntry = p.SpreadEntry,
-                                                SpreadSL = p.SpreadSL,
-                                                SpreadTP = p.SpreadTP,
-                                                SpreadSLtoBE = p.SpreadSLtoBE,
                                                 StrategyID = p.StrategyID
                                             }).ToList(),
                                             Risk = f.Risks.OrderBy(f => f.Procent).Select(r => new Risk()

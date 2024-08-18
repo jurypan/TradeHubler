@@ -213,19 +213,17 @@ namespace JCTG.Client
                                                         // Do do not open a deal x minutes before close
                                                         if (RecurringCloseTradeScheduler.CanOpenTrade(pair.CloseAllTradesAt, pair.DoNotOpenTradeXMinutesBeforeClose))
                                                         {
-                                                            // Init price
-                                                            var price = metadataTick.Ask;
+                                                            // Init entryBidPrice
+                                                            var entryBidPrice = metadataTick.Bid;
 
                                                             // Calculate SL Price
                                                             var sl = Calculator.StoplossForLong(
-                                                                entryPrice: price,
-                                                                askPrice: metadataTick.Ask,
+                                                                entryBidPrice: entryBidPrice,
                                                                 risk: cmd.MarketOrder.Risk.Value,
                                                                 slMultiplier: pair.SLMultiplier,
                                                                 stopLossExpression: cmd.MarketOrder.StopLossExpression,
                                                                 bars: api.HistoricBarData.Where(f => f.Key == pair.TickerInMetatrader).SelectMany(f => f.Value.BarData).ToList(),
                                                                 spread: spread,
-                                                                spreadExecType: pair.SpreadSL,
                                                                 tickSize: metadataTick.TickSize,
                                                                 out Dictionary<string, string> logMessagesSL);
 
@@ -234,13 +232,12 @@ namespace JCTG.Client
 
                                                             // Get the Take Profit Price
                                                             var tp = Calculator.TakeProfitForLong(
-                                                                entryPrice: price,
+                                                                entryBidPrice: entryBidPrice,
                                                                 risk: cmd.MarketOrder.Risk.Value,
                                                                 slMultiplier: pair.SLMultiplier,
                                                                 stopLossExpression: cmd.MarketOrder.StopLossExpression,
                                                                 bars: api.HistoricBarData.Where(f => f.Key == pair.TickerInMetatrader).SelectMany(f => f.Value.BarData).ToList(),
                                                                 spread: spread,
-                                                                spreadExecType: pair.SpreadTP,
                                                                 riskRewardRatio: cmd.MarketOrder.RiskRewardRatio.Value,
                                                                 out Dictionary<string, string> logMessagesTP);
 
@@ -252,7 +249,7 @@ namespace JCTG.Client
                                                                 startBalance: startbalance,
                                                                 accountBalance: api.AccountInfo.Balance,
                                                                 riskPercent: pair.RiskLong,
-                                                                entryPrice: price,
+                                                                entryBidPrice: entryBidPrice,
                                                                 stopLossPrice: sl,
                                                                 tickValue: metadataTick.TickValue,
                                                                 tickSize: metadataTick.TickSize,
@@ -278,7 +275,7 @@ namespace JCTG.Client
                                                                         if (pair.MaxLotSize <= 0 || pair.MaxLotSize > 0 && lotSize <= pair.MaxLotSize)
                                                                         {
                                                                             // Do check if risk is x times the spread
-                                                                            if (pair.RiskMinXTimesTheSpread <= 0 || (spread * pair.RiskMinXTimesTheSpread < Math.Abs(price - sl)))
+                                                                            if (pair.RiskMinXTimesTheSpread <= 0 || (spread * pair.RiskMinXTimesTheSpread < Math.Abs(entryBidPrice - sl)))
                                                                             {
                                                                                 // Print on the screen
                                                                                 Helpers.Print($"INFO : {DateTime.UtcNow} / {_appConfig.Brokers.First(f => f.ClientId == api.ClientId).Name} / {pair.TickerInMetatrader} / BUY COMMAND / {cmd.SignalID} / {cmd.StrategyID}");
@@ -303,12 +300,12 @@ namespace JCTG.Client
                                                                                 var orderType = OrderType.Buy;
 
                                                                                 // Round
-                                                                                price = Calculator.RoundToNearestTickSize(price, metadataTick.TickSize, metadataTick.Digits);
+                                                                                entryBidPrice = Calculator.RoundToNearestTickSize(entryBidPrice, metadataTick.TickSize, metadataTick.Digits);
                                                                                 sl = Calculator.RoundToNearestTickSize(sl, metadataTick.TickSize, metadataTick.Digits);
                                                                                 tp = Calculator.RoundToNearestTickSize(tp, metadataTick.TickSize, metadataTick.Digits);
 
                                                                                 // Generate comment
-                                                                                var comment = Calculator.GenerateComment(cmd.SignalID, price, sl, pair.StrategyID, spread);
+                                                                                var comment = Calculator.GenerateComment(cmd.SignalID, entryBidPrice, sl, pair.StrategyID, spread);
 
                                                                                 // Execute order
                                                                                 api.ExecuteOrder(pair.TickerInMetatrader, orderType, lotSize, 0, sl, tp, Convert.ToInt32(cmd.SignalID), comment);
@@ -319,7 +316,7 @@ namespace JCTG.Client
                                                                             else
                                                                             {
                                                                                 // Raise market abstention or error
-                                                                                await MarketAbstentionFactory.RiskShouldBeAtLeastXTimesTheSpreadAsync(api.ClientId, _appConfig.Debug, cmd, cmd.SignalID, pair.RiskMinXTimesTheSpread, price, sl);
+                                                                                await MarketAbstentionFactory.RiskShouldBeAtLeastXTimesTheSpreadAsync(api.ClientId, _appConfig.Debug, cmd, cmd.SignalID, pair.RiskMinXTimesTheSpread, entryBidPrice, sl);
                                                                             }
                                                                         }
                                                                         else
@@ -374,31 +371,27 @@ namespace JCTG.Client
                                                         // Do do not open a deal x minutes before close
                                                         if (RecurringCloseTradeScheduler.CanOpenTrade(pair.CloseAllTradesAt, pair.DoNotOpenTradeXMinutesBeforeClose))
                                                         {
-                                                            // Get the entry entryPrice
-                                                            var price = Calculator.EntryPriceForLong(
-                                                                risk: cmd.PassiveOrder.Risk.Value,
+                                                            // Get the entry entryBidPrice
+                                                            var entryBidPrice = Calculator.EntryBidPriceForLong(
                                                                 entryExpression: cmd.PassiveOrder.EntryExpression,
                                                                 bars: api.HistoricBarData.Where(f => f.Key == pair.TickerInMetatrader).SelectMany(f => f.Value.BarData).ToList(),
                                                                 spread: spread,
-                                                                spreadExecType: pair.SpreadEntry,
                                                                 logMessages: out Dictionary<string, string> logMessagesENTRY);
 
                                                             // Send to logs
-                                                            LogFactory.CalculateEntry(api.ClientId, _appConfig.Debug, cmd, logMessagesENTRY);
+                                                            LogFactory.CalculateEntryBidPrice(api.ClientId, _appConfig.Debug, cmd, logMessagesENTRY);
 
                                                             // Do 0.0 check
-                                                            if (price.HasValue)
+                                                            if (entryBidPrice.HasValue)
                                                             {
                                                                 // Calculate SL Price
                                                                 var sl = Calculator.StoplossForLong(
-                                                                    entryPrice: price.Value,
-                                                                    askPrice: metadataTick.Ask,
+                                                                    entryBidPrice: entryBidPrice.Value,
                                                                     risk: cmd.PassiveOrder.Risk.Value,
                                                                     slMultiplier: pair.SLMultiplier,
                                                                     stopLossExpression: cmd.PassiveOrder.StopLossExpression,
                                                                     bars: api.HistoricBarData.Where(f => f.Key == pair.TickerInMetatrader).SelectMany(f => f.Value.BarData).ToList(),
                                                                     spread: spread,
-                                                                    spreadExecType: pair.SpreadSL,
                                                                     tickSize: metadataTick.TickSize,
                                                                     out Dictionary<string, string> logMessagesSL);
 
@@ -407,13 +400,12 @@ namespace JCTG.Client
 
                                                                 // Get the Take Profit Price
                                                                 var tp = Calculator.TakeProfitForLong(
-                                                                    entryPrice: price.Value,
+                                                                    entryBidPrice: entryBidPrice.Value,
                                                                     risk: cmd.PassiveOrder.Risk.Value,
                                                                     slMultiplier: pair.SLMultiplier,
                                                                     stopLossExpression: cmd.PassiveOrder.StopLossExpression,
                                                                     bars: api.HistoricBarData.Where(f => f.Key == pair.TickerInMetatrader).SelectMany(f => f.Value.BarData).ToList(),
                                                                     spread: spread,
-                                                                    spreadExecType: pair.SpreadTP,
                                                                     riskRewardRatio: cmd.PassiveOrder.RiskRewardRatio.Value,
                                                                     out Dictionary<string, string> logMessagesTP);
 
@@ -425,7 +417,7 @@ namespace JCTG.Client
                                                                     startBalance: startbalance,
                                                                     accountBalance: api.AccountInfo.Balance,
                                                                     riskPercent: pair.RiskLong,
-                                                                    entryPrice: price.Value,
+                                                                    entryBidPrice: entryBidPrice.Value,
                                                                     stopLossPrice: sl,
                                                                     tickValue: metadataTick.TickValue,
                                                                     tickSize: metadataTick.TickSize,
@@ -451,7 +443,7 @@ namespace JCTG.Client
                                                                             if (pair.MaxLotSize == 0 || pair.MaxLotSize > 0 && lotSize <= pair.MaxLotSize)
                                                                             {
                                                                                 // Do check if risk is x times the spread
-                                                                                if (pair.RiskMinXTimesTheSpread == 0 || (spread * pair.RiskMinXTimesTheSpread < Math.Abs(price.Value - sl)))
+                                                                                if (pair.RiskMinXTimesTheSpread == 0 || (spread * pair.RiskMinXTimesTheSpread < Math.Abs(entryBidPrice.Value - sl)))
                                                                                 {
                                                                                     // Cancel open buy or limit orders
                                                                                     if (pair.CancelStopOrLimitOrderWhenNewSignal)
@@ -471,32 +463,32 @@ namespace JCTG.Client
 
                                                                                     // Generate order type
                                                                                     var orderType = OrderType.BuyStop;
-                                                                                    if (pair.OrderExecType == OrderExecType.Passive && metadataTick.Ask <= price)
+                                                                                    if (pair.OrderExecType == OrderExecType.Passive && metadataTick.Ask <= entryBidPrice)
                                                                                         orderType = OrderType.BuyLimit;
-                                                                                    else if (pair.OrderExecType == OrderExecType.Active && metadataTick.Ask >= price)
+                                                                                    else if (pair.OrderExecType == OrderExecType.Active && metadataTick.Ask >= entryBidPrice)
                                                                                         orderType = OrderType.Buy;
 
                                                                                     // Round
-                                                                                    price = Calculator.RoundToNearestTickSize(price.Value, metadataTick.TickSize, metadataTick.Digits);
+                                                                                    entryBidPrice = Calculator.RoundToNearestTickSize(entryBidPrice.Value, metadataTick.TickSize, metadataTick.Digits);
                                                                                     sl = Calculator.RoundToNearestTickSize(sl, metadataTick.TickSize, metadataTick.Digits);
                                                                                     tp = Calculator.RoundToNearestTickSize(tp, metadataTick.TickSize, metadataTick.Digits);
 
                                                                                     // Generate comment
-                                                                                    var comment = Calculator.GenerateComment(cmd.SignalID, price.Value, sl, pair.StrategyID, spread);
+                                                                                    var comment = Calculator.GenerateComment(cmd.SignalID, entryBidPrice.Value, sl, pair.StrategyID, spread);
 
                                                                                     // Print on the screen
                                                                                     Helpers.Print($"INFO : {DateTime.UtcNow} / {_appConfig.Brokers.First(f => f.ClientId == api.ClientId).Name} / {pair.TickerInMetatrader} / {orderType.GetDescription().ToUpper()} COMMAND / {cmd.SignalID} / {cmd.StrategyID}");
 
                                                                                     // Execute order
-                                                                                    api.ExecuteOrder(pair.TickerInMetatrader, orderType, lotSize, orderType == OrderType.Buy ? 0 : price.Value, sl, tp, Convert.ToInt32(cmd.SignalID), comment);
+                                                                                    api.ExecuteOrder(pair.TickerInMetatrader, orderType, lotSize, orderType == OrderType.Buy ? 0 : entryBidPrice.Value, sl, tp, Convert.ToInt32(cmd.SignalID), comment);
 
                                                                                     // Send to logs
-                                                                                    LogFactory.ExecuteOrderCommand(api.ClientId, _appConfig.Debug, cmd, pair.TickerInMetatrader, orderType, lotSize, orderType == OrderType.Buy ? 0 : price.Value, sl, tp, Convert.ToInt32(cmd.SignalID), comment);
+                                                                                    LogFactory.ExecuteOrderCommand(api.ClientId, _appConfig.Debug, cmd, pair.TickerInMetatrader, orderType, lotSize, orderType == OrderType.Buy ? 0 : entryBidPrice.Value, sl, tp, Convert.ToInt32(cmd.SignalID), comment);
                                                                                 }
                                                                                 else
                                                                                 {
                                                                                     // Raise market abstention or error
-                                                                                    await MarketAbstentionFactory.RiskShouldBeAtLeastXTimesTheSpreadAsync(api.ClientId, _appConfig.Debug, cmd, cmd.SignalID, pair.RiskMinXTimesTheSpread, price.Value, sl);
+                                                                                    await MarketAbstentionFactory.RiskShouldBeAtLeastXTimesTheSpreadAsync(api.ClientId, _appConfig.Debug, cmd, cmd.SignalID, pair.RiskMinXTimesTheSpread, entryBidPrice.Value, sl);
                                                                                 }
                                                                             }
                                                                             else
@@ -557,18 +549,16 @@ namespace JCTG.Client
                                                         if (RecurringCloseTradeScheduler.CanOpenTrade(pair.CloseAllTradesAt, pair.DoNotOpenTradeXMinutesBeforeClose))
                                                         {
                                                             // Init
-                                                            var price = metadataTick.Bid;
+                                                            var entryBidPrice = metadataTick.Bid;
 
                                                             // Calculate SL Price
                                                             var sl = Calculator.StoplossForShort(
-                                                                entryPrice: price,
-                                                                bidPrice: metadataTick.Bid,
+                                                                entryBidPrice: entryBidPrice,
                                                                 risk: cmd.MarketOrder.Risk.Value,
                                                                 slMultiplier: pair.SLMultiplier,
                                                                 stopLossExpression: cmd.MarketOrder.StopLossExpression,
                                                                 bars: api.HistoricBarData.Where(f => f.Key == pair.TickerInMetatrader).SelectMany(f => f.Value.BarData).ToList(),
                                                                 spread: spread,
-                                                                spreadExecType: pair.SpreadSL,
                                                                 tickSize: metadataTick.TickSize,
                                                                 out Dictionary<string, string> logMessagesSL);
 
@@ -577,13 +567,12 @@ namespace JCTG.Client
 
                                                             // Get the Take Profit Price
                                                             var tp = Calculator.TakeProfitForShort(
-                                                                entryPrice: price,
+                                                                entryBidPrice: entryBidPrice,
                                                                 risk: cmd.MarketOrder.Risk.Value,
                                                                 slMultiplier: pair.SLMultiplier,
                                                                 stopLossExpression: cmd.MarketOrder.StopLossExpression,
                                                                 bars: api.HistoricBarData.Where(f => f.Key == pair.TickerInMetatrader).SelectMany(f => f.Value.BarData).ToList(),
                                                                 spread: spread,
-                                                                spreadExecType: pair.SpreadTP,
                                                                 riskRewardRatio: cmd.MarketOrder.RiskRewardRatio.Value,
                                                                 out Dictionary<string, string> logMessagesTP);
 
@@ -595,7 +584,7 @@ namespace JCTG.Client
                                                                 startBalance: startbalance,
                                                                 accountBalance: api.AccountInfo.Balance,
                                                                 riskPercent: pair.RiskShort,
-                                                                entryPrice: price,
+                                                                entryBidPrice: entryBidPrice,
                                                                 stopLossPrice: sl,
                                                                 tickValue: metadataTick.TickValue,
                                                                 tickSize: metadataTick.TickSize,
@@ -621,7 +610,7 @@ namespace JCTG.Client
                                                                         if (pair.MaxLotSize == 0 || pair.MaxLotSize > 0 && lotSize <= pair.MaxLotSize)
                                                                         {
                                                                             // Do check if risk is x times the spread
-                                                                            if (pair.RiskMinXTimesTheSpread <= 0 || (spread * pair.RiskMinXTimesTheSpread < Math.Abs(sl - price)))
+                                                                            if (pair.RiskMinXTimesTheSpread <= 0 || (spread * pair.RiskMinXTimesTheSpread < Math.Abs(sl - entryBidPrice)))
                                                                             {
                                                                                 // Print on the screen
                                                                                 Helpers.Print($"INFO : {DateTime.UtcNow} / {_appConfig.Brokers.First(f => f.ClientId == api.ClientId).Name} / {pair.TickerInMetatrader} / SELL COMMAND / {cmd.SignalID} / {cmd.StrategyID}");
@@ -646,12 +635,12 @@ namespace JCTG.Client
                                                                                 var orderType = OrderType.Sell;
 
                                                                                 // Round
-                                                                                price = Calculator.RoundToNearestTickSize(price, metadataTick.TickSize, metadataTick.Digits);
+                                                                                entryBidPrice = Calculator.RoundToNearestTickSize(entryBidPrice, metadataTick.TickSize, metadataTick.Digits);
                                                                                 sl = Calculator.RoundToNearestTickSize(sl, metadataTick.TickSize, metadataTick.Digits);
                                                                                 tp = Calculator.RoundToNearestTickSize(tp, metadataTick.TickSize, metadataTick.Digits);
 
                                                                                 // Generate comment
-                                                                                var comment = Calculator.GenerateComment(cmd.SignalID, price, sl, pair.StrategyID, spread);
+                                                                                var comment = Calculator.GenerateComment(cmd.SignalID, entryBidPrice, sl, pair.StrategyID, spread);
 
                                                                                 // Execute order
                                                                                 api.ExecuteOrder(pair.TickerInMetatrader, orderType, lotSize, 0, sl, tp, Convert.ToInt32(cmd.SignalID), comment);
@@ -662,7 +651,7 @@ namespace JCTG.Client
                                                                             else
                                                                             {
                                                                                 // Raise market abstention or error
-                                                                                await MarketAbstentionFactory.RiskShouldBeAtLeastXTimesTheSpreadAsync(api.ClientId, _appConfig.Debug, cmd, cmd.SignalID, pair.RiskMinXTimesTheSpread, price, sl);
+                                                                                await MarketAbstentionFactory.RiskShouldBeAtLeastXTimesTheSpreadAsync(api.ClientId, _appConfig.Debug, cmd, cmd.SignalID, pair.RiskMinXTimesTheSpread, entryBidPrice, sl);
                                                                             }
                                                                         }
                                                                         else
@@ -717,31 +706,27 @@ namespace JCTG.Client
                                                         // Do do not open a deal x minutes before close
                                                         if (RecurringCloseTradeScheduler.CanOpenTrade(pair.CloseAllTradesAt, pair.DoNotOpenTradeXMinutesBeforeClose))
                                                         {
-                                                            // Get the entry entryPrice
-                                                            var price = Calculator.EntryPriceForShort(
-                                                                risk: cmd.PassiveOrder.Risk.Value,
+                                                            // Get the entry entryBidPrice
+                                                            var entryBidPrice = Calculator.EntryBidPriceForShort(
                                                                 entryExpression: cmd.PassiveOrder.EntryExpression,
                                                                 bars: api.HistoricBarData.Where(f => f.Key == pair.TickerInMetatrader).SelectMany(f => f.Value.BarData).ToList(),
                                                                 spread: spread,
-                                                                spreadExecType: pair.SpreadEntry,
                                                                 logMessages: out Dictionary<string, string> logMessagesENTRY);
 
                                                             // Send to logs
-                                                            LogFactory.CalculateEntry(api.ClientId, _appConfig.Debug, cmd, logMessagesENTRY);
+                                                            LogFactory.CalculateEntryBidPrice(api.ClientId, _appConfig.Debug, cmd, logMessagesENTRY);
 
                                                             // do 0.0 check
-                                                            if (price.HasValue)
+                                                            if (entryBidPrice.HasValue)
                                                             {
                                                                 // Calculate SL Price
                                                                 var sl = Calculator.StoplossForShort(
-                                                                    entryPrice: price.Value,
-                                                                    bidPrice: metadataTick.Bid,
+                                                                    entryBidPrice: entryBidPrice.Value,
                                                                     risk: cmd.PassiveOrder.Risk.Value,
                                                                     slMultiplier: pair.SLMultiplier,
                                                                     stopLossExpression: cmd.PassiveOrder.StopLossExpression,
                                                                     bars: api.HistoricBarData.Where(f => f.Key == pair.TickerInMetatrader).SelectMany(f => f.Value.BarData).ToList(),
                                                                     spread: spread,
-                                                                    spreadExecType: pair.SpreadSL,
                                                                     tickSize: metadataTick.TickSize,
                                                                     out Dictionary<string, string> logMessagesSL);
 
@@ -750,13 +735,12 @@ namespace JCTG.Client
 
                                                                 // Get the Take Profit Price
                                                                 var tp = Calculator.TakeProfitForShort(
-                                                                    entryPrice: price.Value,
+                                                                    entryBidPrice: entryBidPrice.Value,
                                                                     risk: cmd.PassiveOrder.Risk.Value,
                                                                     slMultiplier: pair.SLMultiplier,
                                                                     stopLossExpression: cmd.PassiveOrder.StopLossExpression,
                                                                     bars: api.HistoricBarData.Where(f => f.Key == pair.TickerInMetatrader).SelectMany(f => f.Value.BarData).ToList(),
                                                                     spread: spread,
-                                                                    spreadExecType: pair.SpreadTP,
                                                                     riskRewardRatio: cmd.PassiveOrder.RiskRewardRatio.Value,
                                                                     out Dictionary<string, string> logMessagesTP);
 
@@ -768,7 +752,7 @@ namespace JCTG.Client
                                                                     startBalance: startbalance,
                                                                     accountBalance: api.AccountInfo.Balance,
                                                                     riskPercent: pair.RiskShort,
-                                                                    entryPrice: price.Value,
+                                                                    entryBidPrice: entryBidPrice.Value,
                                                                     stopLossPrice: sl,
                                                                     tickValue: metadataTick.TickValue,
                                                                     tickSize: metadataTick.TickSize,
@@ -794,7 +778,7 @@ namespace JCTG.Client
                                                                             if (pair.MaxLotSize == 0 || pair.MaxLotSize > 0 && lotSize <= pair.MaxLotSize)
                                                                             {
                                                                                 // Do check if risk is x times the spread
-                                                                                if (pair.RiskMinXTimesTheSpread == 0 || (spread * pair.RiskMinXTimesTheSpread < Math.Abs(sl - price.Value)))
+                                                                                if (pair.RiskMinXTimesTheSpread == 0 || (spread * pair.RiskMinXTimesTheSpread < Math.Abs(sl - entryBidPrice.Value)))
                                                                                 {
 
                                                                                     // Cancel open buy or limit orders
@@ -815,32 +799,32 @@ namespace JCTG.Client
 
                                                                                     // Generate order type
                                                                                     var orderType = OrderType.SellStop;
-                                                                                    if (pair.OrderExecType == OrderExecType.Passive && metadataTick.Ask < price.Value)
+                                                                                    if (pair.OrderExecType == OrderExecType.Passive && metadataTick.Bid < entryBidPrice.Value)
                                                                                         orderType = OrderType.SellLimit;
-                                                                                    else if (pair.OrderExecType == OrderExecType.Active && metadataTick.Ask <= price.Value)
+                                                                                    else if (pair.OrderExecType == OrderExecType.Active && metadataTick.Bid <= entryBidPrice.Value)
                                                                                         orderType = OrderType.Sell;
 
                                                                                     // Round
-                                                                                    price = Calculator.RoundToNearestTickSize(price.Value, metadataTick.TickSize, metadataTick.Digits);
+                                                                                    entryBidPrice = Calculator.RoundToNearestTickSize(entryBidPrice.Value, metadataTick.TickSize, metadataTick.Digits);
                                                                                     sl = Calculator.RoundToNearestTickSize(sl, metadataTick.TickSize, metadataTick.Digits);
                                                                                     tp = Calculator.RoundToNearestTickSize(tp, metadataTick.TickSize, metadataTick.Digits);
 
                                                                                     // Generate comment
-                                                                                    var comment = Calculator.GenerateComment(cmd.SignalID, price.Value, sl, pair.StrategyID, spread);
+                                                                                    var comment = Calculator.GenerateComment(cmd.SignalID, entryBidPrice.Value, sl, pair.StrategyID, spread);
 
                                                                                     // Print on the screen
                                                                                     Helpers.Print($"INFO : {DateTime.UtcNow} / {_appConfig.Brokers.First(f => f.ClientId == api.ClientId).Name} / {pair.TickerInMetatrader} / {orderType.GetDescription().ToUpper()} COMMAND / {cmd.SignalID} / {cmd.StrategyID}");
 
                                                                                     // Execute order
-                                                                                    api.ExecuteOrder(pair.TickerInMetatrader, orderType, lotSize, orderType == OrderType.Sell ? 0 : price.Value, sl, tp, (int)cmd.SignalID, comment);
+                                                                                    api.ExecuteOrder(pair.TickerInMetatrader, orderType, lotSize, orderType == OrderType.Sell ? 0 : entryBidPrice.Value, sl, tp, (int)cmd.SignalID, comment);
 
                                                                                     // Send to logs
-                                                                                    LogFactory.ExecuteOrderCommand(api.ClientId, _appConfig.Debug, cmd, pair.TickerInMetatrader, orderType, lotSize, orderType == OrderType.Sell ? 0 : price.Value, sl, tp, (int)cmd.SignalID, comment);
+                                                                                    LogFactory.ExecuteOrderCommand(api.ClientId, _appConfig.Debug, cmd, pair.TickerInMetatrader, orderType, lotSize, orderType == OrderType.Sell ? 0 : entryBidPrice.Value, sl, tp, (int)cmd.SignalID, comment);
                                                                                 }
                                                                                 else
                                                                                 {
                                                                                     // Raise market abstention or error
-                                                                                    await MarketAbstentionFactory.RiskShouldBeAtLeastXTimesTheSpreadAsync(api.ClientId, _appConfig.Debug, cmd, cmd.SignalID, pair.RiskMinXTimesTheSpread, price.Value, sl);
+                                                                                    await MarketAbstentionFactory.RiskShouldBeAtLeastXTimesTheSpreadAsync(api.ClientId, _appConfig.Debug, cmd, cmd.SignalID, pair.RiskMinXTimesTheSpread, entryBidPrice.Value, sl);
                                                                                 }
                                                                             }
                                                                             else
@@ -902,10 +886,8 @@ namespace JCTG.Client
                                                         {
                                                             // Calculate SL Price
                                                             sl = Calculator.StoplossToBreakEvenForShort(
-                                                                entryPrice: ticketId.Value.OpenPrice,
-                                                                bidPrice: metadataTick.Bid,
+                                                                entryBidPrice: ticketId.Value.OpenPrice,
                                                                 spread: spread,
-                                                                spreadExecType: pair.SpreadSLtoBE,
                                                                 tickSize: metadataTick.TickSize,
                                                                 out Dictionary<string, string> logMessagesSL);
 
@@ -916,10 +898,8 @@ namespace JCTG.Client
                                                         {
                                                             // Calculate SL Price
                                                             sl = Calculator.StoplossToBreakEvenForLong(
-                                                                entryPrice: ticketId.Value.OpenPrice,
-                                                                askPrice: metadataTick.Ask,
+                                                                entryBidPrice: ticketId.Value.OpenPrice,
                                                                 spread: spread,
-                                                                spreadExecType: pair.SpreadSLtoBE,
                                                                 tickSize: metadataTick.TickSize,
                                                                 out Dictionary<string, string> logMessagesSL);
 
@@ -1082,24 +1062,23 @@ namespace JCTG.Client
                                             // BUY
                                             if (cmd.OrderType == "BUY" && cmd.MarketOrder != null)
                                             {
-                                                // Init price
-                                                var price = metadataTick.Ask;
+                                                // Init entryBidPrice
+                                                var entryBidPrice = metadataTick.Bid;
 
-                                                // Get the Stop Loss entryPrice
+                                                // Get the Stop Loss entryBidPrice
                                                 var sl = Convert.ToDecimal(cmd.MarketOrder.StopLossPrice);
 
                                                 // Generate risk
-                                                var risk = price - Convert.ToDecimal(cmd.MarketOrder.StopLossPrice);
+                                                var risk = entryBidPrice - Convert.ToDecimal(cmd.MarketOrder.StopLossPrice);
 
                                                 // Get the Take Profit Price
                                                 var tp = Calculator.TakeProfitForLong(
-                                                    entryPrice: price,
+                                                    entryBidPrice: entryBidPrice,
                                                     risk: risk,
                                                     slMultiplier: 1,
                                                     stopLossExpression: null,
                                                     bars: [],
                                                     spread: spread,
-                                                    spreadExecType: null,
                                                     riskRewardRatio: Convert.ToDecimal(cmd.MarketOrder.RiskRewardRatio),
                                                     out Dictionary<string, string> logMessagesTP);
 
@@ -1111,7 +1090,7 @@ namespace JCTG.Client
                                                     startBalance: startbalance,
                                                     accountBalance: api.AccountInfo.Balance,
                                                     riskPercent: Convert.ToDecimal(cmd.ProcentRiskOfBalance),
-                                                    entryPrice: price,
+                                                    entryBidPrice: entryBidPrice,
                                                     stopLossPrice: sl,
                                                     tickValue: metadataTick.TickValue,
                                                     tickSize: metadataTick.TickSize,
@@ -1137,12 +1116,12 @@ namespace JCTG.Client
                                                         var orderType = OrderType.Buy;
 
                                                         // Round
-                                                        price = Calculator.RoundToNearestTickSize(price, metadataTick.TickSize, metadataTick.Digits);
+                                                        entryBidPrice = Calculator.RoundToNearestTickSize(entryBidPrice, metadataTick.TickSize, metadataTick.Digits);
                                                         sl = Calculator.RoundToNearestTickSize(sl, metadataTick.TickSize, metadataTick.Digits);
                                                         tp = Calculator.RoundToNearestTickSize(tp, metadataTick.TickSize, metadataTick.Digits);
 
                                                         // Generate comment
-                                                        var comment = Calculator.GenerateComment(cmd.Magic, price, sl, cmd.StrategyID, spread);
+                                                        var comment = Calculator.GenerateComment(cmd.Magic, entryBidPrice, sl, cmd.StrategyID, spread);
 
                                                         // Execute order
                                                         api.ExecuteOrder(pair.Instrument, orderType, lotSize, 0, sl, tp, cmd.Magic, comment);
@@ -1161,24 +1140,23 @@ namespace JCTG.Client
                                             // SELL
                                             else if (cmd.OrderType == "SELL" && cmd.MarketOrder != null)
                                             {
-                                                // Init price
-                                                var price = metadataTick.Bid;
+                                                // Init entryBidPrice
+                                                var entryBidPrice = metadataTick.Bid;
 
-                                                // Get the Stop Loss entryPrice
+                                                // Get the Stop Loss entryBidPrice
                                                 var sl = Convert.ToDecimal(cmd.MarketOrder.StopLossPrice);
 
                                                 // Generate risk
-                                                var risk = Math.Abs(Convert.ToDecimal(cmd.MarketOrder.StopLossPrice) - price);
+                                                var risk = Math.Abs(Convert.ToDecimal(cmd.MarketOrder.StopLossPrice) - entryBidPrice);
 
                                                 // Get the Take Profit Price
                                                 var tp = Calculator.TakeProfitForShort(
-                                                    entryPrice: price,
+                                                    entryBidPrice: entryBidPrice,
                                                     risk: risk,
                                                     slMultiplier: 1,
                                                     stopLossExpression: null,
                                                     bars: new List<BarData>(),
                                                     spread: spread,
-                                                    spreadExecType: null,
                                                     riskRewardRatio: Convert.ToDecimal(cmd.MarketOrder.RiskRewardRatio),
                                                     out Dictionary<string, string> logMessagesTP);
 
@@ -1190,7 +1168,7 @@ namespace JCTG.Client
                                                     startBalance: startbalance,
                                                     accountBalance: api.AccountInfo.Balance,
                                                     riskPercent: Convert.ToDecimal(cmd.ProcentRiskOfBalance),
-                                                    entryPrice: price,
+                                                    entryBidPrice: entryBidPrice,
                                                     stopLossPrice: sl,
                                                     tickValue: metadataTick.TickValue,
                                                     tickSize: metadataTick.TickSize,
@@ -1216,12 +1194,12 @@ namespace JCTG.Client
                                                         var orderType = OrderType.Sell;
 
                                                         // Round
-                                                        price = Calculator.RoundToNearestTickSize(price, metadataTick.TickSize, metadataTick.Digits);
+                                                        entryBidPrice = Calculator.RoundToNearestTickSize(entryBidPrice, metadataTick.TickSize, metadataTick.Digits);
                                                         sl = Calculator.RoundToNearestTickSize(sl, metadataTick.TickSize, metadataTick.Digits);
                                                         tp = Calculator.RoundToNearestTickSize(tp, metadataTick.TickSize, metadataTick.Digits);
 
                                                         // Generate comment
-                                                        var comment = Calculator.GenerateComment(cmd.Magic, price, sl, cmd.StrategyID, spread);
+                                                        var comment = Calculator.GenerateComment(cmd.Magic, entryBidPrice, sl, cmd.StrategyID, spread);
 
                                                         // Execute order
                                                         api.ExecuteOrder(pair.Instrument, orderType, lotSize, 0, sl, tp, cmd.Magic, comment);
@@ -1344,10 +1322,8 @@ namespace JCTG.Client
                                         {
                                             // Calculate SL Price
                                             var sl = Calculator.StoplossToBreakEvenForLong(
-                                                entryPrice: order.Value.OpenPrice,
-                                                askPrice: metadataTick.Value.Ask,
+                                                entryBidPrice: order.Value.OpenPrice,
                                                 spread: spread.Value,
-                                                spreadExecType: pair.SpreadSLtoBE,
                                                 tickSize: metadataTick.Value.TickSize,
                                                 out Dictionary<string, string> logMessagesSL);
 
@@ -1378,10 +1354,8 @@ namespace JCTG.Client
                                         {
                                             // Calculate SL Price
                                             var sl = Calculator.StoplossToBreakEvenForShort(
-                                                entryPrice: order.Value.OpenPrice,
-                                                bidPrice: metadataTick.Value.Bid,
+                                                entryBidPrice: order.Value.OpenPrice,
                                                 spread: spread.Value,
-                                                spreadExecType: pair.SpreadSLtoBE,
                                                 tickSize: metadataTick.Value.TickSize,
                                                 out Dictionary<string, string> logMessagesSL);
 

@@ -148,10 +148,6 @@ namespace JCTG.Entity
                 }
             }
         }
-        public SpreadExecType? SpreadEntry { get; set; }
-        public SpreadExecType? SpreadSL { get; set; }
-        public SpreadExecType? SpreadTP { get; set; }
-        public SpreadExecType? SpreadSLtoBE { get; set; }
         public int RiskMinXTimesTheSpread { get; set; }
         [NotMapped]
         public string RiskMinXTimesTheSpreadAsString

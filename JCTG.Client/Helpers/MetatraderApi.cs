@@ -393,7 +393,7 @@ namespace JCTG.Client
                 if (data == null)
                     continue;
 
-                // Convert JObject to a list of Log objects
+                // Convert JObject to a list of HttpCallOnLogEvent objects
                 var logs = JsonConvert.DeserializeObject<Dictionary<long, Log>>(text);
 
                 // Sort the logs by Time
