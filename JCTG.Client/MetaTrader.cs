@@ -1,4 +1,5 @@
 ﻿using JCTG.Models;
+using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.DependencyInjection;
 using System.Text.RegularExpressions;
 
@@ -1323,7 +1324,7 @@ namespace JCTG.Client
                                             // Calculate SL Price
                                             var sl = Calculator.StoplossToBreakEvenForLong(
                                                 entryBidPrice: order.Value.OpenPrice,
-                                                spread: spread.Value,
+                                                spread: Calculator.CalculateSpread(metadataTick.Value.Ask, metadataTick.Value.Bid, metadataTick.Value.TickSize, metadataTick.Value.Digits),
                                                 tickSize: metadataTick.Value.TickSize,
                                                 out Dictionary<string, string> logMessagesSL);
 
@@ -1355,7 +1356,7 @@ namespace JCTG.Client
                                             // Calculate SL Price
                                             var sl = Calculator.StoplossToBreakEvenForShort(
                                                 entryBidPrice: order.Value.OpenPrice,
-                                                spread: spread.Value,
+                                                spread: Calculator.CalculateSpread(metadataTick.Value.Ask, metadataTick.Value.Bid, metadataTick.Value.TickSize, metadataTick.Value.Digits),
                                                 tickSize: metadataTick.Value.TickSize,
                                                 out Dictionary<string, string> logMessagesSL);
 

@@ -484,8 +484,8 @@ namespace JCTG.Client
 
         public static decimal CalculateSpread(decimal ask, decimal bid, decimal tickSize, int digits)
         {
-            decimal spread = ask >= bid ? ask - bid : 0;
-            return RoundToNearestTickSize(Math.Abs(spread), tickSize, digits);
+            decimal spread = Math.Abs(ask - bid);
+            return RoundToNearestTickSize(spread, tickSize, digits);
         }
 
         public static decimal CalculateCostSpread(decimal spread, double lotSize, decimal tickSize, int digits, decimal tickValue)
