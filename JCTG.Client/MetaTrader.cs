@@ -888,6 +888,7 @@ namespace JCTG.Client
                                                             // Calculate SL Price
                                                             sl = Calculator.StoplossToBreakEvenForShort(
                                                                 entryBidPrice: ticketId.Value.OpenPrice,
+                                                                currentBidPrice: metadataTick.Bid,
                                                                 spread: spread,
                                                                 tickSize: metadataTick.TickSize,
                                                                 out Dictionary<string, string> logMessagesSL);
@@ -900,6 +901,7 @@ namespace JCTG.Client
                                                             // Calculate SL Price
                                                             sl = Calculator.StoplossToBreakEvenForLong(
                                                                 entryBidPrice: ticketId.Value.OpenPrice,
+                                                                currentBidPrice: metadataTick.Bid,
                                                                 spread: spread,
                                                                 tickSize: metadataTick.TickSize,
                                                                 out Dictionary<string, string> logMessagesSL);
@@ -1324,6 +1326,7 @@ namespace JCTG.Client
                                             // Calculate SL Price
                                             var sl = Calculator.StoplossToBreakEvenForLong(
                                                 entryBidPrice: order.Value.OpenPrice,
+                                                currentBidPrice: metadataTick.Value.Bid,
                                                 spread: Calculator.CalculateSpread(metadataTick.Value.Ask, metadataTick.Value.Bid, metadataTick.Value.TickSize, metadataTick.Value.Digits),
                                                 tickSize: metadataTick.Value.TickSize,
                                                 out Dictionary<string, string> logMessagesSL);
@@ -1356,6 +1359,7 @@ namespace JCTG.Client
                                             // Calculate SL Price
                                             var sl = Calculator.StoplossToBreakEvenForShort(
                                                 entryBidPrice: order.Value.OpenPrice,
+                                                currentBidPrice: metadataTick.Value.Bid,
                                                 spread: Calculator.CalculateSpread(metadataTick.Value.Ask, metadataTick.Value.Bid, metadataTick.Value.TickSize, metadataTick.Value.Digits),
                                                 tickSize: metadataTick.Value.TickSize,
                                                 out Dictionary<string, string> logMessagesSL);

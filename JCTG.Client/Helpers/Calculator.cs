@@ -151,10 +151,13 @@ namespace JCTG.Client
             return entryBidPrice;
         }
 
-        public static decimal StoplossToBreakEvenForShort(decimal entryBidPrice, decimal spread, decimal tickSize, out Dictionary<string, string> logMessages)
+        public static decimal StoplossToBreakEvenForShort(decimal entryBidPrice, decimal currentBidPrice, decimal spread, decimal tickSize, out Dictionary<string, string> logMessages)
         {
+            logMessages = [];
 
-            return StoplossForShort(
+            LogCalculation(logMessages, "currentBidPrice", currentBidPrice);
+
+            var stoploss = StoplossForShort(
                         entryBidPrice: entryBidPrice,
                         risk: 0.0M,
                         slMultiplier: 1,
@@ -162,12 +165,32 @@ namespace JCTG.Client
                         bars: [],
                         spread: spread,
                         tickSize: tickSize,
-                        out logMessages);
+                        out Dictionary<string, string> logMessages2);
+            foreach (var log in logMessages2)
+                LogCalculation(logMessages, log.Key, log.Value);
+
+            // Extra check
+            if (stoploss <= currentBidPrice)
+            {
+                LogCalculation(logMessages, "stoploss <= currentBidPrice", true);
+               
+                // Set SL to 1 tick above the current entryBidPrice
+                stoploss = currentBidPrice + (2 * tickSize);
+                stoploss = CalculateSpreadExecForShort(stoploss, spread, SpreadExecType.Subtract);
+                LogCalculation(logMessages, "stoploss", stoploss);
+            }
+
+            return stoploss;
         }
 
-        public static decimal StoplossToBreakEvenForLong(decimal entryBidPrice, decimal spread, decimal tickSize, out Dictionary<string, string> logMessages)
+        public static decimal StoplossToBreakEvenForLong(decimal entryBidPrice, decimal currentBidPrice, decimal spread, decimal tickSize, out Dictionary<string, string> logMessages)
         {
-            return StoplossForLong(
+            logMessages = [];
+
+            LogCalculation(logMessages, "currentBidPrice", currentBidPrice);
+
+            // Get the Stop Loss entryBidPrice
+            var stoploss = StoplossForLong(
                         entryBidPrice: entryBidPrice,
                         risk: 0.0M,
                         slMultiplier: 1,
@@ -175,7 +198,21 @@ namespace JCTG.Client
                         bars: [],
                         spread: spread,
                         tickSize: tickSize,
-                        out logMessages);
+                         out Dictionary<string, string> logMessages2);
+            foreach (var log in logMessages2)
+                LogCalculation(logMessages, log.Key, log.Value);
+
+            // Extra check
+            if (stoploss >= currentBidPrice)
+            {
+                LogCalculation(logMessages, "stoploss >= currentBidPrice", true);
+               
+                // Set SL to 1 tick above the current entryBidPrice
+                stoploss = currentBidPrice - (2 * tickSize);
+                LogCalculation(logMessages, "stoploss", stoploss);
+            }
+
+            return stoploss;
         }
 
         public static decimal StoplossForShort(decimal entryBidPrice, decimal risk, double slMultiplier, string? stopLossExpression, List<BarData> bars, decimal spread, decimal tickSize, out Dictionary<string, string> logMessages)
