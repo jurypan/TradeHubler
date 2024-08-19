@@ -4,21 +4,18 @@ import TradingView/ta/5
 import Jury_P/Tradehubler/1 as th
 
 
-
 //INPUTS
 i_showStrategy              = input.bool(true,title="Show Strategy",group = "General") 
 i_showRiskReward            = input.bool(true,title="Show Risk/Reward Area",group = "General") 
 i_takeLongOrShort           = input.string("Long", title="Direction",group = "General", options = ["Long", "Short"])
 
-i_isCloseTime               = input.string("None", title="Close trades",group = "Timing", options = ["Friday end of session", "End of session", "None"])
-i_timeClosePM               = input.int(0, title="Close Time",group = "Timing")
+i_timeCloseTime             = input.int(1, title="Close after x bar",group = "Timing")
 
 i_pyramiding                = input.bool(false,title = "Pyramiding?", group = "Risk / Reward")
-i_moveSLtoBEafterFirstCandle= input.bool(true, title="Move SL to BE after first candle is in profit",group = "Risk / Reward") 
+i_moveSLtoBEafterR          = input.float(0.1, title="Move SL to BE after xR",group = "Risk / Reward") 
 i_rewardRatio               = input.float(10.0, title = "Reward Ratio", group = "Risk / Reward")
 
 i_checkTrend                = input.bool(true,title = "Only take trades with the trend?", group = "Trend") 
-i_checkTrendTF              = input.string("Chart", title="Source", group = "Trend", options = ["Chart", "D", "720", "480", "240", "60", "15"])
 i_checkTrendFastMA          = input.int(9, title="Fast MA", group = "Trend")
 i_checkTrendslowMA          = input.int(200, title="Slow MA", group = "Trend")
 
@@ -29,15 +26,15 @@ i_strategyID                = input.int(6,title="Strategy ID",group = "Account")
 
 //VARS
 var int magic = 0
-var float TP = na, var float SL = na, var float EP = na
+var float TP = na, var float SL = na, var float EP = na, var EPExpr = ''
 var float risk = na
 var int TIME = na
 
 //FUNCTIONS
 
 // Calculate moving averages
-fast_ma = request.security(syminfo.tickerid, i_checkTrendTF == "Chart" ? timeframe.period : i_checkTrendTF, ta.ema(close, i_checkTrendFastMA))
-slow_ma = request.security(syminfo.tickerid, i_checkTrendTF == "Chart" ? timeframe.period : i_checkTrendTF, ta.ema(close, i_checkTrendslowMA))
+fast_ma = ta.ema(close, i_checkTrendFastMA)
+slow_ma = ta.ema(close, i_checkTrendslowMA)
 
 buyWithTrend() =>
     if i_checkTrend == true
@@ -82,16 +79,6 @@ isBearishSetup() =>
         false
 
 
-
-isCloseTime() =>
-    if i_isCloseTime == "End of session" and th.isEndOfSession(i_timeClosePM)
-        true
-    else if i_isCloseTime == "Friday end of session" and th.isFridayEndOfSession(i_timeClosePM)
-        true
-    else
-        false
-
-
 //LONG
 if isBullishSetup() and barstate.isconfirmed
     EP := high
@@ -100,25 +87,31 @@ if isBullishSetup() and barstate.isconfirmed
 
     if i_pyramiding == false
         th.cancelOrder(i_pcLicenseID, magic, syminfo.ticker, i_strategyID)
+        
     magic := th.magic()
     TP := th.calculateTakeProfitForLong(EP, SL, i_rewardRatio)
+    EPExpr := 'Bar[' + str.tostring(time[0]) + '].High'
 
     // reset entry time
     TIME := na
 
     // Do entry
-    th.buyStop(i_pcLicenseID, magic, syminfo.ticker, i_strategyID, i_rewardRatio, 1, EP, 'Bar[' + str.tostring(time[0]) + '].High', risk, 'Bar[' + str.tostring(time[0]) + '].Low')
+    th.buyStop(i_pcLicenseID, magic, syminfo.ticker, i_strategyID, i_rewardRatio, 1, EP, EPExpr, risk, 'Bar[' + str.tostring(time[0]) + '].Low')
 
 
 if i_takeLongOrShort == "Long" and strategy.position_size > 0  and na(TIME) and barstate.isconfirmed
     TIME := time
-    if i_moveSLtoBEafterFirstCandle and close > EP
-        SL := EP
-        th.moveSlToBe(i_pcLicenseID, magic, syminfo.ticker, i_strategyID, i_rewardRatio, SL, TP)
 
-if i_takeLongOrShort == "Long" and strategy.position_size > 0  and time > TIME and barstate.isconfirmed
+if i_takeLongOrShort == "Long" and strategy.position_size > 0 and EP != SL and i_moveSLtoBEafterR > 0 and close >= (EP + (i_moveSLtoBEafterR * risk)) and barstate.isconfirmed
+    SL := EP
+    th.moveSlToBe(i_pcLicenseID, magic, syminfo.ticker, i_strategyID, i_rewardRatio, SL, EPExpr, TP)
+
+if i_takeLongOrShort == "Long" and strategy.position_size > 0  and time[i_timeCloseTime] >= TIME and barstate.isconfirmed
     rr = (close - EP) / risk
     th.closeOrder(i_pcLicenseID, magic, syminfo.ticker, i_strategyID, rr)
+
+if i_takeLongOrShort == "Long" and i_checkTrend == true and ta.crossunder(fast_ma, slow_ma) and barstate.isconfirmed
+    th.closeOrder(i_pcLicenseID, magic, syminfo.ticker, i_strategyID, 0)
 
 
 // SHORT    
@@ -132,40 +125,29 @@ if isBearishSetup() and barstate.isconfirmed
 
     magic := th.magic()
     TP := th.calculateTakeProfitForShort(EP, SL, i_rewardRatio)
+    EPExpr := 'Bar[' + str.tostring(time[0]) + '].Low'
 
     // reset entry entry time
     TIME := na
 
     // Do entry
-    th.sellStop(i_pcLicenseID, magic, syminfo.ticker, i_strategyID, i_rewardRatio, 1, EP, 'Bar[' + str.tostring(time[0]) + '].Low', risk, 'Bar[' + str.tostring(time[0]) + '].High')
+    th.sellStop(i_pcLicenseID, magic, syminfo.ticker, i_strategyID, i_rewardRatio, 1, EP, EPExpr, risk, 'Bar[' + str.tostring(time[0]) + '].High')
 
 
 if i_takeLongOrShort == "Short" and strategy.position_size < 0  and na(TIME) and barstate.isconfirmed
     TIME := time
-    if i_moveSLtoBEafterFirstCandle and close < EP
-        SL := EP
-        th.moveSlToBe(i_pcLicenseID, magic, syminfo.ticker, i_strategyID, i_rewardRatio, SL, TP)
 
+if i_takeLongOrShort == "Short" and strategy.position_size < 0 and EP != SL and i_moveSLtoBEafterR > 0 and close <= (EP - (i_moveSLtoBEafterR * risk)) and barstate.isconfirmed
+    SL := EP
+    th.moveSlToBe(i_pcLicenseID, magic, syminfo.ticker, i_strategyID, i_rewardRatio, SL, EPExpr, TP)
 
-if i_takeLongOrShort == "Short" and strategy.position_size < 0  and not na(TIME) and time > TIME and barstate.isconfirmed
+if i_takeLongOrShort == "Short" and strategy.position_size < 0  and not na(TIME) and time[i_timeCloseTime] >= TIME and barstate.isconfirmed
     rr = (EP - close) / risk
     th.closeOrder(i_pcLicenseID, magic, syminfo.ticker, i_strategyID, rr)
 
+if i_takeLongOrShort == "Short" and i_checkTrend == true and ta.crossover(fast_ma, slow_ma) and barstate.isconfirmed
+    th.closeOrder(i_pcLicenseID, magic, syminfo.ticker, i_strategyID, 0)
  
-if isCloseTime() and barstate.isconfirmed
-    rr = (EP - close) / risk
-    if i_takeLongOrShort == "Long"
-        rr := th.roundUp((close - EP) / risk, 2)
-    if rr > i_rewardRatio
-        rr := 0
-    else if rr < -1
-        rr := -1
-    th.closeAllOrders(i_pcLicenseID, magic, syminfo.ticker, i_strategyID, rr)
-    strategy.cancel(id = th.magicAsString(magic))
-
-
-
-
 
 
 

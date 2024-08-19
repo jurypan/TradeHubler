@@ -1,0 +1,176 @@
+//@version=5
+strategy("STR6.2", overlay=true, process_orders_on_close = true, calc_on_every_tick = true, default_qty_type = strategy.percent_of_equity, default_qty_value = 100, pyramiding = 100, currency = currency.NONE, initial_capital = 10000000, close_entries_rule="ANY")
+import TradingView/ta/5
+import Jury_P/Tradehubler/1 as th
+
+
+//INPUTS
+i_showStrategy              = input.bool(true,title="Show Strategy",group = "General") 
+i_showRiskReward            = input.bool(true,title="Show Risk/Reward Area",group = "General") 
+i_takeLongOrShort           = input.string("Long", title="Direction",group = "General", options = ["Long", "Short"])
+
+
+i_pyramiding                = input.bool(false,title = "Pyramiding?", group = "Risk / Reward")
+i_moveSLtoBEafterFirstCandle= input.bool(true, title="Move SL to BE after first candle is in profit",group = "Risk / Reward") 
+i_timeCloseTime             = input.int(1, title="Close after x bar",group = "Risk / Reward")
+i_rewardRatio               = input.float(10.0, title = "Reward Ratio", group = "Risk / Reward")
+
+i_checkTrend                = input.bool(true,title = "Only take trades with the trend?", group = "Trend") 
+i_checkTrendTF              = input.string("Chart", title="Source", group = "Trend", options = ["Chart", "D", "720", "480", "240", "60", "15"])
+i_checkTrendFastMA          = input.int(9, title="Fast MA", group = "Trend")
+i_checkTrendslowMA          = input.int(200, title="Slow MA", group = "Trend")
+
+i_pcLicenseID               = input.string("692803787",title="License ID",group = "Account")
+i_strategyID                = input.int(6,title="Strategy ID",group = "Account")
+
+
+
+//VARS
+var int magic = 0
+var float TP = na, var float SL = na, var float EP = na, var string EPExpr = na
+var float risk = na
+var int TIME = na
+
+//FUNCTIONS
+
+// Calculate moving averages
+fast_ma = request.security(syminfo.tickerid, i_checkTrendTF == "Chart" ? timeframe.period : i_checkTrendTF, ta.ema(close, i_checkTrendFastMA), lookahead=barmerge.lookahead_on)
+slow_ma = request.security(syminfo.tickerid, i_checkTrendTF == "Chart" ? timeframe.period : i_checkTrendTF, ta.ema(close, i_checkTrendslowMA), lookahead=barmerge.lookahead_on)
+
+buyWithTrend() =>
+    if i_checkTrend == true
+        if fast_ma > slow_ma
+            true
+        else
+            false
+    else
+        true
+
+sellWithTrend() =>
+    if i_checkTrend == true
+        if fast_ma < slow_ma
+            true
+        else
+            false
+    else
+        true
+
+isBullishSetup() =>
+    if i_takeLongOrShort == "Long"
+        if  i_pyramiding or strategy.position_size == 0
+            if buyWithTrend()
+                (close[2] < open[2]) and (low[1] < low[2] and high[0] > high[1])
+            else
+                false
+        else
+            false
+    else
+        false
+
+isBearishSetup() =>
+    if i_takeLongOrShort == "Short"
+        if  i_pyramiding or strategy.position_size == 0
+            if sellWithTrend()
+                (close[2] > open[2]) and (high[1] > high[2] and low[0] < low[1])
+            else
+                false
+        else
+            false
+    else
+        false
+
+
+//LONG
+if isBullishSetup() and barstate.isconfirmed
+    EP := high
+    SL := low
+    risk := EP - SL
+
+    if i_pyramiding == false
+        th.cancelOrder(i_pcLicenseID, magic, syminfo.ticker, i_strategyID)
+        
+    magic := th.magic()
+    TP := th.calculateTakeProfitForLong(EP, SL, i_rewardRatio)
+    EPExpr := 'Bar[' + str.tostring(time[0]) + '].High'
+
+    // reset entry time
+    TIME := na
+
+    // Do entry
+    th.buyStop(i_pcLicenseID, magic, syminfo.ticker, i_strategyID, i_rewardRatio, 1, EP, 'Bar[' + str.tostring(time[0]) + '].High', risk, 'Bar[' + str.tostring(time[0]) + '].Low')
+
+
+if i_takeLongOrShort == "Long" and strategy.position_size > 0 and na(TIME) and barstate.isconfirmed
+    TIME := time
+    if i_moveSLtoBEafterFirstCandle and close > EP
+        SL := EP
+        th.moveSlToBe(i_pcLicenseID, magic, syminfo.ticker, i_strategyID, i_rewardRatio, SL, EPExpr, TP)
+
+if i_takeLongOrShort == "Long" and strategy.position_size > 0 and time[i_timeCloseTime] >= TIME and barstate.isconfirmed
+    rr = (close - EP) / risk
+    th.closeOrder(i_pcLicenseID, magic, syminfo.ticker, i_strategyID, rr)
+
+if i_takeLongOrShort == "Long" and i_checkTrend == true and ta.crossunder(fast_ma, slow_ma) and barstate.isconfirmed
+    th.closeOrder(i_pcLicenseID, magic, syminfo.ticker, i_strategyID, 0)
+
+
+// SHORT    
+if isBearishSetup() and barstate.isconfirmed
+    EP := low
+    SL := high
+    risk := SL - EP
+
+    if i_pyramiding == false
+        th.cancelOrder(i_pcLicenseID, magic, syminfo.ticker, i_strategyID)
+
+    magic := th.magic()
+    TP := th.calculateTakeProfitForShort(EP, SL, i_rewardRatio)
+    EPExpr := 'Bar[' + str.tostring(time[0]) + '].Low'
+
+    // reset entry entry time
+    TIME := na
+
+    // Do entry
+    th.sellStop(i_pcLicenseID, magic, syminfo.ticker, i_strategyID, i_rewardRatio, 1, EP, 'Bar[' + str.tostring(time[0]) + '].Low', risk, 'Bar[' + str.tostring(time[0]) + '].High')
+
+
+if i_takeLongOrShort == "Short" and strategy.position_size < 0  and na(TIME) and barstate.isconfirmed
+    TIME := time
+    if i_moveSLtoBEafterFirstCandle and close < EP
+        SL := EP
+        th.moveSlToBe(i_pcLicenseID, magic, syminfo.ticker, i_strategyID, i_rewardRatio, SL, EPExpr, TP)
+
+
+if i_takeLongOrShort == "Short" and strategy.position_size < 0 and not na(TIME) and time[i_timeCloseTime] >= TIME and barstate.isconfirmed
+    rr = (EP - close) / risk
+    th.closeOrder(i_pcLicenseID, magic, syminfo.ticker, i_strategyID, rr)
+
+if i_takeLongOrShort == "Short" and i_checkTrend == true and ta.crossover(fast_ma, slow_ma) and barstate.isconfirmed
+    th.closeOrder(i_pcLicenseID, magic, syminfo.ticker, i_strategyID, 0)
+ 
+
+
+
+//PLOTS
+barcolor(isBullishSetup() ? color.blue  : na, title = "Signal Candle")
+plotshape(isBullishSetup(), style=shape.xcross, color = color.black, title = "Signal Candle")
+barcolor(isBearishSetup() ? color.blue  : na, title = "Signal Candle")
+plotshape(isBearishSetup(), style=shape.xcross, color = color.black, title = "Signal Candle")
+plot(i_checkTrend ? fast_ma : na, color=color.blue)
+plot(i_checkTrend ? slow_ma : na, color=color.red)
+
+L1 = plot(i_showRiskReward and strategy.position_size > 0 ? EP : na, color=color.black, linewidth=1, style=plot.style_linebr, title="Long Entry Price")
+L2 = plot(i_showRiskReward and strategy.position_size > 0 ? SL : na , color=color.red, linewidth=1, style=plot.style_linebr, title="Long Stop-Loss Price")
+L3 = plot(i_showRiskReward and strategy.position_size > 0 ? TP : na, color=color.green, linewidth=1, style=plot.style_linebr, title="Long Take-Profit Price")
+fill(L1,L2,color=color.new(color.red,90))
+fill(L1,L3,color=color.new(color.green,90)) 
+
+S1 = plot(i_showRiskReward and strategy.position_size < 0 ? EP : na, color=color.black, linewidth=1, style=plot.style_linebr, title="Short Entry Price")
+S2 = plot(i_showRiskReward and strategy.position_size < 0 ? SL : na , color=color.red, linewidth=1, style=plot.style_linebr, title="Short Stop-Loss Price")
+S3 = plot(i_showRiskReward and strategy.position_size < 0 ? TP : na, color=color.green, linewidth=1, style=plot.style_linebr, title="Short Take-Profit Price")
+fill(S1,S2,color=color.new(color.red,90))
+fill(S1,S3,color=color.new(color.green,90)) 
+
+var table nameDisplay = table.new(position.middle_center, 1, 1, bgcolor = color.white, frame_width = 0)
+if barstate.islast and math.round(strategy.equity,0) <= 0
+    table.cell(nameDisplay, 0, 0, "Total Equity dropped below ZERO.\nThese parameters are not useful.",text_color=color.white, bgcolor=color.red)

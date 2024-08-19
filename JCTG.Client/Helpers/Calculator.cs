@@ -191,7 +191,7 @@ namespace JCTG.Client
 
             // Get the Stop Loss entryBidPrice
             var stoploss = StoplossForLong(
-                        entryBidPrice: entryBidPrice,
+                        entryBidPrice: entryBidPrice - spread,
                         risk: 0.0M,
                         slMultiplier: 1,
                         stopLossExpression: null,
@@ -326,9 +326,9 @@ namespace JCTG.Client
             LogCalculation(logMessages, "stoploss", stoploss);
 
             // Extra check
-            if (stoploss >= entryBidPrice)
+            if (stoploss > entryBidPrice)
             {
-                LogCalculation(logMessages, "stoploss >= entryBidPrice", true);
+                LogCalculation(logMessages, "stoploss > entryBidPrice", true);
 
                 // Set SL to 1 tick above the current entryBidPrice
                 stoploss = entryBidPrice - (2 * tickSize);
