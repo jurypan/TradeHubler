@@ -244,6 +244,7 @@ namespace JCTG.WebApp.Backend.Api
                     order.ClosePrice = decimal.ToDouble(model.ClosePrice);
                     order.CloseStopLoss = decimal.ToDouble(model.Order.StopLoss);
                     order.CloseTakeProfit = decimal.ToDouble(model.Order.TakeProfit);
+                    order.CloseRiskToReward = decimal.ToDouble(model.RewardRatio);
 
                     // Log
                     var log = new Entity.Log()

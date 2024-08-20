@@ -151,6 +151,19 @@ namespace JCTG.Entity
                 }
             }
         }
+        public double? CloseRiskToReward { get; set; } // Managed by ORDER
+        [NotMapped]
+        public string? CloseRiskToRewardAsString
+        {
+            get => CloseRiskToReward.HasValue ? CloseRiskToReward.Value.ToString() : null;
+            set
+            {
+                if (double.TryParse(value, out double newValue))
+                {
+                    CloseRiskToReward = newValue;
+                }
+            }
+        }
 
 
         public double Pnl { get; set; } // Managed by DEAL

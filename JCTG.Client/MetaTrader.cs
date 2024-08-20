@@ -1,5 +1,5 @@
 ﻿using JCTG.Models;
-using Microsoft.Extensions.Azure;
+using Microsoft.EntityFrameworkCore.Query.Internal;
 using Microsoft.Extensions.DependencyInjection;
 using System.Text.RegularExpressions;
 
@@ -1240,6 +1240,87 @@ namespace JCTG.Client
             }
         }
 
+        public void CheckIfEverythingIsLoadedCorrectly()
+        {
+            // Do null reference checks
+            if (_appConfig != null && _apis != null)
+            {
+                // Check the brokers configured in the settings
+                foreach (var broker in _appConfig.Brokers.Where(f => f.IsEnable))
+                {
+                    // Get client from the api
+                    var client = _apis.FirstOrDefault(f => f.ClientId == broker.ClientId);
+
+                    if (client != null)
+                    {
+                        if (client.AccountInfo == null)
+                        {
+                            // Print on the screen
+                            Helpers.Print($"ERROR : {DateTime.UtcNow} / {_appConfig.Brokers.First(f => f.ClientId == client.ClientId).Name} / ACCOUNT INFO DOESN'T EXIST", true);
+                        }
+
+                        if (client.HistoricBarData != null)
+                        {
+                            // Foreach pair of the broker, there should be historic bar data
+                            foreach (var pair in broker.Pairs)
+                            {
+                                if (!client.HistoricBarData.ContainsKey(pair.TickerInMetatrader))
+                                {
+                                    // Print on the screen
+                                    Helpers.Print($"ERROR : {DateTime.UtcNow} / {_appConfig.Brokers.First(f => f.ClientId == client.ClientId).Name} / {pair.TickerInMetatrader} / NO HISTORIC BARDATA AVAILABLE", true);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            // Print on the screen
+                            Helpers.Print($"ERROR : {DateTime.UtcNow} / {_appConfig.Brokers.First(f => f.ClientId == client.ClientId).Name} / NO HISTORIC BARDATA AVAILABLE FOR ALL PAIRS", true);
+                        }
+
+                        if (client.LastBarData != null)
+                        {
+                            // Foreach pair of the broker, there should be historic bar data
+                            foreach (var pair in broker.Pairs)
+                            {
+                                if (!client.LastBarData.ContainsKey(pair.TickerInMetatrader))
+                                {
+                                    // Print on the screen
+                                    Helpers.Print($"ERROR : {DateTime.UtcNow} / {_appConfig.Brokers.First(f => f.ClientId == client.ClientId).Name} / {pair.TickerInMetatrader} / NO LAST BARDATA AVAILABLE", true);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            // Print on the screen
+                            Helpers.Print($"ERROR : {DateTime.UtcNow} / {_appConfig.Brokers.First(f => f.ClientId == client.ClientId).Name} / NO LAST BARDATA AVAILABLE FOR ALL PAIRS", true);
+                        }
+
+                        if (client.MarketData != null)
+                        {
+                            // Foreach pair of the broker, there should be historic bar data
+                            foreach (var pair in broker.Pairs)
+                            {
+                                if (!client.MarketData.ContainsKey(pair.TickerInMetatrader))
+                                {
+                                    // Print on the screen
+                                    Helpers.Print($"ERROR : {DateTime.UtcNow} / {_appConfig.Brokers.First(f => f.ClientId == client.ClientId).Name} / {pair.TickerInMetatrader} / NO MARKETDATA AVAILABLE", true);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            // Print on the screen
+                            Helpers.Print($"ERROR : {DateTime.UtcNow} / {_appConfig.Brokers.First(f => f.ClientId == client.ClientId).Name} / NO MARKET DATA FOR ALL PAIRS", true);
+                        }
+                    }
+                    else
+                    {
+                        // Print on the screen
+                        Helpers.Print($"ERROR : {DateTime.UtcNow} / {broker.Name} / DOESN'T EXIST IN METATRADER", true);
+                    }
+                }
+            }
+        }
 
 
 
@@ -1493,13 +1574,22 @@ namespace JCTG.Client
             {
                 // Get the signal id from the comment field
                 var signalID = Calculator.GetSignalIdFromComment(order.Comment);
+                var entryPrice = Calculator.GetEntryPriceFromComment(order.Comment);
+                var stoploss = Calculator.GetStoplossFromComment(order.Comment);
                 var strategyID = Calculator.GetStrategyIdFromComment(order.Comment);
 
                 // Print on the screen
                 Helpers.Print($"INFO : {DateTime.UtcNow} / {_appConfig.Brokers.First(f => f.ClientId == clientId).Name} / {order.Symbol} / CLOSED ORDER EVENT / {order.Magic} / {strategyID}");
 
-                // Send to logs
-                LogFactory.ClosedAnOrderEvent(clientId, _appConfig.Debug, order, ticketId, marketdata.Ask, order.Magic);
+                // Do null reference check
+                if(entryPrice.HasValue && stoploss.HasValue)
+                {
+                    // Calculate the risk to reward
+                    var rrr = Calculator.CalculateRiskReward(entryPrice.Value, stoploss.Value, marketdata.Bid);
+
+                    // Send to logs
+                    LogFactory.ClosedAnOrderEvent(clientId, _appConfig.Debug, order, ticketId, marketdata.Bid, order.Magic, rrr);
+                }
             }
         }
 

@@ -262,7 +262,7 @@ namespace JCTG.Client
             });
         }
 
-        public static void ClosedAnOrderEvent(long clientId, bool isDebug, Order cmd, long ticketId, decimal closePrice, int magic)
+        public static void ClosedAnOrderEvent(long clientId, bool isDebug, Order cmd, long ticketId, decimal closePrice, int magic, decimal rewardratio)
         {
 
             var logItem = new Dictionary<string, string>
@@ -283,7 +283,8 @@ namespace JCTG.Client
                     SignalID = magic,
                     ClosePrice = closePrice,
                     Order = cmd,
-                    Log = log
+                    Log = log,
+                    RewardRatio = rewardratio
                 });
 
             });

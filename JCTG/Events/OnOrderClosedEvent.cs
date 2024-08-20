@@ -9,5 +9,6 @@ namespace JCTG.Events
         public decimal ClosePrice { get; set; }
         public required Order Order { get; set; }
         public required Log Log { get; set; }
+        public decimal RewardRatio { get; set; }
     }
 }

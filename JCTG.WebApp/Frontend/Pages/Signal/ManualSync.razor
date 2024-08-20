@@ -159,41 +159,45 @@
                                                     <td>@log.ExitRR</td>
                                                     <td>
                                                         @{
-                                                            if (log.Signal != null)
+                                                            if (log.SignalInDB != null)
                                                             {
-                                                                <span>@log.Signal.ExitRiskRewardRatio</span>
+                                                                <span>@log.SignalInDB.ExitRiskRewardRatio</span>
                                                             }
                                                         }
                                                     </td>
                                                     <td>
                                                         @{
-                                                            if (log.Signal != null)
+                                                            if (log.SignalInDB != null)
                                                             {
-                                                                @if (log.Signal.SignalStateType == SignalStateType.Init)
+                                                                @if (log.SignalInDB.SignalStateType == SignalStateType.Init)
                                                                 {
                                                                     <span class="mb-1 badge rounded-pill  bg-primary-subtle text-primary">Init</span>
                                                                 }
-                                                                else if (log.Signal.SignalStateType == SignalStateType.Entry)
+                                                                else if (log.SignalInDB.SignalStateType == SignalStateType.Entry)
                                                                 {
                                                                     <span class="mb-1 badge rounded-pill  bg-secondary-subtle text-secondary">Entry</span>
                                                                 }
-                                                                else if (log.Signal.SignalStateType == SignalStateType.BeHit)
+                                                                else if (log.SignalInDB.SignalStateType == SignalStateType.BeHit)
                                                                 {
                                                                     <span class="mb-1 badge rounded-pill  bg-warning-subtle text-warning">BE</span>
                                                                 }
-                                                                else if (log.Signal.SignalStateType == SignalStateType.SlHit)
+                                                                else if (log.SignalInDB.SignalStateType == SignalStateType.SlHit)
                                                                 {
                                                                     <span class="mb-1 badge rounded-pill  bg-danger-subtle text-danger">SL</span>
                                                                 }
-                                                                else if (log.Signal.SignalStateType == SignalStateType.TpHit)
+                                                                else if (log.SignalInDB.SignalStateType == SignalStateType.TpHit)
                                                                 {
                                                                     <span class="mb-1 badge rounded-pill  bg-success-subtle text-success">TP</span>
                                                                 }
-                                                                else if (log.Signal.SignalStateType == SignalStateType.CancelOrder)
+                                                                else if (log.SignalInDB.SignalStateType == SignalStateType.Cancel)
                                                                 {
                                                                     <span class="mb-1 badge rounded-pill  bg-info-subtle text-info">Cancelled</span>
                                                                 }
-                                                                else if (log.Signal.SignalStateType == SignalStateType.CloseAll)
+                                                                else if (log.SignalInDB.SignalStateType == SignalStateType.Close)
+                                                                {
+                                                                    <span class="mb-1 badge rounded-pill  bg-info-subtle text-info">Close</span>
+                                                                }
+                                                                else if (log.SignalInDB.SignalStateType == SignalStateType.CloseAll)
                                                                 {
                                                                     <span class="mb-1 badge rounded-pill  bg-info-subtle text-info">Close</span>
                                                                 }
@@ -202,22 +206,22 @@
                                                     </td>
                                                     <td>@log.Comment</td>
                                                     <td>
-                                                        @if (log.Signal != null || log.Action == CrudState.Add || log.Action == CrudState.Edit)
+                                                        @if (log.SignalInDB != null || log.Action == CrudState.Add || log.Action == CrudState.Edit)
                                                         {
                                                             <div class="dropdown dropstart">
                                                                 <a href="#" class="text-muted" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
                                                                     <i class="ti ti-dots-vertical fs-6"></i>
                                                                 </a>
                                                                 <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                                                                    @if (log.Signal != null)
+                                                                    @if (log.SignalInDB != null)
                                                                     {
                                                                         <li>
-                                                                            <a class="dropdown-item d-flex align-items-center gap-3" href="/Signals/@log.Signal.ID/Orders">
+                                                                            <a class="dropdown-item d-flex align-items-center gap-3" href="/Signals/@log.SignalInDB.ID/Orders">
                                                                                 Orders
                                                                             </a>
                                                                         </li>
                                                                         <li>
-                                                                            <a class="dropdown-item d-flex align-items-center gap-3" @onclick="() => EditASignalClick(log.Signal.ID)">
+                                                                            <a class="dropdown-item d-flex align-items-center gap-3" @onclick="() => EditASignalClick(log.SignalInDB.ID)">
                                                                                 Edit Signal
                                                                             </a>
                                                                         </li>
@@ -304,7 +308,7 @@
     {
         foreach (var item in model.Items)
         {
-            if (item.Action == CrudState.Edit && item.Signal != null && item.ExitRR.HasValue)
+            if (item.Action == CrudState.Edit && item.SignalInDB != null && item.ExitRR.HasValue)
             {
                 await AutoUpdateASignalFromFileClickAsync(item);
             }
@@ -314,10 +318,10 @@
     private async Task AutoUpdateASignalFromFileClickAsync(TradingviewImportItem item)
     {
         // Do null reference check
-        if (item != null && item.Signal != null && item.ExitRR.HasValue)
+        if (item != null && item.SignalInDB != null && item.ExitRR.HasValue)
         {
             // Get signal from database
-            var signal = await _signalRepository.GetByIdAsync(692803787, item.Signal.ID);
+            var signal = await _signalRepository.GetByIdAsync(692803787, item.SignalInDB.ID);
 
             // Do null reference check
             if (signal != null)
@@ -331,7 +335,7 @@
                 else if (item.ExitRR.Value == model.TakeProfit)
                     signal.SignalStateType = SignalStateType.TpHit;
                 else
-                    signal.SignalStateType = SignalStateType.CloseAll;
+                    signal.SignalStateType = SignalStateType.Close;
 
                 // Update signal
                 await _signalRepository.EditAsync(signal);
@@ -339,7 +343,7 @@
                 // Update item
                 item.Comment = string.Empty;
                 item.Action = CrudState.None;
-                item.Signal = signal;
+                item.SignalInDB = signal;
             }
         }
     }
@@ -347,7 +351,7 @@
     private async Task AutoAddASignalFromFileClickAsync(TradingviewImportItem item)
     {
         // Do null reference check
-        if (item != null && item.Signal != null && item.ExitRR.HasValue)
+        if (item != null && item.SignalInDB == null && item.ExitRR.HasValue)
         {
             // Get signal from database
             var signal = new Signal()
@@ -360,14 +364,26 @@
             if (signal != null)
             {
                 // Update properties
+                signal.Magic = item.Magic;
+                signal.EntryPrice = double.Parse(item.Values[2]);
+
                 signal.ExitRiskRewardRatio = item.ExitRR;
                 if (item.ExitRR.Value == -1)
                     signal.SignalStateType = SignalStateType.SlHit;
                 else if (item.ExitRR.Value == 0)
                     signal.SignalStateType = SignalStateType.BeHit;
+                else if (item.ExitRR.Value == model.TakeProfit)
+                    signal.SignalStateType = SignalStateType.TpHit;
+                else
+                    signal.SignalStateType = SignalStateType.Close;
 
                 // Update signal
                 await _signalRepository.AddAsync(signal);
+
+                // Update item
+                item.Comment = string.Empty;
+                item.Action = CrudState.None;
+                item.SignalInDB = signal;
             }
         }
     }
@@ -398,7 +414,8 @@
                         if (item != null)
                         {
                             item.Date = DateTime.Parse(values[3]);
-                            item.Magic = int.Parse(values[2]);
+                            item.Magic = long.Parse(values[2]);
+                            item.Values = values.ToList();
                         }
                     }
                     else if (values[1].Contains("Exit"))
@@ -414,8 +431,9 @@
                             {
                                 model.Items.Add(new TradingviewImportItem()
                                     {
-                                        ID = int.Parse(values[0]),
+                                        ID = long.Parse(values[0]),
                                         ExitRR = double.Parse(values[2]),
+                                        Values = values.ToList(),
                                     });
                             }
                         }
@@ -447,7 +465,7 @@
             if (signal != null)
             {
                 // Put signal in object
-                item.Signal = signal;
+                item.SignalInDB = signal;
 
                 // Check Exit RR is the same
                 if (signal.ExitRiskRewardRatio.HasValue)
@@ -462,6 +480,11 @@
                         else if (signal.ExitRiskRewardRatio == model.TakeProfit && signal.SignalStateType != SignalStateType.TpHit)
                         {
                             item.Comment = $"SignalStateType in database should be {SignalStateType.TpHit} because ExitRiskRewardRatio is equal to Take Profit";
+                            item.Action = CrudState.Edit;
+                        }
+                        else if (signal.ExitRiskRewardRatio != item.ExitRR)
+                        {
+                            item.Comment = $"SignalStateType in database should be {signal.ExitRiskRewardRatio} but is {item.ExitRR}";
                             item.Action = CrudState.Edit;
                         }
                         else
@@ -486,7 +509,7 @@
             {
                 item.Comment = $"Trade was not found in database";
                 item.Action = CrudState.Add;
-                item.Signal = null;
+                item.SignalInDB = null;
             }
         }
     }

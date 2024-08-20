@@ -427,6 +427,8 @@ namespace JCTG.Client
 
 
 
+
+
         public static string GenerateComment(decimal signalId, decimal price, decimal stopLoss, long strategyId, decimal spread)
         {
             return string.Format($"{signalId}/{price}/{stopLoss}/{Convert.ToInt32(strategyId)}/{spread}");
@@ -584,9 +586,25 @@ namespace JCTG.Client
             return price;
         }
 
+        public static decimal CalculateRiskReward(decimal entryPrice, decimal stopLoss, decimal closePrice)
+        {
+            // Bereken de risk (verschil tussen entry prijs en stop loss)
+            decimal risk = Math.Abs(entryPrice - stopLoss);
 
+            // Bereken de reward (verschil tussen close prijs en entry prijs)
+            decimal reward = Math.Abs(closePrice - entryPrice);
 
+            // Handle potential division by zero if risk is zero
+            if (risk == 0)
+            {
+                throw new ArgumentException("Risk cannot be zero.");
+            }
 
+            // Bereken de risk-to-reward ratio
+            decimal riskRewardRatio = reward / risk;
+
+            return riskRewardRatio;
+        }
 
     }
 }

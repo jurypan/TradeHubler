@@ -1,5 +1,4 @@
-﻿using JCTG.Entity;
-using System.Web;
+﻿using System.Web;
 
 namespace JCTG.Command
 {
@@ -53,7 +52,7 @@ namespace JCTG.Command
                 Instrument = instrument,
                 ClientIDs = clientIds,
                 OrderType = "MOVESLTOBE",
-                StrategyID = strategyId,
+                StrategyID = strategyId
             };
         }
 

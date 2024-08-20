@@ -342,7 +342,7 @@ namespace JCTG.WebApp.Backend.Api
                                         {
                                             if (prevSignal.SignalStateType == SignalStateType.Init)
                                             {
-                                                prevSignal.SignalStateType = SignalStateType.CancelOrder;
+                                                prevSignal.SignalStateType = SignalStateType.Cancel;
                                                 prevSignal.ExitRiskRewardRatio = 0;
                                             }
                                         }
@@ -536,6 +536,7 @@ namespace JCTG.WebApp.Backend.Api
                                                     stopLossExpression: signal.StopLossExpression
                                                 ));
 
+                                                // Add to log
                                                 _logger.Information($"Send OnSendTradingviewSignalCommand to client with id {id}", id);
                                             }
 
@@ -553,6 +554,7 @@ namespace JCTG.WebApp.Backend.Api
                                                     stopLossExpression: signal.StopLossExpression
                                                 ));
 
+                                                // Add to log
                                                 _logger.Information($"Send OnSendTradingviewSignalCommand to client with id {id}", id);
                                             }
                                         }
@@ -734,13 +736,12 @@ namespace JCTG.WebApp.Backend.Api
 
                                     var existingSignal3 = await _dbContext.Signal
                                         .Where(s => s.Instrument == signal.Instrument && s.AccountID == signal.AccountID && s.StrategyID == signal.StrategyID && s.Magic == signal.Magic)
-                                        .OrderByDescending(f => f.DateCreated)
                                         .FirstOrDefaultAsync();
-                                    ;
 
                                     if (existingSignal3 != null)
                                     {
                                         // Update
+                                        existingSignal3.DateLastUpdated = DateTime.UtcNow;
                                         existingSignal3.SignalStateType = SignalStateType.Close;
                                         existingSignal3.ExitRiskRewardRatio = signal.ExitRiskRewardRatio;
 
@@ -758,6 +759,9 @@ namespace JCTG.WebApp.Backend.Api
                                             instrument: signal.Instrument,
                                             strategyId: signal.StrategyID
                                         ));
+
+                                        // Add log
+                                        _logger.Information($"Sent to Azure Queue with response client request id: {id2}", id2);
                                     }
                                     else
                                     {
@@ -769,18 +773,13 @@ namespace JCTG.WebApp.Backend.Api
                                 case "movesltobe":
 
                                     var existingSignal4 = await _dbContext.Signal
-                                                                .Where(s => s.Instrument == signal.Instrument
-                                                                            && s.AccountID == signal.AccountID
-                                                                            && s.Magic == signal.Magic
-                                                                            && s.StrategyID == signal.StrategyID
-                                                                )
-                                                                .OrderByDescending(f => f.DateCreated)
+                                                                .Where(s => s.Instrument == signal.Instrument && s.AccountID == signal.AccountID && s.StrategyID == signal.StrategyID && s.Magic == signal.Magic)
                                                                 .FirstOrDefaultAsync();
-                                    ;
 
                                     if (existingSignal4 != null)
                                     {
                                         // Update
+                                        existingSignal4.DateLastUpdated = DateTime.UtcNow;
                                         existingSignal4.SignalStateType = SignalStateType.MoveSlToBe;
                                         existingSignal4.ExitRiskRewardRatio = signal.ExitRiskRewardRatio;
 
@@ -798,6 +797,9 @@ namespace JCTG.WebApp.Backend.Api
                                             instrument: signal.Instrument,
                                             strategyId: signal.StrategyID
                                         ));
+
+                                        // Add log
+                                        _logger.Information($"Sent to Azure Queue with response client request id: {id4}", id4);
                                     }
                                     else
                                     {
@@ -866,7 +868,7 @@ namespace JCTG.WebApp.Backend.Api
                                         {
 
                                             // Update
-                                            existingSignal5.SignalStateType = SignalStateType.CancelOrder;
+                                            existingSignal5.SignalStateType = SignalStateType.Cancel;
                                             existingSignal5.ExitRiskRewardRatio = null;
 
                                             // Save to the database

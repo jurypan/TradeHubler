@@ -28,9 +28,10 @@ namespace JCTG.WebApp.Frontend.Pages.Signal.Models
         public long ID { get; set; }
         public double? ExitRR { get; set; }
         public DateTime Date { get; set; }
-        public int Magic { get; set; }
+        public long Magic { get; set; }
         public string Comment { get; set; } = string.Empty;
         public CrudState Action { get; set; } = CrudState.None;
-        public Entity.Signal? Signal { get; set; }
+        public Entity.Signal? SignalInDB { get; set; }
+        public List<string> Values { get; set; } = [];
     }
 }
