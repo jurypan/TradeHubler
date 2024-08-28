@@ -1454,7 +1454,7 @@ namespace JCTG.Client
                         var signalID = Calculator.GetSignalIdFromComment(order.Value.Comment);
                         var strategyID = Calculator.GetStrategyIdFromComment(order.Value.Comment);
 
-                        if (signalID.HasValue && strategyId == strategyID)
+                        if (signalID.HasValue && strategyID.HasValue && strategyId == strategyID)
                         {
                             // Print on the screen
                             Helpers.Print($"INFO : {DateTime.UtcNow} / {_appConfig.Brokers.First(f => f.ClientId == api.ClientId).Name} / {order.Value.Symbol} / IT'S TIME TO CLOSE THE ORDER EVENT / {order.Value.Magic} / {strategyID}");

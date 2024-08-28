@@ -78,9 +78,9 @@
         StateHasChanged();
     }
 
-    public async Task InitAsync(int accountId, long signalId)
+    public async Task InitAsync(int accountId, long tvMagic)
     {
-        _tradingviewAlerts = await _tradingviewAlertRepository.GetAll(signalId);
+        _tradingviewAlerts = await _tradingviewAlertRepository.GetAll(tvMagic);
         await OpenAsync();
     }
 }

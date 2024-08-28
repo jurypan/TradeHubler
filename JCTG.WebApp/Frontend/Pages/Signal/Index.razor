@@ -296,7 +296,7 @@
                                                 </a>
                                             </li>
                                             <li>
-                                                <a class="dropdown-item d-flex align-items-center gap-3" @onclick="() => LogSignalClick(signal.ID)">
+                                                <a class="dropdown-item d-flex align-items-center gap-3" @onclick="() => LogSignalClick(signal.Magic)">
                                                     Raw Log
                                                 </a>
                                             </li>
@@ -455,11 +455,11 @@
         }
     }
 
-    private async Task LogSignalClick(long id)
+    private async Task LogSignalClick(long tradingviewMagic)
     {
         if (_signalLogModal != null)
         {
-            await _signalLogModal.InitAsync(692803787, id);
+            await _signalLogModal.InitAsync(692803787, tradingviewMagic);
         }
     }
 

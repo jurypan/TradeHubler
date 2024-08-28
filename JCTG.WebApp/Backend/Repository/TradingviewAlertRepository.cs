@@ -5,10 +5,10 @@ namespace JCTG.WebApp.Backend.Repository;
 
 public class TradingviewAlertRepository(IDbContextFactory<JCTGDbContext> dbContextFactory)
 {
-    public async Task<List<TradingviewAlert>> GetAll(long signalId)
+    public async Task<List<TradingviewAlert>> GetAll(long tvMagic)
     {
         using var context = await dbContextFactory.CreateDbContextAsync();
-        return await context.TradingviewAlert.Where(f => f.SignalID == signalId).OrderByDescending(f => f.DateCreated).ToListAsync();
+        return await context.TradingviewAlert.Where(f => f.SignalID == tvMagic).OrderByDescending(f => f.DateCreated).ToListAsync();
     }
 
     public async Task<List<TradingviewAlert>> GetAllLast200(long accountId)
