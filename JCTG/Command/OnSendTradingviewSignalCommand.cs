@@ -191,7 +191,7 @@ namespace JCTG.Command
         {
             var queryParameters = new List<string>
             {
-                $"SignalID={SignalID}",
+                $"TvMagic={SignalID}",
                 $"StrategyID={StrategyID}",
                 $"AccountID={AccountID}",
                 $"OrderType={HttpUtility.UrlEncode(OrderType)}",

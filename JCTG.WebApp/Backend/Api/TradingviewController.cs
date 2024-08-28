@@ -305,8 +305,9 @@ namespace JCTG.WebApp.Backend.Api
                             await _dbContext.TradingviewAlert.AddAsync(new TradingviewAlert()
                             {
                                 DateCreated = DateTime.UtcNow,
+                                AccountID = signal.AccountID,
                                 RawMessage = requestBody,
-                                SignalID = signal.Magic,
+                                TvMagic = signal.Magic,
                                 Type = TradingviewAlert.ParseTradingviewAlertTypeOrDefault(signal.OrderType.ToLower()),
                                 Method = method == "webhook" ? TradingviewMethod.Webhook : TradingviewMethod.Email,
                             });

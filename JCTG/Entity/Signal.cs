@@ -152,7 +152,7 @@ namespace JCTG.Entity
         // Links
         public List<Order> Orders { get; set; } = [];
         public List<Log> Logs { get; set; } = [];
-        public List<TradingviewAlert> TradingviewAlerts { get; set; } = [];
+
         public List<MarketAbstention> MarketAbstentions { get; set; } = [];
 
 

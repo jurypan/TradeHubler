@@ -50,6 +50,12 @@ namespace JCTG.Client
                 HttpCallOnLogEvent(clientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = cmd.ToQueryString(), Description = GetDescription("CalculateLotSize", logMessages), Magic = cmd.Magic }, cmd.Magic);
         }
 
+        public static void CalculatePassiveOrderType(long clientId, bool isDebug, OnSendTradingviewSignalCommand cmd, Dictionary<string, string> logMessages)
+        {
+            if (isDebug)
+                HttpCallOnLogEvent(clientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = cmd.ToQueryString(), Description = GetDescription("CalculatePassiveOrderType", logMessages), Magic = Convert.ToInt32(cmd.SignalID) }, cmd.SignalID);
+        }
+
 
         public static void CloseOrderCommand(long clientId, bool isDebug, OnSendTradingviewSignalCommand cmd, long ticketId, double lots = 0, int magic = -1)
         {
@@ -68,7 +74,7 @@ namespace JCTG.Client
 
 
 
-        public static void ExecuteOrderCommand(long clientId, bool isDebug, OnSendTradingviewSignalCommand cmd, string symbol, OrderType orderType, decimal lots, decimal price, decimal stopLoss, decimal takeProfit, int magic = 0, string? comment = null, long expiration = 0)
+        public static void ExecuteOrderCommand(long clientId, bool isDebug, OnSendTradingviewSignalCommand cmd, string symbol, OrderType orderType, decimal lots, decimal entryBidPrice, decimal stopLoss, decimal takeProfit, int magic = 0, string? comment = null, long expiration = 0)
         {
             if (isDebug)
             {
@@ -77,7 +83,7 @@ namespace JCTG.Client
                         { "symbol", symbol },
                         { "orderType", orderType.GetDescription() },
                         { "lots", lots.ToString() },
-                        { "price", price.ToString() },
+                        { "entryBidPrice", entryBidPrice.ToString() },
                         { "stopLoss", stopLoss.ToString() },
                         { "takeProfit", takeProfit.ToString() },
                         { "magic", magic.ToString() },
@@ -97,7 +103,7 @@ namespace JCTG.Client
                         { "symbol", symbol },
                         { "orderType", orderType.GetDescription() },
                         { "lots", lots.ToString() },
-                        { "price", price.ToString() },
+                        { "entryBidPrice", price.ToString() },
                         { "stopLoss", stopLoss.ToString() },
                         { "takeProfit", takeProfit.ToString() },
                         { "magic", magic.ToString() },
@@ -116,7 +122,7 @@ namespace JCTG.Client
                     {
                         { "ticketId", ticketId.ToString() },
                         { "lots", lots.ToString() },
-                        { "price", price.ToString() },
+                        { "entryBidPrice", price.ToString() },
                         { "stopLoss", stopLoss.ToString() },
                         { "takeProfit", takeProfit.ToString() },
                         { "magic", magic.ToString() },
@@ -183,7 +189,7 @@ namespace JCTG.Client
                     {
                         { "ticketId", ticketId.ToString() },
                         { "lots", lots.ToString() },
-                        { "price", price.ToString() },
+                        { "entryBidPrice", price.ToString() },
                         { "stopLoss", stopLoss.ToString() },
                         { "takeProfit", takeProfit.ToString() },
                         { "magic", magic.ToString() },

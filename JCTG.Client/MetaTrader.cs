@@ -466,11 +466,10 @@ namespace JCTG.Client
                                                                                     }
 
                                                                                     // Generate order type
-                                                                                    var orderType = OrderType.BuyStop;
-                                                                                    if (pair.OrderExecType == OrderExecType.Passive && metadataTick.Ask <= entryBidPrice) // Ask price, because you need to calculate the spread into account
-                                                                                        orderType = OrderType.BuyLimit;
-                                                                                    else if (pair.OrderExecType == OrderExecType.Active && metadataTick.Ask >= entryBidPrice) // Ask price, because you need to calculate the spread into account
-                                                                                        orderType = OrderType.Buy;
+                                                                                    var orderType = Calculator.CalculatePassiveOrderTypeForLong(pair.OrderExecType, entryBidPrice.Value, metadataTick.Ask, out Dictionary<string, string> logMessagesORDERTYPE);
+
+                                                                                    // Send to logs
+                                                                                    LogFactory.CalculatePassiveOrderType(api.ClientId, _appConfig.Debug, cmd, logMessagesORDERTYPE);
 
                                                                                     // Round
                                                                                     entryBidPrice = Calculator.RoundToNearestTickSize(entryBidPrice.Value, metadataTick.TickSize, metadataTick.Digits);
@@ -495,7 +494,7 @@ namespace JCTG.Client
                                                                                     }
 
                                                                                     // Send to logs
-                                                                                    LogFactory.ExecuteOrderCommand(api.ClientId, _appConfig.Debug, cmd, pair.TickerInMetatrader, orderType, lotSize, orderType == OrderType.Buy ? 0 : entryBidPrice.Value, sl, tp, Convert.ToInt32(cmd.SignalID), comment);
+                                                                                    LogFactory.ExecuteOrderCommand(api.ClientId, _appConfig.Debug, cmd, pair.TickerInMetatrader, orderType, lotSize, orderType == OrderType.Buy ? metadataTick.Bid : entryBidPrice.Value, sl, tp, Convert.ToInt32(cmd.SignalID), comment);
                                                                                 }
                                                                                 else
                                                                                 {
@@ -814,11 +813,10 @@ namespace JCTG.Client
                                                                                     }
 
                                                                                     // Generate order type
-                                                                                    var orderType = OrderType.SellStop;
-                                                                                    if (pair.OrderExecType == OrderExecType.Passive && metadataTick.Bid < entryBidPrice.Value)
-                                                                                        orderType = OrderType.SellLimit;
-                                                                                    else if (pair.OrderExecType == OrderExecType.Active && metadataTick.Bid <= entryBidPrice.Value)
-                                                                                        orderType = OrderType.Sell;
+                                                                                    var orderType = Calculator.CalculatePassiveOrderTypeForShort(pair.OrderExecType, entryBidPrice.Value, metadataTick.Bid, out Dictionary<string, string> logMessagesORDERTYPE);
+
+                                                                                    // Send to logs
+                                                                                    LogFactory.CalculatePassiveOrderType(api.ClientId, _appConfig.Debug, cmd, logMessagesORDERTYPE);
 
                                                                                     // Round
                                                                                     entryBidPrice = Calculator.RoundToNearestTickSize(entryBidPrice.Value, metadataTick.TickSize, metadataTick.Digits);
@@ -843,7 +841,7 @@ namespace JCTG.Client
                                                                                     }
 
                                                                                     // Send to logs
-                                                                                    LogFactory.ExecuteOrderCommand(api.ClientId, _appConfig.Debug, cmd, pair.TickerInMetatrader, orderType, lotSize, orderType == OrderType.Sell ? 0 : entryBidPrice.Value, sl, tp, (int)cmd.SignalID, comment);
+                                                                                    LogFactory.ExecuteOrderCommand(api.ClientId, _appConfig.Debug, cmd, pair.TickerInMetatrader, orderType, lotSize, orderType == OrderType.Sell ? metadataTick.Bid : entryBidPrice.Value, sl, tp, (int)cmd.SignalID, comment);
                                                                                 }
                                                                                 else
                                                                                 {

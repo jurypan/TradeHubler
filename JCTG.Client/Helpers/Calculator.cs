@@ -640,5 +640,55 @@ namespace JCTG.Client
             return riskRewardRatio;
         }
 
+        public static OrderType CalculatePassiveOrderTypeForShort(OrderExecType orderExecType, decimal entryPrice, decimal bidPrice, out Dictionary<string, string> logMessages)
+        {
+            logMessages = [];
+
+            // Log the initial input parameters
+            LogCalculation(logMessages, "orderExecType", orderExecType);
+            LogCalculation(logMessages, "entryPrice", entryPrice);
+            LogCalculation(logMessages, "bidPrice", bidPrice);
+
+            // Generate order type
+            var orderType = OrderType.SellStop;
+            if (orderExecType == OrderExecType.Passive && bidPrice <= entryPrice)
+            {
+                LogCalculation(logMessages, "bidPrice <= entryPrice", true);
+                orderType = OrderType.SellLimit;
+            }
+            else if (orderExecType == OrderExecType.Active && bidPrice <= entryPrice)
+            {
+                LogCalculation(logMessages, "bidPrice <= entryPrice", true);
+                orderType = OrderType.Sell;
+            }
+
+            LogCalculation(logMessages, "orderType", orderType);
+            return orderType;
+        }
+
+        public static OrderType CalculatePassiveOrderTypeForLong(OrderExecType orderExecType, decimal entryBidPrice, decimal askPrice, out Dictionary<string, string> logMessages)
+        {
+            logMessages = [];
+
+            // Log the initial input parameters
+            LogCalculation(logMessages, "orderExecType", orderExecType);
+            LogCalculation(logMessages, "entryBidPrice", entryBidPrice);
+            LogCalculation(logMessages, "askPrice", askPrice);
+
+            // Generate order type
+            var orderType = OrderType.BuyStop;
+            if (orderExecType == OrderExecType.Passive && askPrice >= entryBidPrice)
+            {
+                LogCalculation(logMessages, "askPrice >= entryBidPrice", true);
+                orderType = OrderType.BuyLimit;
+            }
+            else if (orderExecType == OrderExecType.Active && askPrice >= entryBidPrice)
+            {
+                LogCalculation(logMessages, "askPrice >= entryBidPrice", true);
+                orderType = OrderType.Buy;
+            }
+            LogCalculation(logMessages, "orderType", orderType);
+            return orderType;
+        }
     }
 }

@@ -1,13 +1,11 @@
-﻿using System.ComponentModel.DataAnnotations;
-
-namespace JCTG.Entity
+﻿namespace JCTG.Entity
 {
     public class TradingviewAlert
     {
-        [Key]
         public long ID { get; set; }
-        public Signal Signal { get; set; }
-        public long SignalID { get; set; }
+        public Account? Account { get; set; }
+        public int AccountID { get; set; }
+        public long TvMagic { get; set; }
         public DateTime DateCreated { get; set; } = DateTime.UtcNow;
         public TradingviewAlertType Type { get; set; } = TradingviewAlertType.Entry;
         public required string RawMessage { get; set; } = string.Empty;

@@ -11,5 +11,6 @@ namespace JCTG.Entity
         public List<Client> Clients { get; set; } = [];
         public List<Signal> Signals { get; set; } = [];
         public List<Strategy> Strategies { get; set; } = [];
+        public List<TradingviewAlert> TradingviewAlerts { get; set; } = [];
     }
 }

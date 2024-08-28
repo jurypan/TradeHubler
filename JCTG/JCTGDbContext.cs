@@ -43,9 +43,9 @@ namespace JCTG
                .HasForeignKey(ta => ta.StrategyID);
 
             modelBuilder.Entity<TradingviewAlert>()
-               .HasOne(ta => ta.Signal)
+               .HasOne(ta => ta.Account)
                .WithMany(t => t.TradingviewAlerts)
-               .HasForeignKey(ta => ta.SignalID);
+               .HasForeignKey(ta => ta.AccountID);
 
             modelBuilder.Entity<Order>()
                .HasOne(tj => tj.Client)
