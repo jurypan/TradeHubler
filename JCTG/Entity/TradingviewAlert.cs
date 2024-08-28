@@ -14,7 +14,11 @@
 
         public static TradingviewAlertType ParseTradingviewAlertTypeOrDefault(string value)
         {
-            if (Enum.TryParse(value, true, out TradingviewAlertType result))
+            if(value.Equals("entrylong", StringComparison.CurrentCultureIgnoreCase))
+                return TradingviewAlertType.Entry;
+            else if (value.Equals("entryshort", StringComparison.CurrentCultureIgnoreCase))
+                return TradingviewAlertType.Entry;
+            else if (Enum.TryParse(value, true, out TradingviewAlertType result))
             {
                 return result;
             }
