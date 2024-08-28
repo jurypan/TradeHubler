@@ -32,6 +32,7 @@ namespace JCTG.Models
         public double Pnl { get; set; }
         public double Commission { get; set; }
         public double Swap { get; set; }
+        public string Comment { get; set; } // Only works for entry_in (doens't work for entry_out)
 
         public string ToQueryString()
         {
@@ -46,7 +47,8 @@ namespace JCTG.Models
                 $"Entry={HttpUtility.UrlEncode(Entry)}",
                 $"Pnl={Pnl}",
                 $"Commission={Commission}",
-                $"Swap={Swap}"
+                $"Swap={Swap}",
+                $"Comment={Comment}"
             };
 
             return string.Join(",", queryParameters);

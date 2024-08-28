@@ -18,6 +18,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JCTG.Client.Tests", "JCTG.C
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JCTG.WebApp", "JCTG.WebApp\JCTG.WebApp.csproj", "{73CCB396-D064-4892-8CD6-091EF8B38FBC}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JCTG.VuePress", "JCTG.VuePress\JCTG.VuePress.csproj", "{7453FD02-6A7F-44DC-9BE9-4986EAE9DFD1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -44,6 +46,10 @@ Global
 		{73CCB396-D064-4892-8CD6-091EF8B38FBC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{73CCB396-D064-4892-8CD6-091EF8B38FBC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{73CCB396-D064-4892-8CD6-091EF8B38FBC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7453FD02-6A7F-44DC-9BE9-4986EAE9DFD1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7453FD02-6A7F-44DC-9BE9-4986EAE9DFD1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7453FD02-6A7F-44DC-9BE9-4986EAE9DFD1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7453FD02-6A7F-44DC-9BE9-4986EAE9DFD1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

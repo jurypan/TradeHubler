@@ -85,6 +85,7 @@ namespace JCTG.Models
         public decimal RiskShort { get; set; }
         public double SLtoBEafterR { get; set; }
         public decimal MaxSpread { get; set; }
+        public int AdaptPassiveOrdersBeforeEntryInSeconds { get; set; }
         public double SLMultiplier { get; set; }
         public int MaxLotSize { get; set; }
         [JsonConverter(typeof(StringEnumConverter))]

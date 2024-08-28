@@ -54,7 +54,7 @@ namespace JCTG.Client
             if (config == null)
                 throw new Exception("Can not load config file");
 
-            // Init Dependency Injection class
+            // InitAndStart Dependency Injection class
             var services = new ServiceCollection();
 
             // Add other services

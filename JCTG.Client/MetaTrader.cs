@@ -1,5 +1,4 @@
 ﻿using JCTG.Models;
-using Microsoft.EntityFrameworkCore.Query.Internal;
 using Microsoft.Extensions.DependencyInjection;
 using System.Text.RegularExpressions;
 
@@ -10,20 +9,22 @@ namespace JCTG.Client
 
         private TerminalConfig? _appConfig;
         private readonly List<MetatraderApi> _apis;
-        private readonly List<RecurringCloseTradeScheduler> _schedulers;
+        private readonly List<RecurringCloseTradeScheduler> _recurringCloseTradeScheduler;
+        private readonly List<SpreadMonitor> _spreadMonitors;
 
 
         public Metatrader(TerminalConfig terminalConfig)
         {
-            // Init APP Config + API
+            // InitAndStart APP Config + API
             _appConfig = terminalConfig;
             _apis = [];
-            _schedulers = new List<RecurringCloseTradeScheduler>();
+            _recurringCloseTradeScheduler = [];
+            _spreadMonitors = [];
 
             // Foreach broker, init the API
             foreach (var broker in _appConfig.Brokers.Where(f => f.IsEnable).ToList())
             {
-                // Init API
+                // InitAndStart API
                 var _api = new MetatraderApi(broker.MetaTraderDirPath, broker.ClientId, terminalConfig.SleepDelay, terminalConfig.MaxRetryCommandSeconds, true);
 
                 // Add to the list
@@ -60,13 +61,13 @@ namespace JCTG.Client
                     // do null reference checks
                     if (_api != null && broker != null && broker.Pairs.Count != 0)
                     {
-                        // Init the events
+                        // InitAndStart the events
                         _api.OnOrderCreateEvent += OnOrderCreatedEvent;
                         _api.OnOrderUpdateEvent += OnOrderUpdateEvent;
                         _api.OnOrderCloseEvent += OnOrderCloseEvent;
                         _api.OnLogEvent += OnMetatraderLogEvent;
                         _api.OnCandleCloseEvent += OnCandleCloseEvent;
-                        _api.OnDealCreatedEvent += OnDealCreateEvent;
+                        _api.OnDealCreatedEvent += OnDealCreatedEvent;
                         _api.OnTickEvent += OnTickEvent;
                         _api.OnAccountInfoChangedEvent += OnAccountInfoChangedEvent;
                         _api.OnHistoricBarDataEvent += OnHistoricBarDataEvent;
@@ -79,7 +80,7 @@ namespace JCTG.Client
                         _api.SubscribeForBarData(broker.Pairs.Select(p => new KeyValuePair<string, string>(p.TickerInMetatrader, p.Timeframe)).ToList());
                         _api.GetHistoricData(broker.Pairs);
 
-                        // Init close trades on a particular time
+                        // InitAndStart close trades on a particular time
                         foreach (var pair in broker.Pairs)
                         {
                             var timingCloseAllTradesAt = new RecurringCloseTradeScheduler(_api.ClientId, pair.TickerInMetatrader, pair.StrategyID, false);
@@ -97,7 +98,7 @@ namespace JCTG.Client
                                 // Don't do anythhing, start the sceduler when opening the trade
                             }
 
-                            _schedulers.Add(timingCloseAllTradesAt);
+                            _recurringCloseTradeScheduler.Add(timingCloseAllTradesAt);
                         }
                     }
                 });
@@ -120,13 +121,13 @@ namespace JCTG.Client
                     // do null reference checks
                     if (_api != null && broker != null && broker.Pairs.Count != 0)
                     {
-                        // Init the events
+                        // InitAndStart the events
                         _api.OnOrderCreateEvent -= OnOrderCreatedEvent;
                         _api.OnOrderUpdateEvent -= OnOrderUpdateEvent;
                         _api.OnOrderCloseEvent -= OnOrderCloseEvent;
                         _api.OnLogEvent -= OnMetatraderLogEvent;
                         _api.OnCandleCloseEvent -= OnCandleCloseEvent;
-                        _api.OnDealCreatedEvent -= OnDealCreateEvent;
+                        _api.OnDealCreatedEvent -= OnDealCreatedEvent;
                         _api.OnTickEvent -= OnTickEvent;
                         _api.OnAccountInfoChangedEvent -= OnAccountInfoChangedEvent;
                         _api.OnHistoricBarDataEvent -= OnHistoricBarDataEvent;
@@ -134,8 +135,8 @@ namespace JCTG.Client
                         // StartCheckTimeAndExecuteOnceDaily the API
                         await _api.StopAsync();
 
-                        // Init close trades on a particular time
-                        foreach (var timing in _schedulers)
+                        // InitAndStart close trades on a particular time
+                        foreach (var timing in _recurringCloseTradeScheduler)
                         {
                             timing.OnCloseTradeEvent -= OnItsTimeToCloseTradeEvent;
                         }
@@ -174,15 +175,13 @@ namespace JCTG.Client
                                 Helpers.Print($"INFO : {DateTime.UtcNow} / {_appConfig.Brokers.First(f => f.ClientId == api.ClientId).Name} / NEW SIGNAL / {cmd.SignalID}");
 
                                 // Get the right pair back from the local database
-                                var pair = new List<Pairs>(_appConfig.Brokers.Where(f => f.ClientId == api.ClientId).SelectMany(f => f.Pairs)).FirstOrDefault(f => f.TickerInTradingView.Equals(cmd.Instrument) && f.StrategyID == cmd.StrategyID);
+                                var pair = Calculator.GetPairByTradingviewInstrument(_appConfig, api.ClientId, cmd.Instrument, cmd.StrategyID);
 
                                 // StartCheckTimeAndExecuteOnceDaily balance
                                 var startbalance = _appConfig.Brokers.First(f => f.ClientId == api.ClientId).StartBalance;
 
                                 // Get dynamic risk
-                                var dynRisk = new List<Risk>(_appConfig.Brokers
-                                                                          .Where(f => f.ClientId == api.ClientId)
-                                                                          .SelectMany(f => f.Risk ?? []));
+                                var dynRisk = Calculator.GetDynamicRisk(_appConfig, api.ClientId);
 
                                 // If this broker is listening to this signal and the account size is greater then zero
                                 if (api.AccountInfo != null)
@@ -214,7 +213,7 @@ namespace JCTG.Client
                                                         // Do do not open a deal x minutes before close
                                                         if (RecurringCloseTradeScheduler.CanOpenTrade(pair.CloseAllTradesAt, pair.DoNotOpenTradeXMinutesBeforeClose))
                                                         {
-                                                            // Init entryBidPrice
+                                                            // InitAndStart entryBidPrice
                                                             var entryBidPrice = metadataTick.Bid;
 
                                                             // Calculate SL Price
@@ -257,6 +256,8 @@ namespace JCTG.Client
                                                                 lotStep: metadataTick.LotStep,
                                                                 minLotSizeAllowed: metadataTick.MinLotSize,
                                                                 maxLotSizeAllowed: metadataTick.MaxLotSize,
+                                                                spread: spread,
+                                                                isLong: true,
                                                                 out Dictionary<string, string> logMessagesLOT,
                                                                 riskData: dynRisk);
 
@@ -425,6 +426,8 @@ namespace JCTG.Client
                                                                     lotStep: metadataTick.LotStep,
                                                                     minLotSizeAllowed: metadataTick.MinLotSize,
                                                                     maxLotSizeAllowed: metadataTick.MaxLotSize,
+                                                                    spread: spread,
+                                                                    isLong: true,
                                                                     out Dictionary<string, string> logMessagesLOT,
                                                                     riskData: dynRisk);
 
@@ -464,9 +467,9 @@ namespace JCTG.Client
 
                                                                                     // Generate order type
                                                                                     var orderType = OrderType.BuyStop;
-                                                                                    if (pair.OrderExecType == OrderExecType.Passive && metadataTick.Ask <= entryBidPrice)
+                                                                                    if (pair.OrderExecType == OrderExecType.Passive && metadataTick.Ask <= entryBidPrice) // Ask price, because you need to calculate the spread into account
                                                                                         orderType = OrderType.BuyLimit;
-                                                                                    else if (pair.OrderExecType == OrderExecType.Active && metadataTick.Ask >= entryBidPrice)
+                                                                                    else if (pair.OrderExecType == OrderExecType.Active && metadataTick.Ask >= entryBidPrice) // Ask price, because you need to calculate the spread into account
                                                                                         orderType = OrderType.Buy;
 
                                                                                     // Round
@@ -475,13 +478,21 @@ namespace JCTG.Client
                                                                                     tp = Calculator.RoundToNearestTickSize(tp, metadataTick.TickSize, metadataTick.Digits);
 
                                                                                     // Generate comment
-                                                                                    var comment = Calculator.GenerateComment(cmd.SignalID, entryBidPrice.Value, sl, pair.StrategyID, spread);
+                                                                                    var comment = Calculator.GenerateComment(cmd.SignalID, orderType == OrderType.Buy ? metadataTick.Bid : entryBidPrice.Value, sl, pair.StrategyID, spread);
 
                                                                                     // Print on the screen
                                                                                     Helpers.Print($"INFO : {DateTime.UtcNow} / {_appConfig.Brokers.First(f => f.ClientId == api.ClientId).Name} / {pair.TickerInMetatrader} / {orderType.GetDescription().ToUpper()} COMMAND / {cmd.SignalID} / {cmd.StrategyID}");
 
                                                                                     // Execute order
                                                                                     api.ExecuteOrder(pair.TickerInMetatrader, orderType, lotSize, orderType == OrderType.Buy ? 0 : entryBidPrice.Value, sl, tp, Convert.ToInt32(cmd.SignalID), comment);
+
+                                                                                    // Add to the spread monitor
+                                                                                    if (pair.AdaptPassiveOrdersBeforeEntryInSeconds > 0 && !_spreadMonitors.Any(f => f.IsStarted && f.ClientId == api.ClientId && f.Magic == Convert.ToInt32(cmd.SignalID)))
+                                                                                    {
+                                                                                        var monitor = SpreadMonitor.InitAndStart(api.ClientId, true, pair.TickerInMetatrader, Convert.ToInt32(cmd.SignalID), pair.AdaptPassiveOrdersBeforeEntryInSeconds);
+                                                                                        monitor.OnSpreadChanged += OnMonitorSpreadWarning;
+                                                                                        _spreadMonitors.Add(monitor);
+                                                                                    }
 
                                                                                     // Send to logs
                                                                                     LogFactory.ExecuteOrderCommand(api.ClientId, _appConfig.Debug, cmd, pair.TickerInMetatrader, orderType, lotSize, orderType == OrderType.Buy ? 0 : entryBidPrice.Value, sl, tp, Convert.ToInt32(cmd.SignalID), comment);
@@ -537,7 +548,7 @@ namespace JCTG.Client
 
                                                 // SELL
                                                 else if ((pair.MaxSpread == 0 || (pair.MaxSpread > 0 && spread < pair.MaxSpread))
-                                                                    && cmd.OrderType == "SELL"
+                                                                    && cmd.OrderType.Equals("SELL", StringComparison.CurrentCultureIgnoreCase)
                                                                     && cmd.MarketOrder != null
                                                                     && cmd.MarketOrder.Risk.HasValue
                                                                     && cmd.MarketOrder.RiskRewardRatio.HasValue
@@ -549,7 +560,7 @@ namespace JCTG.Client
                                                         // Do do not open a deal x minutes before close
                                                         if (RecurringCloseTradeScheduler.CanOpenTrade(pair.CloseAllTradesAt, pair.DoNotOpenTradeXMinutesBeforeClose))
                                                         {
-                                                            // Init
+                                                            // InitAndStart
                                                             var entryBidPrice = metadataTick.Bid;
 
                                                             // Calculate SL Price
@@ -592,6 +603,8 @@ namespace JCTG.Client
                                                                 lotStep: metadataTick.LotStep,
                                                                 minLotSizeAllowed: metadataTick.MinLotSize,
                                                                 maxLotSizeAllowed: metadataTick.MaxLotSize,
+                                                                spread: spread,
+                                                                isLong: false,
                                                                 out Dictionary<string, string> logMessagesLOT,
                                                                 riskData: dynRisk);
 
@@ -694,7 +707,7 @@ namespace JCTG.Client
 
                                                 // SELL STOP
                                                 else if ((pair.MaxSpread == 0 || (pair.MaxSpread > 0 && spread < pair.MaxSpread))
-                                                            && cmd.OrderType == "SELLSTOP"
+                                                            && cmd.OrderType.Equals("SELLSTOP", StringComparison.CurrentCultureIgnoreCase)
                                                             && cmd.PassiveOrder != null
                                                             && cmd.PassiveOrder.EntryExpression != null
                                                             && cmd.PassiveOrder.Risk.HasValue
@@ -760,6 +773,8 @@ namespace JCTG.Client
                                                                     lotStep: metadataTick.LotStep,
                                                                     minLotSizeAllowed: metadataTick.MinLotSize,
                                                                     maxLotSizeAllowed: metadataTick.MaxLotSize,
+                                                                    spread: spread,
+                                                                    isLong: false,
                                                                     out Dictionary<string, string> logMessagesLOT,
                                                                     riskData: dynRisk);
 
@@ -819,6 +834,14 @@ namespace JCTG.Client
                                                                                     // Execute order
                                                                                     api.ExecuteOrder(pair.TickerInMetatrader, orderType, lotSize, orderType == OrderType.Sell ? 0 : entryBidPrice.Value, sl, tp, (int)cmd.SignalID, comment);
 
+                                                                                    // Add to the spread monitor
+                                                                                    if (pair.AdaptPassiveOrdersBeforeEntryInSeconds > 0 && !_spreadMonitors.Any(f => f.IsStarted && f.ClientId == api.ClientId && f.Magic == Convert.ToInt32(cmd.SignalID)))
+                                                                                    {
+                                                                                        var monitor = SpreadMonitor.InitAndStart(api.ClientId, false, pair.TickerInMetatrader, Convert.ToInt32(cmd.SignalID), pair.AdaptPassiveOrdersBeforeEntryInSeconds);
+                                                                                        monitor.OnSpreadChanged += OnMonitorSpreadWarning;
+                                                                                        _spreadMonitors.Add(monitor);
+                                                                                    }
+
                                                                                     // Send to logs
                                                                                     LogFactory.ExecuteOrderCommand(api.ClientId, _appConfig.Debug, cmd, pair.TickerInMetatrader, orderType, lotSize, orderType == OrderType.Sell ? 0 : entryBidPrice.Value, sl, tp, (int)cmd.SignalID, comment);
                                                                                 }
@@ -872,7 +895,7 @@ namespace JCTG.Client
                                                 }
 
                                                 // MOVESLTOBE
-                                                else if (cmd.OrderType == "MOVESLTOBE" && cmd.SignalID > 0)
+                                                else if (cmd.OrderType.Equals("MOVESLTOBE", StringComparison.CurrentCultureIgnoreCase) && cmd.SignalID > 0)
                                                 {
                                                     // Check if the ticket still exist as open order
                                                     var ticketId = api.OpenOrders.FirstOrDefault(f => f.Value.Magic == cmd.SignalID);
@@ -880,7 +903,7 @@ namespace JCTG.Client
                                                     // Null reference check
                                                     if (ticketId.Key > 0 && ticketId.Value.Type != null)
                                                     {
-                                                        // Init variable
+                                                        // InitAndStart variable
                                                         var sl = 0.0M;
 
                                                         if (ticketId.Value.Type.Equals("SELL", StringComparison.CurrentCultureIgnoreCase))
@@ -934,7 +957,7 @@ namespace JCTG.Client
                                                 }
 
                                                 // Close or cancel order
-                                                else if ((cmd.OrderType == "CLOSE" || cmd.OrderType == "CANCEL") && cmd.SignalID > 0)
+                                                else if ((cmd.OrderType.Equals("CLOSE", StringComparison.CurrentCultureIgnoreCase) || cmd.OrderType.Equals("CANCEL", StringComparison.CurrentCultureIgnoreCase)) && cmd.SignalID > 0)
                                                 {
                                                     // Check if the ticket still exist as open order
                                                     var order = api.OpenOrders.FirstOrDefault(f => f.Value.Magic == cmd.SignalID);
@@ -962,7 +985,7 @@ namespace JCTG.Client
                                                 }
 
                                                 // Close ALL
-                                                else if (cmd.OrderType == "CLOSEALL")
+                                                else if (cmd.OrderType.Equals("CLOSEALL", StringComparison.CurrentCultureIgnoreCase))
                                                 {
                                                     // Null reference check
                                                     foreach (var order in api.OpenOrders)
@@ -1065,7 +1088,7 @@ namespace JCTG.Client
                                             // BUY
                                             if (cmd.OrderType == "BUY" && cmd.MarketOrder != null)
                                             {
-                                                // Init entryBidPrice
+                                                // InitAndStart entryBidPrice
                                                 var entryBidPrice = metadataTick.Bid;
 
                                                 // Get the Stop Loss entryBidPrice
@@ -1100,6 +1123,8 @@ namespace JCTG.Client
                                                     lotStep: metadataTick.LotStep,
                                                     minLotSizeAllowed: metadataTick.MinLotSize,
                                                     maxLotSizeAllowed: metadataTick.MaxLotSize,
+                                                    spread: spread,
+                                                    isLong: true,
                                                     out Dictionary<string, string> logMessagesLOT,
                                                     riskData: null);
 
@@ -1143,7 +1168,7 @@ namespace JCTG.Client
                                             // SELL
                                             else if (cmd.OrderType == "SELL" && cmd.MarketOrder != null)
                                             {
-                                                // Init entryBidPrice
+                                                // InitAndStart entryBidPrice
                                                 var entryBidPrice = metadataTick.Bid;
 
                                                 // Get the Stop Loss entryBidPrice
@@ -1158,7 +1183,7 @@ namespace JCTG.Client
                                                     risk: risk,
                                                     slMultiplier: 1,
                                                     stopLossExpression: null,
-                                                    bars: new List<BarData>(),
+                                                    bars: [],
                                                     spread: spread,
                                                     riskRewardRatio: Convert.ToDecimal(cmd.MarketOrder.RiskRewardRatio),
                                                     out Dictionary<string, string> logMessagesTP);
@@ -1178,6 +1203,8 @@ namespace JCTG.Client
                                                     lotStep: metadataTick.LotStep,
                                                     minLotSizeAllowed: metadataTick.MinLotSize,
                                                     maxLotSizeAllowed: metadataTick.MaxLotSize,
+                                                    spread: spread,
+                                                    isLong: false,
                                                     out Dictionary<string, string> logMessagesLOT,
                                                     riskData: null);
 
@@ -1236,6 +1263,94 @@ namespace JCTG.Client
 
                     // StartCheckTimeAndExecuteOnceDaily listening to the queue
                     await azureQueue.ListeningToServerAsync();
+                }
+            }
+        }
+
+        private void OnMonitorSpreadWarning(long clientId, bool isLong, string instrument, int magic)
+        {
+            // Do null reference check
+            if (_appConfig != null && _apis.Count(f => f.ClientId == clientId) == 1)
+            {
+                // Check if the monitor is started
+                if (_spreadMonitors.Any(f => f.IsStarted && f.ClientId == clientId && f.Instrument.Equals(instrument, StringComparison.CurrentCultureIgnoreCase) && f.Magic == magic))
+                {
+                    // Get the api
+                    var api = _apis.First(f => f.ClientId == clientId);
+
+                    // Get the order from the api
+                    var order = api.OpenOrders.FirstOrDefault(f => f.Value.Magic == magic && f.Value.Symbol == instrument);
+
+                    // Get the metadata
+                    var metadata = api.MarketData.FirstOrDefault(f => f.Key.Equals(instrument, StringComparison.CurrentCultureIgnoreCase));
+
+                    // Get the pair
+                    var broker = _appConfig.Brokers.Where(f => f.ClientId == clientId).FirstOrDefault();
+
+                    // startbalance
+                    var startbalance = _appConfig.Brokers.First(f => f.ClientId == api.ClientId)?.StartBalance;
+
+                    // Get dynamic risk
+                    var dynRisk = Calculator.GetDynamicRisk(_appConfig, api.ClientId);
+
+                    // Do null reference check
+                    if (order.Key > 0 && order.Value != null && !string.IsNullOrEmpty(metadata.Key) && metadata.Value != null && broker != null && api.AccountInfo != null && startbalance.HasValue)
+                    {
+                        // Get extra information from the comments
+                        var strategyId = Calculator.GetStrategyIdFromComment(order.Value.Comment);
+                        var entryPrice = Calculator.GetEntryPriceFromComment(order.Value.Comment);
+                        var entrySpread = Calculator.GetSpreadFromComment(order.Value.Comment);
+
+                        // Do null reference check
+                        if (entryPrice.HasValue && entrySpread.HasValue && strategyId.HasValue)
+                        {
+                            // Calculate the spread
+                            var currentSpread = Calculator.CalculateSpread(metadata.Value.Ask, metadata.Value.Bid, metadata.Value.TickSize, metadata.Value.Digits);
+
+                            // Get the right pair back from the local database
+                            var pair = Calculator.GetPairByTradingviewInstrument(_appConfig, clientId, instrument, strategyId.Value);
+
+                            // Do null reference check
+                            if (pair != null)
+                            {
+                                // Execute the order (this code only applies on LONG's. In case of a SHORT position, the entry is taken on the BID price, and will not change if the spread is changing.
+                                if (isLong == true)
+                                {
+                                    // Calculate initial entry price (in case of LONG, the entry price is the ASK price, so we should substract the spread from the entry price to get the right BID price)
+                                    var initialEntryBidPrice = entryPrice.Value - entrySpread.Value;
+
+                                    // Calculate new entry price
+                                    var newEntryPrice = initialEntryBidPrice + currentSpread;
+
+                                    // Print on the screen
+                                    Helpers.Print($"INFO : {DateTime.UtcNow} / {_appConfig.Brokers.First(f => f.ClientId == api.ClientId).Name} / {instrument} / AUTO MONITOR : ADAPT ORDER / {magic} / {strategyId}");
+
+                                    // Calculate the lot size
+                                    var lotSize = Calculator.LotSize(
+                                        startBalance: startbalance.Value,
+                                        accountBalance: api.AccountInfo.Balance,
+                                        riskPercent: pair.RiskLong,
+                                        entryBidPrice: newEntryPrice,
+                                        stopLossPrice: order.Value.StopLoss,
+                                        tickValue: metadata.Value.TickValue,
+                                        tickSize: metadata.Value.TickSize,
+                                        lotStep: metadata.Value.LotStep,
+                                        minLotSizeAllowed: metadata.Value.MinLotSize,
+                                        maxLotSizeAllowed: metadata.Value.MaxLotSize,
+                                        spread: currentSpread,
+                                        isLong: true,
+                                        out Dictionary<string, string> logMessagesLOT,
+                                        riskData: dynRisk);
+
+                                    // Send to logs
+                                    LogFactory.CalculateLotSize(api.ClientId, _appConfig.Debug, order.Value, logMessagesLOT);
+
+                                    // Execute order
+                                    api.ModifyOrder(order.Key, lotSize, newEntryPrice, order.Value.StopLoss, order.Value.TakeProfit, order.Value.Magic);
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -1322,8 +1437,6 @@ namespace JCTG.Client
             }
         }
 
-
-
         private void OnItsTimeToCloseTradeEvent(long clientID, string instrument, long strategyId)
         {
             // Check if app config is not null
@@ -1379,9 +1492,8 @@ namespace JCTG.Client
                         var spread = Calculator.GetSpreadFromComment(order.Value.Comment);
                         var strategyID = Calculator.GetStrategyIdFromComment(order.Value.Comment);
 
-
                         // Get the right pair back from the local database
-                        var pair = new List<Pairs>(_appConfig.Brokers.Where(f => f.ClientId == api.ClientId).SelectMany(f => f.Pairs)).FirstOrDefault(f => f.TickerInMetatrader.Equals(order.Value.Symbol) && f.StrategyID == strategyID && f.Timeframe.Equals(timeFrame));
+                        var pair = Calculator.GetPairByMetatraderInstrument(_appConfig, clientId, order.Value.Symbol, strategyID.HasValue ? strategyID.Value : 0);
 
                         // If this broker is listening to this signal and the account size is greater then zero
                         if (pair != null && signalEntryPrice > 0 && api.MarketData != null && signalEntryPrice.HasValue && signalStopLoss.HasValue && strategyID.HasValue && spread.HasValue)
@@ -1473,10 +1585,17 @@ namespace JCTG.Client
             }
         }
 
-        private void OnTickEvent(long clientId, string symbol, decimal bid, decimal ask, decimal tickValue)
+        private void OnTickEvent(long clientId, string symbol, decimal ask, decimal bid, decimal tickSize, int digits)
         {
             foreach (var api in _apis)
             {
+
+            }
+
+            // Update the spread in the monitor
+            foreach (var monitor in _spreadMonitors.Where(f => f.IsStarted && f.ClientId == clientId && f.Instrument.Equals(symbol, StringComparison.CurrentCultureIgnoreCase)))
+            {
+                monitor.UpdateSpread(Calculator.CalculateSpread(ask, bid, tickSize, digits));
             }
         }
 
@@ -1582,10 +1701,10 @@ namespace JCTG.Client
                 Helpers.Print($"INFO : {DateTime.UtcNow} / {_appConfig.Brokers.First(f => f.ClientId == clientId).Name} / {order.Symbol} / CLOSED ORDER EVENT / {order.Magic} / {strategyID}");
 
                 // Do null reference check
-                if(entryPrice.HasValue && stoploss.HasValue)
+                if (entryPrice.HasValue && stoploss.HasValue)
                 {
                     // Calculate the risk to reward
-                    var rrr = Calculator.CalculateRiskReward(entryPrice.Value, stoploss.Value, marketdata.Bid);
+                    var rrr = Calculator.CalculateRiskReward(!string.IsNullOrEmpty(order.Type) && order.Type.Contains("buy", StringComparison.CurrentCultureIgnoreCase), entryPrice.Value, stoploss.Value, marketdata.Bid);
 
                     // Send to logs
                     LogFactory.ClosedAnOrderEvent(clientId, _appConfig.Debug, order, ticketId, marketdata.Bid, order.Magic, rrr);
@@ -1593,7 +1712,7 @@ namespace JCTG.Client
             }
         }
 
-        private void OnDealCreateEvent(long clientId, long tradeId, Deal deal)
+        private void OnDealCreatedEvent(long clientId, long tradeId, Deal deal)
         {
             // Do null reference check
             if (_appConfig != null && _apis.Count(f => f.ClientId == clientId) == 1)
@@ -1601,23 +1720,56 @@ namespace JCTG.Client
                 // Get api
                 var api = _apis.First(f => f.ClientId == clientId);
 
-                // Check if we need to start the scheduler
-                var pair = _appConfig.Brokers.FirstOrDefault(f => f.ClientId == clientId && f.Pairs.Any(g => g.TickerInMetatrader == deal.Symbol && g.CloseTradeWithinXBars.HasValue))?
-                                    .Pairs.FirstOrDefault(g => g.TickerInMetatrader == deal.Symbol && g.CloseTradeWithinXBars.HasValue);
-
-                // check if pair is not null
-                if (pair != null && pair.CloseTradeWithinXBars.HasValue)
+                // Do null reference check
+                if (deal.Entry.Contains("entry_in") && !string.IsNullOrEmpty(deal.Comment))
                 {
-                    var scheduler = new RecurringCloseTradeScheduler(clientId, pair.TickerInMetatrader, pair.StrategyID, true);
-                    scheduler.OnCloseTradeEvent += OnItsTimeToCloseTradeEvent;
-                    var targetTime = DateTime.UtcNow.TimeOfDay.Add(pair.TimeframeAsTimespan * (pair.CloseTradeWithinXBars.Value + 1));
-                    scheduler.Start(targetTime);
-                    _schedulers.Add(scheduler);
+                    // Get strategy id
+                    var strategyId = Calculator.GetStrategyIdFromComment(deal.Comment);
 
-                    // Print on screen
-                    Helpers.Print($"INFO : {DateTime.UtcNow} / {_appConfig.Brokers.First(f => f.ClientId == clientId).Name} / {deal.Symbol} / CLOSE TRADE @ {targetTime} / {deal.Magic}");
+                    // Do null reference check
+                    if (strategyId.HasValue)
+                    {
+                        // Get the right pair back from the local database
+                        var pair = Calculator.GetPairByMetatraderInstrument(_appConfig, clientId, deal.Symbol, strategyId.Value);
+
+                        // Do null reference check
+                        if (pair != null)
+                        {
+                            // Start script close trade within x bars
+                            if (pair.CloseTradeWithinXBars.HasValue)
+                            {
+                                var scheduler = new RecurringCloseTradeScheduler(clientId, pair.TickerInMetatrader, strategyId.Value, true);
+                                scheduler.OnCloseTradeEvent += OnItsTimeToCloseTradeEvent;
+                                var targetTime = DateTime.UtcNow.TimeOfDay.Add(pair.TimeframeAsTimespan * (pair.CloseTradeWithinXBars.Value + 1));
+                                scheduler.Start(targetTime);
+                                _recurringCloseTradeScheduler.Add(scheduler);
+
+                                // Print on screen
+                                Helpers.Print($"INFO : {DateTime.UtcNow} / {_appConfig.Brokers.First(f => f.ClientId == clientId).Name} / {deal.Symbol} / CLOSE TRADE @ {targetTime} / {deal.Magic}");
+                            }
+
+                            // Stop the monitor
+                            if (pair.AdaptPassiveOrdersBeforeEntryInSeconds > 0)
+                            {
+                                // Get the monitor from the list
+                                var monitor = _spreadMonitors.FirstOrDefault(f => f.IsStarted && f.ClientId == clientId && f.Instrument.Equals(deal.Symbol, StringComparison.CurrentCultureIgnoreCase) && f.Magic == deal.Magic);
+
+                                // Do null reference check
+                                if (monitor != null)
+                                {
+                                    // Stop the monitor
+                                    monitor.Stop();
+
+                                    // Remove the monitor from the list
+                                    _spreadMonitors.Remove(monitor);
+
+                                    // Print on screen
+                                    Helpers.Print($"INFO : {DateTime.UtcNow} / {_appConfig.Brokers.First(f => f.ClientId == clientId).Name} / {deal.Symbol} / STOP THE SPREAD MONITOR / {deal.Magic}");
+                                }
+                            }
+                        }
+                    }
                 }
-
 
                 // Do null reference chekc on metadatatick
                 if (api.MarketData != null)
@@ -1650,7 +1802,5 @@ namespace JCTG.Client
                 LogFactory.AccountInfoChangedEvent(clientId, _appConfig.Debug, accountInfo);
             }
         }
-
-
     }
 }

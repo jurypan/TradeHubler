@@ -63,6 +63,7 @@ namespace JCTG.WebApp.Backend.Api
                                                 DoNotOpenTradeXMinutesBeforeClose = p.DoNotOpenTradeXMinutesBeforeClose,
                                                 MaxLotSize = Convert.ToInt32(p.MaxLotSize),
                                                 MaxSpread = Convert.ToDecimal(p.MaxSpread),
+                                                AdaptPassiveOrdersBeforeEntryInSeconds = p.AdaptPassiveOrdersBeforeEntryInSeconds,
                                                 NumberOfHistoricalBarsRequested = p.NumberOfHistoricalBarsRequested,
                                                 OrderExecType = p.OrderExecType,
                                                 RiskLong = Convert.ToDecimal(p.RiskLong),
@@ -429,18 +430,7 @@ namespace JCTG.WebApp.Backend.Api
                     for (int attempt = 1; attempt <= maxRetries; attempt++)
                     {
                         // Get the trade order from the database
-                        var order = await dbContext.Order.Where(f => f.ClientID == model.ClientID && f.Magic == model.Deal.Magic).OrderByDescending(f => f.DateCreated).FirstOrDefaultAsync();
-
-
-                        // look if we can find the order entry_in without entry_out and this is the entry_out
-                        if (order == null && model.Deal.Entry == "entry_out")
-                        {
-                            // Get order
-                            order = await dbContext.Order.Where(f => f.ClientID == model.ClientID && f.Symbol == model.Deal.Symbol && f.OpenLots == model.Deal.Lots && f.Deals.Any(f => f.Entry == "entry_in") && !f.Deals.Any(f => f.Entry == "entry_out")).OrderByDescending(f => f.DateCreated).FirstOrDefaultAsync();
-
-                            // Log
-                            _logger.Debug($"Order found in the database via entry_in and entry_out", order);
-                        }
+                        var order = await dbContext.Order.Where(f => f.ClientID == model.ClientID && f.SignalID == model.Deal.Magic).OrderByDescending(f => f.DateCreated).FirstOrDefaultAsync();
 
                         // Do null reference check
                         if (order != null)

@@ -93,6 +93,24 @@
                         </div>
                         <div class="col-md-4">
                             <div class="mb-3">
+                                <label class="form-label" for="max-spread">Monitor spread and adapt passive order (in seconds)</label>
+                                <InputSelect class="form-select col-12" @bind-Value="model.AdaptPassiveOrdersBeforeEntryInSecondsAsString">
+                                    <option value="0">N.A.</option>
+                                    <option value="1">1</option>
+                                    <option value="2">2</option>
+                                    <option value="3">3</option>
+                                    <option value="4">4</option>
+                                    <option value="5">5</option>
+                                    <option value="6">6</option>
+                                    <option value="10">10</option>
+                                    <option value="12">12</option>
+                                    <option value="15">15</option>
+                                    <option value="20">20</option>
+                                </InputSelect>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
                                 <label class="form-label" for="sl-multiplier">SL Multiplier</label>
                                 <InputText class="form-control" @bind-Value="model.SLMultiplierAsString" />
                             </div>

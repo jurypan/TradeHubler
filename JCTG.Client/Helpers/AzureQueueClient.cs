@@ -55,7 +55,7 @@ namespace JCTG.Client
                                 PropertyNamingPolicy = null
                             };
 
-                            // Init
+                            // InitAndStart
                             var type = document.RootElement.GetProperty("Type").GetString();
                             var from = document.RootElement.GetProperty("From").GetString();
 

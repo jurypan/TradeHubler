@@ -66,6 +66,19 @@ namespace JCTG.Entity
             }
         }
         public double MaxSpread { get; set; }
+        public int AdaptPassiveOrdersBeforeEntryInSeconds { get; set; }
+        [NotMapped]
+        public string AdaptPassiveOrdersBeforeEntryInSecondsAsString
+        {
+            get => AdaptPassiveOrdersBeforeEntryInSeconds.ToString();
+            set
+            {
+                if (int.TryParse(value, out int newValue))
+                {
+                    AdaptPassiveOrdersBeforeEntryInSeconds = newValue;
+                }
+            }
+        }
 
         [NotMapped]
         public string MaxSpreadAsString

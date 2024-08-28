@@ -41,14 +41,15 @@ namespace JCTG.Client
         public static void CalculateLotSize(long clientId, bool isDebug, OnSendTradingviewSignalCommand cmd, Dictionary<string, string> logMessages)
         {
             if (isDebug)
-                HttpCallOnLogEvent(clientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = cmd.ToQueryString(), Description = GetDescription("CalculateTakeProfit", logMessages), Magic = Convert.ToInt32(cmd.SignalID) }, cmd.SignalID);
+                HttpCallOnLogEvent(clientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = cmd.ToQueryString(), Description = GetDescription("CalculateLotSize", logMessages), Magic = Convert.ToInt32(cmd.SignalID) }, cmd.SignalID);
         }
 
         public static void CalculateLotSize(long clientId, bool isDebug, OnSendManualOrderCommand cmd, Dictionary<string, string> logMessages)
         {
             if (isDebug)
-                HttpCallOnLogEvent(clientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = cmd.ToQueryString(), Description = GetDescription("CalculateTakeProfit", logMessages), Magic = cmd.Magic }, cmd.Magic);
+                HttpCallOnLogEvent(clientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = cmd.ToQueryString(), Description = GetDescription("CalculateLotSize", logMessages), Magic = cmd.Magic }, cmd.Magic);
         }
+
 
         public static void CloseOrderCommand(long clientId, bool isDebug, OnSendTradingviewSignalCommand cmd, long ticketId, double lots = 0, int magic = -1)
         {
@@ -206,7 +207,11 @@ namespace JCTG.Client
             }
         }
 
-
+        public static void CalculateLotSize(long clientId, bool isDebug, Order cmd, Dictionary<string, string> logMessages)
+        {
+            if (isDebug)
+                HttpCallOnLogEvent(clientId, new Log() { Time = DateTime.UtcNow, Type = "DEBUG", Message = cmd.ToQueryString(), Description = GetDescription("CalculateLotSize", logMessages), Magic = cmd.Magic }, cmd.Magic);
+        }
 
 
 

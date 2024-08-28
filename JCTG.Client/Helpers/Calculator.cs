@@ -1,4 +1,5 @@
 ﻿using JCTG.Models;
+using Microsoft.Identity.Client;
 
 namespace JCTG.Client
 {
@@ -17,22 +18,6 @@ namespace JCTG.Client
         }
 
 
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="clientId"></param>
-        /// <param name="accountBalance"></param>
-        /// <param name="riskPercent"></param>
-        /// <param name="entryBidPrice"></param>
-        /// <param name="stopLossPrice"></param>
-        /// <param name="tickValue"></param>
-        /// <param name="tickSize"></param>
-        /// <param name="lotStep"></param>
-        /// <param name="minLotSizeAllowed"></param>
-        /// <param name="maxLotSizeAllowed"></param>
-        /// <param name="spread"></param>
-        /// <returns></returns>
         public static decimal LotSize(
             double startBalance,
             double accountBalance,
@@ -44,12 +29,14 @@ namespace JCTG.Client
             double lotStep,
             double minLotSizeAllowed,
             double maxLotSizeAllowed,
+            decimal spread,
+            bool isLong,
             out Dictionary<string, string> logMessages,
             List<Risk>? riskData = null)
         {
-            logMessages = [];
+            logMessages = new Dictionary<string, string>();
 
-            // HttpCallOnLogEvent the initial input parameters
+            // Log the initial input parameters
             LogCalculation(logMessages, "startBalance", startBalance);
             LogCalculation(logMessages, "accountBalance", accountBalance);
             LogCalculation(logMessages, "riskPercent", riskPercent);
@@ -60,6 +47,8 @@ namespace JCTG.Client
             LogCalculation(logMessages, "lotStep", lotStep);
             LogCalculation(logMessages, "minLotSizeAllowed", minLotSizeAllowed);
             LogCalculation(logMessages, "maxLotSizeAllowed", maxLotSizeAllowed);
+            LogCalculation(logMessages, "spread", spread);
+            LogCalculation(logMessages, "isLong", isLong);
 
             // Throw exception when negative balance
             if (accountBalance <= 0)
@@ -73,9 +62,21 @@ namespace JCTG.Client
             var riskAmount = Convert.ToDecimal(accountBalance) * ((riskPercent * dynamicRisk) / 100.0M);
             LogCalculation(logMessages, "riskAmount", riskAmount);
 
-            // Calculate the Stop Loss in Points
-            var stopLossDistance = Math.Abs(entryBidPrice - stopLossPrice);
-            LogCalculation(logMessages, "stopLossDistance", stopLossDistance);
+            // Calculate the Stop Loss in Points considering the trade direction (Long/Short)
+            decimal stopLossDistance = Math.Abs(entryBidPrice - stopLossPrice);
+
+            if (isLong)
+            {
+                // For long positions, add the spread
+                stopLossDistance += spread;
+            }
+            else
+            {
+                // For short positions, subtract the spread
+                stopLossDistance -= spread;
+            }
+
+            LogCalculation(logMessages, "stopLossDistanceIncludingSpread", stopLossDistance);
 
             // Convert Stop Loss to Ticks
             var stopLossDistanceInTicks = stopLossDistance / tickSize;
@@ -99,6 +100,7 @@ namespace JCTG.Client
 
             return finalLotSize;
         }
+
 
         public static decimal? EntryBidPriceForShort(string entryExpression, List<BarData> bars, decimal spread, out Dictionary<string, string> logMessages)
         {
@@ -489,6 +491,26 @@ namespace JCTG.Client
             return retour == 0 ? null : retour;
         }
 
+        public static Pairs? GetPairByTradingviewInstrument(TerminalConfig config, long clientId, string instrument, long strategyId)
+        {
+            if (config != null && clientId > 0 && !string.IsNullOrEmpty(instrument) && strategyId > 0 && config.Brokers.Count(f => f.ClientId == clientId) == 1)
+                return new List<Pairs>(config.Brokers.Where(f => f.IsEnable && f.ClientId == clientId).SelectMany(f => f.Pairs)).FirstOrDefault(f => f.TickerInTradingView.Equals(instrument, StringComparison.CurrentCultureIgnoreCase) && f.StrategyID == strategyId);
+            return null;
+        }
+
+        public static Pairs? GetPairByMetatraderInstrument(TerminalConfig config, long clientId, string instrument, long strategyId)
+        {
+            if(config != null && clientId > 0 && !string.IsNullOrEmpty(instrument) && strategyId > 0 && config.Brokers.Count(f => f.ClientId == clientId) == 1)
+                return new List<Pairs>(config.Brokers.Where(f => f.IsEnable && f.ClientId == clientId).SelectMany(f => f.Pairs)).FirstOrDefault(f => f.TickerInMetatrader.Equals(instrument, StringComparison.CurrentCultureIgnoreCase) && f.StrategyID == strategyId);
+            return null;
+        }
+
+        public static List<Risk> GetDynamicRisk(TerminalConfig config, long clientId)
+        {
+            if (config != null && clientId > 0 && config.Brokers.Count(f => f.ClientId == clientId) == 1)
+                return new List<Risk>(config.Brokers.Where(f => f.ClientId == clientId).SelectMany(f => f.Risk ?? []));
+            return [];
+        }
 
 
 
@@ -586,13 +608,25 @@ namespace JCTG.Client
             return price;
         }
 
-        public static decimal CalculateRiskReward(decimal entryPrice, decimal stopLoss, decimal closePrice)
+        public static decimal CalculateRiskReward(bool isLong, decimal entryPrice, decimal stopLoss, decimal closePrice)
         {
-            // Bereken de risk (verschil tussen entry prijs en stop loss)
-            decimal risk = Math.Abs(entryPrice - stopLoss);
+            decimal risk;
+            decimal reward;
 
-            // Bereken de reward (verschil tussen close prijs en entry prijs)
-            decimal reward = Math.Abs(closePrice - entryPrice);
+            if (isLong)
+            {
+                // Long positie: risk = entryPrice - stopLoss
+                // reward = closePrice - entryPrice
+                risk = entryPrice - stopLoss;
+                reward = closePrice - entryPrice;
+            }
+            else
+            {
+                // Short positie: risk = stopLoss - entryPrice
+                // reward = entryPrice - closePrice
+                risk = stopLoss - entryPrice;
+                reward = entryPrice - closePrice;
+            }
 
             // Handle potential division by zero if risk is zero
             if (risk == 0)

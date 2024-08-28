@@ -71,7 +71,7 @@ namespace JCTG.Client
         public delegate void OnLogEventHandler(long clientId, long id, Log log);
         public event OnLogEventHandler? OnLogEvent;
 
-        public delegate void OnTickEventHandler(long clientId, string symbol, decimal bid, decimal ask, decimal tickValue);
+        public delegate void OnTickEventHandler(long clientId, string symbol, decimal ask, decimal bid, decimal tickSize, int digits);
         public event OnTickEventHandler? OnTickEvent;
 
         public delegate void OnCandleCloseEventHandler(long clientId, string symbol, string timeFrame, DateTime time, decimal open, decimal high, decimal low, decimal close, int tickVolume);
@@ -463,17 +463,17 @@ namespace JCTG.Client
                                 MarketData[property.Key] = property.Value;
 
                                 // Check if the values have changed
-                                if (property.Value.Bid != previousData.Bid || property.Value.Ask != previousData.Ask || property.Value.TickValue != previousData.TickValue)
+                                if (property.Value.Bid != previousData.Bid || property.Value.Ask != previousData.Ask || property.Value.TickSize != previousData.TickSize)
                                 {
                                     // Invoke the event
-                                    OnTickEvent?.Invoke(ClientId, property.Key, property.Value.Bid, property.Value.Ask, property.Value.TickValue);
+                                    OnTickEvent?.Invoke(ClientId, property.Key, property.Value.Ask, property.Value.Bid, property.Value.TickSize, property.Value.Digits);
                                 }
                             }
                             else
                             {
                                 // If it's a new ticker, add it to the dictionary and invoke the event
                                 MarketData.Add(property.Key, property.Value);
-                                OnTickEvent?.Invoke(ClientId, property.Key, property.Value.Bid, property.Value.Ask, property.Value.TickValue);
+                                OnTickEvent?.Invoke(ClientId, property.Key, property.Value.Ask, property.Value.Bid, property.Value.TickSize, property.Value.Digits);
                             }
                         }
                     }
@@ -766,7 +766,7 @@ namespace JCTG.Client
                 // Parse the open orders
                 OpenOrders = dataOrders["orders"]?.ToObject<Dictionary<long, Order>>();
 
-                // Init the open orders
+                // InitAndStart the open orders
                 if (OpenOrders == null)
                     OpenOrders = new Dictionary<long, Order>();
 

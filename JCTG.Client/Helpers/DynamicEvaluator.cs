@@ -48,7 +48,7 @@ namespace JCTG.Client
 
         public static decimal? EvaluateExpression(string expression, List<BarData> bars, out Dictionary<string, string> logMessages)
         {
-            // Init log messages
+            // InitAndStart log messages
             logMessages = [];
 
             // HttpCallOnLogEvent the initial input parameters
