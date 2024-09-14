@@ -18,7 +18,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Determine the base address dynamically based on the environment
 var baseAddress = builder.Environment.IsDevelopment()
     ? "https://localhost:7197/" // Development base URL
-    : "https://app.tradehubler.com/"; // Production base URL
+    : "https://app.tradehubler.com:444/"; // Production base URL
 
 // Authentication
 builder.Services.AddHttpContextAccessor();

@@ -52,8 +52,8 @@ namespace JCTG.Client
             logMessages = [];
 
             // HttpCallOnLogEvent the initial input parameters
-            LogCalculation(logMessages, "Expression", expression);
-            LogCalculation(logMessages, "Bars.Count", bars.Count);
+            LogCalculation(logMessages, "expression", expression);
+            LogCalculation(logMessages, "bars.Count", bars.Count);
 
             // Convert the timestamps in bars to UTC (or any common timezone)
             var barsDictionary = bars.OrderByDescending(f => f.Time).ToDictionary(bar => bar.Epoch, bar => bar);
@@ -72,7 +72,7 @@ namespace JCTG.Client
             try
             {
                 // Get the code
-                LogCalculation(logMessages, "Code", script.Code);
+                LogCalculation(logMessages, "code", script.Code);
 
                 // Execute task
                 var task = Task.Run(async () => await script.RunAsync(new ScriptContext { Bar = barsDictionary }));
@@ -81,7 +81,7 @@ namespace JCTG.Client
                 var result = task.Result;
 
                 // HttpCallOnLogEvent
-                LogCalculation(logMessages, "Result", result.ReturnValue);
+                LogCalculation(logMessages, "result", result.ReturnValue);
 
                 // Retun value
                 return result.ReturnValue;
@@ -89,17 +89,17 @@ namespace JCTG.Client
             catch (CompilationErrorException ex)
             {
                 // HttpCallOnLogEvent
-                LogCalculation(logMessages, "CompilationErrorException", ex.Message);
+                LogCalculation(logMessages, "compilationErrorException.message", ex.Message);
                 if(ex.InnerException != null) 
-                    LogCalculation(logMessages, "CompilationErrorException", ex.InnerException.Message);
+                    LogCalculation(logMessages, "compilationErrorException.innerException", ex.InnerException.Message);
                 return null;
             }
             catch (Exception ex)
             {
                 // HttpCallOnLogEvent
-                LogCalculation(logMessages, "Exception", ex.Message);
+                LogCalculation(logMessages, "exception.message", ex.Message);
                 if (ex.InnerException != null)
-                    LogCalculation(logMessages, "Exception", ex.InnerException.Message);
+                    LogCalculation(logMessages, "exception.innerException", ex.InnerException.Message);
                 return null;
             }
         }

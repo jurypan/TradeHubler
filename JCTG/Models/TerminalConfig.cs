@@ -86,6 +86,7 @@ namespace JCTG.Models
         public double SLtoBEafterR { get; set; }
         public decimal MaxSpread { get; set; }
         public int AdaptPassiveOrdersBeforeEntryInSeconds { get; set; }
+        public int AdaptSlOrTpAfterEntryInSeconds { get; set; }
         public double SLMultiplier { get; set; }
         public int MaxLotSize { get; set; }
         [JsonConverter(typeof(StringEnumConverter))]

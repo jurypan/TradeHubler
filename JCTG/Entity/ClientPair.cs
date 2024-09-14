@@ -79,6 +79,19 @@ namespace JCTG.Entity
                 }
             }
         }
+        public int AdaptSlOrTpAfterEntryInSeconds { get; set; }
+        [NotMapped]
+        public string AdaptSlOrTpAfterEntryInSecondsAsString
+        {
+            get => AdaptSlOrTpAfterEntryInSeconds.ToString();
+            set
+            {
+                if (int.TryParse(value, out int newValue))
+                {
+                    AdaptSlOrTpAfterEntryInSeconds = newValue;
+                }
+            }
+        }
 
         [NotMapped]
         public string MaxSpreadAsString

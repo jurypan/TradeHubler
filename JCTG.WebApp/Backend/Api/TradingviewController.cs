@@ -121,7 +121,7 @@ namespace JCTG.WebApp.Backend.Api
                             }
                         }
 
-                        if(!await _dbContext.ClientPair.Include(f => f.Client).AnyAsync(f => f.Client != null && f.Client.AccountID == signal.AccountID && f.TickerInTradingView.Equals(signal.Instrument)))
+                        if (!await _dbContext.ClientPair.Include(f => f.Client).AnyAsync(f => f.Client != null && f.Client.AccountID == signal.AccountID && f.TickerInTradingView.Equals(signal.Instrument)))
                         {
                             _logger.Error($"'instrument' {signal.Instrument} doesn't exist for this account");
                             return;
@@ -296,7 +296,7 @@ namespace JCTG.WebApp.Backend.Api
 
 
                         // Add to the tradingview alert
-                        if(!await _dbContext.TradingviewAlert.AnyAsync(f => f.RawMessage.Equals(requestBody)))
+                        if (!await _dbContext.TradingviewAlert.AnyAsync(f => f.RawMessage.Equals(requestBody)))
                         {
                             // Add log
                             _logger.Debug($"Add signal to the database");
@@ -355,14 +355,14 @@ namespace JCTG.WebApp.Backend.Api
                                         }
 
                                         // Check if there is a BUY or SELL order in the database, coming from entrylong or entryshort
-                                        if(await _dbContext.Signal.Where(s => s.Instrument == signal.Instrument && s.AccountID == signal.AccountID && s.OrderType == signal.OrderType && s.StrategyID == signal.StrategyID && s.Magic == signal.Magic).AnyAsync())
+                                        if (await _dbContext.Signal.Where(s => s.Instrument == signal.Instrument && s.AccountID == signal.AccountID && s.OrderType == signal.OrderType && s.StrategyID == signal.StrategyID && s.Magic == signal.Magic).AnyAsync())
                                         {
                                             entryLongOrShortFlag = true;
                                         }
                                     }
 
                                     // Check if this command is already in the database via entrylong or entryshort
-                                    if(entryLongOrShortFlag == false)
+                                    if (entryLongOrShortFlag == false)
                                     {
                                         if (signal.OrderType.Equals("buy", StringComparison.CurrentCultureIgnoreCase))
                                             signal.SignalStateType = SignalStateType.Entry;
@@ -377,21 +377,28 @@ namespace JCTG.WebApp.Backend.Api
                                         else if (signal.OrderType.Equals("sellstop", StringComparison.CurrentCultureIgnoreCase))
                                             signal.SignalStateType = SignalStateType.Init;
 
-                                        // If the order type is one of the order types, add the signal to the database
-                                        await _dbContext.Signal.AddAsync(signal);
+                                        // Check if this magic id is already in the database
+                                        var __signal = await _dbContext.Signal.FirstOrDefaultAsync(f => f.AccountID == signal.AccountID && f.Instrument.Equals(signal.Instrument) && f.StrategyID == signal.StrategyID && f.Magic == signal.Magic);
 
-                                        // Save to the database
-                                        await _dbContext.SaveChangesAsync();
+                                        // Do null reference check
+                                        if (__signal == null)
+                                        {
+                                            // If the order type is one of the order types, add the signal to the database
+                                            await _dbContext.Signal.AddAsync(signal);
 
-                                        // Add log
-                                        _logger.Information($"Added to database in table Signal with ID: {signal.ID}", signal);
+                                            // Save to the database
+                                            await _dbContext.SaveChangesAsync();
+
+                                            // Add log
+                                            _logger.Information($"Added to database in table Signal with ID: {signal.ID}", signal);
+                                        }
 
                                         // Create model and send to the client
                                         if (signal.OrderType.Equals("BUY", StringComparison.CurrentCultureIgnoreCase))
                                         {
                                             var id = await _server.SendOnTradingviewSignalCommandAsync(signal.AccountID, OnSendTradingviewSignalCommand.Buy
                                                 (
-                                                    signalId: signal.ID,
+                                                    signalId: __signal == null ? signal.ID : __signal.ID,
                                                     accountId: signal.AccountID,
                                                     instrument: signal.Instrument,
                                                     strategyId: signal.StrategyID,
@@ -408,7 +415,7 @@ namespace JCTG.WebApp.Backend.Api
                                         {
                                             var id = await _server.SendOnTradingviewSignalCommandAsync(signal.AccountID, OnSendTradingviewSignalCommand.Sell
                                                 (
-                                                    signalId: signal.ID,
+                                                    signalId: __signal == null ? signal.ID : __signal.ID,
                                                     accountId: signal.AccountID,
                                                     instrument: signal.Instrument,
                                                     strategyId: signal.StrategyID,
@@ -425,7 +432,7 @@ namespace JCTG.WebApp.Backend.Api
                                         {
                                             var id = await _server.SendOnTradingviewSignalCommandAsync(signal.AccountID, OnSendTradingviewSignalCommand.BuyStop
                                                 (
-                                                    signalId: signal.ID,
+                                                    signalId: __signal == null ? signal.ID : __signal.ID,
                                                     accountId: signal.AccountID,
                                                     instrument: signal.Instrument,
                                                     strategyId: signal.StrategyID,
@@ -443,7 +450,7 @@ namespace JCTG.WebApp.Backend.Api
                                         {
                                             var id = await _server.SendOnTradingviewSignalCommandAsync(signal.AccountID, OnSendTradingviewSignalCommand.BuyLimit
                                                 (
-                                                    signalId: signal.ID,
+                                                    signalId: __signal == null ? signal.ID : __signal.ID,
                                                     accountId: signal.AccountID,
                                                     instrument: signal.Instrument,
                                                     strategyId: signal.StrategyID,
@@ -499,7 +506,7 @@ namespace JCTG.WebApp.Backend.Api
                                         // Add log
                                         _logger.Information($"Signal with magic id {signal.Magic} already in the database from entrylong or entryshort", signal);
                                     }
-                                   
+
 
                                     break;
                                 case "entrylong":
@@ -538,24 +545,30 @@ namespace JCTG.WebApp.Backend.Api
                                             else
                                                 signal.OrderType = "SELL";
 
-                                            // If the order type is one of the order types, add the signal to the database
-                                            await _dbContext.Signal.AddAsync(signal);
+                                            // Check if this magic id is already in the database
+                                            var __signal = await _dbContext.Signal.FirstOrDefaultAsync(f => f.AccountID == signal.AccountID && f.StrategyID == signal.StrategyID && f.Magic == signal.Magic);
 
-                                            // Save to the database
-                                            await _dbContext.SaveChangesAsync();
+                                            // Do null reference check
+                                            if (__signal == null)
+                                            {
+                                                // If the order type is one of the order types, add the signal to the database
+                                                await _dbContext.Signal.AddAsync(signal);
 
-                                            // Add log
-                                            _logger.Information($"Added to database in table Signal with ID: {signal.ID}", signal);
+                                                // Save to the database
+                                                await _dbContext.SaveChangesAsync();
+
+                                                // Add log
+                                                _logger.Information($"Added to database in table Signal with ID: {signal.ID}", signal);
+                                            }
 
                                             // If the previous order is a init, cancel the order
-
 
                                             // Generate a BUY order
                                             if (signal.OrderType.Equals("entrylong", StringComparison.CurrentCultureIgnoreCase))
                                             {
                                                 var id = await _server.SendOnTradingviewSignalCommandAsync(signal.AccountID, OnSendTradingviewSignalCommand.Buy
                                                 (
-                                                    signalId: signal.ID,
+                                                    signalId: __signal == null ? signal.ID : __signal.ID,
                                                     accountId: signal.AccountID,
                                                     instrument: signal.Instrument,
                                                     strategyId: signal.StrategyID,
@@ -574,7 +587,7 @@ namespace JCTG.WebApp.Backend.Api
                                             {
                                                 var id = await _server.SendOnTradingviewSignalCommandAsync(signal.AccountID, OnSendTradingviewSignalCommand.Sell
                                                 (
-                                                    signalId: signal.ID,
+                                                    signalId: __signal == null ? signal.ID : __signal.ID,
                                                     accountId: signal.AccountID,
                                                     instrument: signal.Instrument,
                                                     strategyId: signal.StrategyID,

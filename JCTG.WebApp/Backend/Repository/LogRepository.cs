@@ -20,6 +20,15 @@ public class LogRepository(IDbContextFactory<JCTGDbContext> dbContextFactory)
             .ToListAsync();
     }
 
+    public async Task<List<Log>> SearchByLogTitle(long accountId, long signalId, long clientId, string search)
+    {
+        using var context = await dbContextFactory.CreateDbContextAsync();
+        return await context.Log
+            .Where(f => f.SignalID == signalId && f.ClientID == clientId && f.Description != null && f.Description.Contains(search))
+            .OrderByDescending(f => f.DateCreated)
+            .ToListAsync();
+    }
+
     public async Task<List<Log>> GetAllLast200(long accountId, long clientId)
     {
         using var context = await dbContextFactory.CreateDbContextAsync();

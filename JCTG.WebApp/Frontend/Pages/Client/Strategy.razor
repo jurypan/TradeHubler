@@ -309,7 +309,7 @@
             _signals = await _signalRepository.GetAllLast200ByClientId(692803787, this.ClientId);
             _orders = await _orderRepository.GetAll(692803787, this.ClientId);
             var pairs = await _clientRepository.GetAllPairsByIdAsync(692803787, this.ClientId);
-            _signals = _signals.Where(f => pairs.Select(f => f.TickerInTradingView).ToList().Contains(f.Instrument)).ToList();
+            _signals = _signals.Where(f => f.SignalStateType != SignalStateType.Cancel && pairs.Select(f => f.TickerInTradingView).ToList().Contains(f.Instrument)).ToList();
             _marketAbstentions = await _marketAbstentionRepository.GetAllByClientId(692803787, this.ClientId);
 
             // Init filter

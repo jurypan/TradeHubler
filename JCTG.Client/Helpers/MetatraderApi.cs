@@ -59,6 +59,9 @@ namespace JCTG.Client
         private Thread? dealsThread;
 
         // Define the delegate for the event
+        public delegate void OnStartedEventHandler(long clientId);
+        public event OnStartedEventHandler? OnStartedEvent;
+
         public delegate void OnOrderCreateEventHandler(long clientId, long ticketId, Order order);
         public event OnOrderCreateEventHandler? OnOrderCreateEvent;
 
@@ -133,9 +136,6 @@ namespace JCTG.Client
             this.messageThread = new Thread(async () => await CheckMessagesAsync());
             this.messageThread?.Start();
 
-            this.marketDataThread = new Thread(async () => await CheckMarketDataAsync());
-            this.marketDataThread?.Start();
-
             this.barDataThread = new Thread(async () => await CheckCandleCloseAsync());
             this.barDataThread?.Start();
 
@@ -144,6 +144,9 @@ namespace JCTG.Client
 
             this.dealsThread = new Thread(async () => await CheckDealsAsync());
             this.dealsThread?.Start();
+
+            this.marketDataThread = new Thread(async () => await CheckMarketDataAsync());
+            this.marketDataThread?.Start();
 
             await ResetCommandIDsAsync();
 
@@ -423,6 +426,8 @@ namespace JCTG.Client
         /// </summary>
         private async Task CheckMarketDataAsync()
         {
+            var isStarted = false;
+
             while (IsActive)
             {
                 // Sleep
@@ -446,8 +451,7 @@ namespace JCTG.Client
                 var _marketData = JsonConvert.DeserializeObject<Dictionary<string, MarketData>>(lastMarketDataStr);
 
                 // If market dataOrders is null -> create new instance
-                if (MarketData == null)
-                    MarketData = new Dictionary<string, MarketData>();
+                MarketData ??= [];
 
                 // Foreach property of the dataOrders
                 if (_marketData != null)
@@ -477,10 +481,16 @@ namespace JCTG.Client
                             }
                         }
                     }
-                }
-                else
-                {
 
+                    // Throw event
+                    if(isStarted == false)
+                    {
+                        // Reverse flag
+                        isStarted = true;
+
+                        // Throw event
+                        OnStartedEvent?.Invoke(ClientId);
+                    }
                 }
             }
         }

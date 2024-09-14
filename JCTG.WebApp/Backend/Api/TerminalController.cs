@@ -64,6 +64,7 @@ namespace JCTG.WebApp.Backend.Api
                                                 MaxLotSize = Convert.ToInt32(p.MaxLotSize),
                                                 MaxSpread = Convert.ToDecimal(p.MaxSpread),
                                                 AdaptPassiveOrdersBeforeEntryInSeconds = p.AdaptPassiveOrdersBeforeEntryInSeconds,
+                                                AdaptSlOrTpAfterEntryInSeconds = p.AdaptSlOrTpAfterEntryInSeconds,
                                                 NumberOfHistoricalBarsRequested = p.NumberOfHistoricalBarsRequested,
                                                 OrderExecType = p.OrderExecType,
                                                 RiskLong = Convert.ToDecimal(p.RiskLong),

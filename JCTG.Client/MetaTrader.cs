@@ -10,7 +10,7 @@ namespace JCTG.Client
         private TerminalConfig? _appConfig;
         private readonly List<MetatraderApi> _apis;
         private readonly List<RecurringCloseTradeScheduler> _recurringCloseTradeScheduler;
-        private readonly List<SpreadMonitor> _spreadMonitors;
+        private readonly List<SpreadMonitor> _spreadEntryMonitors;
 
 
         public Metatrader(TerminalConfig terminalConfig)
@@ -19,7 +19,7 @@ namespace JCTG.Client
             _appConfig = terminalConfig;
             _apis = [];
             _recurringCloseTradeScheduler = [];
-            _spreadMonitors = [];
+            _spreadEntryMonitors = [];
 
             // Foreach broker, init the API
             foreach (var broker in _appConfig.Brokers.Where(f => f.IsEnable).ToList())
@@ -71,6 +71,7 @@ namespace JCTG.Client
                         _api.OnTickEvent += OnTickEvent;
                         _api.OnAccountInfoChangedEvent += OnAccountInfoChangedEvent;
                         _api.OnHistoricBarDataEvent += OnHistoricBarDataEvent;
+                        _api.OnStartedEvent += OnStartedEvent;
 
                         // StartCheckTimeAndExecuteOnceDaily the API
                         await _api.StartAsync();
@@ -486,11 +487,11 @@ namespace JCTG.Client
                                                                                     api.ExecuteOrder(pair.TickerInMetatrader, orderType, lotSize, orderType == OrderType.Buy ? 0 : entryBidPrice.Value, sl, tp, Convert.ToInt32(cmd.SignalID), comment);
 
                                                                                     // Add to the spread monitor
-                                                                                    if (pair.AdaptPassiveOrdersBeforeEntryInSeconds > 0 && !_spreadMonitors.Any(f => f.IsStarted && f.ClientId == api.ClientId && f.Magic == Convert.ToInt32(cmd.SignalID)))
+                                                                                    if ((pair.AdaptPassiveOrdersBeforeEntryInSeconds > 0 || pair.AdaptSlOrTpAfterEntryInSeconds > 0) && !_spreadEntryMonitors.Any(f => f.IsStarted && f.ClientId == api.ClientId && f.Magic == Convert.ToInt32(cmd.SignalID)))
                                                                                     {
                                                                                         var monitor = SpreadMonitor.InitAndStart(api.ClientId, true, pair.TickerInMetatrader, Convert.ToInt32(cmd.SignalID), pair.AdaptPassiveOrdersBeforeEntryInSeconds);
                                                                                         monitor.OnSpreadChanged += OnMonitorSpreadWarning;
-                                                                                        _spreadMonitors.Add(monitor);
+                                                                                        _spreadEntryMonitors.Add(monitor);
                                                                                     }
 
                                                                                     // Send to logs
@@ -833,11 +834,11 @@ namespace JCTG.Client
                                                                                     api.ExecuteOrder(pair.TickerInMetatrader, orderType, lotSize, orderType == OrderType.Sell ? 0 : entryBidPrice.Value, sl, tp, (int)cmd.SignalID, comment);
 
                                                                                     // Add to the spread monitor
-                                                                                    if (pair.AdaptPassiveOrdersBeforeEntryInSeconds > 0 && !_spreadMonitors.Any(f => f.IsStarted && f.ClientId == api.ClientId && f.Magic == Convert.ToInt32(cmd.SignalID)))
+                                                                                    if ((pair.AdaptPassiveOrdersBeforeEntryInSeconds > 0 || pair.AdaptSlOrTpAfterEntryInSeconds > 0) && !_spreadEntryMonitors.Any(f => f.IsStarted && f.ClientId == api.ClientId && f.Magic == Convert.ToInt32(cmd.SignalID)))
                                                                                     {
-                                                                                        var monitor = SpreadMonitor.InitAndStart(api.ClientId, false, pair.TickerInMetatrader, Convert.ToInt32(cmd.SignalID), pair.AdaptPassiveOrdersBeforeEntryInSeconds);
+                                                                                        var monitor = SpreadMonitor.InitAndStart(api.ClientId, true, pair.TickerInMetatrader, Convert.ToInt32(cmd.SignalID), pair.AdaptPassiveOrdersBeforeEntryInSeconds);
                                                                                         monitor.OnSpreadChanged += OnMonitorSpreadWarning;
-                                                                                        _spreadMonitors.Add(monitor);
+                                                                                        _spreadEntryMonitors.Add(monitor);
                                                                                     }
 
                                                                                     // Send to logs
@@ -1271,7 +1272,7 @@ namespace JCTG.Client
             if (_appConfig != null && _apis.Count(f => f.ClientId == clientId) == 1)
             {
                 // Check if the monitor is started
-                if (_spreadMonitors.Any(f => f.IsStarted && f.ClientId == clientId && f.Instrument.Equals(instrument, StringComparison.CurrentCultureIgnoreCase) && f.Magic == magic))
+                if (_spreadEntryMonitors.Any(f => f.IsStarted && f.ClientId == clientId && f.Instrument.Equals(instrument, StringComparison.CurrentCultureIgnoreCase) && f.Magic == magic))
                 {
                     // Get the api
                     var api = _apis.First(f => f.ClientId == clientId);
@@ -1311,40 +1312,56 @@ namespace JCTG.Client
                             // Do null reference check
                             if (pair != null)
                             {
-                                // Execute the order (this code only applies on LONG's. In case of a SHORT position, the entry is taken on the BID price, and will not change if the spread is changing.
-                                if (isLong == true)
+                                // Monitor the entry price for passive order
+                                if (pair.AdaptPassiveOrdersBeforeEntryInSeconds > 0 && order.Value.Type != null && (order.Value.Type.Contains("stop", StringComparison.CurrentCultureIgnoreCase) || order.Value.Type.Contains("limit", StringComparison.CurrentCultureIgnoreCase)))
                                 {
-                                    // Calculate initial entry price (in case of LONG, the entry price is the ASK price, so we should substract the spread from the entry price to get the right BID price)
-                                    var initialEntryBidPrice = entryPrice.Value - entrySpread.Value;
+                                    // Execute the order (this code only applies on LONG's. In case of a SHORT position, the entry is taken on the BID price, and will not change if the spread is changing.
+                                    if (isLong == true)
+                                    {
+                                        // Print on the screen
+                                        Helpers.Print($"INFO : {DateTime.UtcNow} / {_appConfig.Brokers.First(f => f.ClientId == api.ClientId).Name} / {instrument} / AUTO MONITOR : ADAPT ORDER ENTRY PRICE / {magic} / {strategyId}");
 
-                                    // Calculate new entry price
-                                    var newEntryPrice = initialEntryBidPrice + currentSpread;
+                                        // Calculate initial entry price (in case of LONG, the entry price is the ASK price, so we should substract the spread from the entry price to get the right BID price)
+                                        var initialEntryBidPrice = entryPrice.Value - entrySpread.Value;
 
-                                    // Print on the screen
-                                    Helpers.Print($"INFO : {DateTime.UtcNow} / {_appConfig.Brokers.First(f => f.ClientId == api.ClientId).Name} / {instrument} / AUTO MONITOR : ADAPT ORDER / {magic} / {strategyId}");
+                                        // Calculate new entry price
+                                        var newEntryPrice = initialEntryBidPrice + currentSpread;
 
-                                    // Calculate the lot size
-                                    var lotSize = Calculator.LotSize(
-                                        startBalance: startbalance.Value,
-                                        accountBalance: api.AccountInfo.Balance,
-                                        riskPercent: pair.RiskLong,
-                                        entryBidPrice: newEntryPrice,
-                                        stopLossPrice: order.Value.StopLoss,
-                                        tickValue: metadata.Value.TickValue,
-                                        tickSize: metadata.Value.TickSize,
-                                        lotStep: metadata.Value.LotStep,
-                                        minLotSizeAllowed: metadata.Value.MinLotSize,
-                                        maxLotSizeAllowed: metadata.Value.MaxLotSize,
-                                        spread: currentSpread,
-                                        isLong: true,
-                                        out Dictionary<string, string> logMessagesLOT,
-                                        riskData: dynRisk);
+                                        // Calculate the lot size
+                                        var lotSize = Calculator.LotSize(
+                                            startBalance: startbalance.Value,
+                                            accountBalance: api.AccountInfo.Balance,
+                                            riskPercent: pair.RiskLong,
+                                            entryBidPrice: newEntryPrice,
+                                            stopLossPrice: order.Value.StopLoss,
+                                            tickValue: metadata.Value.TickValue,
+                                            tickSize: metadata.Value.TickSize,
+                                            lotStep: metadata.Value.LotStep,
+                                            minLotSizeAllowed: metadata.Value.MinLotSize,
+                                            maxLotSizeAllowed: metadata.Value.MaxLotSize,
+                                            spread: currentSpread,
+                                            isLong: true,
+                                            out Dictionary<string, string> logMessagesLOT,
+                                            riskData: dynRisk);
 
-                                    // Send to logs
-                                    LogFactory.CalculateLotSize(api.ClientId, _appConfig.Debug, order.Value, logMessagesLOT);
+                                        // Send to logs
+                                        LogFactory.CalculateLotSize(api.ClientId, _appConfig.Debug, order.Value, logMessagesLOT);
 
-                                    // Execute order
-                                    api.ModifyOrder(order.Key, lotSize, newEntryPrice, order.Value.StopLoss, order.Value.TakeProfit, order.Value.Magic);
+                                        // Execute order
+                                        api.ModifyOrder(order.Key, lotSize, newEntryPrice, order.Value.StopLoss, order.Value.TakeProfit, order.Value.Magic);
+                                    }
+                                }
+
+                                // Monitor the SL or TP
+                                if (pair.AdaptSlOrTpAfterEntryInSeconds > 0 && order.Value.Type != null && order.Value.Type.Contains("stop", StringComparison.CurrentCultureIgnoreCase) == false && order.Value.Type.Contains("limit", StringComparison.CurrentCultureIgnoreCase) == false)
+                                {
+                                    // Execute the order (this code only applies on SHORT's. In case of a LONG position, the TP or SL is taken on the BID price, and will not change if the spread is changing.
+                                    if (isLong == false)
+                                    {
+                                        // Print on the screen
+                                        Helpers.Print($"INFO : {DateTime.UtcNow} / {_appConfig.Brokers.First(f => f.ClientId == api.ClientId).Name} / {instrument} / AUTO MONITOR : ADAPT ORDER SL && TP / {magic} / {strategyId}");
+
+                                    }
                                 }
                             }
                         }
@@ -1433,6 +1450,14 @@ namespace JCTG.Client
                     }
                 }
             }
+        }
+
+        private void OnStartedEvent(long clientId)
+        {
+            // Init the monitor
+            CheckIfEverythingIsLoadedCorrectly();
+
+            // 
         }
 
         private void OnItsTimeToCloseTradeEvent(long clientID, string instrument, long strategyId)
@@ -1585,13 +1610,8 @@ namespace JCTG.Client
 
         private void OnTickEvent(long clientId, string symbol, decimal ask, decimal bid, decimal tickSize, int digits)
         {
-            foreach (var api in _apis)
-            {
-
-            }
-
             // Update the spread in the monitor
-            foreach (var monitor in _spreadMonitors.Where(f => f.IsStarted && f.ClientId == clientId && f.Instrument.Equals(symbol, StringComparison.CurrentCultureIgnoreCase)))
+            foreach (var monitor in _spreadEntryMonitors.Where(f => f.IsStarted && f.ClientId == clientId && f.Instrument.Equals(symbol, StringComparison.CurrentCultureIgnoreCase)))
             {
                 monitor.UpdateSpread(Calculator.CalculateSpread(ask, bid, tickSize, digits));
             }
@@ -1707,6 +1727,22 @@ namespace JCTG.Client
                     // Send to logs
                     LogFactory.ClosedAnOrderEvent(clientId, _appConfig.Debug, order, ticketId, marketdata.Bid, order.Magic, rrr);
                 }
+
+                // Get the monitor from the list
+                var monitor = _spreadEntryMonitors.FirstOrDefault(f => f.IsStarted && f.ClientId == clientId && f.Instrument.Equals(order.Symbol, StringComparison.CurrentCultureIgnoreCase) && f.Magic == order.Magic);
+
+                // Do null reference check
+                if (monitor != null)
+                {
+                    // Stop the monitor
+                    monitor.Stop();
+
+                    // Remove the monitor from the list
+                    _spreadEntryMonitors.Remove(monitor);
+
+                    // Print on screen
+                    Helpers.Print($"INFO : {DateTime.UtcNow} / {_appConfig.Brokers.First(f => f.ClientId == clientId).Name} / {order.Symbol} / STOP THE SPREAD MONITOR / {order.Magic}");
+                }
             }
         }
 
@@ -1715,10 +1751,7 @@ namespace JCTG.Client
             // Do null reference check
             if (_appConfig != null && _apis.Count(f => f.ClientId == clientId) == 1)
             {
-                // Get api
-                var api = _apis.First(f => f.ClientId == clientId);
-
-                // Do null reference check
+                // ENTRY IN
                 if (deal.Entry.Contains("entry_in") && !string.IsNullOrEmpty(deal.Comment))
                 {
                     // Get strategy id
@@ -1745,29 +1778,32 @@ namespace JCTG.Client
                                 // Print on screen
                                 Helpers.Print($"INFO : {DateTime.UtcNow} / {_appConfig.Brokers.First(f => f.ClientId == clientId).Name} / {deal.Symbol} / CLOSE TRADE @ {targetTime} / {deal.Magic}");
                             }
-
-                            // Stop the monitor
-                            if (pair.AdaptPassiveOrdersBeforeEntryInSeconds > 0)
-                            {
-                                // Get the monitor from the list
-                                var monitor = _spreadMonitors.FirstOrDefault(f => f.IsStarted && f.ClientId == clientId && f.Instrument.Equals(deal.Symbol, StringComparison.CurrentCultureIgnoreCase) && f.Magic == deal.Magic);
-
-                                // Do null reference check
-                                if (monitor != null)
-                                {
-                                    // Stop the monitor
-                                    monitor.Stop();
-
-                                    // Remove the monitor from the list
-                                    _spreadMonitors.Remove(monitor);
-
-                                    // Print on screen
-                                    Helpers.Print($"INFO : {DateTime.UtcNow} / {_appConfig.Brokers.First(f => f.ClientId == clientId).Name} / {deal.Symbol} / STOP THE SPREAD MONITOR / {deal.Magic}");
-                                }
-                            }
                         }
                     }
                 }
+
+                // ENTRY OUT
+                if (deal.Entry.Contains("entry_out"))
+                {
+                    // Get the monitor from the list
+                    var monitor = _spreadEntryMonitors.FirstOrDefault(f => f.IsStarted && f.ClientId == clientId && f.Instrument.Equals(deal.Symbol, StringComparison.CurrentCultureIgnoreCase) && f.Magic == deal.Magic);
+
+                    // Do null reference check
+                    if (monitor != null)
+                    {
+                        // Stop the monitor
+                        monitor.Stop();
+
+                        // Remove the monitor from the list
+                        _spreadEntryMonitors.Remove(monitor);
+
+                        // Print on screen
+                        Helpers.Print($"INFO : {DateTime.UtcNow} / {_appConfig.Brokers.First(f => f.ClientId == clientId).Name} / {deal.Symbol} / STOP THE SPREAD MONITOR / {deal.Magic}");
+                    }
+                }
+
+                // Get api
+                var api = _apis.First(f => f.ClientId == clientId);
 
                 // Do null reference chekc on metadatatick
                 if (api.MarketData != null)

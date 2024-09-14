@@ -67,7 +67,7 @@ namespace JCTG.Client
 
         public static async Task<TerminalConfig?> GetTerminalConfigAsync()
         {
-            var json = await GetJsonAsync("https://app.tradehubler.com/api/terminalconfig?code=Ocebxtg1excWosFez5rWMtNp3ZsmIzSFQ0XhqtrfHlMuAzFuQ0OGhA==&accountid=692803787");
+            var json = await GetJsonAsync("https://app.tradehubler.com:444/api/terminalconfig?code=Ocebxtg1excWosFez5rWMtNp3ZsmIzSFQ0XhqtrfHlMuAzFuQ0OGhA==&accountid=692803787");
             if (json != null)
                 return JsonConvert.DeserializeObject<TerminalConfig>(json);
             else
@@ -76,53 +76,53 @@ namespace JCTG.Client
 
         public static async Task OnOrderCreatedEvent(OnOrderCreatedEvent model)
         {
-            await PostJsonAsync("https://app.tradehubler.com/api/OnOrderCreatedEvent", JsonConvert.SerializeObject(model));
+            await PostJsonAsync("https://app.tradehubler.com:444/api/OnOrderCreatedEvent", JsonConvert.SerializeObject(model));
         }
 
         public static async Task OnOrderUpdatedEvent(OnOrderUpdatedEvent model)
         {
-            await PostJsonAsync("https://app.tradehubler.com/api/OnOrderUpdatedEvent", JsonConvert.SerializeObject(model));
+            await PostJsonAsync("https://app.tradehubler.com:444/api/OnOrderUpdatedEvent", JsonConvert.SerializeObject(model));
         }
 
         public static async Task OnOrderClosedEvent(OnOrderClosedEvent model)
         {
-            await PostJsonAsync("https://app.tradehubler.com/api/OnOrderClosedEvent", JsonConvert.SerializeObject(model));
+            await PostJsonAsync("https://app.tradehubler.com:444/api/OnOrderClosedEvent", JsonConvert.SerializeObject(model));
         }
 
         public static async Task OnOrderAutoMoveSlToBeEvent(OnOrderAutoMoveSlToBeEvent model)
         {
-            await PostJsonAsync("https://app.tradehubler.com/api/ModifyOrderByMoveSLtoBE", JsonConvert.SerializeObject(model));
+            await PostJsonAsync("https://app.tradehubler.com:444/api/ModifyOrderByMoveSLtoBE", JsonConvert.SerializeObject(model));
         }
 
         public static async Task OnItsTimeToCloseTheOrderEvent(OnItsTimeToCloseTheOrderEvent model)
         {
-            await PostJsonAsync("https://app.tradehubler.com/api/OnItsTimeToCloseTheOrderEvent", JsonConvert.SerializeObject(model));
+            await PostJsonAsync("https://app.tradehubler.com:444/api/OnItsTimeToCloseTheOrderEvent", JsonConvert.SerializeObject(model));
         }
 
         public static async Task OnLogEvent(OnLogEvent model)
         {
-            // await PushDataAsync("https://app.tradehubler.com/api/OnLogEvent", JsonConvert.SerializeObject(model));
-            await PostJsonAsync("https://app.tradehubler.com/api/OnLogEvent", JsonConvert.SerializeObject(model));
+            // await PushDataAsync("https://app.tradehubler.com:444/api/OnLogEvent", JsonConvert.SerializeObject(model));
+            await PostJsonAsync("https://app.tradehubler.com:444/api/OnLogEvent", JsonConvert.SerializeObject(model));
         }
 
         public static async Task OnDealCreatedEvent(OnDealCreatedEvent model)
         {
-            await PostJsonAsync("https://app.tradehubler.com/api/OnDealCreatedEvent", JsonConvert.SerializeObject(model));
+            await PostJsonAsync("https://app.tradehubler.com:444/api/OnDealCreatedEvent", JsonConvert.SerializeObject(model));
         }
 
         public static async Task OnAccountInfoChangedEvent(OnAccountInfoChangedEvent model)
         {
-            await PostJsonAsync("https://app.tradehubler.com/api/OnAccountInfoChangedEvent", JsonConvert.SerializeObject(model));
+            await PostJsonAsync("https://app.tradehubler.com:444/api/OnAccountInfoChangedEvent", JsonConvert.SerializeObject(model));
         }
 
         public static async Task OnMarketAbstentionEvent(OnMarketAbstentionEvent model)
         {
-            await PostJsonAsync("https://app.tradehubler.com/api/OnMarketAbstentionEvent", JsonConvert.SerializeObject(model));
+            await PostJsonAsync("https://app.tradehubler.com:444/api/OnMarketAbstentionEvent", JsonConvert.SerializeObject(model));
         }
 
         public static async Task OnMarketAbstentionEvent(OnMetatraderMarketAbstentionEvent model)
         {
-            await PostJsonAsync("https://app.tradehubler.com/api/OnMetatraderMarketAbstentionEvent", JsonConvert.SerializeObject(model));
+            await PostJsonAsync("https://app.tradehubler.com:444/api/OnMetatraderMarketAbstentionEvent", JsonConvert.SerializeObject(model));
         }
     }
 }
