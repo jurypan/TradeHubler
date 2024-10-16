@@ -1,5 +1,6 @@
 ﻿using JCTG.Models;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using System.Text.RegularExpressions;
 
 namespace JCTG.Client
@@ -184,215 +185,48 @@ namespace JCTG.Client
                                 // Get dynamic risk
                                 var dynRisk = Calculator.GetDynamicRisk(_appConfig, api.ClientId);
 
-                                // If this broker is listening to this signal and the account size is greater then zero
-                                if (api.AccountInfo != null)
+                                // Make sure the event is not older then 1 hour ago
+                                if (cmd.DateCreated >= DateTime.UtcNow.AddHours(-1))
                                 {
-                                    if (api.AccountInfo.Balance > 0 && api.MarketData != null)
+                                    // If this broker is listening to this signal and the account size is greater then zero
+                                    if (api.AccountInfo != null)
                                     {
-                                        if (pair != null)
+                                        if (api.AccountInfo.Balance > 0 && api.MarketData != null)
                                         {
-                                            // Get the metadata tick
-                                            var metadataTick = api.MarketData.FirstOrDefault(f => f.Key == pair.TickerInMetatrader).Value;
-
-                                            // Do null reference checks
-                                            if (metadataTick != null && metadataTick.Ask > 0 && metadataTick.Bid > 0 && metadataTick.Digits >= 0)
+                                            if (pair != null)
                                             {
-                                                // Calculate spread
-                                                var spread = Calculator.CalculateSpread(metadataTick.Ask, metadataTick.Bid, metadataTick.TickSize, metadataTick.Digits);
+                                                // Get the metadata tick
+                                                var metadataTick = api.MarketData.FirstOrDefault(f => f.Key == pair.TickerInMetatrader).Value;
 
-                                                // BUY
-                                                if ((pair.MaxSpread == 0 || (pair.MaxSpread > 0 && spread < pair.MaxSpread))
-                                                            && cmd.OrderType.Equals("BUY", StringComparison.CurrentCultureIgnoreCase)
-                                                            && cmd.MarketOrder != null
-                                                            && cmd.MarketOrder.Risk.HasValue
-                                                            && cmd.MarketOrder.RiskRewardRatio.HasValue
-                                                )
+                                                // Do null reference checks
+                                                if (metadataTick != null && metadataTick.Ask > 0 && metadataTick.Bid > 0 && metadataTick.Digits >= 0)
                                                 {
-                                                    // Do correlation check
-                                                    if (CorrelatedPairs.IsNotCorrelated(pair.TickerInMetatrader, "BUY", pair.CorrelatedPairs, api.OpenOrders))
+                                                    // Calculate spread
+                                                    var spread = Calculator.CalculateSpread(metadataTick.Ask, metadataTick.Bid, metadataTick.TickSize, metadataTick.Digits);
+
+                                                    // BUY
+                                                    if ((pair.MaxSpread == 0 || (pair.MaxSpread > 0 && spread < pair.MaxSpread))
+                                                                && cmd.OrderType.Equals("BUY", StringComparison.CurrentCultureIgnoreCase)
+                                                                && cmd.MarketOrder != null
+                                                                && cmd.MarketOrder.Risk.HasValue
+                                                                && cmd.MarketOrder.RiskRewardRatio.HasValue
+                                                    )
                                                     {
-                                                        // Do do not open a deal x minutes before close
-                                                        if (RecurringCloseTradeScheduler.CanOpenTrade(pair.CloseAllTradesAt, pair.DoNotOpenTradeXMinutesBeforeClose))
+                                                        // Do correlation check
+                                                        if (CorrelatedPairs.IsNotCorrelated(pair.TickerInMetatrader, "BUY", pair.CorrelatedPairs, api.OpenOrders))
                                                         {
-                                                            // InitAndStart entryBidPrice
-                                                            var entryBidPrice = metadataTick.Bid;
-
-                                                            // Calculate SL Price
-                                                            var sl = Calculator.StoplossForLong(
-                                                                entryBidPrice: entryBidPrice,
-                                                                risk: cmd.MarketOrder.Risk.Value,
-                                                                slMultiplier: pair.SLMultiplier,
-                                                                stopLossExpression: cmd.MarketOrder.StopLossExpression,
-                                                                bars: api.HistoricBarData.Where(f => f.Key == pair.TickerInMetatrader).SelectMany(f => f.Value.BarData).ToList(),
-                                                                spread: spread,
-                                                                tickSize: metadataTick.TickSize,
-                                                                out Dictionary<string, string> logMessagesSL);
-
-                                                            // Send to logs
-                                                            LogFactory.CalculateStoploss(api.ClientId, _appConfig.Debug, cmd, logMessagesSL);
-
-                                                            // Get the Take Profit Price
-                                                            var tp = Calculator.TakeProfitForLong(
-                                                                entryBidPrice: entryBidPrice,
-                                                                risk: cmd.MarketOrder.Risk.Value,
-                                                                slMultiplier: pair.SLMultiplier,
-                                                                stopLossExpression: cmd.MarketOrder.StopLossExpression,
-                                                                bars: api.HistoricBarData.Where(f => f.Key == pair.TickerInMetatrader).SelectMany(f => f.Value.BarData).ToList(),
-                                                                spread: spread,
-                                                                riskRewardRatio: cmd.MarketOrder.RiskRewardRatio.Value,
-                                                                out Dictionary<string, string> logMessagesTP);
-
-                                                            // Send to logs
-                                                            LogFactory.CalculateTakeProfit(api.ClientId, _appConfig.Debug, cmd, logMessagesTP);
-
-                                                            // Calculate the lot size
-                                                            var lotSize = Calculator.LotSize(
-                                                                startBalance: startbalance,
-                                                                accountBalance: api.AccountInfo.Balance,
-                                                                riskPercent: pair.RiskLong,
-                                                                entryBidPrice: entryBidPrice,
-                                                                stopLossPrice: sl,
-                                                                tickValue: metadataTick.TickValue,
-                                                                tickSize: metadataTick.TickSize,
-                                                                lotStep: metadataTick.LotStep,
-                                                                minLotSizeAllowed: metadataTick.MinLotSize,
-                                                                maxLotSizeAllowed: metadataTick.MaxLotSize,
-                                                                spread: spread,
-                                                                isLong: true,
-                                                                out Dictionary<string, string> logMessagesLOT,
-                                                                riskData: dynRisk);
-
-                                                            // Send to logs
-                                                            LogFactory.CalculateLotSize(api.ClientId, _appConfig.Debug, cmd, logMessagesLOT);
-
-                                                            // do 0.0 lotsize check
-                                                            if (lotSize > 0.0M)
+                                                            // Do do not open a deal x minutes before close
+                                                            if (RecurringCloseTradeScheduler.CanOpenTrade(pair.CloseAllTradesAt, pair.DoNotOpenTradeXMinutesBeforeClose))
                                                             {
-                                                                // Do 0.0 SL check
-                                                                if (sl > 0.0M)
-                                                                {
-                                                                    // Do 0.0 TP check
-                                                                    if (tp > 0.0M)
-                                                                    {
-                                                                        // Do lot size check
-                                                                        if (pair.MaxLotSize <= 0 || pair.MaxLotSize > 0 && lotSize <= pair.MaxLotSize)
-                                                                        {
-                                                                            // Do check if risk is x times the spread
-                                                                            if (pair.RiskMinXTimesTheSpread <= 0 || (spread * pair.RiskMinXTimesTheSpread < Math.Abs(entryBidPrice - sl)))
-                                                                            {
-                                                                                // Print on the screen
-                                                                                Helpers.Print($"INFO : {DateTime.UtcNow} / {_appConfig.Brokers.First(f => f.ClientId == api.ClientId).Name} / {pair.TickerInMetatrader} / BUY COMMAND / {cmd.SignalID} / {cmd.StrategyID}");
+                                                                // InitAndStart entryBidPrice
+                                                                var entryBidPrice = metadataTick.Bid;
 
-                                                                                // Cancel open buy or limit orders
-                                                                                if (pair.CancelStopOrLimitOrderWhenNewSignal)
-                                                                                {
-                                                                                    foreach (var order in api.OpenOrders.Where(f => f.Value.Symbol == pair.TickerInMetatrader
-                                                                                                                                    && f.Value.Type != null
-                                                                                                                                    && (f.Value.Type.Equals("buystop") || f.Value.Type.Equals("buylimit") || f.Value.Type.Equals("buy"))
-                                                                                                                                    ))
-                                                                                    {
-                                                                                        // Close the order
-                                                                                        api.CloseOrder(order.Key, decimal.ToDouble(order.Value.Lots));
-
-                                                                                        // Send to logs
-                                                                                        LogFactory.CloseOrderCommand(api.ClientId, _appConfig.Debug, cmd, order.Key, decimal.ToDouble(order.Value.Lots), order.Value.Magic);
-                                                                                    }
-                                                                                }
-
-                                                                                // Generate order type
-                                                                                var orderType = OrderType.Buy;
-
-                                                                                // Round
-                                                                                entryBidPrice = Calculator.RoundToNearestTickSize(entryBidPrice, metadataTick.TickSize, metadataTick.Digits);
-                                                                                sl = Calculator.RoundToNearestTickSize(sl, metadataTick.TickSize, metadataTick.Digits);
-                                                                                tp = Calculator.RoundToNearestTickSize(tp, metadataTick.TickSize, metadataTick.Digits);
-
-                                                                                // Generate comment
-                                                                                var comment = Calculator.GenerateComment(cmd.SignalID, entryBidPrice, sl, pair.StrategyID, spread);
-
-                                                                                // Execute order
-                                                                                api.ExecuteOrder(pair.TickerInMetatrader, orderType, lotSize, 0, sl, tp, Convert.ToInt32(cmd.SignalID), comment);
-
-                                                                                // Send to logs
-                                                                                LogFactory.ExecuteOrderCommand(api.ClientId, _appConfig.Debug, cmd, pair.TickerInMetatrader, orderType, lotSize, 0, sl, tp, Convert.ToInt32(cmd.SignalID), comment);
-                                                                            }
-                                                                            else
-                                                                            {
-                                                                                // Raise market abstention or error
-                                                                                await MarketAbstentionFactory.RiskShouldBeAtLeastXTimesTheSpreadAsync(api.ClientId, _appConfig.Debug, cmd, cmd.SignalID, pair.RiskMinXTimesTheSpread, entryBidPrice, sl);
-                                                                            }
-                                                                        }
-                                                                        else
-                                                                        {
-                                                                            // Raise market abstention or error
-                                                                            await MarketAbstentionFactory.AmountOfLotSizeShouldBeSmallerThenMaxLotsizeAsync(api.ClientId, _appConfig.Debug, cmd, cmd.SignalID, pair.MaxLotSize, lotSize);
-                                                                        }
-                                                                    }
-                                                                    else
-                                                                    {
-                                                                        // Raise market abstention or error
-                                                                        await MarketAbstentionFactory.ExceptionCalculatingTakeProfitPriceAsync(api.ClientId, _appConfig.Debug, cmd, cmd.SignalID, tp);
-                                                                    }
-                                                                }
-                                                                else
-                                                                {
-                                                                    // Raise market abstention or error
-                                                                    await MarketAbstentionFactory.ExceptionCalculatingStopLossPriceAsync(api.ClientId, _appConfig.Debug, cmd, cmd.SignalID, sl);
-                                                                }
-                                                            }
-                                                            else
-                                                            {
-                                                                // Raise market abstention or error
-                                                                await MarketAbstentionFactory.ExceptionCalculatingLotSizeAsync(api.ClientId, _appConfig.Debug, cmd, cmd.SignalID, lotSize);
-                                                            }
-                                                        }
-                                                        else
-                                                        {
-                                                            // Raise market abstention or error
-                                                            await MarketAbstentionFactory.MarketWillBeClosedWithinXMinutesAsync(api.ClientId, _appConfig.Debug, cmd, cmd.SignalID, pair.CloseAllTradesAt, pair.DoNotOpenTradeXMinutesBeforeClose);
-                                                        }
-                                                    }
-                                                    else
-                                                    {
-                                                        // Raise market abstention or error
-                                                        await MarketAbstentionFactory.CorrelatedPairFoundAsync(api.ClientId, _appConfig.Debug, cmd, cmd.SignalID, pair.TickerInMetatrader, "BUY", pair.CorrelatedPairs, api.OpenOrders);
-                                                    }
-                                                }
-
-                                                // BUY STOP
-                                                else if ((pair.MaxSpread == 0 || (pair.MaxSpread > 0 && spread < pair.MaxSpread))
-                                                            && cmd.OrderType.Equals("BUYSTOP", StringComparison.CurrentCultureIgnoreCase)
-                                                            && cmd.PassiveOrder != null
-                                                            && cmd.PassiveOrder.EntryExpression != null
-                                                            && cmd.PassiveOrder.Risk.HasValue
-                                                            && cmd.PassiveOrder.RiskRewardRatio.HasValue
-                                                )
-                                                {
-                                                    // Do correlation check
-                                                    if (CorrelatedPairs.IsNotCorrelated(pair.TickerInMetatrader, "BUY", pair.CorrelatedPairs, api.OpenOrders))
-                                                    {
-                                                        // Do do not open a deal x minutes before close
-                                                        if (RecurringCloseTradeScheduler.CanOpenTrade(pair.CloseAllTradesAt, pair.DoNotOpenTradeXMinutesBeforeClose))
-                                                        {
-                                                            // Get the entry entryBidPrice
-                                                            var entryBidPrice = Calculator.EntryBidPriceForLong(
-                                                                entryExpression: cmd.PassiveOrder.EntryExpression,
-                                                                bars: api.HistoricBarData.Where(f => f.Key == pair.TickerInMetatrader).SelectMany(f => f.Value.BarData).ToList(),
-                                                                spread: spread,
-                                                                logMessages: out Dictionary<string, string> logMessagesENTRY);
-
-                                                            // Send to logs
-                                                            LogFactory.CalculateEntryBidPrice(api.ClientId, _appConfig.Debug, cmd, logMessagesENTRY);
-
-                                                            // Do 0.0 check
-                                                            if (entryBidPrice.HasValue)
-                                                            {
                                                                 // Calculate SL Price
                                                                 var sl = Calculator.StoplossForLong(
-                                                                    entryBidPrice: entryBidPrice.Value,
-                                                                    risk: cmd.PassiveOrder.Risk.Value,
+                                                                    entryBidPrice: entryBidPrice,
+                                                                    risk: cmd.MarketOrder.Risk.Value,
                                                                     slMultiplier: pair.SLMultiplier,
-                                                                    stopLossExpression: cmd.PassiveOrder.StopLossExpression,
+                                                                    stopLossExpression: cmd.MarketOrder.StopLossExpression,
                                                                     bars: api.HistoricBarData.Where(f => f.Key == pair.TickerInMetatrader).SelectMany(f => f.Value.BarData).ToList(),
                                                                     spread: spread,
                                                                     tickSize: metadataTick.TickSize,
@@ -403,13 +237,13 @@ namespace JCTG.Client
 
                                                                 // Get the Take Profit Price
                                                                 var tp = Calculator.TakeProfitForLong(
-                                                                    entryBidPrice: entryBidPrice.Value,
-                                                                    risk: cmd.PassiveOrder.Risk.Value,
+                                                                    entryBidPrice: entryBidPrice,
+                                                                    risk: cmd.MarketOrder.Risk.Value,
                                                                     slMultiplier: pair.SLMultiplier,
-                                                                    stopLossExpression: cmd.PassiveOrder.StopLossExpression,
+                                                                    stopLossExpression: cmd.MarketOrder.StopLossExpression,
                                                                     bars: api.HistoricBarData.Where(f => f.Key == pair.TickerInMetatrader).SelectMany(f => f.Value.BarData).ToList(),
                                                                     spread: spread,
-                                                                    riskRewardRatio: cmd.PassiveOrder.RiskRewardRatio.Value,
+                                                                    riskRewardRatio: cmd.MarketOrder.RiskRewardRatio.Value,
                                                                     out Dictionary<string, string> logMessagesTP);
 
                                                                 // Send to logs
@@ -420,7 +254,7 @@ namespace JCTG.Client
                                                                     startBalance: startbalance,
                                                                     accountBalance: api.AccountInfo.Balance,
                                                                     riskPercent: pair.RiskLong,
-                                                                    entryBidPrice: entryBidPrice.Value,
+                                                                    entryBidPrice: entryBidPrice,
                                                                     stopLossPrice: sl,
                                                                     tickValue: metadataTick.TickValue,
                                                                     tickSize: metadataTick.TickSize,
@@ -429,6 +263,352 @@ namespace JCTG.Client
                                                                     maxLotSizeAllowed: metadataTick.MaxLotSize,
                                                                     spread: spread,
                                                                     isLong: true,
+                                                                    out Dictionary<string, string> logMessagesLOT,
+                                                                    riskData: dynRisk);
+
+                                                                // Send to logs
+                                                                LogFactory.CalculateLotSize(api.ClientId, _appConfig.Debug, cmd, logMessagesLOT);
+
+                                                                // do 0.0 lotsize check
+                                                                if (lotSize > 0.0M)
+                                                                {
+                                                                    // Do 0.0 SL check
+                                                                    if (sl > 0.0M)
+                                                                    {
+                                                                        // Do 0.0 TP check
+                                                                        if (tp > 0.0M)
+                                                                        {
+                                                                            // Do lot size check
+                                                                            if (pair.MaxLotSize <= 0 || pair.MaxLotSize > 0 && lotSize <= pair.MaxLotSize)
+                                                                            {
+                                                                                // Do check if risk is x times the spread
+                                                                                if (pair.RiskMinXTimesTheSpread <= 0 || (spread * pair.RiskMinXTimesTheSpread < Math.Abs(entryBidPrice - sl)))
+                                                                                {
+                                                                                    // Print on the screen
+                                                                                    Helpers.Print($"INFO : {DateTime.UtcNow} / {_appConfig.Brokers.First(f => f.ClientId == api.ClientId).Name} / {pair.TickerInMetatrader} / BUY COMMAND / {cmd.SignalID} / {cmd.StrategyID}");
+
+                                                                                    // Cancel open buy or limit orders
+                                                                                    if (pair.CancelStopOrLimitOrderWhenNewSignal)
+                                                                                    {
+                                                                                        foreach (var order in api.OpenOrders.Where(f => f.Value.Symbol == pair.TickerInMetatrader
+                                                                                                                                        && f.Value.Type != null
+                                                                                                                                        && (f.Value.Type.Equals("buystop") || f.Value.Type.Equals("buylimit") || f.Value.Type.Equals("buy"))
+                                                                                                                                        ))
+                                                                                        {
+                                                                                            // Close the order
+                                                                                            api.CloseOrder(order.Key, decimal.ToDouble(order.Value.Lots));
+
+                                                                                            // Send to logs
+                                                                                            LogFactory.CloseOrderCommand(api.ClientId, _appConfig.Debug, cmd, order.Key, decimal.ToDouble(order.Value.Lots), order.Value.Magic);
+                                                                                        }
+                                                                                    }
+
+                                                                                    // Generate order type
+                                                                                    var orderType = OrderType.Buy;
+
+                                                                                    // Round
+                                                                                    entryBidPrice = Calculator.RoundToNearestTickSize(entryBidPrice, metadataTick.TickSize, metadataTick.Digits);
+                                                                                    sl = Calculator.RoundToNearestTickSize(sl, metadataTick.TickSize, metadataTick.Digits);
+                                                                                    tp = Calculator.RoundToNearestTickSize(tp, metadataTick.TickSize, metadataTick.Digits);
+
+                                                                                    // Generate comment
+                                                                                    var comment = Calculator.GenerateComment(cmd.SignalID, entryBidPrice, sl, pair.StrategyID, spread);
+
+                                                                                    // Execute order
+                                                                                    api.ExecuteOrder(pair.TickerInMetatrader, orderType, lotSize, 0, sl, tp, Convert.ToInt32(cmd.SignalID), comment);
+
+                                                                                    // Send to logs
+                                                                                    LogFactory.ExecuteOrderCommand(api.ClientId, _appConfig.Debug, cmd, pair.TickerInMetatrader, orderType, lotSize, 0, sl, tp, Convert.ToInt32(cmd.SignalID), comment);
+                                                                                }
+                                                                                else
+                                                                                {
+                                                                                    // Raise market abstention or error
+                                                                                    await MarketAbstentionFactory.RiskShouldBeAtLeastXTimesTheSpreadAsync(api.ClientId, _appConfig.Debug, cmd, cmd.SignalID, pair.RiskMinXTimesTheSpread, entryBidPrice, sl);
+                                                                                }
+                                                                            }
+                                                                            else
+                                                                            {
+                                                                                // Raise market abstention or error
+                                                                                await MarketAbstentionFactory.AmountOfLotSizeShouldBeSmallerThenMaxLotsizeAsync(api.ClientId, _appConfig.Debug, cmd, cmd.SignalID, pair.MaxLotSize, lotSize);
+                                                                            }
+                                                                        }
+                                                                        else
+                                                                        {
+                                                                            // Raise market abstention or error
+                                                                            await MarketAbstentionFactory.ExceptionCalculatingTakeProfitPriceAsync(api.ClientId, _appConfig.Debug, cmd, cmd.SignalID, tp);
+                                                                        }
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        // Raise market abstention or error
+                                                                        await MarketAbstentionFactory.ExceptionCalculatingStopLossPriceAsync(api.ClientId, _appConfig.Debug, cmd, cmd.SignalID, sl);
+                                                                    }
+                                                                }
+                                                                else
+                                                                {
+                                                                    // Raise market abstention or error
+                                                                    await MarketAbstentionFactory.ExceptionCalculatingLotSizeAsync(api.ClientId, _appConfig.Debug, cmd, cmd.SignalID, lotSize);
+                                                                }
+                                                            }
+                                                            else
+                                                            {
+                                                                // Raise market abstention or error
+                                                                await MarketAbstentionFactory.MarketWillBeClosedWithinXMinutesAsync(api.ClientId, _appConfig.Debug, cmd, cmd.SignalID, pair.CloseAllTradesAt, pair.DoNotOpenTradeXMinutesBeforeClose);
+                                                            }
+                                                        }
+                                                        else
+                                                        {
+                                                            // Raise market abstention or error
+                                                            await MarketAbstentionFactory.CorrelatedPairFoundAsync(api.ClientId, _appConfig.Debug, cmd, cmd.SignalID, pair.TickerInMetatrader, "BUY", pair.CorrelatedPairs, api.OpenOrders);
+                                                        }
+                                                    }
+
+                                                    // BUY STOP
+                                                    else if ((pair.MaxSpread == 0 || (pair.MaxSpread > 0 && spread < pair.MaxSpread))
+                                                                && cmd.OrderType.Equals("BUYSTOP", StringComparison.CurrentCultureIgnoreCase)
+                                                                && cmd.PassiveOrder != null
+                                                                && cmd.PassiveOrder.EntryExpression != null
+                                                                && cmd.PassiveOrder.Risk.HasValue
+                                                                && cmd.PassiveOrder.RiskRewardRatio.HasValue
+                                                    )
+                                                    {
+                                                        // Do correlation check
+                                                        if (CorrelatedPairs.IsNotCorrelated(pair.TickerInMetatrader, "BUY", pair.CorrelatedPairs, api.OpenOrders))
+                                                        {
+                                                            // Do do not open a deal x minutes before close
+                                                            if (RecurringCloseTradeScheduler.CanOpenTrade(pair.CloseAllTradesAt, pair.DoNotOpenTradeXMinutesBeforeClose))
+                                                            {
+                                                                // Get the entry entryBidPrice
+                                                                var entryBidPrice = Calculator.EntryBidPriceForLong(
+                                                                    entryExpression: cmd.PassiveOrder.EntryExpression,
+                                                                    bars: api.HistoricBarData.Where(f => f.Key == pair.TickerInMetatrader).SelectMany(f => f.Value.BarData).ToList(),
+                                                                    spread: spread,
+                                                                    logMessages: out Dictionary<string, string> logMessagesENTRY);
+
+                                                                // Send to logs
+                                                                LogFactory.CalculateEntryBidPrice(api.ClientId, _appConfig.Debug, cmd, logMessagesENTRY);
+
+                                                                // Do 0.0 check
+                                                                if (entryBidPrice.HasValue)
+                                                                {
+                                                                    // Calculate SL Price
+                                                                    var sl = Calculator.StoplossForLong(
+                                                                        entryBidPrice: entryBidPrice.Value,
+                                                                        risk: cmd.PassiveOrder.Risk.Value,
+                                                                        slMultiplier: pair.SLMultiplier,
+                                                                        stopLossExpression: cmd.PassiveOrder.StopLossExpression,
+                                                                        bars: api.HistoricBarData.Where(f => f.Key == pair.TickerInMetatrader).SelectMany(f => f.Value.BarData).ToList(),
+                                                                        spread: spread,
+                                                                        tickSize: metadataTick.TickSize,
+                                                                        out Dictionary<string, string> logMessagesSL);
+
+                                                                    // Send to logs
+                                                                    LogFactory.CalculateStoploss(api.ClientId, _appConfig.Debug, cmd, logMessagesSL);
+
+                                                                    // Get the Take Profit Price
+                                                                    var tp = Calculator.TakeProfitForLong(
+                                                                        entryBidPrice: entryBidPrice.Value,
+                                                                        risk: cmd.PassiveOrder.Risk.Value,
+                                                                        slMultiplier: pair.SLMultiplier,
+                                                                        stopLossExpression: cmd.PassiveOrder.StopLossExpression,
+                                                                        bars: api.HistoricBarData.Where(f => f.Key == pair.TickerInMetatrader).SelectMany(f => f.Value.BarData).ToList(),
+                                                                        spread: spread,
+                                                                        riskRewardRatio: cmd.PassiveOrder.RiskRewardRatio.Value,
+                                                                        out Dictionary<string, string> logMessagesTP);
+
+                                                                    // Send to logs
+                                                                    LogFactory.CalculateTakeProfit(api.ClientId, _appConfig.Debug, cmd, logMessagesTP);
+
+                                                                    // Calculate the lot size
+                                                                    var lotSize = Calculator.LotSize(
+                                                                        startBalance: startbalance,
+                                                                        accountBalance: api.AccountInfo.Balance,
+                                                                        riskPercent: pair.RiskLong,
+                                                                        entryBidPrice: entryBidPrice.Value,
+                                                                        stopLossPrice: sl,
+                                                                        tickValue: metadataTick.TickValue,
+                                                                        tickSize: metadataTick.TickSize,
+                                                                        lotStep: metadataTick.LotStep,
+                                                                        minLotSizeAllowed: metadataTick.MinLotSize,
+                                                                        maxLotSizeAllowed: metadataTick.MaxLotSize,
+                                                                        spread: spread,
+                                                                        isLong: true,
+                                                                        out Dictionary<string, string> logMessagesLOT,
+                                                                        riskData: dynRisk);
+
+                                                                    // Send to logs
+                                                                    LogFactory.CalculateLotSize(api.ClientId, _appConfig.Debug, cmd, logMessagesLOT);
+
+                                                                    // do 0.0 check
+                                                                    if (lotSize > 0.0M)
+                                                                    {
+                                                                        // Do 0.0 check
+                                                                        if (sl > 0.0M)
+                                                                        {
+                                                                            // Do 0.0 check
+                                                                            if (tp > 0.0M)
+                                                                            {
+                                                                                // Do lot size check
+                                                                                if (pair.MaxLotSize == 0 || pair.MaxLotSize > 0 && lotSize <= pair.MaxLotSize)
+                                                                                {
+                                                                                    // Do check if risk is x times the spread
+                                                                                    if (pair.RiskMinXTimesTheSpread == 0 || (spread * pair.RiskMinXTimesTheSpread < Math.Abs(entryBidPrice.Value - sl)))
+                                                                                    {
+                                                                                        // Cancel open buy or limit orders
+                                                                                        if (pair.CancelStopOrLimitOrderWhenNewSignal)
+                                                                                        {
+                                                                                            foreach (var order in api.OpenOrders.Where(f => f.Value.Symbol == pair.TickerInMetatrader
+                                                                                                                                            && f.Value.Type != null
+                                                                                                                                            && (f.Value.Type.Equals("buystop") || f.Value.Type.Equals("buylimit") || f.Value.Type.Equals("buy"))
+                                                                                                                                            ))
+                                                                                            {
+                                                                                                // Execute
+                                                                                                api.CloseOrder(order.Key, decimal.ToDouble(order.Value.Lots));
+
+                                                                                                // Send to logs
+                                                                                                LogFactory.CloseOrderCommand(api.ClientId, _appConfig.Debug, cmd, order.Key, decimal.ToDouble(order.Value.Lots), order.Value.Magic);
+                                                                                            }
+                                                                                        }
+
+                                                                                        // Generate order type
+                                                                                        var orderType = Calculator.CalculatePassiveOrderTypeForLong(pair.OrderExecType, entryBidPrice.Value, metadataTick.Ask, out Dictionary<string, string> logMessagesORDERTYPE);
+
+                                                                                        // Send to logs
+                                                                                        LogFactory.CalculatePassiveOrderType(api.ClientId, _appConfig.Debug, cmd, logMessagesORDERTYPE);
+
+                                                                                        // Round
+                                                                                        entryBidPrice = Calculator.RoundToNearestTickSize(entryBidPrice.Value, metadataTick.TickSize, metadataTick.Digits);
+                                                                                        sl = Calculator.RoundToNearestTickSize(sl, metadataTick.TickSize, metadataTick.Digits);
+                                                                                        tp = Calculator.RoundToNearestTickSize(tp, metadataTick.TickSize, metadataTick.Digits);
+
+                                                                                        // Generate comment
+                                                                                        var comment = Calculator.GenerateComment(cmd.SignalID, orderType == OrderType.Buy ? metadataTick.Bid : entryBidPrice.Value, sl, pair.StrategyID, spread);
+
+                                                                                        // Print on the screen
+                                                                                        Helpers.Print($"INFO : {DateTime.UtcNow} / {_appConfig.Brokers.First(f => f.ClientId == api.ClientId).Name} / {pair.TickerInMetatrader} / {orderType.GetDescription().ToUpper()} COMMAND / {cmd.SignalID} / {cmd.StrategyID}");
+
+                                                                                        // Execute order
+                                                                                        api.ExecuteOrder(pair.TickerInMetatrader, orderType, lotSize, orderType == OrderType.Buy ? 0 : entryBidPrice.Value, sl, tp, Convert.ToInt32(cmd.SignalID), comment);
+
+                                                                                        // Add to the spread monitor
+                                                                                        if ((pair.AdaptPassiveOrdersBeforeEntryInSeconds > 0 || pair.AdaptSlOrTpAfterEntryInSeconds > 0) && !_spreadEntryMonitors.Any(f => f.IsStarted && f.ClientId == api.ClientId && f.Magic == Convert.ToInt32(cmd.SignalID)))
+                                                                                        {
+                                                                                            var monitor = SpreadMonitor.InitAndStart(api.ClientId, true, pair.TickerInMetatrader, Convert.ToInt32(cmd.SignalID), pair.AdaptPassiveOrdersBeforeEntryInSeconds);
+                                                                                            monitor.OnSpreadChanged += OnMonitorSpreadWarning;
+                                                                                            _spreadEntryMonitors.Add(monitor);
+                                                                                        }
+
+                                                                                        // Send to logs
+                                                                                        LogFactory.ExecuteOrderCommand(api.ClientId, _appConfig.Debug, cmd, pair.TickerInMetatrader, orderType, lotSize, orderType == OrderType.Buy ? metadataTick.Bid : entryBidPrice.Value, sl, tp, Convert.ToInt32(cmd.SignalID), comment);
+                                                                                    }
+                                                                                    else
+                                                                                    {
+                                                                                        // Raise market abstention or error
+                                                                                        await MarketAbstentionFactory.RiskShouldBeAtLeastXTimesTheSpreadAsync(api.ClientId, _appConfig.Debug, cmd, cmd.SignalID, pair.RiskMinXTimesTheSpread, entryBidPrice.Value, sl);
+                                                                                    }
+                                                                                }
+                                                                                else
+                                                                                {
+                                                                                    // Raise market abstention or error
+                                                                                    await MarketAbstentionFactory.AmountOfLotSizeShouldBeSmallerThenMaxLotsizeAsync(api.ClientId, _appConfig.Debug, cmd, cmd.SignalID, pair.MaxLotSize, lotSize);
+                                                                                }
+                                                                            }
+                                                                            else
+                                                                            {
+                                                                                // Raise market abstention or error
+                                                                                await MarketAbstentionFactory.ExceptionCalculatingTakeProfitPriceAsync(api.ClientId, _appConfig.Debug, cmd, cmd.SignalID, tp);
+                                                                            }
+                                                                        }
+                                                                        else
+                                                                        {
+                                                                            // Raise market abstention or error
+                                                                            await MarketAbstentionFactory.ExceptionCalculatingStopLossPriceAsync(api.ClientId, _appConfig.Debug, cmd, cmd.SignalID, sl);
+                                                                        }
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        // Raise market abstention or error
+                                                                        await MarketAbstentionFactory.ExceptionCalculatingLotSizeAsync(api.ClientId, _appConfig.Debug, cmd, cmd.SignalID, lotSize);
+                                                                    }
+                                                                }
+                                                                else
+                                                                {
+                                                                    // Raise market abstention or error
+                                                                    await MarketAbstentionFactory.ExceptionCalculatingEntryPriceAsync(api.ClientId, _appConfig.Debug, cmd, cmd.SignalID, cmd.PassiveOrder.EntryExpression, DynamicEvaluator.GetDateFromBarString(cmd.PassiveOrder.EntryExpression));
+                                                                }
+                                                            }
+                                                            else
+                                                            {
+                                                                // Raise market abstention or error
+                                                                await MarketAbstentionFactory.MarketWillBeClosedWithinXMinutesAsync(api.ClientId, _appConfig.Debug, cmd, cmd.SignalID, pair.CloseAllTradesAt, pair.DoNotOpenTradeXMinutesBeforeClose);
+                                                            }
+                                                        }
+                                                        else
+                                                        {
+                                                            // Raise market abstention or error
+                                                            await MarketAbstentionFactory.CorrelatedPairFoundAsync(api.ClientId, _appConfig.Debug, cmd, cmd.SignalID, pair.TickerInMetatrader, "BUY", pair.CorrelatedPairs, api.OpenOrders);
+                                                        }
+                                                    }
+
+                                                    // SELL
+                                                    else if ((pair.MaxSpread == 0 || (pair.MaxSpread > 0 && spread < pair.MaxSpread))
+                                                                        && cmd.OrderType.Equals("SELL", StringComparison.CurrentCultureIgnoreCase)
+                                                                        && cmd.MarketOrder != null
+                                                                        && cmd.MarketOrder.Risk.HasValue
+                                                                        && cmd.MarketOrder.RiskRewardRatio.HasValue
+                                                                        )
+                                                    {
+                                                        // Do correlation check
+                                                        if (CorrelatedPairs.IsNotCorrelated(pair.TickerInMetatrader, "SELL", pair.CorrelatedPairs, api.OpenOrders))
+                                                        {
+                                                            // Do do not open a deal x minutes before close
+                                                            if (RecurringCloseTradeScheduler.CanOpenTrade(pair.CloseAllTradesAt, pair.DoNotOpenTradeXMinutesBeforeClose))
+                                                            {
+                                                                // InitAndStart
+                                                                var entryBidPrice = metadataTick.Bid;
+
+                                                                // Calculate SL Price
+                                                                var sl = Calculator.StoplossForShort(
+                                                                    entryBidPrice: entryBidPrice,
+                                                                    risk: cmd.MarketOrder.Risk.Value,
+                                                                    slMultiplier: pair.SLMultiplier,
+                                                                    stopLossExpression: cmd.MarketOrder.StopLossExpression,
+                                                                    bars: api.HistoricBarData.Where(f => f.Key == pair.TickerInMetatrader).SelectMany(f => f.Value.BarData).ToList(),
+                                                                    spread: spread,
+                                                                    tickSize: metadataTick.TickSize,
+                                                                    out Dictionary<string, string> logMessagesSL);
+
+                                                                // Send to logs
+                                                                LogFactory.CalculateStoploss(api.ClientId, _appConfig.Debug, cmd, logMessagesSL);
+
+                                                                // Get the Take Profit Price
+                                                                var tp = Calculator.TakeProfitForShort(
+                                                                    entryBidPrice: entryBidPrice,
+                                                                    risk: cmd.MarketOrder.Risk.Value,
+                                                                    slMultiplier: pair.SLMultiplier,
+                                                                    stopLossExpression: cmd.MarketOrder.StopLossExpression,
+                                                                    bars: api.HistoricBarData.Where(f => f.Key == pair.TickerInMetatrader).SelectMany(f => f.Value.BarData).ToList(),
+                                                                    spread: spread,
+                                                                    riskRewardRatio: cmd.MarketOrder.RiskRewardRatio.Value,
+                                                                    out Dictionary<string, string> logMessagesTP);
+
+                                                                // Send to logs
+                                                                LogFactory.CalculateTakeProfit(api.ClientId, _appConfig.Debug, cmd, logMessagesTP);
+
+                                                                // Calculate the lot size
+                                                                var lotSize = Calculator.LotSize(
+                                                                    startBalance: startbalance,
+                                                                    accountBalance: api.AccountInfo.Balance,
+                                                                    riskPercent: pair.RiskShort,
+                                                                    entryBidPrice: entryBidPrice,
+                                                                    stopLossPrice: sl,
+                                                                    tickValue: metadataTick.TickValue,
+                                                                    tickSize: metadataTick.TickSize,
+                                                                    lotStep: metadataTick.LotStep,
+                                                                    minLotSizeAllowed: metadataTick.MinLotSize,
+                                                                    maxLotSizeAllowed: metadataTick.MaxLotSize,
+                                                                    spread: spread,
+                                                                    isLong: false,
                                                                     out Dictionary<string, string> logMessagesLOT,
                                                                     riskData: dynRisk);
 
@@ -448,354 +628,10 @@ namespace JCTG.Client
                                                                             if (pair.MaxLotSize == 0 || pair.MaxLotSize > 0 && lotSize <= pair.MaxLotSize)
                                                                             {
                                                                                 // Do check if risk is x times the spread
-                                                                                if (pair.RiskMinXTimesTheSpread == 0 || (spread * pair.RiskMinXTimesTheSpread < Math.Abs(entryBidPrice.Value - sl)))
+                                                                                if (pair.RiskMinXTimesTheSpread <= 0 || (spread * pair.RiskMinXTimesTheSpread < Math.Abs(sl - entryBidPrice)))
                                                                                 {
-                                                                                    // Cancel open buy or limit orders
-                                                                                    if (pair.CancelStopOrLimitOrderWhenNewSignal)
-                                                                                    {
-                                                                                        foreach (var order in api.OpenOrders.Where(f => f.Value.Symbol == pair.TickerInMetatrader
-                                                                                                                                        && f.Value.Type != null
-                                                                                                                                        && (f.Value.Type.Equals("buystop") || f.Value.Type.Equals("buylimit") || f.Value.Type.Equals("buy"))
-                                                                                                                                        ))
-                                                                                        {
-                                                                                            // Execute
-                                                                                            api.CloseOrder(order.Key, decimal.ToDouble(order.Value.Lots));
-
-                                                                                            // Send to logs
-                                                                                            LogFactory.CloseOrderCommand(api.ClientId, _appConfig.Debug, cmd, order.Key, decimal.ToDouble(order.Value.Lots), order.Value.Magic);
-                                                                                        }
-                                                                                    }
-
-                                                                                    // Generate order type
-                                                                                    var orderType = Calculator.CalculatePassiveOrderTypeForLong(pair.OrderExecType, entryBidPrice.Value, metadataTick.Ask, out Dictionary<string, string> logMessagesORDERTYPE);
-
-                                                                                    // Send to logs
-                                                                                    LogFactory.CalculatePassiveOrderType(api.ClientId, _appConfig.Debug, cmd, logMessagesORDERTYPE);
-
-                                                                                    // Round
-                                                                                    entryBidPrice = Calculator.RoundToNearestTickSize(entryBidPrice.Value, metadataTick.TickSize, metadataTick.Digits);
-                                                                                    sl = Calculator.RoundToNearestTickSize(sl, metadataTick.TickSize, metadataTick.Digits);
-                                                                                    tp = Calculator.RoundToNearestTickSize(tp, metadataTick.TickSize, metadataTick.Digits);
-
-                                                                                    // Generate comment
-                                                                                    var comment = Calculator.GenerateComment(cmd.SignalID, orderType == OrderType.Buy ? metadataTick.Bid : entryBidPrice.Value, sl, pair.StrategyID, spread);
-
                                                                                     // Print on the screen
-                                                                                    Helpers.Print($"INFO : {DateTime.UtcNow} / {_appConfig.Brokers.First(f => f.ClientId == api.ClientId).Name} / {pair.TickerInMetatrader} / {orderType.GetDescription().ToUpper()} COMMAND / {cmd.SignalID} / {cmd.StrategyID}");
-
-                                                                                    // Execute order
-                                                                                    api.ExecuteOrder(pair.TickerInMetatrader, orderType, lotSize, orderType == OrderType.Buy ? 0 : entryBidPrice.Value, sl, tp, Convert.ToInt32(cmd.SignalID), comment);
-
-                                                                                    // Add to the spread monitor
-                                                                                    if ((pair.AdaptPassiveOrdersBeforeEntryInSeconds > 0 || pair.AdaptSlOrTpAfterEntryInSeconds > 0) && !_spreadEntryMonitors.Any(f => f.IsStarted && f.ClientId == api.ClientId && f.Magic == Convert.ToInt32(cmd.SignalID)))
-                                                                                    {
-                                                                                        var monitor = SpreadMonitor.InitAndStart(api.ClientId, true, pair.TickerInMetatrader, Convert.ToInt32(cmd.SignalID), pair.AdaptPassiveOrdersBeforeEntryInSeconds);
-                                                                                        monitor.OnSpreadChanged += OnMonitorSpreadWarning;
-                                                                                        _spreadEntryMonitors.Add(monitor);
-                                                                                    }
-
-                                                                                    // Send to logs
-                                                                                    LogFactory.ExecuteOrderCommand(api.ClientId, _appConfig.Debug, cmd, pair.TickerInMetatrader, orderType, lotSize, orderType == OrderType.Buy ? metadataTick.Bid : entryBidPrice.Value, sl, tp, Convert.ToInt32(cmd.SignalID), comment);
-                                                                                }
-                                                                                else
-                                                                                {
-                                                                                    // Raise market abstention or error
-                                                                                    await MarketAbstentionFactory.RiskShouldBeAtLeastXTimesTheSpreadAsync(api.ClientId, _appConfig.Debug, cmd, cmd.SignalID, pair.RiskMinXTimesTheSpread, entryBidPrice.Value, sl);
-                                                                                }
-                                                                            }
-                                                                            else
-                                                                            {
-                                                                                // Raise market abstention or error
-                                                                                await MarketAbstentionFactory.AmountOfLotSizeShouldBeSmallerThenMaxLotsizeAsync(api.ClientId, _appConfig.Debug, cmd, cmd.SignalID, pair.MaxLotSize, lotSize);
-                                                                            }
-                                                                        }
-                                                                        else
-                                                                        {
-                                                                            // Raise market abstention or error
-                                                                            await MarketAbstentionFactory.ExceptionCalculatingTakeProfitPriceAsync(api.ClientId, _appConfig.Debug, cmd, cmd.SignalID, tp);
-                                                                        }
-                                                                    }
-                                                                    else
-                                                                    {
-                                                                        // Raise market abstention or error
-                                                                        await MarketAbstentionFactory.ExceptionCalculatingStopLossPriceAsync(api.ClientId, _appConfig.Debug, cmd, cmd.SignalID, sl);
-                                                                    }
-                                                                }
-                                                                else
-                                                                {
-                                                                    // Raise market abstention or error
-                                                                    await MarketAbstentionFactory.ExceptionCalculatingLotSizeAsync(api.ClientId, _appConfig.Debug, cmd, cmd.SignalID, lotSize);
-                                                                }
-                                                            }
-                                                            else
-                                                            {
-                                                                // Raise market abstention or error
-                                                                await MarketAbstentionFactory.ExceptionCalculatingEntryPriceAsync(api.ClientId, _appConfig.Debug, cmd, cmd.SignalID, cmd.PassiveOrder.EntryExpression, DynamicEvaluator.GetDateFromBarString(cmd.PassiveOrder.EntryExpression));
-                                                            }
-                                                        }
-                                                        else
-                                                        {
-                                                            // Raise market abstention or error
-                                                            await MarketAbstentionFactory.MarketWillBeClosedWithinXMinutesAsync(api.ClientId, _appConfig.Debug, cmd, cmd.SignalID, pair.CloseAllTradesAt, pair.DoNotOpenTradeXMinutesBeforeClose);
-                                                        }
-                                                    }
-                                                    else
-                                                    {
-                                                        // Raise market abstention or error
-                                                        await MarketAbstentionFactory.CorrelatedPairFoundAsync(api.ClientId, _appConfig.Debug, cmd, cmd.SignalID, pair.TickerInMetatrader, "BUY", pair.CorrelatedPairs, api.OpenOrders);
-                                                    }
-                                                }
-
-                                                // SELL
-                                                else if ((pair.MaxSpread == 0 || (pair.MaxSpread > 0 && spread < pair.MaxSpread))
-                                                                    && cmd.OrderType.Equals("SELL", StringComparison.CurrentCultureIgnoreCase)
-                                                                    && cmd.MarketOrder != null
-                                                                    && cmd.MarketOrder.Risk.HasValue
-                                                                    && cmd.MarketOrder.RiskRewardRatio.HasValue
-                                                                    )
-                                                {
-                                                    // Do correlation check
-                                                    if (CorrelatedPairs.IsNotCorrelated(pair.TickerInMetatrader, "SELL", pair.CorrelatedPairs, api.OpenOrders))
-                                                    {
-                                                        // Do do not open a deal x minutes before close
-                                                        if (RecurringCloseTradeScheduler.CanOpenTrade(pair.CloseAllTradesAt, pair.DoNotOpenTradeXMinutesBeforeClose))
-                                                        {
-                                                            // InitAndStart
-                                                            var entryBidPrice = metadataTick.Bid;
-
-                                                            // Calculate SL Price
-                                                            var sl = Calculator.StoplossForShort(
-                                                                entryBidPrice: entryBidPrice,
-                                                                risk: cmd.MarketOrder.Risk.Value,
-                                                                slMultiplier: pair.SLMultiplier,
-                                                                stopLossExpression: cmd.MarketOrder.StopLossExpression,
-                                                                bars: api.HistoricBarData.Where(f => f.Key == pair.TickerInMetatrader).SelectMany(f => f.Value.BarData).ToList(),
-                                                                spread: spread,
-                                                                tickSize: metadataTick.TickSize,
-                                                                out Dictionary<string, string> logMessagesSL);
-
-                                                            // Send to logs
-                                                            LogFactory.CalculateStoploss(api.ClientId, _appConfig.Debug, cmd, logMessagesSL);
-
-                                                            // Get the Take Profit Price
-                                                            var tp = Calculator.TakeProfitForShort(
-                                                                entryBidPrice: entryBidPrice,
-                                                                risk: cmd.MarketOrder.Risk.Value,
-                                                                slMultiplier: pair.SLMultiplier,
-                                                                stopLossExpression: cmd.MarketOrder.StopLossExpression,
-                                                                bars: api.HistoricBarData.Where(f => f.Key == pair.TickerInMetatrader).SelectMany(f => f.Value.BarData).ToList(),
-                                                                spread: spread,
-                                                                riskRewardRatio: cmd.MarketOrder.RiskRewardRatio.Value,
-                                                                out Dictionary<string, string> logMessagesTP);
-
-                                                            // Send to logs
-                                                            LogFactory.CalculateTakeProfit(api.ClientId, _appConfig.Debug, cmd, logMessagesTP);
-
-                                                            // Calculate the lot size
-                                                            var lotSize = Calculator.LotSize(
-                                                                startBalance: startbalance,
-                                                                accountBalance: api.AccountInfo.Balance,
-                                                                riskPercent: pair.RiskShort,
-                                                                entryBidPrice: entryBidPrice,
-                                                                stopLossPrice: sl,
-                                                                tickValue: metadataTick.TickValue,
-                                                                tickSize: metadataTick.TickSize,
-                                                                lotStep: metadataTick.LotStep,
-                                                                minLotSizeAllowed: metadataTick.MinLotSize,
-                                                                maxLotSizeAllowed: metadataTick.MaxLotSize,
-                                                                spread: spread,
-                                                                isLong: false,
-                                                                out Dictionary<string, string> logMessagesLOT,
-                                                                riskData: dynRisk);
-
-                                                            // Send to logs
-                                                            LogFactory.CalculateLotSize(api.ClientId, _appConfig.Debug, cmd, logMessagesLOT);
-
-                                                            // do 0.0 check
-                                                            if (lotSize > 0.0M)
-                                                            {
-                                                                // Do 0.0 check
-                                                                if (sl > 0.0M)
-                                                                {
-                                                                    // Do 0.0 check
-                                                                    if (tp > 0.0M)
-                                                                    {
-                                                                        // Do lot size check
-                                                                        if (pair.MaxLotSize == 0 || pair.MaxLotSize > 0 && lotSize <= pair.MaxLotSize)
-                                                                        {
-                                                                            // Do check if risk is x times the spread
-                                                                            if (pair.RiskMinXTimesTheSpread <= 0 || (spread * pair.RiskMinXTimesTheSpread < Math.Abs(sl - entryBidPrice)))
-                                                                            {
-                                                                                // Print on the screen
-                                                                                Helpers.Print($"INFO : {DateTime.UtcNow} / {_appConfig.Brokers.First(f => f.ClientId == api.ClientId).Name} / {pair.TickerInMetatrader} / SELL COMMAND / {cmd.SignalID} / {cmd.StrategyID}");
-
-                                                                                // Cancel open buy or limit orders
-                                                                                if (pair.CancelStopOrLimitOrderWhenNewSignal)
-                                                                                {
-                                                                                    foreach (var order in api.OpenOrders.Where(f => f.Value.Symbol == pair.TickerInMetatrader
-                                                                                                                                    && f.Value.Type != null
-                                                                                                                                    && (f.Value.Type.Equals("sellstop") || f.Value.Type.Equals("selllimit") || f.Value.Type.Equals("sell"))
-                                                                                                                                    ))
-                                                                                    {
-                                                                                        // Close the order
-                                                                                        api.CloseOrder(order.Key, decimal.ToDouble(order.Value.Lots));
-
-                                                                                        // Send to logs
-                                                                                        LogFactory.CloseOrderCommand(api.ClientId, _appConfig.Debug, cmd, order.Key, decimal.ToDouble(order.Value.Lots), order.Value.Magic);
-                                                                                    }
-                                                                                }
-
-                                                                                //  Generate order type
-                                                                                var orderType = OrderType.Sell;
-
-                                                                                // Round
-                                                                                entryBidPrice = Calculator.RoundToNearestTickSize(entryBidPrice, metadataTick.TickSize, metadataTick.Digits);
-                                                                                sl = Calculator.RoundToNearestTickSize(sl, metadataTick.TickSize, metadataTick.Digits);
-                                                                                tp = Calculator.RoundToNearestTickSize(tp, metadataTick.TickSize, metadataTick.Digits);
-
-                                                                                // Generate comment
-                                                                                var comment = Calculator.GenerateComment(cmd.SignalID, entryBidPrice, sl, pair.StrategyID, spread);
-
-                                                                                // Execute order
-                                                                                api.ExecuteOrder(pair.TickerInMetatrader, orderType, lotSize, 0, sl, tp, Convert.ToInt32(cmd.SignalID), comment);
-
-                                                                                // Send to logs
-                                                                                LogFactory.ExecuteOrderCommand(api.ClientId, _appConfig.Debug, cmd, pair.TickerInMetatrader, orderType, lotSize, 0, sl, tp, Convert.ToInt32(cmd.SignalID), comment);
-                                                                            }
-                                                                            else
-                                                                            {
-                                                                                // Raise market abstention or error
-                                                                                await MarketAbstentionFactory.RiskShouldBeAtLeastXTimesTheSpreadAsync(api.ClientId, _appConfig.Debug, cmd, cmd.SignalID, pair.RiskMinXTimesTheSpread, entryBidPrice, sl);
-                                                                            }
-                                                                        }
-                                                                        else
-                                                                        {
-                                                                            // Raise market abstention or error
-                                                                            await MarketAbstentionFactory.AmountOfLotSizeShouldBeSmallerThenMaxLotsizeAsync(api.ClientId, _appConfig.Debug, cmd, cmd.SignalID, pair.MaxLotSize, lotSize);
-                                                                        }
-                                                                    }
-                                                                    else
-                                                                    {
-                                                                        // Raise market abstention or error
-                                                                        await MarketAbstentionFactory.ExceptionCalculatingTakeProfitPriceAsync(api.ClientId, _appConfig.Debug, cmd, cmd.SignalID, tp);
-                                                                    }
-                                                                }
-                                                                else
-                                                                {
-                                                                    // Raise market abstention or error
-                                                                    await MarketAbstentionFactory.ExceptionCalculatingStopLossPriceAsync(api.ClientId, _appConfig.Debug, cmd, cmd.SignalID, sl);
-                                                                }
-                                                            }
-                                                            else
-                                                            {
-                                                                // Raise market abstention or error
-                                                                await MarketAbstentionFactory.ExceptionCalculatingLotSizeAsync(api.ClientId, _appConfig.Debug, cmd, cmd.SignalID, lotSize);
-                                                            }
-                                                        }
-                                                        else
-                                                        {
-                                                            // Raise market abstention or error
-                                                            await MarketAbstentionFactory.MarketWillBeClosedWithinXMinutesAsync(api.ClientId, _appConfig.Debug, cmd, cmd.SignalID, pair.CloseAllTradesAt, pair.DoNotOpenTradeXMinutesBeforeClose);
-                                                        }
-                                                    }
-                                                    else
-                                                    {
-                                                        // Raise market abstention or error
-                                                        await MarketAbstentionFactory.CorrelatedPairFoundAsync(api.ClientId, _appConfig.Debug, cmd, cmd.SignalID, pair.TickerInMetatrader, "SELL", pair.CorrelatedPairs, api.OpenOrders);
-                                                    }
-                                                }
-
-                                                // SELL STOP
-                                                else if ((pair.MaxSpread == 0 || (pair.MaxSpread > 0 && spread < pair.MaxSpread))
-                                                            && cmd.OrderType.Equals("SELLSTOP", StringComparison.CurrentCultureIgnoreCase)
-                                                            && cmd.PassiveOrder != null
-                                                            && cmd.PassiveOrder.EntryExpression != null
-                                                            && cmd.PassiveOrder.Risk.HasValue
-                                                            && cmd.PassiveOrder.RiskRewardRatio.HasValue
-                                                )
-                                                {
-                                                    // Do correlation check
-                                                    if (CorrelatedPairs.IsNotCorrelated(pair.TickerInMetatrader, "SELL", pair.CorrelatedPairs, api.OpenOrders))
-                                                    {
-                                                        // Do do not open a deal x minutes before close
-                                                        if (RecurringCloseTradeScheduler.CanOpenTrade(pair.CloseAllTradesAt, pair.DoNotOpenTradeXMinutesBeforeClose))
-                                                        {
-                                                            // Get the entry entryBidPrice
-                                                            var entryBidPrice = Calculator.EntryBidPriceForShort(
-                                                                entryExpression: cmd.PassiveOrder.EntryExpression,
-                                                                bars: api.HistoricBarData.Where(f => f.Key == pair.TickerInMetatrader).SelectMany(f => f.Value.BarData).ToList(),
-                                                                spread: spread,
-                                                                logMessages: out Dictionary<string, string> logMessagesENTRY);
-
-                                                            // Send to logs
-                                                            LogFactory.CalculateEntryBidPrice(api.ClientId, _appConfig.Debug, cmd, logMessagesENTRY);
-
-                                                            // do 0.0 check
-                                                            if (entryBidPrice.HasValue)
-                                                            {
-                                                                // Calculate SL Price
-                                                                var sl = Calculator.StoplossForShort(
-                                                                    entryBidPrice: entryBidPrice.Value,
-                                                                    risk: cmd.PassiveOrder.Risk.Value,
-                                                                    slMultiplier: pair.SLMultiplier,
-                                                                    stopLossExpression: cmd.PassiveOrder.StopLossExpression,
-                                                                    bars: api.HistoricBarData.Where(f => f.Key == pair.TickerInMetatrader).SelectMany(f => f.Value.BarData).ToList(),
-                                                                    spread: spread,
-                                                                    tickSize: metadataTick.TickSize,
-                                                                    out Dictionary<string, string> logMessagesSL);
-
-                                                                // Send to logs
-                                                                LogFactory.CalculateStoploss(api.ClientId, _appConfig.Debug, cmd, logMessagesSL);
-
-                                                                // Get the Take Profit Price
-                                                                var tp = Calculator.TakeProfitForShort(
-                                                                    entryBidPrice: entryBidPrice.Value,
-                                                                    risk: cmd.PassiveOrder.Risk.Value,
-                                                                    slMultiplier: pair.SLMultiplier,
-                                                                    stopLossExpression: cmd.PassiveOrder.StopLossExpression,
-                                                                    bars: api.HistoricBarData.Where(f => f.Key == pair.TickerInMetatrader).SelectMany(f => f.Value.BarData).ToList(),
-                                                                    spread: spread,
-                                                                    riskRewardRatio: cmd.PassiveOrder.RiskRewardRatio.Value,
-                                                                    out Dictionary<string, string> logMessagesTP);
-
-                                                                // Send to logs
-                                                                LogFactory.CalculateTakeProfit(api.ClientId, _appConfig.Debug, cmd, logMessagesTP);
-
-                                                                // Calculate the lot size
-                                                                var lotSize = Calculator.LotSize(
-                                                                    startBalance: startbalance,
-                                                                    accountBalance: api.AccountInfo.Balance,
-                                                                    riskPercent: pair.RiskShort,
-                                                                    entryBidPrice: entryBidPrice.Value,
-                                                                    stopLossPrice: sl,
-                                                                    tickValue: metadataTick.TickValue,
-                                                                    tickSize: metadataTick.TickSize,
-                                                                    lotStep: metadataTick.LotStep,
-                                                                    minLotSizeAllowed: metadataTick.MinLotSize,
-                                                                    maxLotSizeAllowed: metadataTick.MaxLotSize,
-                                                                    spread: spread,
-                                                                    isLong: false,
-                                                                    out Dictionary<string, string> logMessagesLOT,
-                                                                    riskData: dynRisk);
-
-                                                                // Send to logs
-                                                                LogFactory.CalculateLotSize(api.ClientId, _appConfig.Debug, cmd, logMessagesLOT);
-
-                                                                // do 0.0 check
-                                                                if (lotSize > 0.0M)
-                                                                {
-                                                                    // do 0.0 check
-                                                                    if (sl > 0.0M)
-                                                                    {
-                                                                        // do 0.0 check
-                                                                        if (tp > 0.0M)
-                                                                        {
-                                                                            // Do lot size check
-                                                                            if (pair.MaxLotSize == 0 || pair.MaxLotSize > 0 && lotSize <= pair.MaxLotSize)
-                                                                            {
-                                                                                // Do check if risk is x times the spread
-                                                                                if (pair.RiskMinXTimesTheSpread == 0 || (spread * pair.RiskMinXTimesTheSpread < Math.Abs(sl - entryBidPrice.Value)))
-                                                                                {
+                                                                                    Helpers.Print($"INFO : {DateTime.UtcNow} / {_appConfig.Brokers.First(f => f.ClientId == api.ClientId).Name} / {pair.TickerInMetatrader} / SELL COMMAND / {cmd.SignalID} / {cmd.StrategyID}");
 
                                                                                     // Cancel open buy or limit orders
                                                                                     if (pair.CancelStopOrLimitOrderWhenNewSignal)
@@ -805,7 +641,7 @@ namespace JCTG.Client
                                                                                                                                         && (f.Value.Type.Equals("sellstop") || f.Value.Type.Equals("selllimit") || f.Value.Type.Equals("sell"))
                                                                                                                                         ))
                                                                                         {
-                                                                                            // Execute order
+                                                                                            // Close the order
                                                                                             api.CloseOrder(order.Key, decimal.ToDouble(order.Value.Lots));
 
                                                                                             // Send to logs
@@ -813,41 +649,27 @@ namespace JCTG.Client
                                                                                         }
                                                                                     }
 
-                                                                                    // Generate order type
-                                                                                    var orderType = Calculator.CalculatePassiveOrderTypeForShort(pair.OrderExecType, entryBidPrice.Value, metadataTick.Bid, out Dictionary<string, string> logMessagesORDERTYPE);
-
-                                                                                    // Send to logs
-                                                                                    LogFactory.CalculatePassiveOrderType(api.ClientId, _appConfig.Debug, cmd, logMessagesORDERTYPE);
+                                                                                    //  Generate order type
+                                                                                    var orderType = OrderType.Sell;
 
                                                                                     // Round
-                                                                                    entryBidPrice = Calculator.RoundToNearestTickSize(entryBidPrice.Value, metadataTick.TickSize, metadataTick.Digits);
+                                                                                    entryBidPrice = Calculator.RoundToNearestTickSize(entryBidPrice, metadataTick.TickSize, metadataTick.Digits);
                                                                                     sl = Calculator.RoundToNearestTickSize(sl, metadataTick.TickSize, metadataTick.Digits);
                                                                                     tp = Calculator.RoundToNearestTickSize(tp, metadataTick.TickSize, metadataTick.Digits);
 
                                                                                     // Generate comment
-                                                                                    var comment = Calculator.GenerateComment(cmd.SignalID, entryBidPrice.Value, sl, pair.StrategyID, spread);
-
-                                                                                    // Print on the screen
-                                                                                    Helpers.Print($"INFO : {DateTime.UtcNow} / {_appConfig.Brokers.First(f => f.ClientId == api.ClientId).Name} / {pair.TickerInMetatrader} / {orderType.GetDescription().ToUpper()} COMMAND / {cmd.SignalID} / {cmd.StrategyID}");
+                                                                                    var comment = Calculator.GenerateComment(cmd.SignalID, entryBidPrice, sl, pair.StrategyID, spread);
 
                                                                                     // Execute order
-                                                                                    api.ExecuteOrder(pair.TickerInMetatrader, orderType, lotSize, orderType == OrderType.Sell ? 0 : entryBidPrice.Value, sl, tp, (int)cmd.SignalID, comment);
-
-                                                                                    // Add to the spread monitor
-                                                                                    if ((pair.AdaptPassiveOrdersBeforeEntryInSeconds > 0 || pair.AdaptSlOrTpAfterEntryInSeconds > 0) && !_spreadEntryMonitors.Any(f => f.IsStarted && f.ClientId == api.ClientId && f.Magic == Convert.ToInt32(cmd.SignalID)))
-                                                                                    {
-                                                                                        var monitor = SpreadMonitor.InitAndStart(api.ClientId, true, pair.TickerInMetatrader, Convert.ToInt32(cmd.SignalID), pair.AdaptPassiveOrdersBeforeEntryInSeconds);
-                                                                                        monitor.OnSpreadChanged += OnMonitorSpreadWarning;
-                                                                                        _spreadEntryMonitors.Add(monitor);
-                                                                                    }
+                                                                                    api.ExecuteOrder(pair.TickerInMetatrader, orderType, lotSize, 0, sl, tp, Convert.ToInt32(cmd.SignalID), comment);
 
                                                                                     // Send to logs
-                                                                                    LogFactory.ExecuteOrderCommand(api.ClientId, _appConfig.Debug, cmd, pair.TickerInMetatrader, orderType, lotSize, orderType == OrderType.Sell ? metadataTick.Bid : entryBidPrice.Value, sl, tp, (int)cmd.SignalID, comment);
+                                                                                    LogFactory.ExecuteOrderCommand(api.ClientId, _appConfig.Debug, cmd, pair.TickerInMetatrader, orderType, lotSize, 0, sl, tp, Convert.ToInt32(cmd.SignalID), comment);
                                                                                 }
                                                                                 else
                                                                                 {
                                                                                     // Raise market abstention or error
-                                                                                    await MarketAbstentionFactory.RiskShouldBeAtLeastXTimesTheSpreadAsync(api.ClientId, _appConfig.Debug, cmd, cmd.SignalID, pair.RiskMinXTimesTheSpread, entryBidPrice.Value, sl);
+                                                                                    await MarketAbstentionFactory.RiskShouldBeAtLeastXTimesTheSpreadAsync(api.ClientId, _appConfig.Debug, cmd, cmd.SignalID, pair.RiskMinXTimesTheSpread, entryBidPrice, sl);
                                                                                 }
                                                                             }
                                                                             else
@@ -877,166 +699,354 @@ namespace JCTG.Client
                                                             else
                                                             {
                                                                 // Raise market abstention or error
-                                                                await MarketAbstentionFactory.ExceptionCalculatingEntryPriceAsync(api.ClientId, _appConfig.Debug, cmd, cmd.SignalID, cmd.PassiveOrder.EntryExpression, DynamicEvaluator.GetDateFromBarString(cmd.PassiveOrder.EntryExpression));
+                                                                await MarketAbstentionFactory.MarketWillBeClosedWithinXMinutesAsync(api.ClientId, _appConfig.Debug, cmd, cmd.SignalID, pair.CloseAllTradesAt, pair.DoNotOpenTradeXMinutesBeforeClose);
                                                             }
                                                         }
                                                         else
                                                         {
                                                             // Raise market abstention or error
-                                                            await MarketAbstentionFactory.MarketWillBeClosedWithinXMinutesAsync(api.ClientId, _appConfig.Debug, cmd, cmd.SignalID, pair.CloseAllTradesAt, pair.DoNotOpenTradeXMinutesBeforeClose);
+                                                            await MarketAbstentionFactory.CorrelatedPairFoundAsync(api.ClientId, _appConfig.Debug, cmd, cmd.SignalID, pair.TickerInMetatrader, "SELL", pair.CorrelatedPairs, api.OpenOrders);
                                                         }
                                                     }
-                                                    else
+
+                                                    // SELL STOP
+                                                    else if ((pair.MaxSpread == 0 || (pair.MaxSpread > 0 && spread < pair.MaxSpread))
+                                                                && cmd.OrderType.Equals("SELLSTOP", StringComparison.CurrentCultureIgnoreCase)
+                                                                && cmd.PassiveOrder != null
+                                                                && cmd.PassiveOrder.EntryExpression != null
+                                                                && cmd.PassiveOrder.Risk.HasValue
+                                                                && cmd.PassiveOrder.RiskRewardRatio.HasValue
+                                                    )
                                                     {
-                                                        // Raise market abstention or error
-                                                        await MarketAbstentionFactory.CorrelatedPairFoundAsync(api.ClientId, _appConfig.Debug, cmd, cmd.SignalID, pair.TickerInMetatrader, "BUY", pair.CorrelatedPairs, api.OpenOrders);
-                                                    }
-                                                }
-
-                                                // MOVESLTOBE
-                                                else if (cmd.OrderType.Equals("MOVESLTOBE", StringComparison.CurrentCultureIgnoreCase) && cmd.SignalID > 0)
-                                                {
-                                                    // Check if the ticket still exist as open order
-                                                    var ticketId = api.OpenOrders.FirstOrDefault(f => f.Value.Magic == cmd.SignalID);
-
-                                                    // Null reference check
-                                                    if (ticketId.Key > 0 && ticketId.Value.Type != null)
-                                                    {
-                                                        // InitAndStart variable
-                                                        var sl = 0.0M;
-
-                                                        if (ticketId.Value.Type.Equals("SELL", StringComparison.CurrentCultureIgnoreCase))
+                                                        // Do correlation check
+                                                        if (CorrelatedPairs.IsNotCorrelated(pair.TickerInMetatrader, "SELL", pair.CorrelatedPairs, api.OpenOrders))
                                                         {
-                                                            // Calculate SL Price
-                                                            sl = Calculator.StoplossToBreakEvenForShort(
-                                                                entryBidPrice: ticketId.Value.OpenPrice,
-                                                                currentBidPrice: metadataTick.Bid,
-                                                                spread: spread,
-                                                                tickSize: metadataTick.TickSize,
-                                                                out Dictionary<string, string> logMessagesSL);
+                                                            // Do do not open a deal x minutes before close
+                                                            if (RecurringCloseTradeScheduler.CanOpenTrade(pair.CloseAllTradesAt, pair.DoNotOpenTradeXMinutesBeforeClose))
+                                                            {
+                                                                // Get the entry entryBidPrice
+                                                                var entryBidPrice = Calculator.EntryBidPriceForShort(
+                                                                    entryExpression: cmd.PassiveOrder.EntryExpression,
+                                                                    bars: api.HistoricBarData.Where(f => f.Key == pair.TickerInMetatrader).SelectMany(f => f.Value.BarData).ToList(),
+                                                                    spread: spread,
+                                                                    logMessages: out Dictionary<string, string> logMessagesENTRY);
 
-                                                            // Send to logs
-                                                            LogFactory.CalculateStoploss(api.ClientId, _appConfig.Debug, cmd, logMessagesSL);
+                                                                // Send to logs
+                                                                LogFactory.CalculateEntryBidPrice(api.ClientId, _appConfig.Debug, cmd, logMessagesENTRY);
+
+                                                                // do 0.0 check
+                                                                if (entryBidPrice.HasValue)
+                                                                {
+                                                                    // Calculate SL Price
+                                                                    var sl = Calculator.StoplossForShort(
+                                                                        entryBidPrice: entryBidPrice.Value,
+                                                                        risk: cmd.PassiveOrder.Risk.Value,
+                                                                        slMultiplier: pair.SLMultiplier,
+                                                                        stopLossExpression: cmd.PassiveOrder.StopLossExpression,
+                                                                        bars: api.HistoricBarData.Where(f => f.Key == pair.TickerInMetatrader).SelectMany(f => f.Value.BarData).ToList(),
+                                                                        spread: spread,
+                                                                        tickSize: metadataTick.TickSize,
+                                                                        out Dictionary<string, string> logMessagesSL);
+
+                                                                    // Send to logs
+                                                                    LogFactory.CalculateStoploss(api.ClientId, _appConfig.Debug, cmd, logMessagesSL);
+
+                                                                    // Get the Take Profit Price
+                                                                    var tp = Calculator.TakeProfitForShort(
+                                                                        entryBidPrice: entryBidPrice.Value,
+                                                                        risk: cmd.PassiveOrder.Risk.Value,
+                                                                        slMultiplier: pair.SLMultiplier,
+                                                                        stopLossExpression: cmd.PassiveOrder.StopLossExpression,
+                                                                        bars: api.HistoricBarData.Where(f => f.Key == pair.TickerInMetatrader).SelectMany(f => f.Value.BarData).ToList(),
+                                                                        spread: spread,
+                                                                        riskRewardRatio: cmd.PassiveOrder.RiskRewardRatio.Value,
+                                                                        out Dictionary<string, string> logMessagesTP);
+
+                                                                    // Send to logs
+                                                                    LogFactory.CalculateTakeProfit(api.ClientId, _appConfig.Debug, cmd, logMessagesTP);
+
+                                                                    // Calculate the lot size
+                                                                    var lotSize = Calculator.LotSize(
+                                                                        startBalance: startbalance,
+                                                                        accountBalance: api.AccountInfo.Balance,
+                                                                        riskPercent: pair.RiskShort,
+                                                                        entryBidPrice: entryBidPrice.Value,
+                                                                        stopLossPrice: sl,
+                                                                        tickValue: metadataTick.TickValue,
+                                                                        tickSize: metadataTick.TickSize,
+                                                                        lotStep: metadataTick.LotStep,
+                                                                        minLotSizeAllowed: metadataTick.MinLotSize,
+                                                                        maxLotSizeAllowed: metadataTick.MaxLotSize,
+                                                                        spread: spread,
+                                                                        isLong: false,
+                                                                        out Dictionary<string, string> logMessagesLOT,
+                                                                        riskData: dynRisk);
+
+                                                                    // Send to logs
+                                                                    LogFactory.CalculateLotSize(api.ClientId, _appConfig.Debug, cmd, logMessagesLOT);
+
+                                                                    // do 0.0 check
+                                                                    if (lotSize > 0.0M)
+                                                                    {
+                                                                        // do 0.0 check
+                                                                        if (sl > 0.0M)
+                                                                        {
+                                                                            // do 0.0 check
+                                                                            if (tp > 0.0M)
+                                                                            {
+                                                                                // Do lot size check
+                                                                                if (pair.MaxLotSize == 0 || pair.MaxLotSize > 0 && lotSize <= pair.MaxLotSize)
+                                                                                {
+                                                                                    // Do check if risk is x times the spread
+                                                                                    if (pair.RiskMinXTimesTheSpread == 0 || (spread * pair.RiskMinXTimesTheSpread < Math.Abs(sl - entryBidPrice.Value)))
+                                                                                    {
+
+                                                                                        // Cancel open buy or limit orders
+                                                                                        if (pair.CancelStopOrLimitOrderWhenNewSignal)
+                                                                                        {
+                                                                                            foreach (var order in api.OpenOrders.Where(f => f.Value.Symbol == pair.TickerInMetatrader
+                                                                                                                                            && f.Value.Type != null
+                                                                                                                                            && (f.Value.Type.Equals("sellstop") || f.Value.Type.Equals("selllimit") || f.Value.Type.Equals("sell"))
+                                                                                                                                            ))
+                                                                                            {
+                                                                                                // Execute order
+                                                                                                api.CloseOrder(order.Key, decimal.ToDouble(order.Value.Lots));
+
+                                                                                                // Send to logs
+                                                                                                LogFactory.CloseOrderCommand(api.ClientId, _appConfig.Debug, cmd, order.Key, decimal.ToDouble(order.Value.Lots), order.Value.Magic);
+                                                                                            }
+                                                                                        }
+
+                                                                                        // Generate order type
+                                                                                        var orderType = Calculator.CalculatePassiveOrderTypeForShort(pair.OrderExecType, entryBidPrice.Value, metadataTick.Bid, out Dictionary<string, string> logMessagesORDERTYPE);
+
+                                                                                        // Send to logs
+                                                                                        LogFactory.CalculatePassiveOrderType(api.ClientId, _appConfig.Debug, cmd, logMessagesORDERTYPE);
+
+                                                                                        // Round
+                                                                                        entryBidPrice = Calculator.RoundToNearestTickSize(entryBidPrice.Value, metadataTick.TickSize, metadataTick.Digits);
+                                                                                        sl = Calculator.RoundToNearestTickSize(sl, metadataTick.TickSize, metadataTick.Digits);
+                                                                                        tp = Calculator.RoundToNearestTickSize(tp, metadataTick.TickSize, metadataTick.Digits);
+
+                                                                                        // Generate comment
+                                                                                        var comment = Calculator.GenerateComment(cmd.SignalID, entryBidPrice.Value, sl, pair.StrategyID, spread);
+
+                                                                                        // Print on the screen
+                                                                                        Helpers.Print($"INFO : {DateTime.UtcNow} / {_appConfig.Brokers.First(f => f.ClientId == api.ClientId).Name} / {pair.TickerInMetatrader} / {orderType.GetDescription().ToUpper()} COMMAND / {cmd.SignalID} / {cmd.StrategyID}");
+
+                                                                                        // Execute order
+                                                                                        api.ExecuteOrder(pair.TickerInMetatrader, orderType, lotSize, orderType == OrderType.Sell ? 0 : entryBidPrice.Value, sl, tp, (int)cmd.SignalID, comment);
+
+                                                                                        // Add to the spread monitor
+                                                                                        if ((pair.AdaptPassiveOrdersBeforeEntryInSeconds > 0 || pair.AdaptSlOrTpAfterEntryInSeconds > 0) && !_spreadEntryMonitors.Any(f => f.IsStarted && f.ClientId == api.ClientId && f.Magic == Convert.ToInt32(cmd.SignalID)))
+                                                                                        {
+                                                                                            var monitor = SpreadMonitor.InitAndStart(api.ClientId, true, pair.TickerInMetatrader, Convert.ToInt32(cmd.SignalID), pair.AdaptPassiveOrdersBeforeEntryInSeconds);
+                                                                                            monitor.OnSpreadChanged += OnMonitorSpreadWarning;
+                                                                                            _spreadEntryMonitors.Add(monitor);
+                                                                                        }
+
+                                                                                        // Send to logs
+                                                                                        LogFactory.ExecuteOrderCommand(api.ClientId, _appConfig.Debug, cmd, pair.TickerInMetatrader, orderType, lotSize, orderType == OrderType.Sell ? metadataTick.Bid : entryBidPrice.Value, sl, tp, (int)cmd.SignalID, comment);
+                                                                                    }
+                                                                                    else
+                                                                                    {
+                                                                                        // Raise market abstention or error
+                                                                                        await MarketAbstentionFactory.RiskShouldBeAtLeastXTimesTheSpreadAsync(api.ClientId, _appConfig.Debug, cmd, cmd.SignalID, pair.RiskMinXTimesTheSpread, entryBidPrice.Value, sl);
+                                                                                    }
+                                                                                }
+                                                                                else
+                                                                                {
+                                                                                    // Raise market abstention or error
+                                                                                    await MarketAbstentionFactory.AmountOfLotSizeShouldBeSmallerThenMaxLotsizeAsync(api.ClientId, _appConfig.Debug, cmd, cmd.SignalID, pair.MaxLotSize, lotSize);
+                                                                                }
+                                                                            }
+                                                                            else
+                                                                            {
+                                                                                // Raise market abstention or error
+                                                                                await MarketAbstentionFactory.ExceptionCalculatingTakeProfitPriceAsync(api.ClientId, _appConfig.Debug, cmd, cmd.SignalID, tp);
+                                                                            }
+                                                                        }
+                                                                        else
+                                                                        {
+                                                                            // Raise market abstention or error
+                                                                            await MarketAbstentionFactory.ExceptionCalculatingStopLossPriceAsync(api.ClientId, _appConfig.Debug, cmd, cmd.SignalID, sl);
+                                                                        }
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        // Raise market abstention or error
+                                                                        await MarketAbstentionFactory.ExceptionCalculatingLotSizeAsync(api.ClientId, _appConfig.Debug, cmd, cmd.SignalID, lotSize);
+                                                                    }
+                                                                }
+                                                                else
+                                                                {
+                                                                    // Raise market abstention or error
+                                                                    await MarketAbstentionFactory.ExceptionCalculatingEntryPriceAsync(api.ClientId, _appConfig.Debug, cmd, cmd.SignalID, cmd.PassiveOrder.EntryExpression, DynamicEvaluator.GetDateFromBarString(cmd.PassiveOrder.EntryExpression));
+                                                                }
+                                                            }
+                                                            else
+                                                            {
+                                                                // Raise market abstention or error
+                                                                await MarketAbstentionFactory.MarketWillBeClosedWithinXMinutesAsync(api.ClientId, _appConfig.Debug, cmd, cmd.SignalID, pair.CloseAllTradesAt, pair.DoNotOpenTradeXMinutesBeforeClose);
+                                                            }
                                                         }
                                                         else
                                                         {
-                                                            // Calculate SL Price
-                                                            sl = Calculator.StoplossToBreakEvenForLong(
-                                                                entryBidPrice: ticketId.Value.OpenPrice,
-                                                                currentBidPrice: metadataTick.Bid,
-                                                                spread: spread,
-                                                                tickSize: metadataTick.TickSize,
-                                                                out Dictionary<string, string> logMessagesSL);
-
-                                                            // Send to logs
-                                                            LogFactory.CalculateStoploss(api.ClientId, _appConfig.Debug, cmd, logMessagesSL);
+                                                            // Raise market abstention or error
+                                                            await MarketAbstentionFactory.CorrelatedPairFoundAsync(api.ClientId, _appConfig.Debug, cmd, cmd.SignalID, pair.TickerInMetatrader, "BUY", pair.CorrelatedPairs, api.OpenOrders);
                                                         }
-
-                                                        // Round
-                                                        sl = Calculator.RoundToNearestTickSize(sl, metadataTick.TickSize, metadataTick.Digits);
-
-                                                        // Print on the screen
-                                                        Helpers.Print($"INFO : {DateTime.UtcNow} / {_appConfig.Brokers.First(f => f.ClientId == api.ClientId).Name} / {pair.TickerInMetatrader} / MODIFY SL TO BE COMMAND / {cmd.SignalID} / {cmd.StrategyID}");
-
-                                                        // Modify order
-                                                        api.ModifyOrder(ticketId.Key, ticketId.Value.Lots, 0, sl, ticketId.Value.TakeProfit, Convert.ToInt32(cmd.SignalID));
-
-                                                        // Send to logs
-                                                        LogFactory.ModifyOrderCommand(api.ClientId, _appConfig.Debug, cmd, ticketId.Key, ticketId.Value.Lots, 0, sl, ticketId.Value.TakeProfit, Convert.ToInt32(cmd.SignalID));
-
                                                     }
-                                                    else
+
+                                                    // MOVESLTOBE
+                                                    else if (cmd.OrderType.Equals("MOVESLTOBE", StringComparison.CurrentCultureIgnoreCase) && cmd.SignalID > 0)
                                                     {
-                                                        // Print on the screen
-                                                        Helpers.Print($"ERROR : {DateTime.UtcNow} / {_appConfig.Brokers.First(f => f.ClientId == api.ClientId).Name} / {pair.TickerInMetatrader} {pair.TickerInMetatrader} / MODIFY SL TO BE / {cmd.SignalID} / UNABLE TO FIND TRADE");
+                                                        // Check if the ticket still exist as open order
+                                                        var ticketId = api.OpenOrders.FirstOrDefault(f => f.Value.Magic == cmd.SignalID);
 
-                                                        // Send to logs
-                                                        LogFactory.UnableToFindOrder(api.ClientId, _appConfig.Debug, cmd, cmd.SignalID);
-                                                    }
-                                                }
-
-                                                // Close or cancel order
-                                                else if ((cmd.OrderType.Equals("CLOSE", StringComparison.CurrentCultureIgnoreCase) || cmd.OrderType.Equals("CANCEL", StringComparison.CurrentCultureIgnoreCase)) && cmd.SignalID > 0)
-                                                {
-                                                    // Check if the ticket still exist as open order
-                                                    var order = api.OpenOrders.FirstOrDefault(f => f.Value.Magic == cmd.SignalID);
-
-                                                    // Null reference check
-                                                    if (order.Key > 0)
-                                                    {
-                                                        // Print on the screen
-                                                        Helpers.Print($"INFO : {DateTime.UtcNow} / {_appConfig.Brokers.First(f => f.ClientId == api.ClientId).Name} / {pair.TickerInMetatrader} {pair.TickerInMetatrader} / {cmd.OrderType} COMMAND / {cmd.SignalID}");
-
-                                                        // Close order
-                                                        api.CloseOrder(order.Key, decimal.ToDouble(order.Value.Lots));
-
-                                                        // Send to logs
-                                                        LogFactory.CloseOrderCommand(api.ClientId, _appConfig.Debug, cmd, order.Key, decimal.ToDouble(order.Value.Lots), order.Value.Magic);
-                                                    }
-                                                    else
-                                                    {
-                                                        // Print on the screen
-                                                        Helpers.Print($"ERROR : {DateTime.UtcNow} / {_appConfig.Brokers.First(f => f.ClientId == api.ClientId).Name} / {pair.TickerInMetatrader} / CLOSE COMMAND / {cmd.SignalID} / UNABLE TO FIND TRADE / {cmd.StrategyID}");
-
-                                                        // Send to logs
-                                                        LogFactory.UnableToFindOrder(api.ClientId, _appConfig.Debug, cmd, cmd.SignalID);
-                                                    }
-                                                }
-
-                                                // Close ALL
-                                                else if (cmd.OrderType.Equals("CLOSEALL", StringComparison.CurrentCultureIgnoreCase))
-                                                {
-                                                    // Null reference check
-                                                    foreach (var order in api.OpenOrders)
-                                                    {
-                                                        // Get the strategy number from the comment field
-                                                        var strategyType = Calculator.GetStrategyIdFromComment(order.Value.Comment);
-
-                                                        if (strategyType == pair.StrategyID)
+                                                        // Null reference check
+                                                        if (ticketId.Key > 0 && ticketId.Value.Type != null)
                                                         {
+                                                            // InitAndStart variable
+                                                            var sl = 0.0M;
+
+                                                            if (ticketId.Value.Type.Equals("SELL", StringComparison.CurrentCultureIgnoreCase))
+                                                            {
+                                                                // Calculate SL Price
+                                                                sl = Calculator.StoplossToBreakEvenForShort(
+                                                                    entryBidPrice: ticketId.Value.OpenPrice,
+                                                                    currentBidPrice: metadataTick.Bid,
+                                                                    spread: spread,
+                                                                    tickSize: metadataTick.TickSize,
+                                                                    out Dictionary<string, string> logMessagesSL);
+
+                                                                // Send to logs
+                                                                LogFactory.CalculateStoploss(api.ClientId, _appConfig.Debug, cmd, logMessagesSL);
+                                                            }
+                                                            else
+                                                            {
+                                                                // Calculate SL Price
+                                                                sl = Calculator.StoplossToBreakEvenForLong(
+                                                                    entryBidPrice: ticketId.Value.OpenPrice,
+                                                                    currentBidPrice: metadataTick.Bid,
+                                                                    spread: spread,
+                                                                    tickSize: metadataTick.TickSize,
+                                                                    out Dictionary<string, string> logMessagesSL);
+
+                                                                // Send to logs
+                                                                LogFactory.CalculateStoploss(api.ClientId, _appConfig.Debug, cmd, logMessagesSL);
+                                                            }
+
+                                                            // Round
+                                                            sl = Calculator.RoundToNearestTickSize(sl, metadataTick.TickSize, metadataTick.Digits);
+
                                                             // Print on the screen
-                                                            Helpers.Print($"INFO : {DateTime.UtcNow} / {_appConfig.Brokers.First(f => f.ClientId == api.ClientId).Name} / {pair.TickerInMetatrader} / CLOSEALL COMMAND / {cmd.SignalID} / {cmd.StrategyID}");
+                                                            Helpers.Print($"INFO : {DateTime.UtcNow} / {_appConfig.Brokers.First(f => f.ClientId == api.ClientId).Name} / {pair.TickerInMetatrader} / MODIFY SL TO BE COMMAND / {cmd.SignalID} / {cmd.StrategyID}");
 
                                                             // Modify order
+                                                            api.ModifyOrder(ticketId.Key, ticketId.Value.Lots, 0, sl, ticketId.Value.TakeProfit, Convert.ToInt32(cmd.SignalID));
+
+                                                            // Send to logs
+                                                            LogFactory.ModifyOrderCommand(api.ClientId, _appConfig.Debug, cmd, ticketId.Key, ticketId.Value.Lots, 0, sl, ticketId.Value.TakeProfit, Convert.ToInt32(cmd.SignalID));
+
+                                                        }
+                                                        else
+                                                        {
+                                                            // Print on the screen
+                                                            Helpers.Print($"ERROR : {DateTime.UtcNow} / {_appConfig.Brokers.First(f => f.ClientId == api.ClientId).Name} / {pair.TickerInMetatrader} {pair.TickerInMetatrader} / MODIFY SL TO BE / {cmd.SignalID} / UNABLE TO FIND TRADE");
+
+                                                            // Send to logs
+                                                            LogFactory.UnableToFindOrder(api.ClientId, _appConfig.Debug, cmd, cmd.SignalID);
+                                                        }
+                                                    }
+
+                                                    // Close or cancel order
+                                                    else if ((cmd.OrderType.Equals("CLOSE", StringComparison.CurrentCultureIgnoreCase) || cmd.OrderType.Equals("CANCEL", StringComparison.CurrentCultureIgnoreCase)) && cmd.SignalID > 0)
+                                                    {
+                                                        // Check if the ticket still exist as open order
+                                                        var order = api.OpenOrders.FirstOrDefault(f => f.Value.Magic == cmd.SignalID);
+
+                                                        // Null reference check
+                                                        if (order.Key > 0)
+                                                        {
+                                                            // Print on the screen
+                                                            Helpers.Print($"INFO : {DateTime.UtcNow} / {_appConfig.Brokers.First(f => f.ClientId == api.ClientId).Name} / {pair.TickerInMetatrader} {pair.TickerInMetatrader} / {cmd.OrderType} COMMAND / {cmd.SignalID}");
+
+                                                            // Close order
                                                             api.CloseOrder(order.Key, decimal.ToDouble(order.Value.Lots));
 
                                                             // Send to logs
                                                             LogFactory.CloseOrderCommand(api.ClientId, _appConfig.Debug, cmd, order.Key, decimal.ToDouble(order.Value.Lots), order.Value.Magic);
                                                         }
+                                                        else
+                                                        {
+                                                            // Print on the screen
+                                                            Helpers.Print($"ERROR : {DateTime.UtcNow} / {_appConfig.Brokers.First(f => f.ClientId == api.ClientId).Name} / {pair.TickerInMetatrader} / CLOSE COMMAND / {cmd.SignalID} / UNABLE TO FIND TRADE / {cmd.StrategyID}");
+
+                                                            // Send to logs
+                                                            LogFactory.UnableToFindOrder(api.ClientId, _appConfig.Debug, cmd, cmd.SignalID);
+                                                        }
+                                                    }
+
+                                                    // Close ALL
+                                                    else if (cmd.OrderType.Equals("CLOSEALL", StringComparison.CurrentCultureIgnoreCase))
+                                                    {
+                                                        // Null reference check
+                                                        foreach (var order in api.OpenOrders)
+                                                        {
+                                                            // Get the strategy number from the comment field
+                                                            var strategyType = Calculator.GetStrategyIdFromComment(order.Value.Comment);
+
+                                                            if (strategyType == pair.StrategyID)
+                                                            {
+                                                                // Print on the screen
+                                                                Helpers.Print($"INFO : {DateTime.UtcNow} / {_appConfig.Brokers.First(f => f.ClientId == api.ClientId).Name} / {pair.TickerInMetatrader} / CLOSEALL COMMAND / {cmd.SignalID} / {cmd.StrategyID}");
+
+                                                                // Modify order
+                                                                api.CloseOrder(order.Key, decimal.ToDouble(order.Value.Lots));
+
+                                                                // Send to logs
+                                                                LogFactory.CloseOrderCommand(api.ClientId, _appConfig.Debug, cmd, order.Key, decimal.ToDouble(order.Value.Lots), order.Value.Magic);
+                                                            }
+                                                        }
+                                                    }
+
+                                                    if (pair.MaxSpread > 0 && spread >= pair.MaxSpread)
+                                                    {
+                                                        // Print on the screen
+                                                        Helpers.Print($"ERROR : {DateTime.UtcNow} / {_appConfig.Brokers.First(f => f.ClientId == api.ClientId).Name} / {pair.TickerInMetatrader}  / {cmd.SignalID} /  SPREAD TOO HIGH / {cmd.StrategyID}");
+
+                                                        // Raise market abstention or error
+                                                        await MarketAbstentionFactory.SpreadIsTooHighAsync(api.ClientId, _appConfig.Debug, cmd, cmd.SignalID, pair.MaxSpread, spread);
                                                     }
                                                 }
-
-                                                if (pair.MaxSpread > 0 && spread >= pair.MaxSpread)
+                                                else
                                                 {
-                                                    // Print on the screen
-                                                    Helpers.Print($"ERROR : {DateTime.UtcNow} / {_appConfig.Brokers.First(f => f.ClientId == api.ClientId).Name} / {pair.TickerInMetatrader}  / {cmd.SignalID} /  SPREAD TOO HIGH / {cmd.StrategyID}");
-
                                                     // Raise market abstention or error
-                                                    await MarketAbstentionFactory.SpreadIsTooHighAsync(api.ClientId, _appConfig.Debug, cmd, cmd.SignalID, pair.MaxSpread, spread);
+                                                    await MarketAbstentionFactory.NoMarketDataAvailableAsync(api.ClientId, _appConfig.Debug, cmd, cmd.SignalID);
                                                 }
                                             }
                                             else
                                             {
                                                 // Raise market abstention or error
-                                                await MarketAbstentionFactory.NoMarketDataAvailableAsync(api.ClientId, _appConfig.Debug, cmd, cmd.SignalID);
+                                                await MarketAbstentionFactory.NoSubscriptionForThisPairAndStrategyAsync(api.ClientId, _appConfig.Debug, cmd, cmd.SignalID);
                                             }
                                         }
                                         else
                                         {
                                             // Raise market abstention or error
-                                            await MarketAbstentionFactory.NoSubscriptionForThisPairAndStrategyAsync(api.ClientId, _appConfig.Debug, cmd, cmd.SignalID);
+                                            await MarketAbstentionFactory.NoMarketDataAvailableAsync(api.ClientId, _appConfig.Debug, cmd, cmd.SignalID);
                                         }
                                     }
                                     else
                                     {
                                         // Raise market abstention or error
-                                        await MarketAbstentionFactory.NoMarketDataAvailableAsync(api.ClientId, _appConfig.Debug, cmd, cmd.SignalID);
+                                        await MarketAbstentionFactory.NoAccountInfoAvailableAsync(api.ClientId, _appConfig.Debug, cmd, cmd.SignalID);
                                     }
                                 }
                                 else
                                 {
                                     // Raise market abstention or error
-                                    await MarketAbstentionFactory.NoAccountInfoAvailableAsync(api.ClientId, _appConfig.Debug, cmd, cmd.SignalID);
+                                    await MarketAbstentionFactory.EventIsOlderThen1HourAsync(api.ClientId, _appConfig.Debug, cmd, cmd.SignalID);
                                 }
                             });
                         }

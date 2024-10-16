@@ -155,6 +155,16 @@ namespace JCTG.Client
             await LogAsync(clientId, new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = cmd.ToQueryString(), Description = GetDescription("NoSubscriptionForThisPairAndStrategy", logItem), Magic = Convert.ToInt32(magic) }, magic, cmd.Instrument, cmd.OrderType, MarketAbstentionType.NoSubscriptionForThisPairAndStrategy);
         }
 
+        public static async Task EventIsOlderThen1HourAsync(long clientId, bool isDebug, OnSendTradingviewSignalCommand cmd, long magic)
+        {
+            var logItem = new Dictionary<string, string>
+            {
+                { "magic", magic.ToString() },
+            };
+
+            await LogAsync(clientId, new Log() { Time = DateTime.UtcNow, Type = "ERROR", Message = cmd.ToQueryString(), Description = GetDescription("EventIsOlderThen1Hour", logItem), Magic = Convert.ToInt32(magic) }, magic, cmd.Instrument, cmd.OrderType, MarketAbstentionType.NoAccountInfoAvailable);
+        }
+
         public static async Task NoAccountInfoAvailableAsync(long clientId, bool isDebug, OnSendTradingviewSignalCommand cmd, long magic)
         {
             var logItem = new Dictionary<string, string>

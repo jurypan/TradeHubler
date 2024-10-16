@@ -4,6 +4,7 @@ namespace JCTG.Command
 {
     public class OnSendTradingviewSignalCommand
     {
+        public DateTime DateCreated { get; set; } = DateTime.UtcNow;
 
         // Required
         public long SignalID { get; set; }
