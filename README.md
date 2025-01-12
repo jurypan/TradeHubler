@@ -1,7 +1,7 @@
 
-# JCTG Project Overview
+# TradeHubler overview
 
-The JCTG project is structured into three major components, each serving a unique role in the overall functionality of the system. These components are designed to work together to capture TradingView requests, process them, and interact with Metatrader applications.
+The TradeHubler project is structured into three major components, each serving a unique role in the overall functionality of the system. These components are designed to work together to capture TradingView requests, process them, and interact with Metatrader applications.
 
 ## Components
 
