@@ -5,11 +5,11 @@ The JCTG project is structured into three major components, each serving a uniqu
 
 ## Components
 
-### 1. JCTG.AzureFunction
+### 1. JCTG.WebApp
 
-- **Description**: This component is designed to be hosted as an Azure Function. Its primary role is to capture requests from TradingView.
+- **Description**: This component is designed to be hosted as an Azure Web App. Its primary role is to capture requests from TradingView.
 - **Functionality**:
-  - Acts as a serverless function in Azure.
+  - Acts as a Azure Web App.
   - Processes incoming HTTP requests from TradingView.
   - Parses and forwards the requests to the JCTG.Client component for further processing.
 
@@ -17,7 +17,7 @@ The JCTG project is structured into three major components, each serving a uniqu
 
 - **Description**: This is a Console application that runs on a Virtual Machine (VM) where the Metatrader applications are installed.
 - **Functionality**:
-  - Listens for data from the JCTG.AzureFunction.
+  - Listens for data from the JCTG.WebApp.
   - Interprets the data and interacts with the Metatrader applications accordingly.
   - Can be configured to work with multiple instances of Metatrader.
 
@@ -33,7 +33,7 @@ The JCTG project is structured into three major components, each serving a uniqu
 
 Each component requires specific setup procedures:
 
-1. **JCTG.AzureFunction**: Deploy the function to Azure and configure it to receive requests from TradingView.
+1. **JCTG.WebApp**: Deploy the function to Azure and configure it to receive requests from TradingView.
 2. **JCTG.Client**: Install the console application on a VM where Metatrader is running. Ensure it's configured to communicate with the Azure Function.
 3. **JCTG.MQL**: Install the Expert Advisors in Metatrader by placing the MQL scripts in the appropriate directory of your Metatrader installation.
 
