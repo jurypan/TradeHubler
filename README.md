@@ -34,12 +34,12 @@ The TradeHubler project is structured into three major components, each serving 
 Each component requires specific setup procedures:
 
 1. **JCTG.WebApp**: Deploy the function to Azure and configure it to receive requests from TradingView.
-2. **JCTG.Client**: Install the console application on a VM where Metatrader is running. Ensure it's configured to communicate with the Azure Function.
+2. **JCTG.Client**: Install the console application on a VM where Metatrader is running. Ensure it's configured to communicate with the Azure Web App.
 3. **JCTG.MQL**: Install the Expert Advisors in Metatrader by placing the MQL scripts in the appropriate directory of your Metatrader installation.
 
 ## Conclusion
 
-The JCTG project is a comprehensive solution that integrates cloud functionality with trading applications. By leveraging Azure Functions, console applications, and custom MQL scripts, it offers a robust platform for automated trading strategies.
+The JCTG project is a comprehensive solution that integrates cloud functionality with trading applications. By leveraging Azure Web App, console applications, and custom MQL scripts, it offers a robust platform for automated trading strategies.
 
 ---
 
